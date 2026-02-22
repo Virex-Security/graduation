@@ -17,6 +17,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- Custom CSS -->
   <link rel="stylesheet" href="/static/css/dashboard.css" />
+  <link rel="stylesheet" href="/static/css/ml_stats.css" />
   <link rel="stylesheet" href="/static/css/chatbot.css" />
   <link rel="stylesheet" href="/static/css/ramadan.css" />
   <!-- Theme Manager -->
@@ -159,6 +160,126 @@
         </div>
       </div>
 
+      <!-- ML Model Performance Stats -->
+      <section class="ml-stats-section">
+        <div class="ml-stats-header">
+          <div class="ml-stats-title">
+            <i class="fas fa-brain"></i>
+            <div>
+              <h2>ML Model Performance</h2>
+              <p>Live evaluation — Random Forest · TF-IDF · Trained on real attack patterns</p>
+            </div>
+          </div>
+          <div class="ml-stats-actions">
+            <div class="ml-status-badge" id="ml-status-badge">
+              <span class="ml-status-dot"></span>
+              <span id="ml-status-text">Loading...</span>
+            </div>
+            <button class="btn-ml-refresh" onclick="MLStats.load()" title="Refresh">
+              <i class="fas fa-sync-alt" id="ml-refresh-icon"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- KPI Row -->
+        <div class="ml-kpi-grid">
+          <div class="ml-kpi-card ml-kpi-accuracy">
+            <div class="ml-kpi-icon"><i class="fas fa-bullseye"></i></div>
+            <div class="ml-kpi-value" id="ml-accuracy">--</div>
+            <div class="ml-kpi-label">Accuracy</div>
+            <div class="ml-kpi-bar"><div class="ml-kpi-fill" id="ml-accuracy-fill"></div></div>
+          </div>
+          <div class="ml-kpi-card ml-kpi-precision">
+            <div class="ml-kpi-icon"><i class="fas fa-crosshairs"></i></div>
+            <div class="ml-kpi-value" id="ml-precision">--</div>
+            <div class="ml-kpi-label">Precision</div>
+            <div class="ml-kpi-bar"><div class="ml-kpi-fill" id="ml-precision-fill"></div></div>
+          </div>
+          <div class="ml-kpi-card ml-kpi-recall">
+            <div class="ml-kpi-icon"><i class="fas fa-shield-alt"></i></div>
+            <div class="ml-kpi-value" id="ml-recall">--</div>
+            <div class="ml-kpi-label">Recall</div>
+            <div class="ml-kpi-bar"><div class="ml-kpi-fill" id="ml-recall-fill"></div></div>
+          </div>
+          <div class="ml-kpi-card ml-kpi-f1">
+            <div class="ml-kpi-icon"><i class="fas fa-star"></i></div>
+            <div class="ml-kpi-value" id="ml-f1">--</div>
+            <div class="ml-kpi-label">F1-Score</div>
+            <div class="ml-kpi-bar"><div class="ml-kpi-fill" id="ml-f1-fill"></div></div>
+          </div>
+          <div class="ml-kpi-card ml-kpi-auc">
+            <div class="ml-kpi-icon"><i class="fas fa-chart-area"></i></div>
+            <div class="ml-kpi-value" id="ml-auc">--</div>
+            <div class="ml-kpi-label">ROC-AUC</div>
+            <div class="ml-kpi-bar"><div class="ml-kpi-fill" id="ml-auc-fill"></div></div>
+          </div>
+        </div>
+
+        <!-- Bottom Row -->
+        <div class="ml-details-grid">
+
+          <!-- Confusion Matrix -->
+          <div class="ml-card">
+            <h3><i class="fas fa-table"></i> Confusion Matrix</h3>
+            <div class="confusion-matrix">
+              <div class="cm-header-row">
+                <div class="cm-empty"></div>
+                <div class="cm-col-label">Predicted<br>Normal</div>
+                <div class="cm-col-label">Predicted<br>Attack</div>
+              </div>
+              <div class="cm-data-row">
+                <div class="cm-row-label">Actual<br>Normal</div>
+                <div class="cm-cell cm-tn" id="cm-tn"><span>--</span><small>True Negative</small></div>
+                <div class="cm-cell cm-fp" id="cm-fp"><span>--</span><small>False Positive</small></div>
+              </div>
+              <div class="cm-data-row">
+                <div class="cm-row-label">Actual<br>Attack</div>
+                <div class="cm-cell cm-fn" id="cm-fn"><span>--</span><small>False Negative</small></div>
+                <div class="cm-cell cm-tp" id="cm-tp"><span>--</span><small>True Positive</small></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Top Features -->
+          <div class="ml-card">
+            <h3><i class="fas fa-list-ol"></i> Top Attack Indicators</h3>
+            <div class="ml-features-list" id="ml-features-list">
+              <div class="ml-loading"><i class="fas fa-spinner fa-spin"></i> Loading...</div>
+            </div>
+          </div>
+
+          <!-- Model Info -->
+          <div class="ml-card">
+            <h3><i class="fas fa-info-circle"></i> Model Details</h3>
+            <div class="ml-info-list">
+              <div class="ml-info-row">
+                <span class="ml-info-label">Algorithm</span>
+                <span class="ml-info-value" id="ml-model-type">--</span>
+              </div>
+              <div class="ml-info-row">
+                <span class="ml-info-label">Vectorizer</span>
+                <span class="ml-info-value" id="ml-vectorizer">--</span>
+              </div>
+              <div class="ml-info-row">
+                <span class="ml-info-label">Dataset Size</span>
+                <span class="ml-info-value" id="ml-dataset-size">--</span>
+              </div>
+              <div class="ml-info-row">
+                <span class="ml-info-label">Test Samples</span>
+                <span class="ml-info-value" id="ml-test-size">--</span>
+              </div>
+              <div class="ml-info-row">
+                <span class="ml-info-label">Status</span>
+                <span class="ml-info-value">
+                  <i class="fas fa-circle" style="color:#10b981;font-size:0.6rem;margin-right:4px"></i>Active & Running
+                </span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
       <!-- Data Row -->
       <div class="info-grid">
         <div class="table-card">
@@ -201,6 +322,7 @@
   <!-- Common JS -->
   <script src="/static/javascript/auth.js"></script>
   <script src="/static/javascript/dashboard.js"></script>
+  <script src="/static/javascript/ml_stats.js"></script>
   <script src="/static/javascript/chatbot.js"></script>
   <script src="/static/javascript/notifications.js"></script>
   <script src="/static/javascript/ramadan.js"></script>

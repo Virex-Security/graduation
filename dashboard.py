@@ -6,7 +6,10 @@ import threading
 import requests
 import random
 import os
+from dotenv import load_dotenv
 from collections import defaultdict, deque
+
+load_dotenv()
 import jwt
 from functools import wraps
 from roles import Role
@@ -48,7 +51,7 @@ class SecurityDashboard:
             with open(self.audit_log_path, "w") as f:
                 json.dump([], f)
         
-        self.secret_key = "super-secret-key-for-jwt" # In production, use env var
+        self.secret_key = os.getenv("SECRET_KEY", "fallback-dev-key-change-in-production")
 
         # Restore stats from disk on startup
         self.load_stats_from_audit()
@@ -569,6 +572,67 @@ def create_dashboard_app():
             'role': current_user.get('role'),
             'email': current_user.get('email', '')
         })
+
+    @app.route('/api/ml/stats')
+    @token_required
+    def ml_stats(current_user):
+        """Return ML model performance metrics loaded from model.pkl"""
+        import joblib
+        import numpy as np
+
+        try:
+            from sklearn.metrics import (
+                accuracy_score, precision_score, recall_score,
+                f1_score, roc_auc_score, confusion_matrix
+            )
+            import pandas as pd
+
+            # Load model & vectorizer
+            model_obj      = joblib.load("model.pkl")
+            vectorizer_obj = joblib.load("vectorizer.pkl")
+            data           = pd.read_csv("ml_training_data.csv")
+
+            from sklearn.model_selection import train_test_split
+            _, X_test_raw, _, y_test = train_test_split(
+                data['text'], data['label'],
+                test_size=0.2, random_state=42, stratify=data['label']
+            )
+
+            X_test_vec = vectorizer_obj.transform(X_test_raw)
+            y_pred     = model_obj.predict(X_test_vec)
+            y_prob     = model_obj.predict_proba(X_test_vec)[:, 1]
+
+            cm = confusion_matrix(y_test, y_pred)
+            tn, fp, fn, tp = cm.ravel()
+
+            # Top 10 feature importances
+            feature_names = vectorizer_obj.get_feature_names_out()
+            importances   = model_obj.feature_importances_
+            top_idx       = np.argsort(importances)[::-1][:10]
+            top_features  = [
+                {"feature": str(feature_names[i]), "importance": round(float(importances[i]), 4)}
+                for i in top_idx
+            ]
+
+            return jsonify({
+                "status": "ok",
+                "model_type":        "Random Forest (100 trees, max_depth=20)",
+                "vectorizer_type":   "TF-IDF (ngrams 1-2, 5000 features)",
+                "dataset_size":      len(data),
+                "test_size":         len(y_test),
+                "accuracy":          round(accuracy_score(y_test, y_pred) * 100, 2),
+                "precision":         round(precision_score(y_test, y_pred) * 100, 2),
+                "recall":            round(recall_score(y_test, y_pred) * 100, 2),
+                "f1_score":          round(f1_score(y_test, y_pred) * 100, 2),
+                "roc_auc":           round(roc_auc_score(y_test, y_prob), 4),
+                "confusion_matrix":  {"tn": int(tn), "fp": int(fp), "fn": int(fn), "tp": int(tp)},
+                "top_features":      top_features,
+            })
+
+        except FileNotFoundError as e:
+            return jsonify({"status": "error", "message": f"Model file not found: {e}"}), 404
+        except Exception as e:
+            return jsonify({"status": "error", "message": str(e)}), 500
 
     @app.route('/incidents')
     @token_required

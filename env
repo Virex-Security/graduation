@@ -1,0 +1,13 @@
+# ============================================================
+#  Virex Security — Environment Variables
+#  ⚠️  لا ترفع الملف ده على GitHub أبداً
+#  ⚠️  غير الـ SECRET_KEY قبل أي deployment
+# ============================================================
+
+SECRET_KEY=55f0ede4316eebdcd71176e9abcf20f7ee7270de469174f0cd3a55553ef7e0c0
+
+# Dashboard Port (اختياري)
+# DASHBOARD_PORT=8070
+
+# API URL (اختياري)
+# API_URL=http://127.0.0.1:5000
