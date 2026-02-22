@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Virex - AI Powered Cyber Threat Detection</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Courier+Prime:wght@400;700&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link rel="stylesheet" href="/static/css/landing.css" />
+  <link rel="stylesheet" href="/static/css/ramadan.css" />
+  <script src="/static/javascript/theme.js"></script>
+  <script src="/static/javascript/ramadan.js"></script>
+</head>
+
+<body>
+  <!-- Animated Background -->
+  <div class="animated-bg">
+    <div class="code-line code-line-1">const detectSQLInjection = {}</div>
+    <div class="code-line code-line-2">api.security.monitor()</div>
+    <div class="code-line code-line-3">ML.analyze.threat()</div>
+    <div class="code-line code-line-4">return blockSuspicious()</div>
+  </div>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="navbar-container">
+      <div class="logo">
+        <i class="fas fa-shield-alt"></i>
+        <span>Virex</span>
+      </div>
+      <div class="nav-buttons">
+        <button class="btn-icon" id="theme-toggle" title="Toggle Light/Dark Mode" style="margin-right: 1rem">
+          <i class="fas fa-sun"></i>
+        </button>
+        <button class="btn-signup" onclick="window.location.href = '/signup'">
+          Sign Up
+        </button>
+        <button class="btn-login" onclick="window.location.href = '/login'">
+          Login
+        </button>
+      </div>
+    </div>
+    {% include 'ramadan_decoration.html' %}
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero-content">
+      <h1 class="hero-title">
+        AI Powered<br />
+        <span class="gradient-text">Cyber Threat Detection</span>
+      </h1>
+      <p class="hero-description">
+        Advanced security dashboard powered by machine learning to detect and
+        prevent attacks in real-time. Monitor API requests, identify SQL
+        injection patterns, and protect your infrastructure with intelligent
+        threat detection.
+      </p>
+      <div class="hero-buttons">
+        <button class="btn-primary" onclick="window.location.href = '/login'">
+          <span>Get Started</span>
+          <i class="fas fa-arrow-right"></i>
+        </button>
+        <button class="btn-secondary" onclick="
+              document
+                .querySelector('.features')
+                .scrollIntoView({ behavior: 'smooth' })
+            ">
+          <span>View Dashboard Demo</span>
+          <i class="fas fa-play"></i>
+        </button>
+      </div>
+    </div>
+    <div class="hero-card">
+      <div class="card-glow"></div>
+      <div class="card-content">
+        <div class="card-stat">
+          <div class="stat-number">99.2%</div>
+          <div class="stat-label">Detection Rate</div>
+        </div>
+        <div class="card-divider"></div>
+        <div class="card-info">
+          <p><i class="fas fa-check-circle"></i> Real-time Monitoring</p>
+          <p><i class="fas fa-check-circle"></i> ML-Based Analysis</p>
+          <p><i class="fas fa-check-circle"></i> Instant Alerts</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section id="features" class="features">
+    <div class="features-header">
+      <h2>Why Choose Virex?</h2>
+      <p>
+        Enterprise-grade security features powered by artificial intelligence
+      </p>
+    </div>
+    <div class="features-grid">
+      <!-- Feature 1: SQL Injection Detection -->
+      <div class="feature-card">
+        <div class="feature-icon">
+          <i class="fas fa-database"></i>
+        </div>
+        <h3>SQL Injection Detection</h3>
+        <p>
+          Advanced pattern recognition and ML-based analysis to identify and
+          block SQL injection attacks before they reach your database.
+        </p>
+        <div class="feature-hover-glow"></div>
+      </div>
+
+      <!-- Feature 2: API Threat Monitoring -->
+      <div class="feature-card">
+        <div class="feature-icon">
+          <i class="fas fa-network-wired"></i>
+        </div>
+        <h3>API Threat Monitoring</h3>
+        <p>
+          Real-time monitoring of all API requests with intelligent anomaly
+          detection and behavioral analysis.
+        </p>
+        <div class="feature-hover-glow"></div>
+      </div>
+
+      <!-- Feature 3: Real-Time Analytics -->
+      <div class="feature-card">
+        <div class="feature-icon">
+          <i class="fas fa-chart-line"></i>
+        </div>
+        <h3>Real-Time Analytics</h3>
+        <p>
+          Comprehensive dashboard with live statistics, threat visualization,
+          and instant alerts on suspicious activities.
+        </p>
+        <div class="feature-hover-glow"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works Section -->
+  <section id="how-it-works" class="how-it-works">
+    <div class="section-header">
+      <h2>How Virex Works</h2>
+      <p>Three simple steps to protect your infrastructure</p>
+    </div>
+
+    <div class="timeline">
+      <!-- Step 1 -->
+      <div class="timeline-item">
+        <div class="timeline-marker">
+          <span class="step-number">1</span>
+        </div>
+        <div class="timeline-content">
+          <div class="step-card">
+            <i class="fas fa-inbox"></i>
+            <h3>Collect API Requests</h3>
+            <p>
+              All incoming API requests are captured and logged in real-time.
+              Every request is tagged with metadata including timestamp,
+              source IP, headers, and payload.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 2 -->
+      <div class="timeline-item">
+        <div class="timeline-marker">
+          <span class="step-number">2</span>
+        </div>
+        <div class="timeline-content">
+          <div class="step-card">
+            <i class="fas fa-brain"></i>
+            <h3>Analyze using ML Model</h3>
+            <p>
+              Advanced machine learning algorithms analyze patterns and
+              behavior. Our models detect SQL injection, XSS, brute force
+              attacks, and other malicious patterns with high accuracy.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3 -->
+      <div class="timeline-item">
+        <div class="timeline-marker">
+          <span class="step-number">3</span>
+        </div>
+        <div class="timeline-content">
+          <div class="step-card">
+            <i class="fas fa-shield-virus"></i>
+            <h3>Block Suspicious Traffic</h3>
+            <p>
+              Identified threats are immediately blocked. Administrators
+              receive instant alerts and can monitor all incidents through the
+              dashboard for further investigation.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="cta-section">
+    <div class="cta-content">
+      <h2>Ready to Protect Your Infrastructure?</h2>
+      <p>
+        Join enterprise teams using Virex for advanced threat detection and
+        prevention
+      </p>
+      <button class="btn-cta" onclick="window.location.href = '/login'">
+        Start Free Trial Now
+        <i class="fas fa-arrow-right"></i>
+      </button>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-content">
+      <div class="footer-section">
+        <h4><i class="fas fa-shield-alt"></i> Virex</h4>
+        <p>AI-Powered Cyber Threat Detection System</p>
+      </div>
+      <div class="footer-section">
+        <h4>Project Info</h4>
+        <p><strong>Supervisor:</strong> Dr. Hager mohammed</p>
+        <p>
+          <strong>University:</strong> Faculty of Computers and Artificial
+          Intelligence , Beni-Suef National University
+        </p>
+      </div>
+      <div class="footer-section">
+        <h4>Contact</h4>
+        <p><a href="mailto:security@virex.dev">security@virex.dev</a></p>
+        <p>
+          <a href="https://github.com/Virex-Security" target="_blank"><i class="fab fa-github"></i> GitHub</a>
+        </p>
+      </div>
+      <div class="footer-section">
+        <h4>Quick Links</h4>
+        <p><a href="/login">Dashboard</a></p>
+        <p><a href="#features">Features</a></p>
+        <p><a href="#how-it-works">How It Works</a></p>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>
+        &copy; 2026 Virex Security. All rights reserved. | Developed by Team
+        Virex
+      </p>
+    </div>
+  </footer>
+
+  <script src="/static/javascript/landing.js"></script>
+</body>
+
+</html>

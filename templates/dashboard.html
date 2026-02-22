@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard - Virex</title>
+  <!-- Google Fonts -->
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap"
+    rel="stylesheet" />
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="/static/css/dashboard.css" />
+  <link rel="stylesheet" href="/static/css/chatbot.css" />
+  <link rel="stylesheet" href="/static/css/ramadan.css" />
+  <!-- Theme Manager -->
+  <script src="/static/javascript/theme.js"></script>
+</head>
+
+<body>
+  <div class="dashboard-wrapper">
+    <!-- Top Navigation -->
+    <nav class="navbar">
+      <div class="brand" onclick="location.href = '/'" style="cursor: pointer">
+        <span>Virex</span>
+      </div>
+
+      <div class="nav-actions">
+        <div class="status-indicator">
+          <div class="status-dot"></div>
+          <span id="conn-status">Disconnected</span>
+        </div>
+        <div class="score-badge">
+          Security Score: <span id="security-score">--/100</span>
+        </div>
+        <button class="btn-icon" id="theme-toggle" title="Toggle Light/Dark Mode" style="margin-right: 1rem">
+          <i class="fas fa-sun"></i>
+        </button>
+        {% if user and user.role == 'admin' %}
+        <button class="incidents-btn" id="incidents-btn" onclick="location.href = '/incidents'">
+          <i class="fas fa-list-check fa-lg"></i>
+          Incidents
+        </button>
+        {% endif %}
+        <button class="refresh-btn" id="refresh-btn">
+          <i class="fas fa-sync"></i>
+          Refresh
+        </button>
+        {% if user and user.role == 'admin' %}
+        <button class="reset-btn" id="reset-btn">
+          <i class="fas fa-trash-can"></i>
+          Reset Stats
+        </button>
+        {% endif %}
+        <button class="logout-btn" id="logout-btn">
+          <i class="fas fa-right-from-bracket fa-lg"></i>
+          Logout
+        </button>
+      </div>
+      {% include 'ramadan_decoration.html' %}
+    </nav>
+
+    <main class="main-content">
+      <header class="section-title">
+        <h1>Security Overview</h1>
+        <p>
+          ML Anomaly Detection monitoring. Last sync:
+          <span id="last-update">--:--:--</span>
+        </p>
+      </header>
+
+      <!-- KPI Cards -->
+      <div class="stats-grid">
+        <div class="stat-card type-total clickable" onclick="location.href = '/requests'">
+          <div class="stat-header">
+            <i class="fas fa-globe"></i>
+            <h3>Total Requests</h3>
+          </div>
+          <div class="stat-value" id="total-requests">0</div>
+        </div>
+
+        <div class="stat-card type-blocked clickable" onclick="location.href = '/blocked'">
+          <div class="stat-header">
+            <i class="fas fa-hand" style="color: red"></i>
+
+            <h3>Blocked</h3>
+          </div>
+          <div class="stat-value" id="blocked-requests">0</div>
+        </div>
+
+        <div class="stat-card type-ml clickable" onclick="location.href = '/threats/ml-detection'">
+          <div class="stat-header">
+            <i class="fas fa-brain" style="color: var(--brand-secondary)"></i>
+            <h3>ML Detections</h3>
+          </div>
+          <div class="stat-value" id="ml-detections">0</div>
+        </div>
+
+        <div class="stat-card type-sqli clickable" onclick="location.href = '/threats/sql-injection'">
+          <div class="stat-header">
+            <i class="fas fa-database" style="color: var(--warning)"></i>
+            <h3>SQL Injection</h3>
+          </div>
+          <div class="stat-value" id="sqli-attempts">0</div>
+        </div>
+
+        <div class="stat-card type-xss clickable" onclick="location.href = '/threats/xss'">
+          <div class="stat-header">
+            <i class="fas fa-code" style="color: var(--info)"></i>
+            <h3>XSS Attacks</h3>
+          </div>
+          <div class="stat-value" id="xss-attempts">0</div>
+        </div>
+
+        <div class="stat-card type-brute clickable" onclick="location.href = '/threats/brute-force'">
+          <div class="stat-header">
+            <i class="fas fa-key" style="color: var(--danger)"></i>
+            <h3>Brute Force</h3>
+          </div>
+          <div class="stat-value" id="brute-force">0</div>
+        </div>
+
+        <div class="stat-card type-scanner clickable" onclick="location.href = '/threats/scanner'">
+          <div class="stat-header">
+            <i class="fas fa-eye" style="color: var(--success)"></i>
+            <h3>Scanners</h3>
+          </div>
+          <div class="stat-value" id="scanner-probes">0</div>
+        </div>
+
+        <div class="stat-card type-rate clickable" onclick="location.href = '/threats/rate-limit'">
+          <div class="stat-header">
+            <i class="fas fa-bolt" style="color: var(--warning)"></i>
+            <h3>Rate Limited</h3>
+          </div>
+          <div class="stat-value" id="rate-limited">0</div>
+        </div>
+      </div>
+
+      <!-- Charts Row -->
+      <div class="charts-grid">
+        <div class="chart-card">
+          <h2>Traffic Analysis (Real-time)</h2>
+          <div style="height: 300px">
+            <canvas id="timelineChart"></canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <h2>Threat Distribution</h2>
+          <div style="height: 300px">
+            <canvas id="distributionChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Data Row -->
+      <div class="info-grid">
+        <div class="table-card">
+          <div class="alert-header">
+            <h2>Recent Security Alerts</h2>
+          </div>
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Timestamp</th>
+                  <th>Threat Type</th>
+                  <th>Source IP</th>
+                  <th>Severity</th>
+                  <th>Details</th>
+                </tr>
+              </thead>
+              <tbody id="threats-table-body">
+                <!-- Populated by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <h2>Top Threat Actors</h2>
+          <div class="attacker-list" id="top-attackers-list">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div id="notification-container"></div>
+
+  <!-- Chatbot Widget -->
+  {% include 'chatbot.html' %}
+
+  <!-- Common JS -->
+  <script src="/static/javascript/auth.js"></script>
+  <script src="/static/javascript/dashboard.js"></script>
+  <script src="/static/javascript/chatbot.js"></script>
+  <script src="/static/javascript/notifications.js"></script>
+  <script src="/static/javascript/ramadan.js"></script>
+</body>
+
+</html>

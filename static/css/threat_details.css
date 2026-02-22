@@ -1,0 +1,73 @@
+.severity-High {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+}
+
+.severity-Medium {
+    background: rgba(245, 158, 11, 0.15);
+    color: #f59e0b;
+}
+
+.severity-Low {
+    background: rgba(34, 197, 94, 0.15);
+    color: #22c55e;
+}
+
+tr.row-High td {
+    background: rgba(239, 68, 68, 0.05);
+}
+
+tr.row-Medium td {
+    background: rgba(245, 158, 11, 0.05);
+}
+
+tr.row-Low td {
+    background: rgba(34, 197, 94, 0.05);
+}
+
+.threat-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-box {
+    background: var(--bg-layout);
+    border: 1px solid var(--border-dim);
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: center;
+}
+
+.stat-box-title {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.75rem;
+}
+
+.stat-box-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--brand-primary);
+}
+
+.stat-box-icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.severity-High {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+}
+
+.stat-box.clickable {
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.stat-box.clickable:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
