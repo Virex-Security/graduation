@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>{{ title }} - Virex</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link rel="stylesheet" href="/static/css/dashboard.css" />
+  <link rel="stylesheet" href="/static/css/chatbot.css" />
+  <link rel="stylesheet" href="/static/css/threat_details.css" />
+  <script src="/static/javascript/theme.js"></script>
+  <script src="/static/javascript/access-control.js"></script>
+</head>
+
+<body>
+  <div class="dashboard-wrapper">
+    <nav class="navbar">
+      <div class="brand" onclick="location.href = '/'">
+        <span>Virex</span>
+      </div>
+      <div class="nav-actions">
+        <button class="logout-btn" onclick="location.href = '/dashboard'">
+          <i class="fas fa-arrow-left"></i> Back
+        </button>
+      </div>
+    </nav>
+
+    <main class="main-content">
+      <header class="section-title">
+        <h1>{{ title }}</h1>
+        <p>{{ description }}</p>
+      </header>
+
+      <!-- Threat Statistics (Admin Only) -->
+      {% if user.role == 'admin' %}
+      <div class="threat-stats">
+        <div class="stat-box clickable" onclick="filterSeverity('all')">
+          <div class="stat-box-icon"><i class="fas fa-chart-bar"></i></div>
+          <div class="stat-box-title">Total Detections</div>
+          <div class="stat-box-value">{{ total_count }}</div>
+        </div>
+
+        <div class="stat-box">
+          <div class="stat-box-icon"><i class="fas fa-ban"></i></div>
+          <div class="stat-box-title">Blocked</div>
+          <div class="stat-box-value">{{ blocked_count }}</div>
+        </div>
+
+         <div
+            class="stat-box clickable"
+            onclick="location.href = '/critical'"
+          >
+            <div class="stat-box-icon">
+              <i
+                class="fas fa-exclamation-triangle"
+                style="color: var(--danger)"
+              ></i>
+            </div>
+            <div class="stat-box-title">Critical</div>
+            <div class="stat-value" style="color: var(--danger)">
+              {{ critical_count }}
+            </div>
+          </div>
+
+        <div class="stat-box">
+          <div class="stat-box-icon"><i class="fas fa-map-pin"></i></div>
+          <div class="stat-box-title">Unique Sources</div>
+          <div class="stat-box-value">{{ unique_ips }}</div>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Main Table / User Simple Message -->
+      {% if user.role == 'admin' %}
+      <div class="table-card">
+        {% if logs %}
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Timestamp</th>
+              <th>Source IP</th>
+              <th>Attack Type</th>
+              <th>Detection Method</th>
+              <th>Endpoint</th>
+              <th>Severity</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for log in logs %}
+            <tr class="row-{{ log.severity }}">
+              <td style="
+                    font-family: &quot;JetBrains Mono&quot;;
+                    font-size: 0.9rem;
+                  ">
+                {{ log.timestamp }}
+              </td>
+              <td>
+                <span style="
+                      font-family: &quot;JetBrains Mono&quot;;
+                      font-weight: 600;
+                    ">{{ log.ip }}</span>
+              </td>
+              <td>
+                {% if log.ml_detected or log.detection_type == 'ML Detection'
+                %}
+                <span style="font-weight: 700; color: #a855f7">
+                  <i class="fas fa-brain"></i> {{ log.attack_type or log.type
+                  }}
+                </span>
+                {% else %}
+                <span style="font-weight: 700; color: #ef4444">{{ log.attack_type or log.type }}</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if log.ml_detected or log.detection_type == 'ML Detection'
+                %}
+                <span style="
+                      background: rgba(168, 85, 247, 0.15);
+                      color: #a855f7;
+                      padding: 4px 8px;
+                      border-radius: 4px;
+                      font-size: 0.85rem;
+                      font-weight: 600;
+                    ">
+                  <i class="fas fa-brain"></i> ML Detection
+                </span>
+                {% else %}
+                <span style="
+                      background: rgba(59, 130, 246, 0.15);
+                      color: #3b82f6;
+                      padding: 4px 8px;
+                      border-radius: 4px;
+                      font-size: 0.85rem;
+                      font-weight: 600;
+                    ">
+                  <i class="fas fa-shield-alt"></i> Rule-Based
+                </span>
+                {% endif %}
+              </td>
+              <td>
+                <div style="
+                      font-family: &quot;JetBrains Mono&quot;;
+                      font-size: 0.85rem;
+                    ">
+                  <span style="color: #10b981; font-weight: 600">{{ log.method or 'N/A' }}</span>
+                  <span style="color: #6b7280">{{ log.endpoint or 'N/A' }}</span>
+                </div>
+              </td>
+              <td>
+                <span class="severity-badge severity-{{ log.severity }}">{{ log.severity }}</span>
+              </td>
+              <td>
+                {% if log.blocked %}
+                <span style="
+                      background: rgba(239, 68, 68, 0.15);
+                      color: #ef4444;
+                      padding: 4px 8px;
+                      border-radius: 4px;
+                      font-size: 0.85rem;
+                      font-weight: 600;
+                    ">
+                  <i class="fas fa-shield-virus"></i> Blocked
+                </span>
+                {% else %}
+                <span style="
+                      background: rgba(34, 197, 94, 0.15);
+                      color: #22c55e;
+                      padding: 4px 8px;
+                      border-radius: 4px;
+                      font-size: 0.85rem;
+                      font-weight: 600;
+                    ">
+                  <i class="fas fa-eye"></i> Detected
+                </span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <div style="
+              text-align: center;
+              padding: 3rem;
+              color: var(--text-secondary);
+            ">
+          <i class="fas fa-info-circle" style="font-size: 2rem; margin-bottom: 1rem; opacity: 0.5"></i>
+          <p style="font-size: 1.1rem">No {{ title | lower }} detected yet</p>
+          <p style="font-size: 0.95rem; margin-top: 0.5rem">
+            Your system is secure
+          </p>
+        </div>
+        {% endif %}
+      </div>
+      {% else %}
+      <div class="table-card">
+        {% if logs %}
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Timestamp</th>
+              <th>Source IP</th>
+              <th>Attack Type</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for log in logs %}
+            <tr>
+              <td style="
+                    font-family: &quot;JetBrains Mono&quot;;
+                    font-size: 0.9rem;
+                  ">
+                {{ log.timestamp }}
+              </td>
+              <td>
+                <span style="
+                      font-family: &quot;JetBrains Mono&quot;;
+                      font-weight: 600;
+                    ">{{ log.ip }}</span>
+              </td>
+              <td>
+                <span style="font-weight: 700; color: #ef4444">{{ log.attack_type or log.type }}</span>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <div style="
+              text-align: center;
+              padding: 4rem 2rem;
+              background: var(--bg-layout);
+              border: 1px solid var(--border-dim);
+              border-radius: 12px;
+              margin-top: 2rem;
+            ">
+          <i class="fas fa-shield-halved" style="
+                font-size: 4rem;
+                color: var(--brand-primary);
+                margin-bottom: 1.5rem;
+                display: block;
+              "></i>
+          <h2 style="font-size: 1.8rem; margin-bottom: 1rem">
+            لا توجد أنشطة مشبوهة
+          </h2>
+          <p style="font-size: 1.2rem; color: var(--text-primary)">
+            لا توجد أنشطة مشبوهة من نوع {{ title }} حالياً.
+          </p>
+        </div>
+        {% endif %}
+      </div>
+      {% endif %}
+    </main>
+  </div>
+
+  <!-- Notification Toasts -->
+  <div id="notification-container"></div>
+
+  <!-- Chatbot Widget -->
+  {% include 'chatbot.html' %}
+
+  <script>
+    function filterSeverity(severity) {
+      const rows = document.querySelectorAll(".data-table tbody tr");
+      rows.forEach((row) => {
+        if (severity === "all" || row.classList.contains("row-" + severity)) {
+          row.style.display = "";
+        } else {
+          row.style.display = "none";
+        }
+      });
+    }
+  </script>
+  <script src="/static/javascript/auth.js"></script>
+  <script src="/static/javascript/chatbot.js"></script>
+  <script src="/static/javascript/notifications.js"></script>
+</body>
+
+</html>
