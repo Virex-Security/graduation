@@ -45,7 +45,7 @@ class SecurityDashboard:
         
         self.connection_state = WAITING
         self.had_connection = False
-        self.api_url = os.getenv("API_URL", "http://127.0.0.1:5000") + "/api/health"
+        self.api_url = "http://127.0.0.1:5000/api/health"
 
         if not os.path.exists(self.audit_log_path):
             with open(self.audit_log_path, "w") as f:
@@ -317,20 +317,19 @@ class SecurityDashboard:
         return sorted_ips[:limit]
     
     def get_dashboard_data(self):
-        # استخدم الـ stats الموجودة في الميموري مباشرة
-        # بدل ما نعيد نقرأ من الـ JSON ونصفر كل حاجة
-        current_stats = dict(self.stats)
+        accurate = self.get_accurate_stats()
+        self.stats.update(accurate)
         return {
-            'stats': current_stats,
+            'stats': accurate,
             'recent_threats': self.recent_threats,
             'timeline': list(self.timeline_data),
             'threat_distribution': {
-                'SQL Injection': current_stats['sql_injection_attempts'],
-                'XSS':           current_stats['xss_attempts'],
-                'Brute Force':   current_stats['brute_force_attempts'],
-                'Scanner':       current_stats['scanner_attempts'],
-                'Rate Limit':    current_stats['rate_limit_hits'],
-                'ML Detection':  current_stats['ml_detections'],
+                'SQL Injection': accurate['sql_injection_attempts'],
+                'XSS':           accurate['xss_attempts'],
+                'Brute Force':   accurate['brute_force_attempts'],
+                'Scanner':       accurate['scanner_attempts'],
+                'Rate Limit':    accurate['rate_limit_hits'],
+                'ML Detection':  accurate['ml_detections'],
             },
             'top_attackers': self.get_top_attackers()
         }
@@ -390,12 +389,24 @@ def create_dashboard_app():
     # ----------------------------------------------------------
     # TRAFFIC LOGGER â€” intercepts every request automatically
     # ----------------------------------------------------------
-    SKIP_PREFIXES = ('/static/', '/api/dashboard/', '/favicon')
+    SKIP_PREFIXES = ('/static/', '/api/dashboard/', '/favicon', '/api/auth/', '/api/critical-threats', '/api/chat', '/api/ml/', '/api/user', '/api/incidents', '/api/critical')
+
+    # Dashboard internal pages - should not be counted as traffic
+    SKIP_EXACT = {
+        '/dashboard', '/critical', '/blocked', '/incidents',
+        '/requests', '/profile', '/ml-detections',
+        '/threats/sql-injection', '/threats/xss',
+        '/threats/ml-detection', '/threats/brute-force',
+        '/threats/scanner', '/threats/rate-limit',
+        '/login', '/signup', '/',
+    }
 
     @app.before_request
     def track_request():
         path = request.path
         if any(path.startswith(p) for p in SKIP_PREFIXES):
+            return
+        if path in SKIP_EXACT:
             return
         ip = request.headers.get('X-Forwarded-For', request.remote_addr) or 'Unknown'
         ip = ip.split(',')[0].strip()
@@ -882,8 +893,12 @@ def create_dashboard_app():
     def get_critical_threats(current_user):
         """Get critical level threats with dynamic scoring"""
         critical_threats = []
+        logs = dashboard.load_audit_log()
         
-        for threat in dashboard.threat_log:
+        for threat in logs:
+            if threat.get('type', 'Clean') == 'Clean' and threat.get('attack_type', 'Clean') == 'Clean':
+                continue
+                
             threat_score = calculate_threat_score(threat)
             
             # Include if Critical severity or high score or escalated
@@ -996,5 +1011,4 @@ if __name__ == '__main__':
     threading.Thread(target=run_timeline_updates, daemon=True).start()
     
     app = create_dashboard_app()
-    dashboard_port = int(os.getenv('DASHBOARD_PORT', 8070))
-    app.run(host='0.0.0.0', port=dashboard_port, debug=True)
+    app.run(host='0.0.0.0', port=8070, debug=True, use_reloader=False)

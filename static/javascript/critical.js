@@ -694,34 +694,3 @@ function showLoadingError() {
   tbody.innerHTML =
     '<tr style="text-align: center; padding: 2rem;"><td colspan="9">Error loading threats. Please try again.</td></tr>';
 }
-
-// Add spin animation for refresh button
-const style = document.createElement("style");
-style.textContent = `
-  @keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-  }
-  
-  .threat-row.selected {
-    background: rgba(220, 38, 38, 0.1) !important;
-    box-shadow: inset 0 0 0 2px rgba(220, 38, 38, 0.3);
-  }
-  
-  .refresh-btn {
-    padding: 0.6rem 1rem;
-    background: var(--bg-card);
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    color: var(--text-primary);
-    cursor: pointer;
-    font-size: 0.9rem;
-    transition: all 0.2s ease;
-  }
-  
-  .refresh-btn:hover {
-    border-color: var(--critical);
-    color: var(--critical);
-  }
-`;
-document.head.appendChild(style);
