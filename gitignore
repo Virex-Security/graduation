@@ -7,6 +7,10 @@
 .env.local
 .env.production
 
+# ⚠️ User Data — بيانات حساسة لا ترفعها
+users.json
+users.db
+
 # Python
 __pycache__/
 *.pyc

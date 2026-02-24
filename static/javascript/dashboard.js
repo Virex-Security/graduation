@@ -330,10 +330,18 @@ const Dashboard = {
         // Detect increases for notifications
         const prev = this.previousStats[id] || 0;
         if (config.val > prev && prev !== 0) {
-          this.showNotification(
-            `⚠️ Alert: New ${id.replace("-", " ")} detected!`,
-            config.type,
-          );
+          const alertMessages = {
+            "total-requests":   null,
+            "blocked-requests": `🚫 Request Blocked — total blocked: ${config.val}`,
+            "ml-detections":    `🤖 ML Model Detected Anomaly — ${config.val} total ML detections`,
+            "sqli-attempts":    `💉 SQL Injection Detected — ${config.val} attempts so far`,
+            "xss-attempts":     `🔴 XSS Attack Detected — ${config.val} payloads caught`,
+            "brute-force":      `🔑 Brute Force Detected — ${config.val} failed logins`,
+            "scanner-probes":   `🔍 Scanner Probe Detected — ${config.val} suspicious paths`,
+            "rate-limited":     `⚡ Rate Limit Exceeded — ${config.val} times`,
+          };
+          const msg = alertMessages[id];
+          if (msg) this.showNotification(msg, config.type);
         }
         this.previousStats[id] = config.val;
       }

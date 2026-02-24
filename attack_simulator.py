@@ -4,6 +4,10 @@ Simulate various attack scenarios to test the security system
 """
 
 import requests
+import os
+from dotenv import load_dotenv
+
+load_dotenv("env")
 import time
 import random
 import threading
@@ -13,8 +17,8 @@ import json
 class AttackSimulator:
     """Simulate various types of attacks against the API"""
     
-    def __init__(self, base_url="http://localhost:5000"):
-        self.base_url = base_url
+    def __init__(self, base_url=None):
+        self.base_url = base_url or os.getenv("API_URL", "http://localhost:5000")
         self.session = requests.Session()
         
     def sql_injection_attacks(self, num_attacks=10):
@@ -218,7 +222,8 @@ class AttackSimulator:
         
         print(f"Mixed attack simulation completed. Total attacks: {attack_count}")
     
-    def legitimate_traffic(self, num_requests=50, dashboard_url="http://localhost:8070"):
+    def legitimate_traffic(self, num_requests=50, dashboard_url=None):
+        dashboard_url = dashboard_url or os.getenv("DASHBOARD_URL", "http://localhost:8070")
         """Generate legitimate traffic and log it to the dashboard."""
         print(f"Generating {num_requests} legitimate requests...")
 
