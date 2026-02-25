@@ -1,11 +1,12 @@
 <!-- ==================== RAMADAN TRIANGLE BUNTING ==================== -->
 <!-- Cute colorful triangles on curved strings — place inside <nav> before </nav> -->
-<div id="ramadan-mode">
+<!-- accessibility-fix: issue-10 - Decorative SVGs hidden from screen readers -->
+<div id="ramadan-mode" aria-hidden="true">
     <div class="ramadan-bunting-wrap">
 
         <!-- ===== String 1 (upper arc) ===== -->
         <svg class="rb-string rb-string--1" viewBox="0 0 1400 90" preserveAspectRatio="none"
-            xmlns="http://www.w3.org/2000/svg">
+            xmlns="http://www.w3.org/2000/svg" role="presentation" focusable="false">
             <!-- Curved string -->
             <path class="rb-cord" d="M 0 4 Q 350 50, 700 30 Q 1050 10, 1400 45" />
             <!-- Triangles — alternating red, yellow, gold -->
@@ -32,7 +33,7 @@
 
         <!-- ===== String 2 (lower arc — opposite curve) ===== -->
         <svg class="rb-string rb-string--2" viewBox="0 0 1400 90" preserveAspectRatio="none"
-            xmlns="http://www.w3.org/2000/svg">
+            xmlns="http://www.w3.org/2000/svg" role="presentation" focusable="false">
             <!-- Curved string (inverted) -->
             <path class="rb-cord" d="M 0 45 Q 350 10, 700 30 Q 1050 50, 1400 4" />
             <!-- Triangles — offset pattern -->
@@ -59,3 +60,4 @@
 
     </div>
 </div>
+<!-- /accessibility-fix -->

@@ -27,10 +27,12 @@
 <body>
   <div class="dashboard-wrapper">
     <!-- Top Navigation -->
-    <nav class="navbar">
-      <div class="brand" onclick="location.href = '/'" style="cursor: pointer">
+    <!-- accessibility-fix: issue-2 - Brand link needs keyboard accessibility -->
+    <nav class="navbar" aria-label="Main navigation">
+      <a href="/" class="brand">
         <span>Virex</span>
-      </div>
+      </a>
+      <!-- /accessibility-fix -->
 
       <div class="nav-actions">
         <div class="status-indicator">
@@ -40,9 +42,11 @@
         <div class="score-badge">
           Security Score: <span id="security-score">--/100</span>
         </div>
-        <button class="btn-icon" id="theme-toggle" title="Toggle Light/Dark Mode" style="margin-right: 1rem">
-          <i class="fas fa-sun"></i>
+        <!-- accessibility-fix: issue-8 - Icon button needs accessible name -->
+        <button class="btn-icon" id="theme-toggle" aria-label="Toggle light and dark mode" style="margin-right: 1rem">
+          <i class="fas fa-sun" aria-hidden="true"></i>
         </button>
+        <!-- /accessibility-fix -->
         {% if user and user.role == 'admin' %}
         <button class="incidents-btn" id="incidents-btn" onclick="location.href = '/incidents'">
           <i class="fas fa-list-check fa-lg"></i>
