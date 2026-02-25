@@ -1,24 +1,9 @@
-/**
- * ml_performance.js — ML Model Performance Dedicated Page
- * Virex Security Dashboard
- *
- * Fetches data from /api/ml/stats and renders:
- *  - KPI cards (Accuracy, Precision, Recall, F1)
- *  - ROC-AUC hero
- *  - Confusion Matrix
- *  - Top Attack Indicators
- *  - Model Details
- */
-
 const MLPerf = {
-
-  // ── State ─────────────────────────────────────────────────────────
   retryCount: 0,
   maxRetries: 4,
-  autoRefreshMs: 60000, // refresh every 60s
+  autoRefreshMs: 60000,
   _timer: null,
 
-  // ── Init ──────────────────────────────────────────────────────────
   init() {
     this._updateTimestamp();
     this.load();
@@ -29,7 +14,6 @@ const MLPerf = {
     }, this.autoRefreshMs);
   },
 
-  // ── Main Load ─────────────────────────────────────────────────────
   async load() {
     this._setStatus("loading");
     this._spinBtn(true);
@@ -64,74 +48,55 @@ const MLPerf = {
     }
   },
 
-  // ── Render All ────────────────────────────────────────────────────
   _render(d) {
-    // KPI Cards
     this._setKPI("mlp-accuracy",  d.accuracy,  d.accuracy);
     this._setKPI("mlp-precision", d.precision, d.precision);
     this._setKPI("mlp-recall",    d.recall,    d.recall);
     this._setKPI("mlp-f1",        d.f1_score,  d.f1_score);
-
-    // ROC-AUC (display as % string, bar as percent of 100)
     this._setAUC(d.roc_auc);
 
-    // Confusion Matrix
     const cm = d.confusion_matrix || {};
     this._setCM("mlp-cm-tn", cm.tn);
     this._setCM("mlp-cm-fp", cm.fp);
     this._setCM("mlp-cm-fn", cm.fn);
     this._setCM("mlp-cm-tp", cm.tp);
 
-    // Top Indicators
     this._renderIndicators(d.top_features || []);
 
-    // Model Details
     this._setText("mlp-algo",    d.model_type       || "--");
     this._setText("mlp-vec",     d.vectorizer_type  || "--");
     this._setText("mlp-dataset", d.dataset_size ? `${d.dataset_size.toLocaleString()} samples` : "--");
     this._setText("mlp-test",    d.test_size    ? `${d.test_size.toLocaleString()} samples`    : "--");
   },
 
-  // ── KPI Card ──────────────────────────────────────────────────────
   _setKPI(id, value, barPct) {
     const valEl  = document.getElementById(id);
     const fillEl = document.getElementById(`${id}-fill`);
     if (!valEl) return;
 
-    const num = parseFloat(value) || 0;
-    this._countUp(valEl, num, true); // percentage
-
+    this._countUp(valEl, parseFloat(value) || 0, true);
     if (fillEl) {
-      setTimeout(() => {
-        fillEl.style.width = `${Math.min(barPct, 100)}%`;
-      }, 120);
+      setTimeout(() => fillEl.style.width = `${Math.min(barPct, 100)}%`, 120);
     }
   },
 
-  // ── ROC-AUC ───────────────────────────────────────────────────────
   _setAUC(raw) {
     const valEl  = document.getElementById("mlp-auc");
     const fillEl = document.getElementById("mlp-auc-fill");
     if (!valEl) return;
 
     const pct = parseFloat(raw) * 100 || 0;
-    this._countUp(valEl, pct, true); // show as %
-
+    this._countUp(valEl, pct, true);
     if (fillEl) {
-      setTimeout(() => {
-        fillEl.style.width = `${Math.min(pct, 100)}%`;
-      }, 150);
+      setTimeout(() => fillEl.style.width = `${Math.min(pct, 100)}%`, 150);
     }
   },
 
-  // ── Confusion Matrix Cell ─────────────────────────────────────────
   _setCM(id, value) {
     const el = document.getElementById(id);
-    if (!el) return;
-    this._countUpInt(el, parseInt(value) || 0);
+    if (el) this._countUpInt(el, parseInt(value) || 0);
   },
 
-  // ── Top Indicators List ───────────────────────────────────────────
   _renderIndicators(features) {
     const container = document.getElementById("mlp-indicators-list");
     if (!container) return;
@@ -157,7 +122,6 @@ const MLPerf = {
         </div>`;
     }).join("");
 
-    // Animate bars after DOM update
     setTimeout(() => {
       container.querySelectorAll(".mlp-ind-bar-fill").forEach(bar => {
         bar.style.width = bar.dataset.target;
@@ -165,7 +129,6 @@ const MLPerf = {
     }, 150);
   },
 
-  // ── Status Badge ──────────────────────────────────────────────────
   _setStatus(state, text) {
     const badge = document.getElementById("mlp-status-badge");
     const label = document.getElementById("mlp-status-text");
@@ -183,19 +146,14 @@ const MLPerf = {
     }
   },
 
-  // ── Refresh Button Spinner ────────────────────────────────────────
   _spinBtn(on) {
-    const btn  = document.getElementById("mlp-refresh-btn");
-    const icon = document.getElementById("mlp-refresh-icon");
+    const btn = document.getElementById("mlp-refresh-btn");
     if (!btn) return;
     btn.classList.toggle("spinning", on);
     btn.disabled = on;
-    if (icon) {
-      icon.classList.toggle("fa-spin", on);
-    }
+    document.getElementById("mlp-refresh-icon")?.classList.toggle("fa-spin", on);
   },
 
-  // ── Timestamp ─────────────────────────────────────────────────────
   _updateTimestamp() {
     const el = document.getElementById("mlp-timestamp");
     if (!el) return;
@@ -208,18 +166,11 @@ const MLPerf = {
     });
   },
 
-  // ── Helpers ───────────────────────────────────────────────────────
   _setText(id, text) {
     const el = document.getElementById(id);
     if (el) el.textContent = text;
   },
 
-  /**
-   * Animate counting up to a percentage value
-   * @param {HTMLElement} el
-   * @param {number} target
-   * @param {boolean} asPct - append % sign
-   */
   _countUp(el, target, asPct = false) {
     el.style.opacity   = "0";
     el.style.transform = "translateY(6px)";
@@ -246,9 +197,6 @@ const MLPerf = {
     }, 160);
   },
 
-  /**
-   * Animate integer count-up (for confusion matrix cells)
-   */
   _countUpInt(el, target) {
     el.style.opacity    = "0";
     el.style.transform  = "scale(0.85)";
@@ -274,7 +222,4 @@ const MLPerf = {
   }
 };
 
-// ── Auto-init ────────────────────────────────────────────────────────
-document.addEventListener("DOMContentLoaded", () => {
-  MLPerf.init();
-});
+document.addEventListener("DOMContentLoaded", () => MLPerf.init());
