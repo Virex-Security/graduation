@@ -394,7 +394,7 @@ def create_dashboard_app():
     # Dashboard internal pages - should not be counted as traffic
     SKIP_EXACT = {
         '/dashboard', '/critical', '/blocked', '/incidents',
-        '/requests', '/profile', '/ml-detections',
+        '/requests', '/profile', '/ml-detections', '/ml-performance',
         '/threats/sql-injection', '/threats/xss',
         '/threats/ml-detection', '/threats/brute-force',
         '/threats/scanner', '/threats/rate-limit',
@@ -876,6 +876,11 @@ def create_dashboard_app():
             ml_logs = masked_logs
             
         return render_template('ml_detections.html', logs=ml_logs, title="ML Detections", user=current_user)
+
+    @app.route('/ml-performance')
+    @token_required
+    def ml_performance_page(current_user):
+        return render_template('ml_performance.html', user=current_user)
 
     @app.route('/profile')
     @token_required
