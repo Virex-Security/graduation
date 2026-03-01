@@ -53,7 +53,7 @@ class SecurityDashboard:
         
         self.connection_state = WAITING
         self.had_connection = False
-        self.api_url = "http://127.0.0.1:8070/api/health"
+        self.api_url = "http://127.0.0.1:5000/api/health"
 
         if not os.path.exists(self.audit_log_path):
             with open(self.audit_log_path, "w") as f:
@@ -764,13 +764,6 @@ def create_dashboard_app():
     
     @app.route('/login')
     def login_page():
-        # Check for bypass parameter for testing
-        if request.args.get('show_login') == 'true':
-            response = make_response(render_template('login.html'))
-            # Clear auth cookie for testing
-            response.set_cookie('auth_token', '', expires=0)
-            return response
-            
         token = request.cookies.get('auth_token')
         if token:
             try:
@@ -790,14 +783,6 @@ def create_dashboard_app():
             except Exception:
                 pass
         return render_template('signup.html')
-    
-    @app.route('/api/health')
-    def health_check():
-        """Health check endpoint for connection status"""
-        return jsonify({
-            'status': 'healthy',
-            'timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        })
     
     @app.route('/api/dashboard/data')
     @token_required

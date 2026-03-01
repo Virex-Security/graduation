@@ -227,19 +227,7 @@ const Dashboard = {
     document
       .getElementById("logout-btn")
       .addEventListener("click", () => Auth.logout());
-    
-    // Ensure theme toggle is properly bound
-    const themeToggle = document.getElementById("theme-toggle");
-    if (themeToggle) {
-      themeToggle.addEventListener("click", () => {
-        if (typeof ThemeManager !== "undefined") {
-          ThemeManager.toggleTheme();
-        } else {
-          this.toggleTheme();
-        }
-      });
-    }
-    
+    // Theme toggle is handled by ThemeManager
     document
       .getElementById("refresh-btn")
       .addEventListener("click", () => this.updateData());
@@ -304,21 +292,15 @@ const Dashboard = {
     });
   },
   async updateData() {
-    // Set connecting state before fetch
-    this.updateSidebarConnectionStatus('connecting');
+    // Set waiting state before fetch
+    this.updateSidebarConnectionStatus('waiting');
     
     try {
       const response = await fetch("/api/dashboard/data");
-      
       if (response.status === 401) {
         Auth.logout();
         return;
       }
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
       const data = await response.json();
 
       this.updateStats(data.stats);
@@ -326,18 +308,26 @@ const Dashboard = {
       this.updateDistribution(data.threat_distribution);
       this.updateRecentThreats(data.recent_threats);
       this.updateTopAttackers(data.top_attackers);
-      this.updateConnectionUI(data.connection_state || "Connected");
+
+      this.updateConnectionUI(data.connection_state || "Waiting for API");
       
-      // If we successfully got data, we're connected
-      this.updateSidebarConnectionStatus('connected');
+      // Update sidebar connection status based on API response
+      const connectionState = data.connection_state || "Waiting for API";
+      if (connectionState === "Connected") {
+        this.updateSidebarConnectionStatus('connected');
+      } else if (connectionState === "Waiting for API") {
+        this.updateSidebarConnectionStatus('waiting');
+      } else {
+        this.updateSidebarConnectionStatus('disconnected');
+      }
 
       document.getElementById("last-update").textContent =
         new Date().toLocaleTimeString();
     } catch (error) {
       console.error("Failed to fetch dashboard data:", error);
-      // Always show disconnected when fetch fails
       this.updateSidebarConnectionStatus('disconnected');
-      this.updateConnectionUI("Disconnected");
+      // This is the dashboard connection, not the API connection.
+      // The prompt asks for API connection status primarily.
     }
   },
 
@@ -348,7 +338,7 @@ const Dashboard = {
     const statusElement = document.getElementById('sidebar-connection-status');
     if (!statusElement) return;
     
-    statusElement.classList.remove('status-connecting', 'status-connected', 'status-disconnected');
+    statusElement.classList.remove('status-waiting', 'status-connected', 'status-disconnected');
     
     if (status === 'connected') {
       statusElement.classList.add('status-connected');
@@ -356,8 +346,8 @@ const Dashboard = {
     } else if (status === 'disconnected') {
       statusElement.classList.add('status-disconnected');
       statusElement.innerHTML = '<i class="fas fa-circle"></i><span>Disconnected</span>';
-    } else if (status === 'connecting') {
-      statusElement.classList.add('status-connecting');
+    } else if (status === 'waiting') {
+      statusElement.classList.add('status-waiting');
       statusElement.innerHTML = '<i class="fas fa-circle"></i><span>Wait for API</span>';
     }
   },

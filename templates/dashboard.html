@@ -41,6 +41,7 @@
           <div class="sidebar-brand">
             <span class="brand-text">VIREX</span>
           </div>
+          
         </div>
 
         <nav class="sidebar-menu">
@@ -112,9 +113,9 @@
             <div class="user-info">
               <div class="user-name">{{ user.username if user else 'User' }}</div>
               <div class="user-role">{{ user.role if user else 'Role' }}</div>
-              <div class="user-connection-status status-waiting" id="sidebar-connection-status">
+              <div class="user-connection-status" id="sidebar-connection-status">
                 <i class="fas fa-circle"></i>
-                <span>Wait for API</span>
+                <span>Connected</span>
               </div>
             </div>
           </div>
@@ -156,25 +157,26 @@
           <button class="btn-icon" id="settings-btn" title="Settings">
             <i class="fas fa-cog"></i>
           </button>
+
+          <!-- Theme Toggle Icon -->
+          
+          
           <!-- Notification Bell -->
           <button class="btn-icon notification-bell" id="notification-bell" title="Notifications">
             <i class="fas fa-bell" style="color: #f59e0b"></i>
             <span class="notification-badge" id="notification-count" style="display: none">0</span>
           </button>
-          <!-- Theme Toggle Icon -->
+          
           <button class="btn-icon" id="theme-toggle" title="Toggle Light/Dark Mode">
             <i class="fas fa-sun"></i>
           </button>
-          
-          
 
           <!-- Profile Button -->
-          <a id="profile-btn" href="/profile" role="button" 
-     title="My Profile — {{ user.username if user else 'Profile' }}" 
-     class="profile-btn">
-    <i class="fas fa-user" aria-hidden="true"></i>
-    <span class="status-indicator"></span>
-  </a>
+          <a id="profile-btn" href="/profile" role="button" title="My Profile — {{ user.username if user else 'Profile' }}" class="profile-btn">
+            <i class="fas fa-user" aria-hidden="true" style="pointer-events: none"></i>
+            <span style="position: absolute; bottom: 0px; right: 0px; width: 10px; height: 10px; border-radius: 50%; background: #10b981; border: 2px solid #0f172a; box-shadow: 0 0 5px #10b981; pointer-events: none;"></span>
+          </a>
+        </div>
         
       </nav>
 
@@ -428,32 +430,29 @@
         const sidebar = document.getElementById('sidebar');
         const mainWrapper = document.getElementById('mainWrapper');
         const sidebarToggle = document.getElementById('sidebarToggle');
+        const sidebarToggler = document.getElementById('sidebar-toggler');
         
         // Check localStorage for saved state
         const sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
         
-        if (sidebarCollapsed) {
-          sidebar.classList.add('collapsed');
-          mainWrapper.classList.add('sidebar-collapsed');
+        if (sidebarCollapsed && sidebarToggler) {
+          sidebarToggler.checked = true;
         }
         
-        // Toggle sidebar
-        if (sidebarToggle) {
+        // Toggle sidebar using checkbox
+        if (sidebarToggle && sidebarToggler) {
           sidebarToggle.addEventListener('click', function() {
-            sidebar.classList.toggle('collapsed');
-            mainWrapper.classList.toggle('sidebar-collapsed');
+            sidebarToggler.checked = !sidebarToggler.checked;
             
             // Save state to localStorage
-            const isCollapsed = sidebar.classList.contains('collapsed');
-            localStorage.setItem('sidebarCollapsed', isCollapsed);
+            localStorage.setItem('sidebarCollapsed', sidebarToggler.checked);
           });
         }
         
         // Auto-collapse on mobile
         function handleResize() {
-          if (window.innerWidth <= 768) {
-            sidebar.classList.add('collapsed');
-            mainWrapper.classList.add('sidebar-collapsed');
+          if (window.innerWidth <= 768 && sidebarToggler) {
+            sidebarToggler.checked = true;
           }
         }
         

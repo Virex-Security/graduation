@@ -2079,33 +2079,6 @@ body::after {
   background: rgba(255, 255, 255, 0.95);
 }
 
-[data-theme="light"] .navbar-security-score {
-  background: rgba(16, 185, 129, 0.1);
-  border-color: rgba(16, 185, 129, 0.3);
-}
-
-[data-theme="light"] .navbar-security-score.score-warning {
-  background: rgba(245, 158, 11, 0.1);
-  border-color: rgba(245, 158, 11, 0.3);
-}
-
-[data-theme="light"] .navbar-security-score.score-danger {
-  background: rgba(239, 68, 68, 0.1);
-  border-color: rgba(239, 68, 68, 0.3);
-}
-
-[data-theme="light"] .btn-icon {
-  background: rgba(255, 255, 255, 0.7);
-  border-color: rgba(168, 85, 247, 0.2);
-  color: #1f1b2e;
-}
-
-[data-theme="light"] .btn-icon:hover {
-  background: rgba(168, 85, 247, 0.1);
-  border-color: rgba(168, 85, 247, 0.4);
-  color: #7c3aed;
-}
-
 .confirmation-modal-title {
   font-size: 1.35rem;
   font-weight: 700;
