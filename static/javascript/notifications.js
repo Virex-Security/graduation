@@ -71,18 +71,74 @@ const SecurityAlerts = {
    * Initialize notification system
    */
   init() {
-    this.createBellIcon();
-    // Wait for bell to be created before creating dropdown
-    const waitForBell = () => {
-      if (this.bellIcon) {
-        this.createDropdown();
-        this.attachEventListeners();
-        this.connect();
-      } else {
-        setTimeout(waitForBell, 100);
-      }
-    };
-    waitForBell();
+    // Use existing bell from navbar instead of creating new one
+    this.bellIcon = document.getElementById("notification-bell");
+    this.badge = document.getElementById("notification-count");
+
+    if (this.bellIcon) {
+      this.bellContainer = this.bellIcon.parentElement;
+      this.createDropdown();
+      this.attachEventListeners();
+      this.connect();
+      this.createNotificationSound();
+    } else {
+      // Fallback: create bell if not found
+      this.createBellIcon();
+      const waitForBell = () => {
+        if (this.bellIcon) {
+          this.createDropdown();
+          this.attachEventListeners();
+          this.connect();
+          this.createNotificationSound();
+        } else {
+          setTimeout(waitForBell, 100);
+        }
+      };
+      waitForBell();
+    }
+  },
+
+  /**
+   * Create notification sound
+   */
+  createNotificationSound() {
+    // Create audio context for notification sound
+    this.audioContext = new (
+      window.AudioContext || window.webkitAudioContext
+    )();
+  },
+
+  /**
+   * Play notification sound
+   */
+  playNotificationSound() {
+    if (!this.audioContext) return;
+
+    try {
+      const oscillator = this.audioContext.createOscillator();
+      const gainNode = this.audioContext.createGain();
+
+      oscillator.connect(gainNode);
+      gainNode.connect(this.audioContext.destination);
+
+      // Bell-like sound: two tones
+      oscillator.frequency.setValueAtTime(800, this.audioContext.currentTime);
+      oscillator.frequency.setValueAtTime(
+        600,
+        this.audioContext.currentTime + 0.1,
+      );
+
+      gainNode.gain.setValueAtTime(0.3, this.audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(
+        0.01,
+        this.audioContext.currentTime + 0.3,
+      );
+
+      oscillator.start(this.audioContext.currentTime);
+      oscillator.stop(this.audioContext.currentTime + 0.3);
+    } catch (e) {
+      console.warn("[Alerts] Could not play notification sound:", e);
+    }
   },
 
   /**
@@ -179,19 +235,20 @@ const SecurityAlerts = {
     this.dropdown.id = "notification-dropdown";
     this.dropdown.style.cssText = `
       position: absolute;
-      top: 52px;
+      top: 50px;
       right: 0;
-      width: 350px;
+      width: 380px;
       max-height: 500px;
       background: var(--bg-layout);
       border: 1px solid var(--border-dim);
-      border-radius: 8px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3), 0 0 20px rgba(168, 85, 247, 0.2);
       z-index: 10000;
       display: none;
       flex-direction: column;
       animation: dropdownSlideIn 0.2s ease-out;
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      backdrop-filter: blur(12px);
     `;
 
     // Header
@@ -348,10 +405,11 @@ const SecurityAlerts = {
    */
   pulseBell() {
     if (!this.bellIcon) return;
-    this.bellIcon.style.animation = "bellPulse 0.6s ease-in-out";
+    // Add ringing class for animation
+    this.bellIcon.classList.add("ringing");
     setTimeout(() => {
-      this.bellIcon.style.animation = "none";
-    }, 600);
+      this.bellIcon.classList.remove("ringing");
+    }, 500);
   },
 
   /**
@@ -410,9 +468,14 @@ const SecurityAlerts = {
     const severity = event.severity || "Medium";
     const isCritical = severity === "Critical";
 
-    // Pulse bell for critical alerts
+    // Pulse bell and play sound for critical alerts
     if (isCritical) {
       this.pulseBell();
+      this.playNotificationSound();
+    } else {
+      // Ring bell for all alerts
+      this.pulseBell();
+      this.playNotificationSound();
     }
 
     // Remove empty state if exists
@@ -528,11 +591,17 @@ const SecurityAlerts = {
     this.alertsList.insertBefore(alert, this.alertsList.firstChild);
     this.activeAlerts.push(alertId);
 
+    // notify dashboard that a new security alert arrived (synchronize UI)
+    try {
+      const evt = new CustomEvent("newSecurityAlert", { detail: event });
+      document.dispatchEvent(evt);
+    } catch (e) {
+      console.warn("[Alerts] failed to dispatch newSecurityAlert", e);
+    }
+
     // Update unread count
     this.unreadCount++;
     this.updateBadge();
-
-
   },
 
   /**

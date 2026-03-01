@@ -10,6 +10,7 @@
     rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   <link rel="stylesheet" href="/static/css/dashboard.css" />
+  <link rel="stylesheet" href="/static/css/sidebar-collapsible.css" />
   <link rel="stylesheet" href="/static/css/chatbot.css" />
   <link rel="stylesheet" href="/static/css/incident_details.css" />
   <script defer src="/static/javascript/chatbot.js"></script>
@@ -18,15 +19,122 @@
 </head>
 
 <body data-user-role="{{ user.role }}">
+  <input type="checkbox" id="sidebar-toggler" class="sidebar-toggler" hidden />
   <div class="dashboard-wrapper">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-brand">
+          <i class="fas fa-shield-halved"></i>
+          <span class="brand-text">Virex</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-menu">
+        <!-- Dashboard Section -->
+        <div class="menu-section">
+          <div class="menu-section-title">Dashboard</div>
+          <a href="/dashboard" class="menu-item" data-tooltip="Dashboard">
+            <i class="fas fa-home"></i>
+            <span class="menu-text">Dashboard</span>
+          </a>
+        </div>
+
+        <!-- Inside Board Section -->
+        <div class="menu-section">
+          <div class="menu-section-title">Inside Board</div>
+          <a href="/incidents" class="menu-item active" data-tooltip="Incidents">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span class="menu-text">Incidents</span>
+          </a>
+          <a href="/threats/ml-detection" class="menu-item" data-tooltip="ML Detections">
+            <i class="fas fa-brain"></i>
+            <span class="menu-text">ML Detections</span>
+          </a>
+          <a href="/ml-performance" class="menu-item" data-tooltip="ML Performance">
+            <i class="fas fa-chart-line"></i>
+            <span class="menu-text">ML Performance</span>
+          </a>
+        </div>
+
+        <!-- Blocked Area Section -->
+        <div class="menu-section">
+          <div class="menu-section-title">Blocked Area</div>
+          <a href="/blocked" class="menu-item" data-tooltip="Blocked">
+            <i class="fas fa-hand"></i>
+            <span class="menu-text">Blocked</span>
+          </a>
+        </div>
+
+        <!-- Weeks Section -->
+        <div class="menu-section">
+          <div class="menu-section-title">Weeks</div>
+          <a href="/requests" class="menu-item" data-tooltip="All Requests">
+            <i class="fas fa-globe"></i>
+            <span class="menu-text">All Requests</span>
+          </a>
+        </div>
+
+        <!-- Po Fake Section -->
+        <div class="menu-section">
+          <div class="menu-section-title">Po Fake</div>
+          <a href="/profile" class="menu-item" data-tooltip="Profile">
+            <i class="fas fa-user-shield"></i>
+            <span class="menu-text">Profile</span>
+          </a>
+        </div>
+
+        <!-- Reset Button (Admin Only) -->
+        {% if user and user.role == 'admin' %}
+        <div class="menu-section">
+          <button class="menu-item reset-menu-btn" id="sidebar-reset-btn" data-tooltip="Reset Stats">
+            <i class="fas fa-trash-can"></i>
+            <span class="menu-text">Reset Stats</span>
+          </button>
+        </div>
+        {% endif %}
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="sidebar-user">
+          <div class="user-avatar">
+            <i class="fas fa-user"></i>
+          </div>
+          <div class="user-info">
+            <div class="user-name">{{ user.username if user else 'User' }}</div>
+            <div class="user-role">{{ user.role if user else 'Role' }}</div>
+          </div>
+        </div>
+        
+        <!-- Logout Button -->
+        <button class="sidebar-logout-btn" id="logout-btn">
+          <i class="fas fa-right-from-bracket"></i>
+          <span class="logout-text">Logout</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <div class="main-wrapper" id="mainWrapper">
     <nav class="navbar">
+      <!-- Sidebar Toggle Button -->
+      <button class="btn-icon" id="sidebarToggle" title="Toggle Sidebar">
+        <i class="fas fa-bars"></i>
+      </button>
+
       <div class="brand" onclick="location.href = '/'" style="cursor: pointer">
         <i class="fas fa-shield-halved fa-lg"></i>
         <span>CYBERSHIELD PRO</span>
       </div>
       <div class="nav-actions">
-        <button class="logout-btn" onclick="location.href = '/incidents'">
-          <i class="fas fa-arrow-left fa-lg"></i> Back
+        <!-- Back Button -->
+        <button class="btn-icon back-btn" onclick="history.back()" title="Go Back">
+          <i class="fas fa-arrow-left"></i>
+        </button>
+
+        <!-- Theme Toggle Icon -->
+        <button class="btn-icon" id="theme-toggle" title="Toggle Light/Dark Mode">
+          <i class="fas fa-sun"></i>
         </button>
       </div>
     </nav>
@@ -174,9 +282,71 @@
         </div>
       </div>
     </main>
+    </div>
+    <!-- End Main Wrapper -->
   </div>
 
   <script>
+    // Sidebar Toggle Functionality
+    document.addEventListener('DOMContentLoaded', function() {
+      const sidebar = document.getElementById('sidebar');
+      const mainWrapper = document.getElementById('mainWrapper');
+      const sidebarToggle = document.getElementById('sidebarToggle');
+      
+      const sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+      
+      if (sidebarCollapsed) {
+        sidebar.classList.add('collapsed');
+        mainWrapper.classList.add('sidebar-collapsed');
+      }
+      
+      if (sidebarToggle) {
+        sidebarToggle.addEventListener('click', function() {
+          sidebar.classList.toggle('collapsed');
+          mainWrapper.classList.toggle('sidebar-collapsed');
+          
+          const isCollapsed = sidebar.classList.contains('collapsed');
+          localStorage.setItem('sidebarCollapsed', isCollapsed);
+        });
+      }
+      
+      function handleResize() {
+        if (window.innerWidth <= 768) {
+          sidebar.classList.add('collapsed');
+          mainWrapper.classList.add('sidebar-collapsed');
+        }
+      }
+      
+      handleResize();
+      window.addEventListener('resize', handleResize);
+
+      const sidebarResetBtn = document.getElementById('sidebar-reset-btn');
+      if (sidebarResetBtn) {
+        sidebarResetBtn.addEventListener('click', function() {
+          if (confirm('Are you sure you want to reset all statistics? This action cannot be undone.')) {
+            fetch('/api/dashboard/reset', {
+              method: 'POST',
+              credentials: 'same-origin',
+              headers: {
+                'Content-Type': 'application/json'
+              }
+            })
+            .then(response => response.json())
+            .then(data => {
+              if (data.status === 'stats_reset') {
+                alert('Statistics reset successfully!');
+                location.reload();
+              }
+            })
+            .catch(error => {
+              console.error('Reset error:', error);
+              alert('Failed to reset statistics');
+            });
+          }
+        });
+      }
+    });
+
     const incidentId = "{{ incident.id }}";
 
     async function performAction(action) {
@@ -189,7 +359,6 @@
       const result = await response.json();
       if (result.status === "success") {
         document.getElementById("action-comment").value = "";
-        // Refresh page to get updated incident data
         location.reload();
       } else {
         alert("Error: " + result.message);
@@ -201,7 +370,6 @@
     }
 
     window.onload = () => {
-      // Data is already loaded from template via Jinja
       console.log("Incident details loaded from server-side template");
     };
   </script>

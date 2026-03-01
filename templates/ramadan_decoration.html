@@ -1,61 +1,85 @@
-<!-- ==================== RAMADAN TRIANGLE BUNTING ==================== -->
-<!-- Cute colorful triangles on curved strings — place inside <nav> before </nav> -->
+<!-- ==================== RAMADAN LANTERNS ==================== -->
+<!-- Elegant swinging lanterns — placed inside <nav> before </nav> -->
 <div id="ramadan-mode">
-    <div class="ramadan-bunting-wrap">
+    <div class="ramadan-lanterns-wrap">
+        <!-- Lantern 1 (Left) -->
+        <div class="lantern-container lantern-left">
+            <svg class="lantern-svg" viewBox="0 0 100 250" xmlns="http://www.w3.org/2000/svg">
+                <!-- Chain -->
+                <line x1="50" y1="0" x2="50" y2="40" class="l-chain" />
+                <circle cx="50" cy="40" r="4" class="l-ring" />
 
-        <!-- ===== String 1 (upper arc) ===== -->
-        <svg class="rb-string rb-string--1" viewBox="0 0 1400 90" preserveAspectRatio="none"
-            xmlns="http://www.w3.org/2000/svg">
-            <!-- Curved string -->
-            <path class="rb-cord" d="M 0 4 Q 350 50, 700 30 Q 1050 10, 1400 45" />
-            <!-- Triangles — alternating red, yellow, gold -->
-            <polygon points="70,12  82,38  58,38" class="rb-tri rb-tri--red" />
-            <polygon points="140,20 152,46 128,46" class="rb-tri rb-tri--yel" />
-            <polygon points="210,28 222,54 198,54" class="rb-tri rb-tri--gold" />
-            <polygon points="280,34 292,60 268,60" class="rb-tri rb-tri--red" />
-            <polygon points="350,38 362,64 338,64" class="rb-tri rb-tri--yel" />
-            <polygon points="420,40 432,66 408,66" class="rb-tri rb-tri--gold" />
-            <polygon points="490,38 502,64 478,64" class="rb-tri rb-tri--red" />
-            <polygon points="560,36 572,62 548,62" class="rb-tri rb-tri--yel" />
-            <polygon points="630,32 642,58 618,58" class="rb-tri rb-tri--gold" />
-            <polygon points="700,30 712,56 688,56" class="rb-tri rb-tri--red" />
-            <polygon points="770,26 782,52 758,52" class="rb-tri rb-tri--yel" />
-            <polygon points="840,22 852,48 828,48" class="rb-tri rb-tri--gold" />
-            <polygon points="910,18 922,44 898,44" class="rb-tri rb-tri--red" />
-            <polygon points="980,16 992,42 968,42" class="rb-tri rb-tri--yel" />
-            <polygon points="1050,16 1062,42 1038,42" class="rb-tri rb-tri--gold" />
-            <polygon points="1120,18 1132,44 1108,44" class="rb-tri rb-tri--red" />
-            <polygon points="1190,22 1202,48 1178,48" class="rb-tri rb-tri--yel" />
-            <polygon points="1260,28 1272,54 1248,54" class="rb-tri rb-tri--gold" />
-            <polygon points="1330,36 1342,62 1318,62" class="rb-tri rb-tri--red" />
-        </svg>
+                <!-- Top Dome -->
+                <path d="M 40 45 L 60 45 L 65 65 L 35 65 Z" class="l-gold" />
+                <path d="M 35 65 C 35 60, 65 60, 65 65 L 75 90 L 25 90 Z" class="l-gold" />
 
-        <!-- ===== String 2 (lower arc — opposite curve) ===== -->
-        <svg class="rb-string rb-string--2" viewBox="0 0 1400 90" preserveAspectRatio="none"
-            xmlns="http://www.w3.org/2000/svg">
-            <!-- Curved string (inverted) -->
-            <path class="rb-cord" d="M 0 45 Q 350 10, 700 30 Q 1050 50, 1400 4" />
-            <!-- Triangles — offset pattern -->
-            <polygon points="105,35 117,61 93,61" class="rb-tri rb-tri--yel" />
-            <polygon points="175,28 187,54 163,54" class="rb-tri rb-tri--gold" />
-            <polygon points="245,22 257,48 233,48" class="rb-tri rb-tri--red" />
-            <polygon points="315,16 327,42 303,42" class="rb-tri rb-tri--yel" />
-            <polygon points="385,14 397,40 373,40" class="rb-tri rb-tri--gold" />
-            <polygon points="455,14 467,40 443,40" class="rb-tri rb-tri--red" />
-            <polygon points="525,18 537,44 513,44" class="rb-tri rb-tri--yel" />
-            <polygon points="595,22 607,48 583,48" class="rb-tri rb-tri--gold" />
-            <polygon points="665,28 677,54 653,54" class="rb-tri rb-tri--red" />
-            <polygon points="735,30 747,56 723,56" class="rb-tri rb-tri--yel" />
-            <polygon points="805,32 817,58 793,58" class="rb-tri rb-tri--gold" />
-            <polygon points="875,36 887,62 863,62" class="rb-tri rb-tri--red" />
-            <polygon points="945,38 957,64 933,64" class="rb-tri rb-tri--yel" />
-            <polygon points="1015,40 1027,66 1003,66" class="rb-tri rb-tri--gold" />
-            <polygon points="1085,38 1097,64 1073,64" class="rb-tri rb-tri--red" />
-            <polygon points="1155,34 1167,60 1143,60" class="rb-tri rb-tri--yel" />
-            <polygon points="1225,28 1237,54 1213,54" class="rb-tri rb-tri--gold" />
-            <polygon points="1295,18 1307,44 1283,44" class="rb-tri rb-tri--red" />
-            <polygon points="1365,10 1377,36 1353,36" class="rb-tri rb-tri--yel" />
-        </svg>
+                <!-- Glass Body -->
+                <path d="M 25 90 L 75 90 L 65 150 L 35 150 Z" class="l-glass" />
+                <path d="M 40 90 L 35 150" class="l-frame" />
+                <path d="M 60 90 L 65 150" class="l-frame" />
+
+                <!-- Candle/Light -->
+                <path d="M 45 140 C 45 120, 50 110, 50 110 C 50 110, 55 120, 55 140 Z" class="l-flame" />
+
+                <!-- Bottom Base -->
+                <path d="M 35 150 L 65 150 L 55 170 L 45 170 Z" class="l-gold" />
+                <path d="M 40 170 C 40 165, 60 165, 60 170 L 65 180 L 35 180 Z" class="l-gold" />
+
+                <!-- Hanging Crescent/Star -->
+                <path d="M 50 180 L 50 190" class="l-chain" />
+                <path d="M 48 190 C 43 190, 43 198, 48 198 C 45 198, 45 190, 48 190 Z" class="l-gold crescent-spin" />
+            </svg>
+        </div>
+
+        <!-- Lantern 2 (Center-Right, smaller and slightly delayed) -->
+        <div class="lantern-container lantern-right">
+            <svg class="lantern-svg" viewBox="0 0 100 250" xmlns="http://www.w3.org/2000/svg">
+                <!-- Chain -->
+                <line x1="50" y1="0" x2="50" y2="30" class="l-chain" />
+                <circle cx="50" cy="30" r="3" class="l-ring" />
+
+                <!-- Top Dome -->
+                <path d="M 42 34 L 58 34 L 62 50 L 38 50 Z" class="l-gold" />
+                <path d="M 38 50 C 38 46, 62 46, 62 50 L 70 70 L 30 70 Z" class="l-gold" />
+
+                <!-- Glass Body -->
+                <path d="M 30 70 L 70 70 L 60 120 L 40 120 Z" class="l-glass" />
+                <path d="M 42 70 L 38 120" class="l-frame" />
+                <path d="M 58 70 L 62 120" class="l-frame" />
+
+                <!-- Candle/Light -->
+                <path d="M 46 110 C 46 95, 50 85, 50 85 C 50 85, 54 95, 54 110 Z" class="l-flame" />
+
+                <!-- Bottom Base -->
+                <path d="M 40 120 L 60 120 L 52 135 L 48 135 Z" class="l-gold" />
+                <path d="M 45 135 C 45 131, 55 131, 55 135 L 58 142 L 42 142 Z" class="l-gold" />
+            </svg>
+        </div>
+
+        <!-- Lantern 3 (Far Right) -->
+        <div class="lantern-container lantern-far-right">
+            <svg class="lantern-svg" viewBox="0 0 100 250" xmlns="http://www.w3.org/2000/svg">
+                <!-- Chain -->
+                <line x1="50" y1="0" x2="50" y2="50" class="l-chain" />
+                <circle cx="50" cy="50" r="4" class="l-ring" />
+
+                <!-- Top Dome -->
+                <path d="M 40 55 L 60 55 L 65 75 L 35 75 Z" class="l-gold" />
+                <path d="M 35 75 C 35 70, 65 70, 65 75 L 75 100 L 25 100 Z" class="l-gold" />
+
+                <!-- Glass Body -->
+                <path d="M 25 100 L 75 100 L 65 160 L 35 160 Z" class="l-glass" />
+                <path d="M 40 100 L 35 160" class="l-frame" />
+                <path d="M 60 100 L 65 160" class="l-frame" />
+
+                <!-- Candle/Light -->
+                <path d="M 45 150 C 45 130, 50 120, 50 120 C 50 120, 55 130, 55 150 Z" class="l-flame" />
+
+                <!-- Bottom Base -->
+                <path d="M 35 160 L 65 160 L 55 180 L 45 180 Z" class="l-gold" />
+                <path d="M 40 180 C 40 175, 60 175, 60 180 L 65 190 L 35 190 Z" class="l-gold" />
+            </svg>
+        </div>
 
     </div>
 </div>

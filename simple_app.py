@@ -87,15 +87,34 @@ _retrain_thread.start()
 print(f"🔄 Auto-retrain scheduled every {RETRAIN_INTERVAL//60} minutes")
 
 def ml_detect(text):
+    """Run ML model on text and return (is_attack, raw_prediction).
+
+    The existing code simply returned a boolean, but we now expose the raw
+    prediction value so that callers can make additional decisions. A log
+    entry is also emitted showing the text snippet and prediction for
+    debugging/analytics.
+    """
     if not MODEL_LOADED:
-        return False
+        return False, None
+
+    # bypass ML check for trivial strings (avoid false positives on things
+    # like passwords or usernames)
+    text_str = str(text)
+    if len(text_str) <= 3:
+        return False, 0
+    if len(text_str) <= 20 and text_str.isalnum():
+        return False, 0
+
     try:
         with _model_lock:
-            X = _vectorizer.transform([text])
-            prediction = _model.predict(X)[0]
-        return prediction == 1   # 1 = Attack, 0 = Normal
-    except:
-        return False
+            X = _vectorizer.transform([text_str])
+            raw = _model.predict(X)[0]
+        is_att = raw == 1
+        logger.debug(f"[ML DETECT] text='{' '.join(text_str.split()[:8])}' pred={raw}")
+        return is_att, raw
+    except Exception as e:
+        logger.error(f"[ML DETECT] model error: {e}")
+        return False, None
 
 
 # Setup logging
@@ -109,6 +128,8 @@ class SimpleSecurityManager:
         self.total_requests = 0
         self.blocked_requests = 0
         self.sql_injection_count = 0
+        # track ML detections separately for metrics/logging
+        self.ml_detections = 0
         self.xss_count = 0
         self.brute_force_count = 0
         self.rate_limit_hits = 0
@@ -166,21 +187,9 @@ class SimpleSecurityManager:
         threading.Thread(target=send_log, daemon=True).start()
 
     def update_dashboard_stats(self):
-        def send_update():
-            try:
-                requests.post(
-                    f"{self.dashboard_url}/api/dashboard/stats",
-                    json={
-                        "total_requests": self.total_requests,
-                        "blocked_requests": self.blocked_requests,
-                        "rate_limit_hits": self.rate_limit_hits
-                    },
-                    timeout=2
-                )
-            except:
-                pass
-
-        threading.Thread(target=send_update, daemon=True).start()
+        # Disabled pushing local memory stats to dashboard
+        # Dashboard recalculates its own accurate stats from siem_audit.json
+        pass
     
     # ================= REGEX =================
     def detect_sql_injection(self, text, ip):
@@ -189,6 +198,7 @@ class SimpleSecurityManager:
                 self.sql_injection_count += 1
                 logger.info(f"[REGEX-SQLi] Blocked {ip} — {text[:80]}")
                 # blocked_requests will be incremented in before_request when request is rejected
+                logger.debug(f"[REGEX-SQL] raw_text='{text[:80]}'")
                 self.log_to_dashboard(
                     "SQL Injection", 
                     ip, 
@@ -197,7 +207,7 @@ class SimpleSecurityManager:
                     endpoint=request.path,
                     method=request.method,
                     snippet=text[:100],
-                    detection_type="SQL Injection",
+                    detection_type="Signature-based",
                     blocked=True
                 )
                 return True
@@ -209,6 +219,7 @@ class SimpleSecurityManager:
                 self.xss_count += 1
                 logger.info(f"[REGEX-XSS] Blocked {ip} — {text[:80]}")
                 # blocked_requests will be incremented in before_request when request is rejected
+                logger.debug(f"[REGEX-XSS] raw_text='{text[:80]}'")
                 self.log_to_dashboard(
                     "XSS", 
                     ip, 
@@ -217,7 +228,7 @@ class SimpleSecurityManager:
                     endpoint=request.path,
                     method=request.method,
                     snippet=text[:100],
-                    detection_type="XSS",
+                    detection_type="Signature-based",
                     blocked=True
                 )
                 return True
@@ -235,6 +246,7 @@ class SimpleSecurityManager:
         if len(q) >= 10:
             self.rate_limit_hits += 1
             # blocked_requests will be incremented in before_request when request is rejected
+            logger.debug(f"[RATE] limit hit for ip={ip}")
             self.log_to_dashboard(
                 "Rate Limit", 
                 ip, 
@@ -242,7 +254,7 @@ class SimpleSecurityManager:
                 "Medium",
                 endpoint=request.path,
                 method=request.method,
-                detection_type="Rate Limit",
+                detection_type="Rule-based",
                 blocked=True
             )
             return False
@@ -252,6 +264,23 @@ class SimpleSecurityManager:
     
     # ================= MAIN SECURITY =================
     def check_request_security(self, data, ip):
+        def classify_ml_attack(text):
+            """Simple heuristic classifier to assign an attack type when the ML
+            engine flags something as malicious. This is separate from the ML
+            prediction itself, and runs only when ml_detect returns positive.
+            """
+            t = str(text)
+            # reuse existing regex patterns for familiarity
+            for patt in self.compiled_sql_patterns:
+                if patt.search(t):
+                    return "SQL Injection"
+            for patt in self.compiled_xss_patterns:
+                if patt.search(t):
+                    return "XSS"
+            if re.search(r"(password|login|user|admin)", t, re.IGNORECASE):
+                return "Brute Force"
+            return "Unknown"
+
         def scan(value):
             if isinstance(value, dict):
                 for v in value.values():
@@ -271,19 +300,32 @@ class SimpleSecurityManager:
                     return False
 
                 # ML SECOND
-                if ml_detect(text):
-                    logger.info(f"[ML-MODEL] Blocked {ip} — {text[:80]}")
-                    # blocked_requests will be incremented in before_request when request is rejected
+                is_mal, raw_pred = ml_detect(text)
+                if is_mal:
+                    self.ml_detections += 1
+                    attack_label = classify_ml_attack(text)
+                    detection_method = "ML Model"
+                    logger.info(
+                        f"[ML-MODEL] {attack_label} flagged for {ip} "
+                        f"(raw={raw_pred})"
+                    )
+
+                    # log full raw output for auditing
+                    logger.debug(
+                        f"[ML-RAW] text='{text[:100]}', attack_type='{attack_label}', "
+                        f"detection_method='{detection_method}', prediction={raw_pred}"
+                    )
+
                     self.log_to_dashboard(
-                        "ML Detection",
+                        attack_label,
                         ip,
                         f"[ML] Anomaly detected — suspicious payload: {text[:60]}",
                         "High",
                         endpoint=request.path,
                         method=request.method,
                         snippet=text[:100],
-                        detection_type="ML",
-                        blocked=True
+                        detection_type=detection_method,
+                        blocked=True,
                     )
                     return False
 

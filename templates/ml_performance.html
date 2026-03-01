@@ -1,0 +1,739 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ML Performance - Virex</title>
+    <!-- Google Fonts -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Font Awesome -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/css/dashboard.css" />
+    <link rel="stylesheet" href="/static/css/sidebar-collapsible.css" />
+    <link rel="stylesheet" href="/static/css/ml_stats.css" />
+    <link rel="stylesheet" href="/static/css/chatbot.css" />
+    <link rel="stylesheet" href="/static/css/ramadan.css" />
+    <!-- Theme Manager -->
+    <script src="/static/javascript/theme.js"></script>
+
+    
+  </head>
+
+  <body>
+    <input type="checkbox" id="sidebar-toggler" class="sidebar-toggler" hidden />
+    <div class="dashboard-wrapper">
+      <!-- Sidebar -->
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+          <div class="sidebar-brand">
+            <i class="fas fa-shield-halved" style="color: #FBBF24;"></i>
+            <span class="brand-text">VIREX</span>
+          </div>
+        </div>
+
+        <nav class="sidebar-menu">
+          <!-- Dashboard Section -->
+          <div class="menu-section">
+            <div class="menu-section-title">Dashboard</div>
+            <a href="/dashboard" class="menu-item" data-tooltip="Dashboard">
+              <i class="fas fa-home"></i>
+              <span class="menu-text">Dashboard</span>
+            </a>
+          </div>
+
+          <!-- Inside Board Section -->
+          <div class="menu-section">
+            <div class="menu-section-title">Inside Board</div>
+            <a href="/incidents" class="menu-item" data-tooltip="Incidents">
+              <i class="fas fa-exclamation-triangle"></i>
+              <span class="menu-text">Incidents</span>
+            </a>
+            <a href="/threats/ml-detection" class="menu-item" data-tooltip="ML Detections">
+              <i class="fas fa-brain"></i>
+              <span class="menu-text">ML Detections</span>
+            </a>
+            <a href="/ml-performance" class="menu-item active" data-tooltip="ML Performance">
+              <i class="fas fa-chart-line"></i>
+              <span class="menu-text">ML Performance</span>
+            </a>
+          </div>
+
+          <!-- Blocked Area Section -->
+          <div class="menu-section">
+            <div class="menu-section-title">Blocked Area</div>
+            <a href="/blocked" class="menu-item" data-tooltip="Blocked">
+              <i class="fas fa-hand"></i>
+              <span class="menu-text">Blocked</span>
+            </a>
+          </div>
+
+          <!-- Weeks Section -->
+          <div class="menu-section">
+            <div class="menu-section-title">Weeks</div>
+            <a href="/requests" class="menu-item" data-tooltip="All Requests">
+              <i class="fas fa-globe"></i>
+              <span class="menu-text">All Requests</span>
+            </a>
+          </div>
+
+          <!-- Po Fake Section -->
+          <div class="menu-section">
+            <div class="menu-section-title">Po Fake</div>
+            <a href="/profile" class="menu-item" data-tooltip="Profile">
+              <i class="fas fa-user-shield"></i>
+              <span class="menu-text">Profile</span>
+            </a>
+          </div>
+
+          <!-- Reset Button (Admin Only) -->
+          {% if user and user.role == 'admin' %}
+          <div class="menu-section">
+            <button class="menu-item reset-menu-btn" id="sidebar-reset-btn" data-tooltip="Reset Stats">
+              <i class="fas fa-trash-can"></i>
+              <span class="menu-text">Reset Stats</span>
+            </button>
+          </div>
+          {% endif %}
+        </nav>
+
+        <div class="sidebar-footer">
+          <div class="sidebar-user">
+            <div class="user-avatar">
+              <i class="fas fa-user"></i>
+            </div>
+            <div class="user-info">
+              <div class="user-name">{{ user.username if user else 'User' }}</div>
+              <div class="user-role">{{ user.role if user else 'Role' }}</div>
+            </div>
+          </div>
+          
+          <!-- Logout Button -->
+          <button class="sidebar-logout-btn" id="logout-btn">
+            <i class="fas fa-right-from-bracket"></i>
+            <span class="logout-text">Logout</span>
+          </button>
+        </div>
+      </aside>
+
+      <!-- Main Content Area -->
+      <div class="main-wrapper" id="mainWrapper">
+      <nav class="navbar">
+        <!-- Sidebar Toggle Button -->
+        <button class="btn-icon" id="sidebarToggle" title="Toggle Sidebar">
+          <i class="fas fa-bars"></i>
+        </button>
+
+        <div
+          class="brand"
+          onclick="location.href = '/dashboard'"
+          style="cursor: pointer"
+        >
+          <i class="fas fa-shield-halved" style="font-size: 1.5rem; margin-right: 0.5rem; color: #FBBF24;"></i>
+          <span>VIREX</span>
+        </div>
+
+        <div class="nav-actions">
+          <!-- Back Button -->
+          <button class="btn-icon back-btn" onclick="history.back()" title="Go Back">
+            <i class="fas fa-arrow-left"></i>
+          </button>
+
+          <!-- Theme Toggle Icon -->
+          <button class="btn-icon" id="theme-toggle" title="Toggle Light/Dark Mode">
+            <i class="fas fa-sun"></i>
+          </button>
+        </div>
+        {% include 'ramadan_decoration.html' %}
+      </nav>
+
+      <main class="main-content">
+        <!-- Header Section -->
+        <header class="section-title">
+          <div class="ml-header-wrapper">
+            <div class="ml-header-left">
+              <h1><i class="fas fa-brain"></i> ML Model Performance</h1>
+            </div>
+            <div class="ml-header-right">
+              <div class="ml-security-score">
+                <i class="fas fa-shield-halved"></i>
+                <span class="score-label">Security Score:</span>
+                <span class="score-value" id="security-score-value">--</span>
+              </div>
+              <span id="current-time" class="ml-time-display">--:--:-- --</span>
+              <span class="ml-status-badge" id="api-status-badge">
+                <i class="fas fa-circle"></i>ACTIVE
+              </span>
+              <button class="refresh-btn" id="header-refresh-btn">
+                <i class="fas fa-sync"></i>
+                REFRESH
+              </button>
+            </div>
+          </div>
+        </header>
+
+        <!-- Key Metrics Grid -->
+        <div class="ml-metrics-row">
+          <div class="ml-metric-card">
+            <div class="ml-metric-icon-wrapper blue">
+              <i class="fas fa-bullseye"></i>
+            </div>
+            <div class="ml-metric-content">
+              <div class="ml-metric-value" id="accuracy-value">--%</div>
+              <div class="ml-metric-label">Accuracy</div>
+            </div>
+          </div>
+
+          <div class="ml-metric-card">
+            <div class="ml-metric-icon-wrapper green">
+              <i class="fas fa-crosshairs"></i>
+            </div>
+            <div class="ml-metric-content">
+              <div class="ml-metric-value" id="precision-value">--%</div>
+              <div class="ml-metric-label">Precision</div>
+            </div>
+          </div>
+
+          <div class="ml-metric-card">
+            <div class="ml-metric-icon-wrapper orange">
+              <i class="fas fa-shield-alt"></i>
+            </div>
+            <div class="ml-metric-content">
+              <div class="ml-metric-value" id="recall-value">--%</div>
+              <div class="ml-metric-label">Recall</div>
+            </div>
+          </div>
+
+          <div class="ml-metric-card">
+            <div class="ml-metric-icon-wrapper purple">
+              <i class="fas fa-star"></i>
+            </div>
+            <div class="ml-metric-content">
+              <div class="ml-metric-value" id="f1-value">--%</div>
+              <div class="ml-metric-label">F1-Score</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts Grid -->
+        <div class="ml-charts-grid">
+          <div class="table-card">
+            <h3><i class="fas fa-chart-pie"></i> Confusion Matrix</h3>
+            <div class="chart-container">
+              <canvas id="confusionChart"></canvas>
+            </div>
+          </div>
+
+          <div class="table-card">
+            <h3><i class="fas fa-list-ol"></i> Top Attack Indicators</h3>
+            <div id="features-list" class="features-container">
+              <div class="ml-loading">
+                <i class="fas fa-spinner fa-spin"></i> Loading feature importance...
+              </div>
+            </div>
+          </div>
+
+          <div class="table-card">
+            <h3><i class="fas fa-chart-radar"></i> Performance Metrics</h3>
+            <div class="chart-container">
+              <canvas id="performanceChart"></canvas>
+            </div>
+          </div>
+
+        <!-- Model Information -->
+        <div class="table-card">
+          <h3><i class="fas fa-info-circle"></i> Model Information</h3>
+          <div class="ml-model-info-grid">
+            <div class="ml-info-item">
+              <div class="ml-info-item-label">Vectorizer</div>
+              <div id="model-vectorizer" class="ml-info-item-value">--</div>
+            </div>
+            <div class="ml-info-item">
+              <div class="ml-info-item-label">Test Samples</div>
+              <div id="model-test-samples" class="ml-info-item-value">--</div>
+            </div>
+            <div class="ml-info-item">
+              <div class="ml-info-item-label">Training Samples</div>
+              <div id="dataset-value" class="ml-info-item-value">--</div>
+            </div>
+            <div class="ml-info-item">
+              <div class="ml-info-item-label">Status</div>
+              <div class="ml-info-item-value ml-status-active">
+                <i class="fas fa-circle"></i>Active & Running
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+      </div>
+      <!-- End Main Wrapper -->
+    </div>
+
+    <div id="notification-container"></div>
+
+    <!-- Chatbot Widget -->
+    {% include 'chatbot.html' %}
+
+    <!-- Common JS -->
+    <script src="/static/javascript/auth.js"></script>
+    <script src="/static/javascript/notifications.js"></script>
+    <script src="/static/javascript/ramadan.js"></script>
+
+    <script>
+      // Sidebar Toggle Functionality
+      document.addEventListener('DOMContentLoaded', function() {
+        const sidebar = document.getElementById('sidebar');
+        const mainWrapper = document.getElementById('mainWrapper');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        
+        const sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+        
+        if (sidebarCollapsed) {
+          sidebar.classList.add('collapsed');
+          mainWrapper.classList.add('sidebar-collapsed');
+        }
+        
+        if (sidebarToggle) {
+          sidebarToggle.addEventListener('click', function() {
+            sidebar.classList.toggle('collapsed');
+            mainWrapper.classList.toggle('sidebar-collapsed');
+            
+            const isCollapsed = sidebar.classList.contains('collapsed');
+            localStorage.setItem('sidebarCollapsed', isCollapsed);
+          });
+        }
+        
+        function handleResize() {
+          if (window.innerWidth <= 768) {
+            sidebar.classList.add('collapsed');
+            mainWrapper.classList.add('sidebar-collapsed');
+          }
+        }
+        
+        handleResize();
+        window.addEventListener('resize', handleResize);
+
+        const sidebarResetBtn = document.getElementById('sidebar-reset-btn');
+        if (sidebarResetBtn) {
+          sidebarResetBtn.addEventListener('click', function() {
+            if (confirm('Are you sure you want to reset all statistics? This action cannot be undone.')) {
+              fetch('/api/dashboard/reset', {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                  'Content-Type': 'application/json'
+                }
+              })
+              .then(response => response.json())
+              .then(data => {
+                if (data.status === 'stats_reset') {
+                  alert('Statistics reset successfully!');
+                  location.reload();
+                }
+              })
+              .catch(error => {
+                console.error('Reset error:', error);
+                alert('Failed to reset statistics');
+              });
+            }
+          });
+        }
+      });
+    </script>
+
+    <script>
+      const MLPerformance = {
+        performanceChart: null,
+        confusionChart: null,
+
+        // Mock data for demo when API is offline
+        getMockData() {
+          return {
+            status: "ok",
+            model_type: "Random Forest (100 trees, max_depth=20)",
+            vectorizer_type: "TF-IDF (ngrams 1-2, 5000 features)",
+            dataset_size: 5000,
+            test_size: 1000,
+            test_samples: 1000,
+            accuracy: 94.2,
+            precision: 94.5,
+            recall: 93.8,
+            f1_score: 94.1,
+            roc_auc: 0.9756,
+            confusion_matrix: {tn: 932, fp: 34, fn: 45, tp: 989},
+            top_features: [
+              {feature: "sql_injection_pattern", importance: 0.342},
+              {feature: "xss_payload_detected", importance: 0.287},
+              {feature: "unusual_request_size", importance: 0.231},
+              {feature: "brute_force_signature", importance: 0.198},
+              {feature: "port_scan_behavior", importance: 0.176},
+              {feature: "malformed_headers", importance: 0.154}
+            ]
+          };
+        },
+
+        async load() {
+          console.log("[MLPerformance] Starting load...");
+          try {
+            const response = await fetch("/api/ml/stats", {
+              credentials: "same-origin",
+            });
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+            const data = await response.json();
+            if (data.status === "error") throw new Error(data.message);
+
+            console.log("[MLPerformance] Data loaded from API:", data);
+            this.updateMetrics(data);
+            this.updateCharts(data);
+            this.updateFeatures(data.top_features || []);
+            this.updateModelInfo(data);
+            this.updateAPIStatus(true);
+            this.loadSecurityScore();
+          } catch (error) {
+            console.error("[MLPerformance] Failed to load from API:", error);
+            // Use mock data instead of showing error
+            const mockData = this.getMockData();
+            console.log("[MLPerformance] Using mock data:", mockData);
+            this.updateMetrics(mockData);
+            this.updateCharts(mockData);
+            this.updateFeatures(mockData.top_features || []);
+            this.updateModelInfo(mockData);
+            this.updateAPIStatus(false);
+            this.loadSecurityScore();
+            // show a visible demo banner on the page
+            const demoBannerId = 'ml-demo-banner';
+            let banner = document.getElementById(demoBannerId);
+            if (!banner) {
+              banner = document.createElement('div');
+              banner.id = demoBannerId;
+              banner.textContent = 'Demo mode: showing sample ML results (backend offline)';
+              banner.style.cssText = 'position:relative;display:block;padding:0.6rem 1rem;margin-bottom:1rem;border-radius:8px;background:rgba(245,158,11,0.08);color:var(--warning);border:1px solid rgba(245,158,11,0.12);font-weight:600;';
+              const header = document.querySelector('.section-title');
+              if (header && header.parentNode) header.parentNode.insertBefore(banner, header.nextSibling);
+            }
+
+            // mark dashboard ML badge as offline if present (keeps UI consistent)
+            const dashBadge = document.getElementById('mlp-summary-status');
+            if (dashBadge) {
+              dashBadge.classList.remove('badge-online');
+              dashBadge.classList.add('badge-error');
+              const textEl = dashBadge.querySelector('span:last-child');
+              if (textEl) textEl.textContent = 'Offline';
+            }
+
+            this.showNotification(
+              "Using demo data - Backend server not running",
+              "info",
+            );
+          }
+        },
+
+        updateAPIStatus(isOnline) {
+          const badge = document.getElementById('api-status-badge');
+          if (badge) {
+            if (isOnline) {
+              badge.classList.remove('status-offline');
+              badge.classList.add('status-online');
+              badge.innerHTML = '<i class="fas fa-circle"></i>CONNECTED';
+            } else {
+              badge.classList.remove('status-online');
+              badge.classList.add('status-offline');
+              badge.innerHTML = '<i class="fas fa-circle"></i>OFFLINE';
+            }
+          }
+        },
+
+        async loadSecurityScore() {
+          try {
+            const response = await fetch('/api/dashboard/stats', {
+              credentials: 'same-origin'
+            });
+            if (response.ok) {
+              const data = await response.json();
+              const scoreElement = document.getElementById('security-score-value');
+              if (scoreElement && data.security_score !== undefined) {
+                scoreElement.textContent = data.security_score.toFixed(2) + '/100';
+                
+                // Color based on score
+                const score = data.security_score;
+                if (score >= 70) {
+                  scoreElement.style.color = '#10b981';
+                } else if (score >= 40) {
+                  scoreElement.style.color = '#f59e0b';
+                } else {
+                  scoreElement.style.color = '#ef4444';
+                }
+              }
+            }
+          } catch (error) {
+            console.log('[MLPerformance] Could not load security score:', error);
+            const scoreElement = document.getElementById('security-score-value');
+            if (scoreElement) {
+              scoreElement.textContent = '--/100';
+            }
+          }
+        },
+
+        updateMetrics(data) {
+          console.log("[MLPerformance] Updating metrics with:", data);
+          document.getElementById("accuracy-value").textContent =
+            `${data.accuracy?.toFixed(1) || "--"}%`;
+          document.getElementById("precision-value").textContent =
+            `${data.precision?.toFixed(1) || "--"}%`;
+          document.getElementById("recall-value").textContent =
+            `${data.recall?.toFixed(1) || "--"}%`;
+          document.getElementById("f1-value").textContent =
+            `${data.f1_score?.toFixed(1) || "--"}%`;
+          document.getElementById("auc-value").textContent =
+            data.roc_auc?.toFixed(4) || "----";
+          document.getElementById("dataset-value").textContent =
+            data.dataset_size?.toLocaleString() || "--";
+          console.log("[MLPerformance] Metrics updated");
+        },
+
+        updateCharts(data) {
+          try {
+            // Performance Radar Chart
+            const perfCtx = document
+              .getElementById("performanceChart")
+              .getContext("2d");
+
+            if (this.performanceChart) {
+              this.performanceChart.destroy();
+            }
+
+            this.performanceChart = new Chart(perfCtx, {
+              type: "radar",
+              data: {
+                labels: ["Accuracy", "Precision", "Recall", "F1-Score"],
+                datasets: [
+                  {
+                    label: "Model Performance",
+                    data: [
+                      data.accuracy || 0,
+                      data.precision || 0,
+                      data.recall || 0,
+                      data.f1_score || 0,
+                    ],
+                    backgroundColor: "rgba(59, 130, 246, 0.2)",
+                    borderColor: "rgba(59, 130, 246, 1)",
+                    borderWidth: 2,
+                    pointBackgroundColor: "rgba(59, 130, 246, 1)",
+                    pointBorderColor: "#fff",
+                    pointHoverBackgroundColor: "#fff",
+                    pointHoverBorderColor: "rgba(59, 130, 246, 1)",
+                  },
+                ],
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                  r: {
+                    beginAtZero: true,
+                    max: 100,
+                    ticks: {
+                      callback: function (value) {
+                        return value + "%";
+                      },
+                    },
+                  },
+                },
+                plugins: {
+                  legend: {
+                    display: false,
+                  },
+                },
+              },
+            });
+
+            // Confusion Matrix Chart
+            const confCtx = document
+              .getElementById("confusionChart")
+              .getContext("2d");
+
+            if (this.confusionChart) {
+              this.confusionChart.destroy();
+            }
+
+            const cm = data.confusion_matrix || {};
+            this.confusionChart = new Chart(confCtx, {
+              type: "bar",
+              data: {
+                labels: [
+                  "True Negative",
+                  "False Positive",
+                  "False Negative",
+                  "True Positive",
+                ],
+                datasets: [
+                  {
+                    label: "Count",
+                    data: [cm.tn || 0, cm.fp || 0, cm.fn || 0, cm.tp || 0],
+                    backgroundColor: [
+                      "rgba(16, 185, 129, 0.8)",
+                      "rgba(245, 158, 11, 0.8)",
+                      "rgba(239, 68, 68, 0.8)",
+                      "rgba(59, 130, 246, 0.8)",
+                    ],
+                    borderWidth: 0,
+                  },
+                ],
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                  y: {
+                    beginAtZero: true,
+                  },
+                },
+                plugins: {
+                  legend: {
+                    display: false,
+                  },
+                },
+              },
+            });
+            console.log("[MLPerformance] Charts updated successfully");
+          } catch (error) {
+            console.error("[MLPerformance] Chart update failed:", error);
+          }
+        },
+
+        updateFeatures(features) {
+          const container = document.getElementById("features-list");
+
+          if (!features.length) {
+            container.innerHTML =
+              '<div class="ml-loading">No feature data available</div>';
+            return;
+          }
+
+          // compute max importance so we can also show each feature's share
+          const maxImp = features[0]?.importance || 1;
+
+          container.innerHTML = features
+            .map(
+              (feature, index) => {
+                const pct = (feature.importance * 100).toFixed(1);
+                // relative bar width based on highest importance
+                const barWidth = ((feature.importance / maxImp) * 100).toFixed(1);
+                return `
+          <div class="ml-feature-item">
+            <div class="ml-feature-rank">${index + 1}</div>
+            <div class="ml-feature-info">
+              <div class="ml-feature-name">${feature.feature}</div>
+              <div class="ml-feature-description">Key indicator for attack detection</div>
+            </div>
+            <div class="ml-feature-importance">
+              <div class="ml-feature-score">${pct}%</div>
+              <div class="ml-feature-bar">
+                <div class="ml-feature-bar-fill" style="width: 0%" data-target="${barWidth}%"></div>
+              </div>
+            </div>
+          </div>
+        `;
+              },
+            )
+            .join("");
+
+          // Animate bars
+          setTimeout(() => {
+            container
+              .querySelectorAll(".ml-feature-bar-fill")
+              .forEach((bar) => {
+                bar.style.width = bar.dataset.target;
+              });
+          }, 100);
+        },
+
+        updateModelInfo(data) {
+          // algorithm name removed per user request; only vectorizer and
+          // sample count remain
+          document.getElementById("model-vectorizer").textContent =
+            data.vectorizer_type || "--";
+          document.getElementById("model-test-samples").textContent =
+            data.test_size ? `${data.test_samples} samples` : "--";
+
+          // subtitle element has been removed, nothing to update here
+        },
+
+        showNotification(message, type = "info") {
+          // Simple notification implementation
+          const notification = document.createElement("div");
+          notification.className = `notification notification-${type}`;
+          notification.innerHTML = `
+          <i class="fas fa-${type === "error" ? "exclamation-circle" : "info-circle"}"></i>
+          <span>${message}</span>
+        `;
+          notification.style.cssText = `
+          position: fixed;
+          top: 20px;
+          right: 20px;
+          padding: 1rem 1.5rem;
+          background: var(--card-bg);
+          border: 1px solid var(--border);
+          border-radius: 8px;
+          z-index: 1000;
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        `;
+
+          document.body.appendChild(notification);
+
+          setTimeout(() => {
+            notification.remove();
+          }, 5000);
+        },
+      };
+
+      // Initialize on page load
+      document.addEventListener("DOMContentLoaded", () => {
+        console.log("[MLPerformance] DOM loaded, initializing...");
+        MLPerformance.load();
+
+        // Set up header refresh button
+        const headerRefreshBtn = document.getElementById("header-refresh-btn");
+        if (headerRefreshBtn) {
+          headerRefreshBtn.addEventListener("click", () => {
+            console.log("[MLPerformance] Refresh button clicked");
+            MLPerformance.load();
+          });
+        }
+
+        // Update time display
+        function updateTime() {
+          const now = new Date();
+          const hours = String(now.getHours()).padStart(2, "0");
+          const minutes = String(now.getMinutes()).padStart(2, "0");
+          const seconds = String(now.getSeconds()).padStart(2, "0");
+          const ampm = now.getHours() >= 12 ? "PM" : "AM";
+          document.getElementById("current-time").textContent =
+            `${hours}:${minutes}:${seconds} ${ampm}`;
+        }
+
+        updateTime();
+        setInterval(updateTime, 1000);
+
+        // Auto-refresh every 30 seconds
+        setInterval(() => {
+          console.log("[MLPerformance] Auto-refresh triggered");
+          MLPerformance.load();
+        }, 30000);
+      });
+    </script>
+  </body>
+</html>

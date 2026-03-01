@@ -288,34 +288,52 @@ def main():
         print("Cannot connect to API. Please start the application first.")
         return
     
-    print("API is running. Starting attack simulation...\\n")
+    print("API is running. Starting continuous, realistic simulation (Press Ctrl+C to stop)...\n")
     
-    # Run different types of attacks
-    simulator.legitimate_traffic(20)
-    print()
+    actions = [
+        ('legitimate', 50),   # 50% chance of legitimate traffic
+        ('sql_injection', 10),# 10% chance
+        ('xss', 15),          # 15% chance
+        ('brute_force', 10),  # 10% chance
+        ('scanner', 10),      # 10% chance
+        ('dos', 5)            # 5% chance
+    ]
     
-    simulator.sql_injection_attacks(15)
-    print()
-    
-    simulator.xss_attacks(15)
-    print()
-    
-    simulator.brute_force_login(10)
-    print()
-    
-    simulator.scanner_simulation(10)
-    print()
-    
-    # Run DoS attack (be careful with this)
-    print("Starting DoS simulation (5 threads)...")
-    simulator.dos_attacks(num_threads=5, requests_per_thread=10)
-    print()
-    
-    # Mixed attack pattern
-    simulator.mixed_attack_simulation(30)
-    
-    print("\\nAttack simulation completed!")
-    print("Check the security dashboard for detection results.")
+    try:
+        while True:
+            # Weighted random choice
+            total_weight = sum(weight for item, weight in actions)
+            r = random.uniform(0, total_weight)
+            upto = 0
+            chosen_action = 'legitimate'
+            for item, weight in actions:
+                if upto + weight >= r:
+                    chosen_action = item
+                    break
+                upto += weight
+                
+            if chosen_action == 'legitimate':
+                simulator.legitimate_traffic(random.randint(1, 4))
+            elif chosen_action == 'sql_injection':
+                simulator.sql_injection_attacks(random.randint(1, 2))
+            elif chosen_action == 'xss':
+                simulator.xss_attacks(random.randint(1, 2))
+            elif chosen_action == 'brute_force':
+                simulator.brute_force_login(random.randint(3, 8))
+            elif chosen_action == 'scanner':
+                simulator.scanner_simulation(random.randint(2, 5))
+            elif chosen_action == 'dos':
+                print("Simulating swift DoS burst...")
+                simulator.dos_attacks(num_threads=3, requests_per_thread=8)
+            
+            # Wait a realistic amount of time before the next random action 
+            # (between 2 to 7 seconds)
+            delay = random.uniform(2.0, 7.0)
+            print(f"-> Waiting {delay:.1f}s until next event...\n")
+            time.sleep(delay)
+            
+    except KeyboardInterrupt:
+        print("\nSimulation stopped by user.")
 
 if __name__ == "__main__":
     main()

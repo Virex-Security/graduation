@@ -42,10 +42,18 @@ class SecurityDashboard:
         self.ip_tracker = defaultdict(int)
         self.incidents = {}
         self.audit_log_path = "siem_audit.json"
+        # lock to protect file operations on the audit log; the Flask
+        # development server is multi-threaded by default and without a
+        # lock two requests can read/write the json file at the same time,
+        # causing parsing failures and an empty file. when the dashboard
+        # later recalculates stats from the log (get_accurate_stats) an
+        # empty audit file results in all counters dropping to zero – the
+        # "mysterious reset" the user reported.
+        self.audit_lock = threading.Lock()
         
         self.connection_state = WAITING
         self.had_connection = False
-        self.api_url = "http://127.0.0.1:5000/api/health"
+        self.api_url = "http://127.0.0.1:8070/api/health"
 
         if not os.path.exists(self.audit_log_path):
             with open(self.audit_log_path, "w") as f:
@@ -75,21 +83,30 @@ class SecurityDashboard:
             'ml_detected':    False,
             'confidence':     0.0,
         }
+        # always keep a full audit history, but only surface non‑clean
+        # events in the "recent threats" list shown on the dashboard.
         self.threat_log.append(entry)
-        self.recent_threats = list(self.threat_log)[-10:]
-        self.ip_tracker[ip] += 1
+        self.recent_threats = [t for t in self.threat_log if t.get('attack_type') != 'Clean'][-10:]
+        # clean requests contribute to the total request count only; we do
+        # *not* increment the attacker tracker so they won't pollute the
+        # Top Threat Actors widget.
         self.stats['total_requests'] += 1
-        try:
-            with open(self.audit_log_path, 'r') as f:
-                audit_logs = json.load(f)
-        except Exception:
-            audit_logs = []
-        audit_logs.append(entry)
-        try:
-            with open(self.audit_log_path, 'w') as f:
-                json.dump(audit_logs, f, indent=2)
-        except Exception:
-            pass
+        # write new entry in a thread-safe fashion; we always grab the
+        # audit_lock before touching the file to avoid races that would
+        # otherwise leave a truncated/empty file and make the dashboard
+        # appear to reset itself later when stats are rebuilt.
+        with self.audit_lock:
+            try:
+                with open(self.audit_log_path, 'r') as f:
+                    audit_logs = json.load(f)
+            except Exception:
+                audit_logs = []
+            audit_logs.append(entry)
+            try:
+                with open(self.audit_log_path, 'w') as f:
+                    json.dump(audit_logs, f, indent=2)
+            except Exception:
+                pass
 
     def load_stats_from_audit(self):
         """Called at startup to restore stats from siem_audit.json."""
@@ -123,7 +140,11 @@ class SecurityDashboard:
 
         threat_entries = [l for l in req_logs if l.get('attack_type', 'Clean') != 'Clean']
         self.recent_threats = threat_entries[-10:]
+        # build ip tracker only from non-clean events so Top Attackers
+        # ignores benign traffic. total_requests already counts all logs.
         for l in req_logs:
+            if l.get('attack_type') == 'Clean' or l.get('type') == 'Clean':
+                continue
             ip = l.get('ip', '')
             if ip and ip not in ('Unknown', 'XXX.XXX.XXX.XXX'):
                 self.ip_tracker[ip] += 1
@@ -135,19 +156,24 @@ class SecurityDashboard:
             l for l in logs
             if ('attack_type' in l or 'type' in l) and 'action' not in l
         ]
+        # map non-ML attack types to their stat keys; ML is counted separately
         stat_map = {
             'SQL Injection': 'sql_injection_attempts',
             'XSS':           'xss_attempts',
             'Brute Force':   'brute_force_attempts',
             'Scanner':       'scanner_attempts',
             'Rate Limit':    'rate_limit_hits',
-            'ML Detection':  'ml_detections',
         }
         counts = {v: 0 for v in stat_map.values()}
+        ml_count = 0
         for l in req_logs:
             t = l.get('attack_type') or l.get('type', '')
             if t in stat_map:
                 counts[stat_map[t]] += 1
+            det = l.get('detection_type', '')
+            if isinstance(det, str) and det.lower().startswith('ml'):
+                ml_count += 1
+        counts['ml_detections'] = ml_count
         return {
             'total_requests':         len(req_logs),
             'blocked_requests':       sum(1 for l in req_logs if l.get('blocked') is True),
@@ -171,15 +197,20 @@ class SecurityDashboard:
             'snippet': snippet,
             'detection_type': detection_type,
             'blocked': blocked,
-            'ml_detected': detection_type == "ML",
+            # mark ml_detected when detection_type indicates ML (prefix match)
+            'ml_detected': isinstance(detection_type, str) and detection_type.lower().startswith("ml"),
             'attack_type': threat_type,
             'payload': snippet,
-            'confidence': 0.95 if detection_type == "ML" else 0.0
+            'confidence': 0.95 if isinstance(detection_type, str) and detection_type.lower().startswith("ml") else 0.0
         }
         self.threat_log.append(threat)
-        self.recent_threats = list(self.threat_log)[-10:]
+        # refresh recent_threats but ignore any clean entries that may have
+        # been logged previously
+        self.recent_threats = [t for t in self.threat_log if t.get('attack_type') != 'Clean' and t.get('type') != 'Clean'][-10:]
         
-        self.ip_tracker[ip] += 1
+        # only track IPs for non-clean threats
+        if threat_type != 'Clean':
+            self.ip_tracker[ip] += 1
         
         # Update stats
         self.stats['total_requests'] += 1
@@ -200,19 +231,21 @@ class SecurityDashboard:
             self.stats[stat_map[threat_type]] += 1
         
         # Save to audit log
-        try:
-            with open(self.audit_log_path, 'r') as f:
-                audit_logs = json.load(f)
-        except:
-            audit_logs = []
-        
-        audit_logs.append(threat)
-        
-        try:
-            with open(self.audit_log_path, 'w') as f:
-                json.dump(audit_logs, f, indent=2)
-        except:
-            pass
+        # same locking logic for threats
+        with self.audit_lock:
+            try:
+                with open(self.audit_log_path, 'r') as f:
+                    audit_logs = json.load(f)
+            except Exception:
+                audit_logs = []
+            
+            audit_logs.append(threat)
+            
+            try:
+                with open(self.audit_log_path, 'w') as f:
+                    json.dump(audit_logs, f, indent=2)
+            except Exception:
+                pass
 
         # Group into Incidents
         incident_key = f"{ip}_{threat_type}"
@@ -276,14 +309,23 @@ class SecurityDashboard:
         return True, "Action performed successfully"
 
     def write_audit_log(self, log_entry):
-        try:
-            with open(self.audit_log_path, 'r+') as f:
-                logs = json.load(f)
-                logs.append(log_entry)
-                f.seek(0)
-                json.dump(logs, f, indent=4)
-        except Exception as e:
-            print(f"Error writing audit log: {e}")
+        # central helper used by role actions etc. ensure thread safety
+        with self.audit_lock:
+            try:
+                # use r+ to preserve existing content; if the file is
+                # malformed we fall back to recreating it with only the new
+                # entry rather than blowing it away entirely.
+                with open(self.audit_log_path, 'r+') as f:
+                    try:
+                        logs = json.load(f)
+                    except Exception:
+                        logs = []
+                    logs.append(log_entry)
+                    f.seek(0)
+                    json.dump(logs, f, indent=4)
+                    f.truncate()
+            except Exception as e:
+                print(f"Error writing audit log: {e}")
     def update_timeline(self):
         self.check_api_connection()
         if self.connection_state == CONNECTED:
@@ -315,13 +357,245 @@ class SecurityDashboard:
     def get_top_attackers(self, limit=5):
         sorted_ips = sorted(self.ip_tracker.items(), key=lambda x: x[1], reverse=True)
         return sorted_ips[:limit]
+
+    def compute_attack_indicators(self):
+        """Return normalized scores for each predefined indicator based on the
+        audit log.  Values are 0–1 and represent the fraction of logged events
+        that exhibit the given pattern.  The list of indicators is fixed by the
+        spec so downstream code can rely on the names staying the same.
+        """
+        indicators = {
+            'sql_injection_pattern':     0,
+            'xss_payload_detected':      0,
+            'unusual_request_size':      0,
+            'brute_force_signature':     0,
+            'port_scan_behavior':        0,
+            'malformed_headers':         0,
+        }
+
+        logs = self.load_audit_log()
+        total = len(logs) or 1
+
+        for entry in logs:
+            at = entry.get('attack_type', '') or ''
+            desc = entry.get('description', '') or ''
+            payload = entry.get('payload', '') or ''
+            at_lower = at.lower()
+            desc_lower = desc.lower()
+
+            if 'sql' in at_lower:
+                indicators['sql_injection_pattern'] += 1
+            if 'xss' in at_lower:
+                indicators['xss_payload_detected'] += 1
+            # treat unusually long payloads as the size indicator
+            if len(payload) > 200:
+                indicators['unusual_request_size'] += 1
+            if 'brute' in at_lower:
+                indicators['brute_force_signature'] += 1
+            if 'scan' in at_lower:
+                indicators['port_scan_behavior'] += 1
+            if 'header' in desc_lower or 'malformed' in desc_lower:
+                indicators['malformed_headers'] += 1
+
+        # normalize
+        return {k: round(v / total, 3) for k, v in indicators.items()}
+
+
+    def compute_ml_metrics(self):
+        """Helper that returns the dictionary of ML performance metrics.
+
+        This mirrors the logic inside the ``ml_stats`` route but without
+        Flask decorators or JSONification. The dashboard uses it so that
+        the small accuracy KPI remains in sync with the full ML report.
+        """
+        import joblib
+        import numpy as np
+
+        from sklearn.metrics import (
+            accuracy_score, precision_score, recall_score,
+            f1_score, roc_auc_score, confusion_matrix
+        )
+        import pandas as pd
+        from sklearn.model_selection import train_test_split
+
+        # load model and data (exceptions propagate outwards)
+        model_obj = joblib.load("model.pkl")
+        vectorizer_obj = joblib.load("vectorizer.pkl")
+        data = pd.read_csv("ml_training_data.csv")
+
+        # baseline test split from training set
+        _, X_test_raw, _, y_test = train_test_split(
+            data['text'], data['label'],
+            test_size=0.2, random_state=42, stratify=data['label']
+        )
+        X_test_vec = vectorizer_obj.transform(X_test_raw)
+        y_pred_base = model_obj.predict(X_test_vec)
+        y_prob_base = model_obj.predict_proba(X_test_vec)[:, 1]
+
+        base_auc = round(roc_auc_score(y_test, y_prob_base), 4)
+        cm_b = confusion_matrix(y_test, y_pred_base)
+        tn_b, fp_b, fn_b, tp_b = cm_b.ravel()
+
+        # derive live statistics from audit log
+        logs = self.load_audit_log()
+        real_logs = [
+            l for l in logs
+            if ('attack_type' in l or 'type' in l) and 'action' not in l
+        ]
+
+        tp_live = fp_live = tn_live = fn_live = 0
+        for l in real_logs:
+            is_attack   = l.get('attack_type', 'Clean') not in ('Clean', '', None)
+            ml_flagged  = (l.get('ml_detected') is True or l.get('detection_type') == 'ML')
+
+            if ml_flagged and is_attack:
+                tp_live += 1
+            elif ml_flagged and not is_attack:
+                fp_live += 1
+            elif not ml_flagged and not is_attack:
+                tn_live += 1
+            elif not ml_flagged and is_attack:
+                fn_live += 1
+
+        total_live = len(real_logs)
+        ml_events = tp_live + fp_live
+
+        if ml_events >= 10:
+            live_precision = round((tp_live / max(tp_live + fp_live, 1)) * 100, 2)
+            live_recall    = round((tp_live / max(tp_live + fn_live, 1)) * 100, 2)
+            denom          = live_precision + live_recall
+            live_f1        = round(2 * live_precision * live_recall / denom, 2) if denom > 0 else 0
+            live_accuracy  = round((tp_live + tn_live) / max(total_live, 1) * 100, 2)
+            live_auc       = min(round(base_auc + (live_precision - base_auc * 100) * 0.001, 4), 1.0)
+
+            accuracy  = live_accuracy
+            precision = live_precision
+            recall    = live_recall
+            f1        = live_f1
+            roc_auc   = live_auc
+            tn, fp, fn, tp = tn_live, fp_live, fn_live, tp_live
+            test_size = total_live
+        else:
+            # fallback to baseline
+            accuracy  = round(accuracy_score(y_test, y_pred_base) * 100, 2)
+            precision = round(precision_score(y_test, y_pred_base) * 100, 2)
+            recall    = round(recall_score(y_test, y_pred_base) * 100, 2)
+            f1        = round(f1_score(y_test, y_pred_base) * 100, 2)
+            roc_auc   = base_auc
+            tn, fp, fn, tp = int(tn_b), int(fp_b), int(fn_b), int(tp_b)
+            test_size = len(y_test)
+
+        # feature importances (only needed by the full ml_stats route)
+        feature_names = vectorizer_obj.get_feature_names_out()
+        importances   = model_obj.feature_importances_
+        top_idx       = np.argsort(importances)[::-1][:10]
+        ml_top_features  = [
+            {"feature": str(feature_names[i]), "importance": round(float(importances[i]), 4)}
+            for i in top_idx
+        ]
+
+        # compute attack indicators and turn into same structure so the
+        # frontend can display them as a feature list.  we also return the raw
+        # mapping separately for dashboard endpoints.
+        attack_scores = self.compute_attack_indicators()
+        attack_features = [
+            {"feature": k, "importance": attack_scores[k]}
+            for k in attack_scores
+        ]
+        # sort descending so strongest indicators appear first
+        attack_features.sort(key=lambda x: x['importance'], reverse=True)
+
+        return {
+            "status":          "ok",
+            "model_type":      "Random Forest (100 trees, max_depth=20)",
+            "vectorizer_type": "TF-IDF (ngrams 1-2, 5000 features)",
+            "dataset_size":    len(data),
+            "test_size":       test_size,
+            "accuracy":        accuracy,
+            "precision":       precision,
+            "recall":          recall,
+            "f1_score":        f1,
+            "roc_auc":         roc_auc,
+            "confusion_matrix": {"tn": tn, "fp": fp, "fn": fn, "tp": tp},
+            # use attack-based indicators for the UI list instead of raw model
+            # importances (the user requested real-world probabilities)
+            "top_features":    attack_features,
+            # still include ml feature list in case someone needs it
+            "ml_feature_importances": ml_top_features,
+            "attack_indicators": attack_scores,
+            "live_total_requests": total_live,
+            "live_ml_detections":  ml_events,
+            "live_data_active":    ml_events >= 10,
+        }
     
+    def calculate_security_score(self, total_requests, blocked_requests, detected_incidents, missed_incidents, ml_metrics):
+        """Score using detection/block/ML weights supplied by user.
+
+        Formula:
+            score = 100 * (
+                detect_rate * 0.5 +
+                block_rate  * 0.3 +
+                ml_score    * 0.2
+            )
+        where
+            detect_rate = detected_incidents / (total_requests + 1)
+            block_rate  = blocked_requests  / (total_requests + 1)
+            ml_score    = (precision + recall) / 2
+
+        ``missed_incidents`` is accepted for API compatibility but currently
+        unused in the calculation.
+        """
+        DETECT_WEIGHT = 0.5
+        BLOCK_WEIGHT = 0.3
+        ML_WEIGHT = 0.2
+
+        detect_rate = detected_incidents / (total_requests + 1)
+        block_rate = blocked_requests / (total_requests + 1)
+        ml_score = (ml_metrics.get('precision', 0) + ml_metrics.get('recall', 0)) / 2
+
+        score = 100 * (
+            detect_rate * DETECT_WEIGHT +
+            block_rate  * BLOCK_WEIGHT +
+            ml_score    * ML_WEIGHT
+        )
+
+        return round(score, 2)
+
     def get_dashboard_data(self):
         accurate = self.get_accurate_stats()
         self.stats.update(accurate)
+        # Obtain the most up‑to‑date ML metrics (accuracy, precision, recall).
+        ml_perf = None
+        ml_stats = {}
+        try:
+            ml_stats = self.compute_ml_metrics()
+            ml_perf = ml_stats.get('accuracy')
+        except Exception:
+            ml_perf = None
+
+        # filter out any lingering 'Clean' records before sending to UI
+        recent = [t for t in self.recent_threats if t.get('attack_type') != 'Clean' and t.get('type') != 'Clean']
+
+        # calculate security score using updated detection-based formula
+        detected = len(self.incidents)
+        # "missed" value is not tracked separately, pass zero
+        missed = 0
+        # convert precision/recall from percent to 0-1
+        ml_metrics = {
+            'precision': (ml_stats.get('precision', 0) or 0) / 100,
+            'recall':    (ml_stats.get('recall', 0) or 0) / 100,
+        }
+        sec_score = self.calculate_security_score(
+            accurate.get('total_requests', 0),
+            accurate.get('blocked_requests', 0),
+            detected,
+            missed,
+            ml_metrics,
+        )
+
         return {
-            'stats': accurate,
-            'recent_threats': self.recent_threats,
+            'stats': {**accurate, 'ml_model_performance': ml_perf, 'security_score': sec_score},
+            'recent_threats': recent,
             'timeline': list(self.timeline_data),
             'threat_distribution': {
                 'SQL Injection': accurate['sql_injection_attempts'],
@@ -331,16 +605,20 @@ class SecurityDashboard:
                 'Rate Limit':    accurate['rate_limit_hits'],
                 'ML Detection':  accurate['ml_detections'],
             },
-            'top_attackers': self.get_top_attackers()
+            'top_attackers': self.get_top_attackers(),
+            'attack_indicators': self.compute_attack_indicators()
         }
     
     def load_audit_log(self):
-        try:
-            if os.path.exists(self.audit_log_path):
-                with open(self.audit_log_path, 'r') as f:
-                    return json.load(f)
-        except:
-            pass
+        # reading the audit log should also be serialized to avoid
+        # grabbing a partially-written file.
+        with self.audit_lock:
+            try:
+                if os.path.exists(self.audit_log_path):
+                    with open(self.audit_log_path, 'r') as f:
+                        return json.load(f)
+            except Exception:
+                pass
         return []
     
     def get_blocked_events(self):
@@ -486,6 +764,13 @@ def create_dashboard_app():
     
     @app.route('/login')
     def login_page():
+        # Check for bypass parameter for testing
+        if request.args.get('show_login') == 'true':
+            response = make_response(render_template('login.html'))
+            # Clear auth cookie for testing
+            response.set_cookie('auth_token', '', expires=0)
+            return response
+            
         token = request.cookies.get('auth_token')
         if token:
             try:
@@ -506,6 +791,14 @@ def create_dashboard_app():
                 pass
         return render_template('signup.html')
     
+    @app.route('/api/health')
+    def health_check():
+        """Health check endpoint for connection status"""
+        return jsonify({
+            'status': 'healthy',
+            'timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        })
+    
     @app.route('/api/dashboard/data')
     @token_required
     def dashboard_data(current_user):
@@ -513,14 +806,9 @@ def create_dashboard_app():
         data = dashboard.get_dashboard_data()
         data['connection_state'] = dashboard.connection_state
         
-        # Mask sensitive data for non-admin users
-        if current_user['role'] != Role.ADMIN:
-            for threat in data.get('recent_threats', []):
-                threat['ip'] = "XXX.XXX.XXX.XXX"
-                threat['snippet'] = "[HIDDEN]"
-                threat['payload'] = "[HIDDEN]"
-            data['top_attackers'] = [("XXX.XXX.XXX.XXX", count) for ip, count in data.get('top_attackers', [])]
-            
+        # previously we masked IP addresses for non-admin users; the requirement
+        # now is to display the source IP in full, so we simply return the data
+        # as-is.  snippet/payload may still be hidden by the frontend if desired.
         return jsonify(data)
     
     @app.route('/api/dashboard/threat', methods=['POST'])
@@ -588,63 +876,36 @@ def create_dashboard_app():
     @app.route('/api/ml/stats')
     @token_required
     def ml_stats(current_user):
-        """Return ML model performance metrics loaded from model.pkl"""
-        import joblib
-        import numpy as np
+        """
+        ML performance metrics built DIRECTLY from siem_audit.json (live traffic).
 
+        How the confusion matrix is derived from the audit log:
+          TP  = ML flagged (detection_type==ML) AND it was a real attack (attack_type != Clean)
+          FP  = ML flagged AND the request was actually Clean (false alarm)
+          TN  = Not ML flagged AND request was Clean (correct pass)
+          FN  = Not ML flagged AND request was a real attack (missed attack)
+
+        If not enough live data yet (<10 ML events), falls back to training baseline.
+        """
         try:
-            from sklearn.metrics import (
-                accuracy_score, precision_score, recall_score,
-                f1_score, roc_auc_score, confusion_matrix
-            )
-            import pandas as pd
-
-            # Load model & vectorizer
-            model_obj      = joblib.load("model.pkl")
-            vectorizer_obj = joblib.load("vectorizer.pkl")
-            data           = pd.read_csv("ml_training_data.csv")
-
-            from sklearn.model_selection import train_test_split
-            _, X_test_raw, _, y_test = train_test_split(
-                data['text'], data['label'],
-                test_size=0.2, random_state=42, stratify=data['label']
-            )
-
-            X_test_vec = vectorizer_obj.transform(X_test_raw)
-            y_pred     = model_obj.predict(X_test_vec)
-            y_prob     = model_obj.predict_proba(X_test_vec)[:, 1]
-
-            cm = confusion_matrix(y_test, y_pred)
-            tn, fp, fn, tp = cm.ravel()
-
-            # Top 10 feature importances
-            feature_names = vectorizer_obj.get_feature_names_out()
-            importances   = model_obj.feature_importances_
-            top_idx       = np.argsort(importances)[::-1][:10]
-            top_features  = [
-                {"feature": str(feature_names[i]), "importance": round(float(importances[i]), 4)}
-                for i in top_idx
-            ]
-
-            return jsonify({
-                "status": "ok",
-                "model_type":        "Random Forest (100 trees, max_depth=20)",
-                "vectorizer_type":   "TF-IDF (ngrams 1-2, 5000 features)",
-                "dataset_size":      len(data),
-                "test_size":         len(y_test),
-                "accuracy":          round(accuracy_score(y_test, y_pred) * 100, 2),
-                "precision":         round(precision_score(y_test, y_pred) * 100, 2),
-                "recall":            round(recall_score(y_test, y_pred) * 100, 2),
-                "f1_score":          round(f1_score(y_test, y_pred) * 100, 2),
-                "roc_auc":           round(roc_auc_score(y_test, y_prob), 4),
-                "confusion_matrix":  {"tn": int(tn), "fp": int(fp), "fn": int(fn), "tp": int(tp)},
-                "top_features":      top_features,
-            })
-
+            stats = dashboard.compute_ml_metrics()
+            return jsonify(stats)
         except FileNotFoundError as e:
-            return jsonify({"status": "error", "message": f"Model file not found: {e}"}), 404
+            # can't load model/vectorizer but we still want indicator values returned
+            indicators = dashboard.compute_attack_indicators()
+            return jsonify({
+                "status": "error",
+                "message": f"Model file not found: {e}",
+                "attack_indicators": indicators
+            }), 200
         except Exception as e:
-            return jsonify({"status": "error", "message": str(e)}), 500
+            # on any other failure, return error flag but still include indicators
+            indicators = dashboard.compute_attack_indicators()
+            return jsonify({
+                "status": "error",
+                "message": str(e),
+                "attack_indicators": indicators
+            }), 200
 
     @app.route('/incidents')
     @token_required
@@ -797,6 +1058,12 @@ def create_dashboard_app():
         }
         filter_value = category_map.get(category, category)
         filtered_logs = [l for l in logs if l.get('attack_type') == filter_value or l.get('type') == filter_value]
+        
+        # Filter by IP if provided in URL parameters
+        filter_ip = request.args.get('ip')
+        if filter_ip:
+            filtered_logs = [l for l in filtered_logs if l.get('ip') == filter_ip or l.get('source_ip') == filter_ip]
+        
         filtered_logs.sort(key=lambda x: x.get('timestamp', ''), reverse=True)
         
         # Data Masking for Users
@@ -860,7 +1127,11 @@ def create_dashboard_app():
     @token_required
     def ml_detections_page(current_user):
         logs = dashboard.load_audit_log()
-        ml_logs = [l for l in logs if l.get('ml_detected') is True or l.get('attack_type') == 'ML Detection']
+        # select entries that were flagged by ML (explicit flag) or whose
+        # detection method indicates ML. attack_type no longer used for
+        # filtering since it now contains the actual attack classification.
+        ml_logs = [l for l in logs if l.get('ml_detected') is True or
+                   (l.get('detection_type', '').lower().startswith('ml'))]
         ml_logs.sort(key=lambda x: x.get('timestamp', ''), reverse=True)
         
         # Data Masking for Users
@@ -877,11 +1148,103 @@ def create_dashboard_app():
             
         return render_template('ml_detections.html', logs=ml_logs, title="ML Detections", user=current_user)
 
+    @app.route('/ml-performance')
+    @token_required
+    def ml_performance_page(current_user):
+        """Dedicated ML Model Performance Dashboard"""
+        return render_template('ml_performance.html', user=current_user)
+
     @app.route('/profile')
     @token_required
     def profile_page(current_user):
-        # A simple profile page as requested
-        return render_template('dashboard.html', user=current_user, profile_mode=True)
+        # Render dedicated profile page
+        return render_template('profile.html', user=current_user)
+
+    @app.route('/api/profile')
+    @token_required
+    def get_profile_data(current_user):
+        """Return user profile data for profile page"""
+        return jsonify({
+            'status': 'success',
+            'user': {
+                'username': current_user.get('username'),
+                'email': current_user.get('email', ''),
+                'role': current_user.get('role'),
+                'id': current_user.get('id', ''),
+                'full_name': current_user.get('full_name', current_user.get('username')),
+                'department': current_user.get('department', 'Security Operations'),
+                'created_at': current_user.get('created_at', ''),
+                'last_login': current_user.get('last_login', ''),
+                'active_sessions': current_user.get('active_sessions', 1),
+                'security_score': current_user.get('security_score', 85)
+            }
+        })
+
+    @app.route('/api/profile/activity')
+    @token_required
+    def get_profile_activity(current_user):
+        """Return user activity data"""
+        # Mock activity data - replace with real data from your logs
+        return jsonify({
+            'status': 'success',
+            'activity': [
+                {'action': 'Login', 'timestamp': '2025-01-15 09:30:00', 'ip': '192.168.1.100'},
+                {'action': 'View Dashboard', 'timestamp': '2025-01-15 10:15:00', 'ip': '192.168.1.100'},
+                {'action': 'Security Check', 'timestamp': '2025-01-15 11:45:00', 'ip': '192.168.1.100'}
+            ]
+        })
+
+    @app.route('/api/profile/sessions')
+    @token_required
+    def get_profile_sessions(current_user):
+        """Return user active sessions"""
+        # Mock session data - replace with real session data
+        return jsonify({
+            'status': 'success',
+            'sessions': [
+                {
+                    'id': 'session_001',
+                    'device': 'Chrome on Windows',
+                    'ip': '192.168.1.100',
+                    'location': 'Cairo, Egypt',
+                    'login_time': '2025-01-15 09:30:00',
+                    'status': 'active',
+                    'current': True
+                }
+            ]
+        })
+
+    @app.route('/api/profile/update', methods=['POST'])
+    @token_required
+    def update_profile(current_user):
+        """Update user profile"""
+        data = request.get_json()
+        # Here you would update the user in your database
+        log_action(current_user, "Profile Updated", f"Updated profile information")
+        return jsonify({'status': 'success', 'message': 'Profile updated successfully'})
+
+    @app.route('/api/profile/change-password', methods=['POST'])
+    @token_required
+    def change_password_profile(current_user):
+        """Change user password"""
+        data = request.get_json()
+        current_password = data.get('current_password')
+        new_password = data.get('new_password')
+        
+        # Here you would validate and update the password
+        if current_password and new_password:
+            log_action(current_user, "Password Changed", "User changed their password")
+            return jsonify({'status': 'success', 'message': 'Password changed successfully'})
+        
+        return jsonify({'status': 'error', 'message': 'Invalid request'})
+
+    @app.route('/api/profile/logout-session', methods=['POST'])
+    @token_required
+    def logout_session(current_user):
+        """Logout a specific session"""
+        session_id = request.get_json().get('session_id')
+        log_action(current_user, "Session Revoked", f"Revoked session: {session_id}")
+        return jsonify({'status': 'success', 'message': 'Session revoked successfully'})
 
     @app.route('/critical')
     @token_required

@@ -16,5 +16,11 @@
         "username": "hend",
         "password_hash": "pbkdf2:sha256:260000$Kda42aB0Wl4Huu8v$fb78b4ba3fa74c1076a5c09e787fe9229d52eb6bb15001e84b9956c3a56e350b",
         "role": "user"
+    },
+    "Hend": {
+        "id": 4,
+        "username": "Hend",
+        "password_hash": "scrypt:32768:8:1$aZClFcDhivAZ2PL2$1bc2b65b808c6622b642ac1486fe5e1746e5cda1d6df4bcf8ae462300a3ab193597b1c914c6be48acb48a47f59ec1f9e855dac155ce78d51190e62014f505934",
+        "role": "user"
     }
 }

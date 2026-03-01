@@ -46,16 +46,19 @@ const ThemeManager = {
    */
   updateThemeIcon(theme) {
     // Update clickable theme toggle button (landing/login pages)
-    const themeButton = document.getElementById("theme-toggle");
-    if (themeButton) {
-      const icon = themeButton.querySelector("i");
+    const themeButtons = document.querySelectorAll("#theme-toggle");
+    themeButtons.forEach(button => {
+      const icon = button.querySelector("i");
       if (icon) {
         icon.className = theme === "dark" ? "fas fa-sun" : "fas fa-moon";
       }
-    }
+    });
 
     // Update theme icon displays (other pages)
     const themeIcons = document.querySelectorAll(".theme-icon i");
+    themeIcons.forEach(icon => {
+      icon.className = theme === "dark" ? "fas fa-sun" : "fas fa-moon";
+    });
   },
   /**
    * Setup click handler for theme toggle button

@@ -1,16 +1,15 @@
 /* ====================================================================
-   RAMADAN TRIANGLE BUNTING — Cute colorful flags on curved strings
-   Colors: #FF4444 (red) · #FFD700 (yellow) · #DAA520 (gold)
+   RAMADAN LANTERNS — Elegant swinging fanoos
    Toggle: set isRamadan = false in ramadan.js to hide
    ==================================================================== */
 
 /* ---------- Container ---------- */
 #ramadan-mode {
   position: absolute;
-  top: 100%;
+  top: 0;
   left: 0;
   width: 100%;
-  height: 80px;
+  height: 250px;
   pointer-events: none;
   z-index: 90;
   overflow: visible;
@@ -20,83 +19,135 @@
   display: none;
 }
 
-.ramadan-bunting-wrap {
+.ramadan-lanterns-wrap {
   position: relative;
   width: 100%;
-  height: 80px;
+  height: 100%;
   pointer-events: none;
 }
 
-/* ---------- String SVGs ---------- */
-.rb-string {
+/* ---------- Lantern Containers & Placement ---------- */
+.lantern-container {
   position: absolute;
-  left: 0;
-  width: 100%;
-  pointer-events: none;
-}
-
-.rb-string--1 {
   top: 0;
-  height: 66px;
-  animation: rbBounce1 4s ease-in-out infinite;
+  /* Set transform origin to top center so they swing from the wire/chain */
+  transform-origin: top center;
 }
 
-.rb-string--2 {
-  top: 10px;
-  height: 62px;
-  opacity: 0.85;
-  animation: rbBounce2 4s ease-in-out infinite;
-  animation-delay: -2s;
+.lantern-left {
+  left: 10%;
+  width: 80px;
+  animation: swing1 5s ease-in-out infinite alternate;
 }
 
-/* ---------- Cord (the string line) ---------- */
-.rb-cord {
+.lantern-right {
+  right: 25%;
+  width: 60px;
+  /* Slightly smaller */
+  animation: swing2 4s ease-in-out infinite alternate;
+  animation-delay: -1.5s;
+}
+
+.lantern-far-right {
+  right: 5%;
+  width: 90px;
+  animation: swing1 6s ease-in-out infinite alternate;
+  animation-delay: -3s;
+}
+
+/* ---------- SVG Styling ---------- */
+.lantern-svg {
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.4));
+}
+
+.l-chain {
+  stroke: #DAA520;
+  stroke-width: 2;
+}
+
+.l-ring {
+  fill: none;
+  stroke: #DAA520;
+  stroke-width: 2;
+}
+
+.l-gold {
+  fill: #B8860B;
+  /* Darker gold base */
+  stroke: #FFD700;
+  stroke-width: 1;
+}
+
+.l-frame {
   stroke: #DAA520;
   stroke-width: 2;
   fill: none;
-  stroke-linecap: round;
-  opacity: 0.7;
 }
 
-/* ---------- Triangles ---------- */
-.rb-tri {
-  opacity: 0.9;
+.l-glass {
+  fill: rgba(255, 255, 255, 0.15);
+  /* Semi-transparent glass */
 }
 
-.rb-tri--red {
-  fill: #FF4444;
+.l-flame {
+  fill: #FFA500;
+  animation: flicker 0.5s ease-in-out infinite alternate;
+  filter: drop-shadow(0 0 8px #FF4500);
 }
 
-.rb-tri--yel {
-  fill: #FFD700;
+.crescent-spin {
+  transform-origin: 48px 194px;
+  animation: spinCrescent 4s linear infinite;
 }
 
-.rb-tri--gold {
-  fill: #DAA520;
-}
+/* ---------- Animations ---------- */
+@keyframes swing1 {
+  0% {
+    transform: rotate(5deg);
+  }
 
-/* ---------- Gentle bounce animation ---------- */
-@keyframes rbBounce1 {
-
-  0%,
   100% {
-    transform: translateY(0);
+    transform: rotate(-5deg);
+  }
+}
+
+@keyframes swing2 {
+  0% {
+    transform: rotate(-6deg);
+  }
+
+  100% {
+    transform: rotate(6deg);
+  }
+}
+
+@keyframes flicker {
+  0% {
+    transform: scale(0.95);
+    opacity: 0.8;
+    fill: #FFA500;
+  }
+
+  100% {
+    transform: scale(1.05);
+    opacity: 1;
+    fill: #FFD700;
+  }
+}
+
+@keyframes spinCrescent {
+  0% {
+    transform: scaleX(1);
   }
 
   50% {
-    transform: translateY(5px);
+    transform: scaleX(0);
   }
-}
 
-@keyframes rbBounce2 {
-
-  0%,
   100% {
-    transform: translateY(0);
-  }
-
-  50% {
-    transform: translateY(4px);
+    transform: scaleX(1);
   }
 }
 
@@ -104,33 +155,32 @@
    RESPONSIVE
    ==================================================================== */
 @media (max-width: 768px) {
-
-  #ramadan-mode,
-  .ramadan-bunting-wrap {
-    height: 65px;
+  .lantern-left {
+    left: 5%;
+    width: 60px;
   }
 
-  .rb-string--1 {
-    height: 55px;
+  .lantern-right {
+    right: 20%;
+    width: 45px;
   }
 
-  .rb-string--2 {
-    height: 50px;
+  .lantern-far-right {
+    right: 2%;
+    width: 60px;
   }
 }
 
 @media (max-width: 480px) {
-
-  #ramadan-mode,
-  .ramadan-bunting-wrap {
-    height: 50px;
+  .lantern-left {
+    width: 40px;
   }
 
-  .rb-string--1 {
-    height: 44px;
-  }
-
-  .rb-string--2 {
+  .lantern-right {
     display: none;
+  }
+
+  .lantern-far-right {
+    width: 45px;
   }
 }

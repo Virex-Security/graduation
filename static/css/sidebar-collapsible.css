@@ -1,0 +1,376 @@
+/* ========================================
+   COLLAPSIBLE SIDEBAR ENHANCEMENTS
+   Add this after dashboard.css
+======================================== */
+
+/* Override sidebar with collapsible functionality */
+.sidebar {
+  width: 260px;
+  transition: 
+    transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.3s ease !important;
+  overflow: hidden;
+}
+
+.sidebar.collapsed {
+  transform: translateX(-100%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.sidebar.collapsed::after {
+  opacity: 0;
+}
+
+/* Sidebar Header Enhancements */
+.sidebar-header {
+  padding: 1.5rem !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 80px;
+}
+
+.sidebar-brand {
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.sidebar-brand i {
+  flex-shrink: 0;
+}
+
+.sidebar-brand .brand-text {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+/* Menu Enhancements */
+.sidebar-menu {
+  padding: 1.5rem 0.75rem !important;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.sidebar-menu::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sidebar-menu::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar-menu::-webkit-scrollbar-thumb {
+  background: rgba(168, 85, 247, 0.3);
+  border-radius: 2px;
+}
+
+.menu-item {
+  white-space: nowrap;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.menu-item .menu-text {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.menu-item:hover i {
+  transform: scale(1.1);
+}
+
+/* Footer Enhancements */
+.sidebar-footer {
+  padding: 1.5rem 0.75rem !important;
+}
+
+.sidebar-user {
+  transition: all 0.3s ease;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.user-avatar {
+  flex-shrink: 0;
+}
+
+.user-info {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+/* User Connection Status */
+.user-connection-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 6px;
+  border: 1px solid;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.user-connection-status i {
+  font-size: 0.6rem;
+}
+
+/* Connected State - Green */
+.user-connection-status.status-connected {
+  background: rgba(16, 185, 129, 0.1);
+  border-color: rgba(16, 185, 129, 0.3);
+  color: #10b981;
+}
+
+.user-connection-status.status-connected i {
+  animation: pulse-connection 2s infinite;
+}
+
+/* Disconnected State - Red */
+.user-connection-status.status-disconnected {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+}
+
+.user-connection-status.status-disconnected i {
+  animation: none;
+}
+
+/* Waiting for API State - Orange */
+.user-connection-status.status-waiting {
+  background: rgba(245, 158, 11, 0.1);
+  border-color: rgba(245, 158, 11, 0.3);
+  color: #f59e0b;
+}
+
+.user-connection-status.status-waiting i {
+  animation: pulse-waiting 1s infinite;
+}
+
+@keyframes pulse-connection {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+@keyframes pulse-waiting {
+  0%, 100% { 
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% { 
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+}
+
+/* Main Wrapper Adjustment */
+.main-wrapper {
+  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.main-wrapper.sidebar-collapsed {
+  margin-left: 0;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 1024px) {
+  .sidebar {
+    width: 260px;
+  }
+
+  .main-wrapper {
+    margin-left: 260px;
+  }
+
+  .main-wrapper.sidebar-collapsed {
+    margin-left: 0;
+  }
+  
+  .navbar-security-score .score-text {
+    display: none;
+  }
+  
+  .navbar-security-score {
+    padding: 0.5rem 0.75rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    transform: translateX(-100%);
+    width: 260px;
+  }
+
+  .sidebar:not(.collapsed) {
+    transform: translateX(0);
+  }
+
+  .main-wrapper,
+  .main-wrapper.sidebar-collapsed {
+    margin-left: 0;
+  }
+
+  /* Mobile overlay */
+  .sidebar:not(.collapsed)::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 260px;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: -1;
+  }
+  
+  .navbar-security-score {
+    display: none;
+  }
+}
+
+
+/* ========================================
+   SIDEBAR SECTIONS & RESET BUTTON
+======================================== */
+
+/* Menu Sections */
+.menu-section {
+  margin-bottom: 1.5rem;
+}
+
+.menu-section-title {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-secondary);
+  padding: 0.5rem 1rem;
+  margin-bottom: 0.5rem;
+  opacity: 0.6;
+  transition: opacity 0.3s ease;
+}
+
+/* Reset Button in Sidebar */
+.reset-menu-btn {
+  width: 100%;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: var(--danger);
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.reset-menu-btn:hover {
+  background: rgba(239, 68, 68, 0.2);
+  color: #fff;
+  box-shadow: 
+    0 0 15px rgba(239, 68, 68, 0.4),
+    inset 0 0 20px rgba(239, 68, 68, 0.1);
+}
+
+.reset-menu-btn i {
+  color: var(--danger);
+}
+
+.reset-menu-btn:hover i {
+  color: #fff;
+  filter: drop-shadow(0 0 10px rgba(239, 68, 68, 0.7));
+}
+
+/* Simplified Navbar Styles */
+.navbar .btn-icon {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-dim);
+  color: var(--text-secondary);
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.3s var(--transition);
+  backdrop-filter: blur(10px);
+}
+
+.navbar .btn-icon:hover {
+  color: var(--brand-primary);
+  border-color: var(--brand-primary);
+  background: rgba(168, 85, 247, 0.1);
+  box-shadow: 0 0 20px rgba(168, 85, 247, 0.3);
+  transform: translateY(-2px);
+}
+
+/* Remove old navbar buttons that moved to sidebar */
+.incidents-btn,
+.refresh-btn.incidents-btn {
+  display: none !important;
+}
+
+
+/* Navbar Toggle Button Animation */
+#sidebarToggle i {
+  transition: transform 0.3s ease;
+}
+
+.sidebar.collapsed ~ .main-wrapper #sidebarToggle i {
+  transform: rotate(90deg);
+}
+
+/* Smooth sidebar show/hide */
+.sidebar {
+  box-shadow: 
+    0 0 30px rgba(168, 85, 247, 0.15),
+    inset 0 0 40px rgba(168, 85, 247, 0.05),
+    2px 0 10px rgba(0, 0, 0, 0.1);
+}
+
+
+/* ========================================
+   SIDEBAR LOGOUT BUTTON
+======================================== */
+
+.sidebar-logout-btn {
+  width: 100%;
+  margin-top: 1rem;
+  padding: 0.875rem 1rem;
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 12px;
+  color: white;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+  font-family: inherit;
+}
+
+.sidebar-logout-btn:hover {
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  box-shadow: 
+    0 8px 25px rgba(239, 68, 68, 0.5),
+    0 0 30px rgba(239, 68, 68, 0.4);
+  transform: translateY(-2px);
+}
+
+.sidebar-logout-btn i {
+  font-size: 1.1rem;
+  transition: transform 0.3s ease;
+}
+
+.sidebar-logout-btn:hover i {
+  transform: translateX(3px);
+}
+
+.sidebar-logout-btn .logout-text {
+  transition: opacity 0.3s ease;
+}
+
+/* Sidebar Footer Spacing */
+.sidebar-footer {
+  padding: 1.5rem 0.75rem 1.5rem !important;
+}
