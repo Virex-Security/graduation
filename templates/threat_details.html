@@ -1,453 +1,770 @@
 <!doctype html>
 <html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <title>{{ title }} - Virex</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
+    <link rel="stylesheet" href="/static/css/dashboard.css" />
+    <link rel="stylesheet" href="/static/css/sidebar-collapsible.css" />
+    <link rel="stylesheet" href="/static/css/chatbot.css" />
+    <link rel="stylesheet" href="/static/css/threat_details.css" />
+    <script src="/static/javascript/theme.js"></script>
+    <script src="/static/javascript/access-control.js"></script>
+  </head>
 
-<head>
-  <meta charset="UTF-8" />
-  <title>{{ title }} - Virex</title>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap"
-    rel="stylesheet" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
-  <link rel="stylesheet" href="/static/css/dashboard.css" />
-  <link rel="stylesheet" href="/static/css/sidebar-collapsible.css" />
-  <link rel="stylesheet" href="/static/css/chatbot.css" />
-  <link rel="stylesheet" href="/static/css/threat_details.css" />
-  <script src="/static/javascript/theme.js"></script>
-  <script src="/static/javascript/access-control.js"></script>
-</head>
-
-<body>
-  <input type="checkbox" id="sidebar-toggler" class="sidebar-toggler" hidden />
-  <div class="dashboard-wrapper">
-    <!-- Sidebar -->
-    <aside class="sidebar" id="sidebar">
-      <div class="sidebar-header">
-        <div class="sidebar-brand">
-          <i class="fas fa-shield-halved"></i>
-          <span class="brand-text">Virex</span>
-        </div>
-      </div>
-
-      <nav class="sidebar-menu">
-        <!-- Dashboard Section -->
-        <div class="menu-section">
-          <div class="menu-section-title">Dashboard</div>
-          <a href="/dashboard" class="menu-item" data-tooltip="Dashboard">
-            <i class="fas fa-home"></i>
-            <span class="menu-text">Dashboard</span>
-          </a>
+  <body>
+    <input
+      type="checkbox"
+      id="sidebar-toggler"
+      class="sidebar-toggler"
+      hidden
+    />
+    <div class="dashboard-wrapper">
+      <!-- Sidebar -->
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+          <div class="sidebar-brand">
+            <i class="fas fa-shield-halved"></i>
+            <span class="brand-text">Virex</span>
+          </div>
         </div>
 
-        <!-- Inside Board Section -->
-        <div class="menu-section">
-          <div class="menu-section-title">Inside Board</div>
-          <a href="/incidents" class="menu-item" data-tooltip="Incidents">
-            <i class="fas fa-exclamation-triangle"></i>
-            <span class="menu-text">Incidents</span>
-          </a>
-          <a href="/threats/ml-detection" class="menu-item" data-tooltip="ML Detections">
-            <i class="fas fa-brain"></i>
-            <span class="menu-text">ML Detections</span>
-          </a>
-          <a href="/ml-performance" class="menu-item" data-tooltip="ML Performance">
-            <i class="fas fa-chart-line"></i>
-            <span class="menu-text">ML Performance</span>
-          </a>
-        </div>
+        <nav class="sidebar-menu">
+          <!-- Dashboard Section -->
+          <div class="menu-section">
+            <div class="menu-section-title">Dashboard</div>
+            <a href="/dashboard" class="menu-item" data-tooltip="Dashboard">
+              <i class="fas fa-home"></i>
+              <span class="menu-text">Dashboard</span>
+            </a>
+          </div>
 
-        <!-- Blocked Area Section -->
-        <div class="menu-section">
-          <div class="menu-section-title">Blocked Area</div>
-          <a href="/blocked" class="menu-item" data-tooltip="Blocked">
-            <i class="fas fa-hand"></i>
-            <span class="menu-text">Blocked</span>
-          </a>
-        </div>
+          <!-- Inside Board Section -->
+          <div class="menu-section">
+            <div class="menu-section-title">Inside Board</div>
+            <a href="/incidents" class="menu-item" data-tooltip="Incidents">
+              <i class="fas fa-exclamation-triangle"></i>
+              <span class="menu-text">Incidents</span>
+            </a>
+            <a
+              href="/threats/ml-detection"
+              class="menu-item"
+              data-tooltip="ML Detections"
+            >
+              <i class="fas fa-brain"></i>
+              <span class="menu-text">ML Detections</span>
+            </a>
+            <a
+              href="/ml-performance"
+              class="menu-item"
+              data-tooltip="ML Performance"
+            >
+              <i class="fas fa-chart-line"></i>
+              <span class="menu-text">ML Performance</span>
+            </a>
+          </div>
 
-        <!-- Weeks Section -->
-        <div class="menu-section">
-          <div class="menu-section-title">Weeks</div>
-          <a href="/requests" class="menu-item" data-tooltip="All Requests">
-            <i class="fas fa-globe"></i>
-            <span class="menu-text">All Requests</span>
-          </a>
-        </div>
+          <!-- Blocked Area Section -->
+          <div class="menu-section">
+            <div class="menu-section-title">Blocked Area</div>
+            <a href="/blocked" class="menu-item" data-tooltip="Blocked">
+              <i class="fas fa-hand"></i>
+              <span class="menu-text">Blocked</span>
+            </a>
+          </div>
 
-        <!-- Po Fake Section -->
-        <div class="menu-section">
-          <div class="menu-section-title">Po Fake</div>
-          <a href="/profile" class="menu-item" data-tooltip="Profile">
-            <i class="fas fa-user-shield"></i>
-            <span class="menu-text">Profile</span>
-          </a>
-        </div>
+          <!-- Weeks Section -->
+          <div class="menu-section">
+            <div class="menu-section-title">Weeks</div>
+            <a href="/requests" class="menu-item" data-tooltip="All Requests">
+              <i class="fas fa-globe"></i>
+              <span class="menu-text">All Requests</span>
+            </a>
+          </div>
 
-        <!-- Reset Button (Admin Only) -->
-        {% if user and user.role == 'admin' %}
-        <div class="menu-section">
-          <button class="menu-item reset-menu-btn" id="sidebar-reset-btn" data-tooltip="Reset Stats">
-            <i class="fas fa-trash-can"></i>
-            <span class="menu-text">Reset Stats</span>
+          <!-- Po Fake Section -->
+          <div class="menu-section">
+            <div class="menu-section-title">Po Fake</div>
+            <a href="/profile" class="menu-item" data-tooltip="Profile">
+              <i class="fas fa-user-shield"></i>
+              <span class="menu-text">Profile</span>
+            </a>
+          </div>
+
+          <!-- Reset Button (Admin Only) -->
+          {% if user and user.role == 'admin' %}
+          <div class="menu-section">
+            <button
+              class="menu-item reset-menu-btn"
+              id="sidebar-reset-btn"
+              data-tooltip="Reset Stats"
+            >
+              <i class="fas fa-trash-can"></i>
+              <span class="menu-text">Reset Stats</span>
+            </button>
+          </div>
+          {% endif %}
+        </nav>
+
+        <div class="sidebar-footer">
+          <div class="sidebar-user">
+            <div class="user-avatar">
+              <i class="fas fa-user"></i>
+            </div>
+            <div class="user-info">
+              <div class="user-name">
+                {{ user.username if user else 'User' }}
+              </div>
+              <div class="user-role">{{ user.role if user else 'Role' }}</div>
+            </div>
+          </div>
+
+          <!-- Logout Button -->
+          <button class="sidebar-logout-btn" id="logout-btn">
+            <i class="fas fa-right-from-bracket"></i>
+            <span class="logout-text">Logout</span>
           </button>
         </div>
-        {% endif %}
-      </nav>
+      </aside>
 
-      <div class="sidebar-footer">
-        <div class="sidebar-user">
-          <div class="user-avatar">
-            <i class="fas fa-user"></i>
+      <!-- Main Content Area -->
+      <div class="main-wrapper" id="mainWrapper">
+        <nav class="navbar">
+          <!-- Sidebar Toggle Button -->
+          <button class="btn-icon" id="sidebarToggle" title="Toggle Sidebar">
+            <i class="fas fa-bars"></i>
+          </button>
+
+          <div class="brand" onclick="location.href = '/'">
+            <span>Virex</span>
           </div>
-          <div class="user-info">
-            <div class="user-name">{{ user.username if user else 'User' }}</div>
-            <div class="user-role">{{ user.role if user else 'Role' }}</div>
+          <div class="nav-actions">
+            <!-- Back Button -->
+            <button
+              class="btn-icon back-btn"
+              onclick="history.back()"
+              title="Go Back"
+            >
+              <i class="fas fa-arrow-left"></i>
+            </button>
+
+            <!-- Theme Toggle Icon -->
+            <button
+              class="btn-icon"
+              id="theme-toggle"
+              title="Toggle Light/Dark Mode"
+            >
+              <i class="fas fa-sun"></i>
+            </button>
           </div>
-        </div>
-        
-        <!-- Logout Button -->
-        <button class="sidebar-logout-btn" id="logout-btn">
-          <i class="fas fa-right-from-bracket"></i>
-          <span class="logout-text">Logout</span>
-        </button>
-      </div>
-    </aside>
+        </nav>
 
-    <!-- Main Content Area -->
-    <div class="main-wrapper" id="mainWrapper">
-    <nav class="navbar">
-      <!-- Sidebar Toggle Button -->
-      <button class="btn-icon" id="sidebarToggle" title="Toggle Sidebar">
-        <i class="fas fa-bars"></i>
-      </button>
+        <main class="main-content">
+          <header class="section-title">
+            <h1>{{ title }}</h1>
+            <p>{{ description }}</p>
+          </header>
 
-      <div class="brand" onclick="location.href = '/'">
-        <span>Virex</span>
-      </div>
-      <div class="nav-actions">
-        <!-- Back Button -->
-        <button class="btn-icon back-btn" onclick="history.back()" title="Go Back">
-          <i class="fas fa-arrow-left"></i>
-        </button>
+          <!-- Threat Statistics (Admin Only) -->
+          {% if user.role == 'admin' %}
+          <div class="threat-stats">
+            <div class="stat-box clickable" onclick="filterSeverity('all')">
+              <div class="stat-box-icon"><i class="fas fa-chart-bar"></i></div>
+              <div class="stat-box-title">Total Detections</div>
+              <div class="stat-box-value">{{ total_count }}</div>
+            </div>
 
-        <!-- Theme Toggle Icon -->
-        <button class="btn-icon" id="theme-toggle" title="Toggle Light/Dark Mode">
-          <i class="fas fa-sun"></i>
-        </button>
-      </div>
-    </nav>
+            <div class="stat-box">
+              <div class="stat-box-icon"><i class="fas fa-ban"></i></div>
+              <div class="stat-box-title">Blocked</div>
+              <div class="stat-box-value">{{ blocked_count }}</div>
+            </div>
 
-    <main class="main-content">
-      <header class="section-title">
-        <h1>{{ title }}</h1>
-        <p>{{ description }}</p>
-      </header>
+            <div
+              class="stat-box clickable"
+              onclick="location.href = '/critical'"
+            >
+              <div class="stat-box-icon">
+                <i
+                  class="fas fa-exclamation-triangle"
+                  style="color: var(--danger)"
+                ></i>
+              </div>
+              <div class="stat-box-title">Critical</div>
+              <div class="stat-value" style="color: var(--danger)">
+                {{ critical_count }}
+              </div>
+            </div>
 
-      <!-- Threat Statistics (Admin Only) -->
-      {% if user.role == 'admin' %}
-      <div class="threat-stats">
-        <div class="stat-box clickable" onclick="filterSeverity('all')">
-          <div class="stat-box-icon"><i class="fas fa-chart-bar"></i></div>
-          <div class="stat-box-title">Total Detections</div>
-          <div class="stat-box-value">{{ total_count }}</div>
-        </div>
+            <div class="stat-box">
+              <div class="stat-box-icon"><i class="fas fa-map-pin"></i></div>
+              <div class="stat-box-title">Unique Sources</div>
+              <div class="stat-box-value">{{ unique_ips }}</div>
+            </div>
+          </div>
+          {% endif %}
 
-        <div class="stat-box">
-          <div class="stat-box-icon"><i class="fas fa-ban"></i></div>
-          <div class="stat-box-title">Blocked</div>
-          <div class="stat-box-value">{{ blocked_count }}</div>
-        </div>
-
-         <div
-            class="stat-box clickable"
-            onclick="location.href = '/critical'"
-          >
-            <div class="stat-box-icon">
+          <!-- Main Table / User Simple Message -->
+          {% if user.role == 'admin' %}
+          <div class="table-card">
+            {% if logs %}
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Timestamp</th>
+                  <th>Source IP</th>
+                  <th>Attack Type</th>
+                  <th>Detection Method</th>
+                  <th>Endpoint</th>
+                  <th>Severity</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for log in logs %}
+                <tr class="row-{{ log.severity }}">
+                  <td
+                    style="
+                      font-family: &quot;JetBrains Mono&quot;;
+                      font-size: 0.9rem;
+                    "
+                  >
+                    {{ log.timestamp }}
+                  </td>
+                  <td>
+                    <span
+                      style="
+                        font-family: &quot;JetBrains Mono&quot;;
+                        font-weight: 600;
+                      "
+                      >{{ log.ip }}</span
+                    >
+                  </td>
+                  <td>
+                    {% if log.ml_detected or log.detection_type == 'ML
+                    Detection' %}
+                    <span style="font-weight: 700; color: #a855f7">
+                      <i class="fas fa-brain"></i> {{ log.attack_type or
+                      log.type }}
+                    </span>
+                    {% else %}
+                    <span style="font-weight: 700; color: #ef4444"
+                      >{{ log.attack_type or log.type }}</span
+                    >
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if log.ml_detected or log.detection_type == 'ML
+                    Detection' %}
+                    <span
+                      style="
+                        background: rgba(168, 85, 247, 0.15);
+                        color: #a855f7;
+                        padding: 4px 8px;
+                        border-radius: 4px;
+                        font-size: 0.85rem;
+                        font-weight: 600;
+                      "
+                    >
+                      <i class="fas fa-brain"></i> ML Detection
+                    </span>
+                    {% else %}
+                    <span
+                      style="
+                        background: rgba(59, 130, 246, 0.15);
+                        color: #3b82f6;
+                        padding: 4px 8px;
+                        border-radius: 4px;
+                        font-size: 0.85rem;
+                        font-weight: 600;
+                      "
+                    >
+                      <i class="fas fa-shield-alt"></i> Rule-Based
+                    </span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    <div
+                      style="
+                        font-family: &quot;JetBrains Mono&quot;;
+                        font-size: 0.85rem;
+                      "
+                    >
+                      <span style="color: #10b981; font-weight: 600"
+                        >{{ log.method or 'N/A' }}</span
+                      >
+                      <span style="color: #6b7280"
+                        >{{ log.endpoint or 'N/A' }}</span
+                      >
+                    </div>
+                  </td>
+                  <td>
+                    <span class="severity-badge severity-{{ log.severity }}"
+                      >{{ log.severity }}</span
+                    >
+                  </td>
+                  <td>
+                    {% if log.blocked %}
+                    <span
+                      style="
+                        background: rgba(239, 68, 68, 0.15);
+                        color: #ef4444;
+                        padding: 4px 8px;
+                        border-radius: 4px;
+                        font-size: 0.85rem;
+                        font-weight: 600;
+                      "
+                    >
+                      <i class="fas fa-shield-virus"></i> Blocked
+                    </span>
+                    {% else %}
+                    <span
+                      style="
+                        background: rgba(34, 197, 94, 0.15);
+                        color: #22c55e;
+                        padding: 4px 8px;
+                        border-radius: 4px;
+                        font-size: 0.85rem;
+                        font-weight: 600;
+                      "
+                    >
+                      <i class="fas fa-eye"></i> Detected
+                    </span>
+                    {% endif %}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+            {% else %}
+            <div
+              style="
+                text-align: center;
+                padding: 3rem;
+                color: var(--text-secondary);
+              "
+            >
               <i
-                class="fas fa-exclamation-triangle"
-                style="color: var(--danger)"
+                class="fas fa-info-circle"
+                style="font-size: 2rem; margin-bottom: 1rem; opacity: 0.5"
               ></i>
+              <p style="font-size: 1.1rem">
+                No {{ title | lower }} detected yet
+              </p>
+              <p style="font-size: 0.95rem; margin-top: 0.5rem">
+                Your system is secure
+              </p>
             </div>
-            <div class="stat-box-title">Critical</div>
-            <div class="stat-value" style="color: var(--danger)">
-              {{ critical_count }}
-            </div>
+            {% endif %}
           </div>
-
-        <div class="stat-box">
-          <div class="stat-box-icon"><i class="fas fa-map-pin"></i></div>
-          <div class="stat-box-title">Unique Sources</div>
-          <div class="stat-box-value">{{ unique_ips }}</div>
-        </div>
-      </div>
-      {% endif %}
-
-      <!-- Main Table / User Simple Message -->
-      {% if user.role == 'admin' %}
-      <div class="table-card">
-        {% if logs %}
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Timestamp</th>
-              <th>Source IP</th>
-              <th>Attack Type</th>
-              <th>Detection Method</th>
-              <th>Endpoint</th>
-              <th>Severity</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for log in logs %}
-            <tr class="row-{{ log.severity }}">
-              <td style="
-                    font-family: &quot;JetBrains Mono&quot;;
-                    font-size: 0.9rem;
-                  ">
-                {{ log.timestamp }}
-              </td>
-              <td>
-                <span style="
+          {% else %}
+          <div class="table-card">
+            {% if logs %}
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Timestamp</th>
+                  <th>Source IP</th>
+                  <th>Attack Type</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for log in logs %}
+                <tr>
+                  <td
+                    style="
                       font-family: &quot;JetBrains Mono&quot;;
-                      font-weight: 600;
-                    ">{{ log.ip }}</span>
-              </td>
-              <td>
-                {% if log.ml_detected or log.detection_type == 'ML Detection'
-                %}
-                <span style="font-weight: 700; color: #a855f7">
-                  <i class="fas fa-brain"></i> {{ log.attack_type or log.type
-                  }}
-                </span>
-                {% else %}
-                <span style="font-weight: 700; color: #ef4444">{{ log.attack_type or log.type }}</span>
-                {% endif %}
-              </td>
-              <td>
-                {% if log.ml_detected or log.detection_type == 'ML Detection'
-                %}
-                <span style="
-                      background: rgba(168, 85, 247, 0.15);
-                      color: #a855f7;
-                      padding: 4px 8px;
-                      border-radius: 4px;
-                      font-size: 0.85rem;
-                      font-weight: 600;
-                    ">
-                  <i class="fas fa-brain"></i> ML Detection
-                </span>
-                {% else %}
-                <span style="
-                      background: rgba(59, 130, 246, 0.15);
-                      color: #3b82f6;
-                      padding: 4px 8px;
-                      border-radius: 4px;
-                      font-size: 0.85rem;
-                      font-weight: 600;
-                    ">
-                  <i class="fas fa-shield-alt"></i> Rule-Based
-                </span>
-                {% endif %}
-              </td>
-              <td>
-                <div style="
-                      font-family: &quot;JetBrains Mono&quot;;
-                      font-size: 0.85rem;
-                    ">
-                  <span style="color: #10b981; font-weight: 600">{{ log.method or 'N/A' }}</span>
-                  <span style="color: #6b7280">{{ log.endpoint or 'N/A' }}</span>
-                </div>
-              </td>
-              <td>
-                <span class="severity-badge severity-{{ log.severity }}">{{ log.severity }}</span>
-              </td>
-              <td>
-                {% if log.blocked %}
-                <span style="
-                      background: rgba(239, 68, 68, 0.15);
-                      color: #ef4444;
-                      padding: 4px 8px;
-                      border-radius: 4px;
-                      font-size: 0.85rem;
-                      font-weight: 600;
-                    ">
-                  <i class="fas fa-shield-virus"></i> Blocked
-                </span>
-                {% else %}
-                <span style="
-                      background: rgba(34, 197, 94, 0.15);
-                      color: #22c55e;
-                      padding: 4px 8px;
-                      border-radius: 4px;
-                      font-size: 0.85rem;
-                      font-weight: 600;
-                    ">
-                  <i class="fas fa-eye"></i> Detected
-                </span>
-                {% endif %}
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-        {% else %}
-        <div style="
-              text-align: center;
-              padding: 3rem;
-              color: var(--text-secondary);
-            ">
-          <i class="fas fa-info-circle" style="font-size: 2rem; margin-bottom: 1rem; opacity: 0.5"></i>
-          <p style="font-size: 1.1rem">No {{ title | lower }} detected yet</p>
-          <p style="font-size: 0.95rem; margin-top: 0.5rem">
-            Your system is secure
-          </p>
-        </div>
-        {% endif %}
+                      font-size: 0.9rem;
+                    "
+                  >
+                    {{ log.timestamp }}
+                  </td>
+                  <td>
+                    <span
+                      style="
+                        font-family: &quot;JetBrains Mono&quot;;
+                        font-weight: 600;
+                      "
+                      >{{ log.ip }}</span
+                    >
+                  </td>
+                  <td>
+                    <span style="font-weight: 700; color: #ef4444"
+                      >{{ log.attack_type or log.type }}</span
+                    >
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+            {% else %}
+            <div
+              style="
+                text-align: center;
+                padding: 4rem 2rem;
+                background: var(--bg-layout);
+                border: 1px solid var(--border-dim);
+                border-radius: 12px;
+                margin-top: 2rem;
+              "
+            >
+              <i
+                class="fas fa-shield-halved"
+                style="
+                  font-size: 4rem;
+                  color: var(--brand-primary);
+                  margin-bottom: 1.5rem;
+                  display: block;
+                "
+              ></i>
+              <h2 style="font-size: 1.8rem; margin-bottom: 1rem">
+                لا توجد أنشطة مشبوهة
+              </h2>
+              <p style="font-size: 1.2rem; color: var(--text-primary)">
+                لا توجد أنشطة مشبوهة من نوع {{ title }} حالياً.
+              </p>
+            </div>
+            {% endif %}
+          </div>
+          {% endif %}
+        </main>
       </div>
-      {% else %}
-      <div class="table-card">
-        {% if logs %}
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Timestamp</th>
-              <th>Source IP</th>
-              <th>Attack Type</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for log in logs %}
-            <tr>
-              <td style="
-                    font-family: &quot;JetBrains Mono&quot;;
-                    font-size: 0.9rem;
-                  ">
-                {{ log.timestamp }}
-              </td>
-              <td>
-                <span style="
-                      font-family: &quot;JetBrains Mono&quot;;
-                      font-weight: 600;
-                    ">{{ log.ip }}</span>
-              </td>
-              <td>
-                <span style="font-weight: 700; color: #ef4444">{{ log.attack_type or log.type }}</span>
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-        {% else %}
-        <div style="
-              text-align: center;
-              padding: 4rem 2rem;
-              background: var(--bg-layout);
-              border: 1px solid var(--border-dim);
-              border-radius: 12px;
-              margin-top: 2rem;
-            ">
-          <i class="fas fa-shield-halved" style="
-                font-size: 4rem;
-                color: var(--brand-primary);
-                margin-bottom: 1.5rem;
-                display: block;
-              "></i>
-          <h2 style="font-size: 1.8rem; margin-bottom: 1rem">
-            لا توجد أنشطة مشبوهة
-          </h2>
-          <p style="font-size: 1.2rem; color: var(--text-primary)">
-            لا توجد أنشطة مشبوهة من نوع {{ title }} حالياً.
-          </p>
-        </div>
-        {% endif %}
-      </div>
-      {% endif %}
-    </main>
+      <!-- End Main Wrapper -->
     </div>
-    <!-- End Main Wrapper -->
-  </div>
 
-  <!-- Notification Toasts -->
-  <div id="notification-container"></div>
+    <!-- Notification Toasts -->
+    <div id="notification-container"></div>
 
-  <!-- Chatbot Widget -->
-  {% include 'chatbot.html' %}
+    <!-- Chatbot Widget -->
+    {% include 'chatbot.html' %}
 
-  <script>
-    // Sidebar Toggle Functionality
-    document.addEventListener('DOMContentLoaded', function() {
-      const sidebar = document.getElementById('sidebar');
-      const mainWrapper = document.getElementById('mainWrapper');
-      const sidebarToggle = document.getElementById('sidebarToggle');
-      
-      const sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
-      
-      if (sidebarCollapsed) {
-        sidebar.classList.add('collapsed');
-        mainWrapper.classList.add('sidebar-collapsed');
-      }
-      
-      if (sidebarToggle) {
-        sidebarToggle.addEventListener('click', function() {
-          sidebar.classList.toggle('collapsed');
-          mainWrapper.classList.toggle('sidebar-collapsed');
-          
-          const isCollapsed = sidebar.classList.contains('collapsed');
-          localStorage.setItem('sidebarCollapsed', isCollapsed);
-        });
-      }
-      
-      function handleResize() {
-        if (window.innerWidth <= 768) {
-          sidebar.classList.add('collapsed');
-          mainWrapper.classList.add('sidebar-collapsed');
+    <script>
+      // Sidebar Toggle Functionality
+      document.addEventListener("DOMContentLoaded", function () {
+        const sidebar = document.getElementById("sidebar");
+        const mainWrapper = document.getElementById("mainWrapper");
+        const sidebarToggle = document.getElementById("sidebarToggle");
+
+        const sidebarCollapsed =
+          localStorage.getItem("sidebarCollapsed") === "true";
+
+        if (sidebarCollapsed) {
+          sidebar.classList.add("collapsed");
+          mainWrapper.classList.add("sidebar-collapsed");
         }
-      }
-      
-      handleResize();
-      window.addEventListener('resize', handleResize);
 
-      const sidebarResetBtn = document.getElementById('sidebar-reset-btn');
-      if (sidebarResetBtn) {
-        sidebarResetBtn.addEventListener('click', function() {
-          if (confirm('Are you sure you want to reset all statistics? This action cannot be undone.')) {
-            fetch('/api/dashboard/reset', {
-              method: 'POST',
-              credentials: 'same-origin',
+        if (sidebarToggle) {
+          sidebarToggle.addEventListener("click", function () {
+            sidebar.classList.toggle("collapsed");
+            mainWrapper.classList.toggle("sidebar-collapsed");
+
+            const isCollapsed = sidebar.classList.contains("collapsed");
+            localStorage.setItem("sidebarCollapsed", isCollapsed);
+          });
+        }
+
+        function handleResize() {
+          if (window.innerWidth <= 768) {
+            sidebar.classList.add("collapsed");
+            mainWrapper.classList.add("sidebar-collapsed");
+          }
+        }
+
+        handleResize();
+        window.addEventListener("resize", handleResize);
+
+        // Reset Modal Handler
+        const resetModal = document.getElementById("reset-confirm-modal");
+        const resetConfirmBtn = document.getElementById("reset-confirm-btn");
+        const resetCancelBtn = document.getElementById("reset-cancel-btn");
+        const sidebarResetBtn = document.getElementById("sidebar-reset-btn");
+
+        if (sidebarResetBtn && resetModal) {
+          sidebarResetBtn.addEventListener("click", function () {
+            resetModal.style.display = "flex";
+          });
+        }
+
+        if (resetCancelBtn && resetModal) {
+          resetCancelBtn.addEventListener("click", function () {
+            resetModal.style.display = "none";
+          });
+        }
+
+        if (resetConfirmBtn && resetModal) {
+          resetConfirmBtn.addEventListener("click", function () {
+            resetModal.style.display = "none";
+            fetch("/api/dashboard/reset", {
+              method: "POST",
+              credentials: "same-origin",
               headers: {
-                'Content-Type': 'application/json'
-              }
+                "Content-Type": "application/json",
+              },
             })
-            .then(response => response.json())
-            .then(data => {
-              if (data.status === 'stats_reset') {
-                alert('Statistics reset successfully!');
-                location.reload();
-              }
-            })
-            .catch(error => {
-              console.error('Reset error:', error);
-              alert('Failed to reset statistics');
-            });
+              .then((response) => response.json())
+              .then((data) => {
+                if (data.status === "stats_reset") {
+                  const container = document.getElementById(
+                    "notification-container",
+                  );
+                  if (container) {
+                    const toast = document.createElement("div");
+                    toast.className = "toast toast-success";
+                    toast.innerHTML =
+                      '<i class="fas fa-check-circle"></i><span>تم إعادة تعيين جميع الإحصائيات بنجاح!</span>';
+                    container.appendChild(toast);
+                    setTimeout(() => toast.remove(), 5000);
+                  }
+                  setTimeout(() => location.reload(), 1500);
+                }
+              })
+              .catch((error) => {
+                console.error("Reset error:", error);
+                const container = document.getElementById(
+                  "notification-container",
+                );
+                if (container) {
+                  const toast = document.createElement("div");
+                  toast.className = "toast toast-error";
+                  toast.innerHTML =
+                    '<i class="fas fa-times-circle"></i><span>فشل إعادة تعيين الإحصائيات</span>';
+                  container.appendChild(toast);
+                  setTimeout(() => toast.remove(), 5000);
+                }
+              });
+          });
+        }
+
+        // Close modal when clicking outside
+        if (resetModal) {
+          resetModal.addEventListener("click", function (e) {
+            if (e.target === resetModal) {
+              resetModal.style.display = "none";
+            }
+          });
+        }
+      });
+
+      function filterSeverity(severity) {
+        const rows = document.querySelectorAll(".data-table tbody tr");
+        rows.forEach((row) => {
+          if (severity === "all" || row.classList.contains("row-" + severity)) {
+            row.style.display = "";
+          } else {
+            row.style.display = "none";
           }
         });
       }
-    });
+    </script>
+    <script src="/static/javascript/auth.js"></script>
+    <script src="/static/javascript/chatbot.js"></script>
+    <script src="/static/javascript/notifications.js"></script>
+    <!-- Reset Confirmation Modal -->
+    <div id="reset-confirm-modal" class="reset-modal" style="display: none">
+      <div class="reset-modal-content">
+        <div class="reset-modal-header">
+          <i class="fas fa-exclamation-triangle"></i>
+          <h2>تأكيد شطب البيانات</h2>
+        </div>
+        <div class="reset-modal-body">
+          <p class="warning-text">⚠️ تحذير مهم!</p>
+          <p class="description-text">
+            هل أنت متأكد من إعادة تعيين جميع الإحصائيات؟
+          </p>
+          <div class="consequences">
+            <div class="consequence-item">
+              <i class="fas fa-circle-xmark"></i>
+              <span>لا يمكن التراجع عن هذا الإجراء</span>
+            </div>
+            <div class="consequence-item">
+              <i class="fas fa-circle-xmark"></i>
+              <span>سيتم حذف جميع البيانات المسجلة</span>
+            </div>
+            <div class="consequence-item">
+              <i class="fas fa-circle-xmark"></i>
+              <span>ستعود جميع المقاييس إلى القيمة الأولية</span>
+            </div>
+          </div>
+        </div>
+        <div class="reset-modal-footer">
+          <button id="reset-cancel-btn" class="btn-cancel">
+            <i class="fas fa-times"></i> إلغاء
+          </button>
+          <button id="reset-confirm-btn" class="btn-confirm">
+            <i class="fas fa-check"></i> تأكيد الشطب
+          </button>
+        </div>
+      </div>
+    </div>
 
-    function filterSeverity(severity) {
-      const rows = document.querySelectorAll(".data-table tbody tr");
-      rows.forEach((row) => {
-        if (severity === "all" || row.classList.contains("row-" + severity)) {
-          row.style.display = "";
-        } else {
-          row.style.display = "none";
+    <style>
+      .reset-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.7);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+        backdrop-filter: blur(3px);
+        animation: fadeIn 0.3s ease-in-out;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          backdrop-filter: blur(0px);
         }
-      });
-    }
-  </script>
-  <script src="/static/javascript/auth.js"></script>
-  <script src="/static/javascript/chatbot.js"></script>
-  <script src="/static/javascript/notifications.js"></script>
-</body>
+        to {
+          opacity: 1;
+          backdrop-filter: blur(3px);
+        }
+      }
 
+      .reset-modal-content {
+        background: var(--bg-card);
+        border: 2px solid var(--border-dim);
+        border-radius: 16px;
+        max-width: 500px;
+        width: 90%;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        animation: slideUp 0.3s ease-in-out;
+        overflow: hidden;
+      }
+
+      @keyframes slideUp {
+        from {
+          transform: translateY(30px);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+
+      .reset-modal-header {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        padding: 2rem;
+        text-align: center;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem;
+      }
+
+      .reset-modal-header i {
+        font-size: 2rem;
+      }
+
+      .reset-modal-header h2 {
+        margin: 0;
+        font-size: 1.5rem;
+        font-weight: 700;
+      }
+
+      .reset-modal-body {
+        padding: 2rem;
+      }
+
+      .warning-text {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #ef4444;
+        margin: 0 0 1rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .description-text {
+        font-size: 1rem;
+        color: var(--text-primary);
+        margin: 0 0 1.5rem 0;
+        line-height: 1.6;
+      }
+
+      .consequences {
+        background: var(--bg-layout);
+        border: 1px solid var(--border-dim);
+        border-radius: 12px;
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .consequence-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+      }
+
+      .consequence-item i {
+        color: #ef4444;
+        font-size: 1.2rem;
+      }
+
+      .reset-modal-footer {
+        padding: 1.5rem 2rem;
+        background: var(--bg-layout);
+        border-top: 1px solid var(--border-dim);
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+      }
+
+      .btn-cancel,
+      .btn-confirm {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .btn-cancel {
+        background: var(--bg-card);
+        color: var(--text-primary);
+        border: 1px solid var(--border-dim);
+      }
+
+      .btn-cancel:hover {
+        background: var(--bg-layout);
+        border-color: var(--brand-primary);
+      }
+
+      .btn-confirm {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        color: white;
+      }
+
+      .btn-confirm:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(239, 68, 68, 0.4);
+      }
+
+      .btn-confirm:active {
+        transform: translateY(0);
+      }
+    </style>
+  </body>
 </html>

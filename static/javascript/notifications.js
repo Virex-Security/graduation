@@ -445,6 +445,9 @@ const SecurityAlerts = {
    * Determine if alert should be shown based on trigger logic
    */
   shouldShowAlert(event) {
+    // Don't show alerts for Clean/normal requests
+    if (event.attack_type === "Clean" || event.type === "Clean") return false;
+
     // Show if request is blocked
     if (event.blocked) return true;
 
@@ -468,13 +471,17 @@ const SecurityAlerts = {
     const severity = event.severity || "Medium";
     const isCritical = severity === "Critical";
 
-    // Pulse bell and play sound for critical alerts
+    // Pulse bell for every alert
+    this.pulseBell();
+
+    // Only emit an audible tone for true critical alerts.  The
+    // notifications dropdown is now made up of lightweight cards and
+    // transitions between them are not meant to be disruptive, so we
+    // avoid playing any sound unless the incident is marked critical.
+    //
+    // The old behaviour played a tone for every event which made the UI
+    // feel noisy when merely switching cards.
     if (isCritical) {
-      this.pulseBell();
-      this.playNotificationSound();
-    } else {
-      // Ring bell for all alerts
-      this.pulseBell();
       this.playNotificationSound();
     }
 

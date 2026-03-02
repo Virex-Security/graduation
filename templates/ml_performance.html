@@ -136,9 +136,7 @@
         <div
           class="brand"
           onclick="location.href = '/dashboard'"
-          style="cursor: pointer"
-        >
-          <i class="fas fa-shield-halved" style="font-size: 1.5rem; margin-right: 0.5rem; color: #FBBF24;"></i>
+          style="cursor: pointer">
           <span>VIREX</span>
         </div>
 
@@ -153,7 +151,6 @@
             <i class="fas fa-sun"></i>
           </button>
         </div>
-        {% include 'ramadan_decoration.html' %}
       </nav>
 
       <main class="main-content">
@@ -164,11 +161,7 @@
               <h1><i class="fas fa-brain"></i> ML Model Performance</h1>
             </div>
             <div class="ml-header-right">
-              <div class="ml-security-score">
-                <i class="fas fa-shield-halved"></i>
-                <span class="score-label">Security Score:</span>
-                <span class="score-value" id="security-score-value">--</span>
-              </div>
+              <div></div>
               <span id="current-time" class="ml-time-display">--:--:-- --</span>
               <span class="ml-status-badge" id="api-status-badge">
                 <i class="fas fa-circle"></i>ACTIVE
@@ -322,28 +315,67 @@
         handleResize();
         window.addEventListener('resize', handleResize);
 
+        // Reset Modal Handler
+        const resetModal = document.getElementById('reset-confirm-modal');
+        const resetConfirmBtn = document.getElementById('reset-confirm-btn');
+        const resetCancelBtn = document.getElementById('reset-cancel-btn');
         const sidebarResetBtn = document.getElementById('sidebar-reset-btn');
-        if (sidebarResetBtn) {
+
+        if (sidebarResetBtn && resetModal) {
           sidebarResetBtn.addEventListener('click', function() {
-            if (confirm('Are you sure you want to reset all statistics? This action cannot be undone.')) {
-              fetch('/api/dashboard/reset', {
-                method: 'POST',
-                credentials: 'same-origin',
-                headers: {
-                  'Content-Type': 'application/json'
+            resetModal.style.display = 'flex';
+          });
+        }
+
+        if (resetCancelBtn && resetModal) {
+          resetCancelBtn.addEventListener('click', function() {
+            resetModal.style.display = 'none';
+          });
+        }
+
+        if (resetConfirmBtn && resetModal) {
+          resetConfirmBtn.addEventListener('click', function() {
+            resetModal.style.display = 'none';
+            fetch('/api/dashboard/reset', {
+              method: 'POST',
+              credentials: 'same-origin',
+              headers: {
+                'Content-Type': 'application/json'
+              }
+            })
+            .then(response => response.json())
+            .then(data => {
+              if (data.status === 'stats_reset') {
+                const container = document.getElementById('notification-container');
+                if (container) {
+                  const toast = document.createElement('div');
+                  toast.className = 'toast toast-success';
+                  toast.innerHTML = '<i class="fas fa-check-circle"></i><span>تم إعادة تعيين جميع الإحصائيات بنجاح!</span>';
+                  container.appendChild(toast);
+                  setTimeout(() => toast.remove(), 5000);
                 }
-              })
-              .then(response => response.json())
-              .then(data => {
-                if (data.status === 'stats_reset') {
-                  alert('Statistics reset successfully!');
-                  location.reload();
-                }
-              })
-              .catch(error => {
-                console.error('Reset error:', error);
-                alert('Failed to reset statistics');
-              });
+                setTimeout(() => location.reload(), 1500);
+              }
+            })
+            .catch(error => {
+              console.error('Reset error:', error);
+              const container = document.getElementById('notification-container');
+              if (container) {
+                const toast = document.createElement('div');
+                toast.className = 'toast toast-error';
+                toast.innerHTML = '<i class="fas fa-times-circle"></i><span>فشل إعادة تعيين الإحصائيات</span>';
+                container.appendChild(toast);
+                setTimeout(() => toast.remove(), 5000);
+              }
+            });
+          });
+        }
+
+        // Close modal when clicking outside
+        if (resetModal) {
+          resetModal.addEventListener('click', function(e) {
+            if (e.target === resetModal) {
+              resetModal.style.display = 'none';
             }
           });
         }
@@ -364,10 +396,10 @@
             dataset_size: 5000,
             test_size: 1000,
             test_samples: 1000,
-            accuracy: 94.2,
-            precision: 94.5,
-            recall: 93.8,
-            f1_score: 94.1,
+            accuracy: 94.20,
+            precision: 94.50,
+            recall: 93.80,
+            f1_score: 94.10,
             roc_auc: 0.9756,
             confusion_matrix: {tn: 932, fp: 34, fn: 45, tp: 989},
             top_features: [
@@ -384,7 +416,7 @@
         async load() {
           console.log("[MLPerformance] Starting load...");
           try {
-            const response = await fetch("/api/ml/stats", {
+            const response = await fetch("/api/ml/stats?t=" + Date.now(), {
               credentials: "same-origin",
             });
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -456,7 +488,12 @@
         async loadSecurityScore() {
           try {
             const response = await fetch('/api/dashboard/stats', {
-              credentials: 'same-origin'
+              method: 'POST',
+              credentials: 'same-origin',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({})
             });
             if (response.ok) {
               const data = await response.json();
@@ -485,20 +522,16 @@
         },
 
         updateMetrics(data) {
-          console.log("[MLPerformance] Updating metrics with:", data);
-          document.getElementById("accuracy-value").textContent =
-            `${data.accuracy?.toFixed(1) || "--"}%`;
-          document.getElementById("precision-value").textContent =
-            `${data.precision?.toFixed(1) || "--"}%`;
-          document.getElementById("recall-value").textContent =
-            `${data.recall?.toFixed(1) || "--"}%`;
-          document.getElementById("f1-value").textContent =
-            `${data.f1_score?.toFixed(1) || "--"}%`;
-          document.getElementById("auc-value").textContent =
-            data.roc_auc?.toFixed(4) || "----";
-          document.getElementById("dataset-value").textContent =
-            data.dataset_size?.toLocaleString() || "--";
-          console.log("[MLPerformance] Metrics updated");
+          const setEl = (id, val) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = val;
+          };
+          setEl("accuracy-value",  `${data.accuracy?.toFixed(2)  || "--"}%`);
+          setEl("precision-value", `${data.precision?.toFixed(2) || "--"}%`);
+          setEl("recall-value",    `${data.recall?.toFixed(2)    || "--"}%`);
+          setEl("f1-value",        `${data.f1_score?.toFixed(2)  || "--"}%`);
+          setEl("auc-value",       data.roc_auc?.toFixed(4)      || "----");
+          setEl("dataset-value",   data.dataset_size?.toLocaleString() || "--");
         },
 
         updateCharts(data) {
@@ -659,14 +692,12 @@
         },
 
         updateModelInfo(data) {
-          // algorithm name removed per user request; only vectorizer and
-          // sample count remain
-          document.getElementById("model-vectorizer").textContent =
-            data.vectorizer_type || "--";
-          document.getElementById("model-test-samples").textContent =
-            data.test_size ? `${data.test_samples} samples` : "--";
-
-          // subtitle element has been removed, nothing to update here
+          const setEl = (id, val) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = val;
+          };
+          setEl("model-vectorizer",   data.vectorizer_type || "--");
+          setEl("model-test-samples", data.test_size ? `${data.test_samples ?? data.test_size} samples` : "--");
         },
 
         showNotification(message, type = "info") {
@@ -735,5 +766,203 @@
         }, 30000);
       });
     </script>
+  <!-- Reset Confirmation Modal -->
+  <div id="reset-confirm-modal" class="reset-modal" style="display: none;">
+    <div class="reset-modal-content">
+      <div class="reset-modal-header">
+        <i class="fas fa-exclamation-triangle"></i>
+        <h2>تأكيد شطب البيانات</h2>
+      </div>
+      <div class="reset-modal-body">
+        <p class="warning-text">⚠️ تحذير مهم!</p>
+        <p class="description-text">هل أنت متأكد من إعادة تعيين جميع الإحصائيات؟</p>
+        <div class="consequences">
+          <div class="consequence-item">
+            <i class="fas fa-circle-xmark"></i>
+            <span>لا يمكن التراجع عن هذا الإجراء</span>
+          </div>
+          <div class="consequence-item">
+            <i class="fas fa-circle-xmark"></i>
+            <span>سيتم حذف جميع البيانات المسجلة</span>
+          </div>
+          <div class="consequence-item">
+            <i class="fas fa-circle-xmark"></i>
+            <span>ستعود جميع المقاييس إلى القيمة الأولية</span>
+          </div>
+        </div>
+      </div>
+      <div class="reset-modal-footer">
+        <button id="reset-cancel-btn" class="btn-cancel">
+          <i class="fas fa-times"></i> إلغاء
+        </button>
+        <button id="reset-confirm-btn" class="btn-confirm">
+          <i class="fas fa-check"></i> تأكيد الشطب
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    .reset-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      backdrop-filter: blur(3px);
+      animation: fadeIn 0.3s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        backdrop-filter: blur(0px);
+      }
+      to {
+        opacity: 1;
+        backdrop-filter: blur(3px);
+      }
+    }
+
+    .reset-modal-content {
+      background: var(--bg-card);
+      border: 2px solid var(--border-dim);
+      border-radius: 16px;
+      max-width: 500px;
+      width: 90%;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+      animation: slideUp 0.3s ease-in-out;
+      overflow: hidden;
+    }
+
+    @keyframes slideUp {
+      from {
+        transform: translateY(30px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .reset-modal-header {
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      padding: 2rem;
+      text-align: center;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+    }
+
+    .reset-modal-header i {
+      font-size: 2rem;
+    }
+
+    .reset-modal-header h2 {
+      margin: 0;
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+
+    .reset-modal-body {
+      padding: 2rem;
+    }
+
+    .warning-text {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #ef4444;
+      margin: 0 0 1rem 0;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .description-text {
+      font-size: 1rem;
+      color: var(--text-primary);
+      margin: 0 0 1.5rem 0;
+      line-height: 1.6;
+    }
+
+    .consequences {
+      background: var(--bg-layout);
+      border: 1px solid var(--border-dim);
+      border-radius: 12px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .consequence-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+    }
+
+    .consequence-item i {
+      color: #ef4444;
+      font-size: 1.2rem;
+    }
+
+    .reset-modal-footer {
+      padding: 1.5rem 2rem;
+      background: var(--bg-layout);
+      border-top: 1px solid var(--border-dim);
+      display: flex;
+      gap: 1rem;
+      justify-content: flex-end;
+    }
+
+    .btn-cancel, .btn-confirm {
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .btn-cancel {
+      background: var(--bg-card);
+      color: var(--text-primary);
+      border: 1px solid var(--border-dim);
+    }
+
+    .btn-cancel:hover {
+      background: var(--bg-layout);
+      border-color: var(--brand-primary);
+    }
+
+    .btn-confirm {
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      color: white;
+    }
+
+    .btn-confirm:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(239, 68, 68, 0.4);
+    }
+
+    .btn-confirm:active {
+      transform: translateY(0);
+    }
+  </style>
+
   </body>
 </html>

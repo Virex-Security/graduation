@@ -136,6 +136,17 @@
   animation: none;
 }
 
+/* Connecting/Wait State - Orange */
+.user-connection-status.status-connecting {
+  background: rgba(245, 158, 11, 0.1);
+  border-color: rgba(245, 158, 11, 0.3);
+  color: #f59e0b;
+}
+
+.user-connection-status.status-connecting i {
+  animation: pulse-waiting 1s infinite;
+}
+
 /* Waiting for API State - Orange */
 .user-connection-status.status-waiting {
   background: rgba(245, 158, 11, 0.1);

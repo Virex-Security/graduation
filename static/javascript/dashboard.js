@@ -56,17 +56,26 @@ const Dashboard = {
 
   updateConnectionUI(status) {
     const el = document.getElementById("conn-status");
+    if (!el) {
+      console.log(
+        "[Dashboard] conn-status element not found, skipping updateConnectionUI",
+      );
+      return;
+    }
+
     const dot = el.parentElement.querySelector(".status-dot");
-    if (!el || !dot) return;
+    if (!dot) {
+      console.log(
+        "[Dashboard] status-dot element not found, skipping updateConnectionUI",
+      );
+      return;
+    }
 
     el.textContent = status;
 
     switch (status) {
       case "Connected":
         dot.style.backgroundColor = "var(--success)";
-        break;
-      case "Waiting for API":
-        dot.style.backgroundColor = "var(--warning)";
         break;
       case "Disconnected":
       default:
@@ -292,16 +301,27 @@ const Dashboard = {
     });
   },
   async updateData() {
-    // Set waiting state before fetch
-    this.updateSidebarConnectionStatus('waiting');
-    
     try {
+      console.log("[Dashboard] Fetching /api/dashboard/data");
       const response = await fetch("/api/dashboard/data");
+      console.log(
+        "[Dashboard] Response received:",
+        response.status,
+        response.ok,
+      );
+
       if (response.status === 401) {
+        console.log("[Dashboard] 401 Unauthorized - logging out");
         Auth.logout();
         return;
       }
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
       const data = await response.json();
+      console.log("[Dashboard] Data received successfully");
 
       this.updateStats(data.stats);
       this.updateTimeline(data.timeline);
@@ -309,25 +329,31 @@ const Dashboard = {
       this.updateRecentThreats(data.recent_threats);
       this.updateTopAttackers(data.top_attackers);
 
-      this.updateConnectionUI(data.connection_state || "Waiting for API");
-      
-      // Update sidebar connection status based on API response
-      const connectionState = data.connection_state || "Waiting for API";
-      if (connectionState === "Connected") {
-        this.updateSidebarConnectionStatus('connected');
-      } else if (connectionState === "Waiting for API") {
-        this.updateSidebarConnectionStatus('waiting');
-      } else {
-        this.updateSidebarConnectionStatus('disconnected');
-      }
+      const connectionState = data.connection_state || "Connected";
+      const effectiveStatus =
+        connectionState === "Connected" ? "Connected" : "Disconnected";
+      this.updateConnectionUI(effectiveStatus);
 
-      document.getElementById("last-update").textContent =
-        new Date().toLocaleTimeString();
+      const sidebarState =
+        connectionState === "Connected" ? "connected" : "disconnected";
+      console.log("[Dashboard] Setting sidebar state to", sidebarState);
+      this.updateSidebarConnectionStatus(sidebarState);
+
+      const lastUpdateEl = document.getElementById("last-update");
+      if (lastUpdateEl) {
+        lastUpdateEl.textContent = new Date().toLocaleTimeString();
+      }
     } catch (error) {
-      console.error("Failed to fetch dashboard data:", error);
-      this.updateSidebarConnectionStatus('disconnected');
-      // This is the dashboard connection, not the API connection.
-      // The prompt asks for API connection status primarily.
+      console.error("[Dashboard] Failed to fetch dashboard data:", error);
+      console.error("[Dashboard] Error details:", error.message);
+      console.log("[Dashboard] Setting disconnected state");
+      this.updateSidebarConnectionStatus("disconnected");
+      this.updateConnectionUI("Disconnected");
+      // clear security score since API is offline
+      const scoreEl = document.getElementById("security-score");
+      if (scoreEl) scoreEl.textContent = "--/100";
+      // update navbar as well
+      this.updateNavbarSecurityScore(undefined);
     }
   },
 
@@ -335,20 +361,36 @@ const Dashboard = {
    * Update Sidebar Connection Status
    */
   updateSidebarConnectionStatus(status) {
-    const statusElement = document.getElementById('sidebar-connection-status');
-    if (!statusElement) return;
-    
-    statusElement.classList.remove('status-waiting', 'status-connected', 'status-disconnected');
-    
-    if (status === 'connected') {
-      statusElement.classList.add('status-connected');
-      statusElement.innerHTML = '<i class="fas fa-circle"></i><span>Connected</span>';
-    } else if (status === 'disconnected') {
-      statusElement.classList.add('status-disconnected');
-      statusElement.innerHTML = '<i class="fas fa-circle"></i><span>Disconnected</span>';
-    } else if (status === 'waiting') {
-      statusElement.classList.add('status-waiting');
-      statusElement.innerHTML = '<i class="fas fa-circle"></i><span>Wait for API</span>';
+    console.log("[Dashboard] Updating sidebar connection status to:", status);
+    const statusElement = document.getElementById("sidebar-connection-status");
+
+    if (!statusElement) {
+      console.error("[Dashboard] sidebar-connection-status element not found!");
+      return;
+    }
+
+    console.log("[Dashboard] Element found, updating classes and content");
+    statusElement.classList.remove(
+      "status-connecting",
+      "status-connected",
+      "status-disconnected",
+    );
+
+    if (status === "connected") {
+      statusElement.classList.add("status-connected");
+      statusElement.innerHTML =
+        '<i class="fas fa-circle"></i><span>Connected</span>';
+      console.log("[Dashboard] Set to CONNECTED");
+    } else if (status === "disconnected") {
+      statusElement.classList.add("status-disconnected");
+      statusElement.innerHTML =
+        '<i class="fas fa-circle"></i><span>Disconnected</span>';
+      console.log("[Dashboard] Set to DISCONNECTED");
+    } else if (status === "connecting") {
+      statusElement.classList.add("status-connecting");
+      statusElement.innerHTML =
+        '<i class="fas fa-circle"></i><span>Wait for API</span>';
+      console.log("[Dashboard] Set to CONNECTING");
     }
   },
 
@@ -378,14 +420,17 @@ const Dashboard = {
     // ML Model Performance card value
     const mlPerfEl = document.getElementById("ml-model-performance");
     if (mlPerfEl && typeof stats.ml_model_performance !== "undefined") {
-      mlPerfEl.textContent = `${stats.ml_model_performance.toFixed(1)}%`;
+      mlPerfEl.textContent = `${stats.ml_model_performance.toFixed(2)}%`;
     }
 
     // Display security score supplied by backend (calculated using
     // the project’s official formula).
     if (typeof stats.security_score !== "undefined") {
       const val = Math.max(0, Math.min(100, stats.security_score));
-      document.getElementById("security-score").textContent = `${val}/100`;
+      const scoreEl = document.getElementById("security-score");
+      if (scoreEl) {
+        scoreEl.textContent = `${val}/100`;
+      }
       this.updateNavbarSecurityScore(val);
     } else {
       // backend didn't send a score (perhaps offline) – compute locally
@@ -415,7 +460,10 @@ const Dashboard = {
             ml_perf * ML_WEIGHT);
         fallback = Math.round(fallback * 100) / 100;
       }
-      document.getElementById("security-score").textContent = `${fallback}/100`;
+      const scoreEl = document.getElementById("security-score");
+      if (scoreEl) {
+        scoreEl.textContent = `${fallback}/100`;
+      }
       this.updateNavbarSecurityScore(fallback);
     }
   },
@@ -762,7 +810,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // API now returns percentages (0–100) rather than 0‑1 decimals, so
     // just format directly.  we keep the helper so the badge logic stays
     // consistent with the full ML page.
-    return val != null ? `${val.toFixed(1)}%` : "--%";
+    return val != null ? `${val.toFixed(2)}%` : "--%";
   }
 
   function setVal(id, val) {
@@ -784,7 +832,7 @@ document.addEventListener("DOMContentLoaded", () => {
       values = history.map((h) => h.accuracy ?? h.value ?? 0);
     } else {
       /* synthetic 10-point sparkline around the base accuracy (normalized)
-         if our history has already been converted above it will be <1, else
+        if our history has already been converted above it will be <1, else
          default to 0.94. */
       const base = history?.[0]?.accuracy ?? 0.94;
       labels = ["", "", "", "", "", "", "", "", "", ""];
@@ -905,12 +953,17 @@ document.addEventListener("DOMContentLoaded", () => {
   /* ── fetch & render ─────────────────────────────────────── */
   async function load() {
     try {
-      const res = await fetch("/api/ml/stats");
+      const res = await fetch("/api/ml/stats?t=" + Date.now());
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const d = await res.json();
 
+      console.log(
+        "[Dashboard ML Summary] API Response accuracy:",
+        d.accuracy,
+        "type:",
+        typeof d.accuracy,
+      );
       setVal("mlp-s-accuracy", d.accuracy);
-      setVal("mlp-s-precision", d.precision);
       // include recall so the small dashboard summary matches the full report
       setVal("mlp-s-recall", d.recall);
       setVal("mlp-s-f1", d.f1_score);
@@ -979,26 +1032,26 @@ function viewThreatDetails(category, ip) {
 }
 
 // Add updateNavbarSecurityScore method to Dashboard object
-Dashboard.updateNavbarSecurityScore = function(score) {
-  const scoreElement = document.getElementById('navbar-score-value');
-  const scoreContainer = document.getElementById('navbar-security-score');
-  
+Dashboard.updateNavbarSecurityScore = function (score) {
+  const scoreElement = document.getElementById("navbar-score-value");
+  const scoreContainer = document.getElementById("navbar-security-score");
+
   if (!scoreElement || !scoreContainer) return;
-  
-  if (typeof score !== 'undefined') {
+
+  if (typeof score !== "undefined") {
     const val = Math.max(0, Math.min(100, score));
-    scoreElement.textContent = val.toFixed(2) + '/100';
-    
+    scoreElement.textContent = Math.round(val) + "/100";
+
     // Remove existing classes
-    scoreContainer.classList.remove('score-warning', 'score-danger');
-    
+    scoreContainer.classList.remove("score-warning", "score-danger");
+
     // Add appropriate class based on score
     if (val < 40) {
-      scoreContainer.classList.add('score-danger');
+      scoreContainer.classList.add("score-danger");
     } else if (val < 70) {
-      scoreContainer.classList.add('score-warning');
+      scoreContainer.classList.add("score-warning");
     }
   } else {
-    scoreElement.textContent = '--/100';
+    scoreElement.textContent = "--/100";
   }
 };

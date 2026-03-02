@@ -148,7 +148,6 @@
         <div class="nav-actions">
           <!-- Security Score -->
           <div class="navbar-security-score" id="navbar-security-score">
-            <i class="fas fa-shield-halved"></i>
             <span class="score-text">Security Score:</span>
             <span class="score-value" id="navbar-score-value">--/100</span>
           </div>
@@ -342,13 +341,6 @@
               </div>
               <div class="mlp-summary-sep"></div>
               <div class="mlp-summary-metric">
-                <span class="mlp-summary-val mlp-col-blue" id="mlp-s-precision"
-                  >--%</span
-                >
-                <span class="mlp-summary-lbl">Precision</span>
-              </div>
-              <div class="mlp-summary-sep"></div>
-              <div class="mlp-summary-metric">
                 <span class="mlp-summary-val mlp-col-yellow" id="mlp-s-recall"
                   >--%</span
                 >
@@ -410,6 +402,26 @@
       <!-- End Main Wrapper -->
     </div>
 
+    <!-- Reset Confirmation Modal -->
+    <div id="reset-confirm-modal" class="modal-overlay" style="display: none;">
+      <div class="modal-dialog">
+        <div class="modal-header">
+          <i class="fas fa-exclamation-triangle" style="color: #f59e0b; font-size: 2rem;"></i>
+          <h3>Reset Statistics</h3>
+        </div>
+        <div class="modal-body">
+          <p>Are you sure you want to reset all statistics?</p>
+          <p class="modal-warning">This action will clear all logs, incidents, and metrics. This cannot be undone.</p>
+        </div>
+        <div class="modal-footer">
+          <button class="modal-btn modal-btn-cancel" id="reset-cancel-btn">Cancel</button>
+          <button class="modal-btn modal-btn-confirm" id="reset-confirm-btn">Reset</button>
+        </div>
+      </div>
+    </div>
+
+   
+
     <div id="notification-container"></div>
 
     <!-- Chatbot Widget -->
@@ -440,13 +452,28 @@
         }
         
         // Toggle sidebar using checkbox
-        if (sidebarToggle && sidebarToggler) {
+        if (sidebarToggle && sidebarToggler && sidebar && mainWrapper) {
           sidebarToggle.addEventListener('click', function() {
             sidebarToggler.checked = !sidebarToggler.checked;
+            
+            // Add/remove collapsed class
+            if (sidebarToggler.checked) {
+              sidebar.classList.add('collapsed');
+              mainWrapper.classList.add('sidebar-collapsed');
+            } else {
+              sidebar.classList.remove('collapsed');
+              mainWrapper.classList.remove('sidebar-collapsed');
+            }
             
             // Save state to localStorage
             localStorage.setItem('sidebarCollapsed', sidebarToggler.checked);
           });
+          
+          // Apply initial state on page load
+          if (sidebarCollapsed) {
+            sidebar.classList.add('collapsed');
+            mainWrapper.classList.add('sidebar-collapsed');
+          }
         }
         
         // Auto-collapse on mobile
@@ -459,30 +486,61 @@
         handleResize();
         window.addEventListener('resize', handleResize);
 
-        // Reset Button in Sidebar
+        // Reset Button in Sidebar - Custom Modal
         const sidebarResetBtn = document.getElementById('sidebar-reset-btn');
-        if (sidebarResetBtn) {
+        const resetModal = document.getElementById('reset-confirm-modal');
+        const resetCancelBtn = document.getElementById('reset-cancel-btn');
+        const resetConfirmBtn = document.getElementById('reset-confirm-btn');
+        
+        if (sidebarResetBtn && resetModal) {
           sidebarResetBtn.addEventListener('click', function() {
-            // Trigger the same reset functionality
-            if (confirm('Are you sure you want to reset all statistics? This action cannot be undone.')) {
-              fetch('/api/dashboard/reset', {
-                method: 'POST',
-                credentials: 'same-origin',
-                headers: {
-                  'Content-Type': 'application/json'
-                }
-              })
-              .then(response => response.json())
-              .then(data => {
-                if (data.status === 'stats_reset') {
-                  alert('Statistics reset successfully!');
-                  location.reload();
-                }
-              })
-              .catch(error => {
-                console.error('Reset error:', error);
-                alert('Failed to reset statistics');
-              });
+            resetModal.style.display = 'flex';
+            // Trigger animation
+            setTimeout(() => resetModal.classList.add('show'), 10);
+          });
+        }
+        
+        // Cancel button closes modal
+        if (resetCancelBtn) {
+          resetCancelBtn.addEventListener('click', function() {
+            resetModal.classList.remove('show');
+            setTimeout(() => resetModal.style.display = 'none', 300);
+          });
+        }
+        
+        // Confirm button performs reset
+        if (resetConfirmBtn) {
+          resetConfirmBtn.addEventListener('click', function() {
+            resetModal.classList.remove('show');
+            setTimeout(() => resetModal.style.display = 'none', 300);
+            
+            // Perform the reset
+            fetch('/api/dashboard/reset', {
+              method: 'POST',
+              credentials: 'same-origin',
+              headers: {
+                'Content-Type': 'application/json'
+              }
+            })
+            .then(response => response.json())
+            .then(data => {
+              if (data.status === 'stats_reset') {
+                location.reload();
+              }
+            })
+            .catch(error => {
+              console.error('Reset error:', error);
+              alert('Failed to reset statistics');
+            });
+          });
+        }
+        
+        // Close modal when clicking outside
+        if (resetModal) {
+          resetModal.addEventListener('click', function(e) {
+            if (e.target === resetModal) {
+              resetModal.classList.remove('show');
+              setTimeout(() => resetModal.style.display = 'none', 300);
             }
           });
         }
