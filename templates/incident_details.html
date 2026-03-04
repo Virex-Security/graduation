@@ -213,14 +213,8 @@
                     Status: <strong>{{ incident.status }}</strong>
                   </p>
                 </div>
-
-    <button class="btn btn-secondary incident-export-btn" onclick="exportIncident()">
-      <i class="fas fa-file-export fa-lg"></i> Export JSON
-    </button>
-  </div>
-</div>
-                <button class="btn btn-secondary" onclick="exportIncident()">
-                  <i class="fas fa-file-export fa-lg"></i> Export JSON
+                <button class="btn btn-secondary incident-export-btn" onclick="exportIncident()">
+                  <i class="fas fa-file-export fa-lg" aria-hidden="true"></i> Export JSON
                 </button>
               </div>
             </div>
@@ -322,10 +316,11 @@
                 </p>
 
                 <div class="filter-group">
-                  <label>Internal Comment</label>
+                  <label for="action-comment">Internal Comment</label>
                   <textarea
                     id="action-comment"
                     class="form-control"
+                    aria-describedby="action-comment-hint"
                     style="
                       width: 100%;
                       min-height: 80px;
@@ -356,11 +351,10 @@
                     onclick="performAction('Rate Limit')">
                     <i class="fas fa-gauge-high fa-lg"></i> Limit
                   </button>
-                <button
+                  <button
                     class="btn-action btn-fp"
                     onclick="performAction('False Positive')">
-                    <i class="fas fa-circle-xmark fa-lg"></i> False Positive
-                    
+                    <i class="fas fa-circle-xmark fa-lg" aria-hidden="true"></i> False Positive
                   </button>
                 </div>
               </div>
@@ -461,10 +455,6 @@
   async function exportIncident() {
     window.open(`/api/incident/${incidentId}/export`, "_blank");
   }
-
-      async function exportIncident() {
-        window.open(`/api/incident/${incidentId}/export`, "_blank");
-      }
 
       window.onload = () => {
         console.log("Incident details loaded from server-side template");
