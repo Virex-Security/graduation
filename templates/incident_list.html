@@ -161,8 +161,9 @@
               class="btn-icon back-btn"
               onclick="history.back()"
               title="Go Back"
+              aria-label="Go Back"
             >
-              <i class="fas fa-arrow-left"></i>
+              <i class="fas fa-arrow-left" aria-hidden="true"></i>
             </button>
 
             <!-- Theme Toggle Icon -->
@@ -170,8 +171,9 @@
               class="btn-icon"
               id="theme-toggle"
               title="Toggle Light/Dark Mode"
+              aria-label="Toggle Light/Dark Mode"
             >
-              <i class="fas fa-sun"></i>
+              <i class="fas fa-sun" aria-hidden="true"></i>
             </button>
           </div>
         </nav>
@@ -188,7 +190,7 @@
 
           <div class="filters-bar">
             <div class="filter-group">
-              <label>Category</label>
+              <label for="filter-category">Category</label>
               <select id="filter-category">
                 <option value="all">All Categories</option>
                 <option value="SQL Injection">SQL Injection</option>
@@ -199,7 +201,7 @@
               </select>
             </div>
             <div class="filter-group">
-              <label>Status</label>
+              <label for="filter-status">Status</label>
               <select id="filter-status">
                 <option value="all">All Statuses</option>
                 <option value="Detected">Detected</option>
@@ -209,7 +211,7 @@
               </select>
             </div>
             <div class="filter-group">
-              <label>Severity</label>
+              <label for="filter-severity">Severity</label>
               <select id="filter-severity" onchange="filterTableBySeverity()">
                 <option value="all">All Severities</option>
                 <option value="High">Critical (High)</option>
@@ -218,7 +220,7 @@
               </select>
             </div>
             <div class="filter-group" style="flex: 1">
-              <label>Detection Source</label>
+              <label for="filter-detection">Detection Source</label>
               <select id="filter-detection" onchange="fetchIncidents()">
                 <option value="all">All Sources</option>
                 <option value="SQL Injection">Traditional (SQLi)</option>
@@ -228,7 +230,7 @@
               </select>
             </div>
             <div class="filter-group" style="flex: 1">
-              <label>Start Date</label>
+              <label for="filter-start">Start Date</label>
               <input
                 type="date"
                 id="filter-start"
@@ -236,11 +238,11 @@
               />
             </div>
             <div class="filter-group" style="flex: 1">
-              <label>End Date</label>
+              <label for="filter-end">End Date</label>
               <input type="date" id="filter-end" onchange="fetchIncidents()" />
             </div>
             <div class="filter-group" style="flex: 1">
-              <label>Search IP</label>
+              <label for="filter-ip">Search IP</label>
               <input
                 type="text"
                 id="filter-ip"
@@ -298,18 +300,18 @@
 
           <div class="table-card" style="width: 100%">
             <h2>All Incidents ({{ total_incidents }})</h2>
-            <table class="data-table">
+            <table class="data-table" aria-label="Security Incidents">
               <thead>
                 <tr>
-                  <th>Incident ID</th>
-                  <th>Status</th>
-                  <th class="admin-only">Detection</th>
-                  <th>Category</th>
-                  <th class="admin-only">Source IP</th>
-                  <th>Severity</th>
-                  <th class="admin-only">Events</th>
-                  <th class="admin-only">Last Seen</th>
-                  <th>Actions</th>
+                  <th scope="col">Incident ID</th>
+                  <th scope="col">Status</th>
+                  <th scope="col" class="admin-only">Detection</th>
+                  <th scope="col">Category</th>
+                  <th scope="col" class="admin-only">Source IP</th>
+                  <th scope="col">Severity</th>
+                  <th scope="col" class="admin-only">Events</th>
+                  <th scope="col" class="admin-only">Last Seen</th>
+                  <th scope="col">Actions</th>
                 </tr>
               </thead>
               <tbody id="incidents-table-body">
