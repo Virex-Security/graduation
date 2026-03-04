@@ -7,7 +7,6 @@
  */
 
 const MLStats = {
-
   // ── State ────────────────────────────────────────────────────
   loaded: false,
   retryCount: 0,
@@ -15,7 +14,14 @@ const MLStats = {
 
   // ── Init ─────────────────────────────────────────────────────
   init() {
-    if (!document.getElementById("ml-accuracy")) return; // not on dashboard
+    // page may use either the old IDs used by the standalone ML pages
+    // or the newer "mlp-s-*" ids that appear on the dashboard summary
+    if (
+      !document.getElementById("ml-accuracy") &&
+      !document.getElementById("mlp-s-accuracy")
+    ) {
+      return; // not relevant to current page
+    }
     this.load();
   },
 
@@ -46,7 +52,6 @@ const MLStats = {
       this._setStatus("ok", "Model Active");
       this.loaded = true;
       this.retryCount = 0;
-
     } catch (err) {
       console.warn("[MLStats] Failed to load:", err.message);
       this._setStatus("error", "Load Failed");
@@ -63,13 +68,29 @@ const MLStats = {
 
   // ── Render All ────────────────────────────────────────────────
   _render(d) {
-    // KPI Cards
-    this._setKPI("ml-accuracy",  d.accuracy,           d.accuracy);
-    this._setKPI("ml-precision", d.precision,          d.precision);
-    this._setKPI("ml-recall",    d.recall,             d.recall);
-    this._setKPI("ml-f1",        d.f1_score,           d.f1_score);
+    // KPI Cards – one set for standalone pages, another for dashboard
+    const hasDashboardIds = !!document.getElementById("mlp-s-accuracy");
+
+    if (hasDashboardIds) {
+      // dashboard summary uses mlp-s-* ids and a badge instead of bars
+      const setVal = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = val != null ? `${val.toFixed(1)}%` : "--%";
+      };
+      setVal("mlp-s-accuracy", d.accuracy);
+      setVal("mlp-s-recall", d.recall);
+      setVal("mlp-s-f1", d.f1_score);
+      // TODO: you could also update the mini‐chart here if needed
+      return;
+    }
+
+    // KPI Cards (standalone ML pages)
+    this._setKPI("ml-accuracy", d.accuracy, d.accuracy);
+    this._setKPI("ml-precision", d.precision, d.precision);
+    this._setKPI("ml-recall", d.recall, d.recall);
+    this._setKPI("ml-f1", d.f1_score, d.f1_score);
     // AUC is 0-1 scale, convert to % for bar only
-    this._setKPI("ml-auc",       d.roc_auc, d.roc_auc * 100, true);
+    this._setKPI("ml-auc", d.roc_auc, d.roc_auc * 100, true);
 
     // Confusion Matrix
     const cm = d.confusion_matrix || {};
@@ -82,24 +103,30 @@ const MLStats = {
     this._renderFeatures(d.top_features || []);
 
     // Model Info
-    this._setText("ml-model-type",    d.model_type    || "--");
-    this._setText("ml-vectorizer",    d.vectorizer_type || "--");
-    this._setText("ml-dataset-size",  d.dataset_size ? `${d.dataset_size.toLocaleString()} samples` : "--");
-    this._setText("ml-test-size",     d.test_size     ? `${d.test_size} samples` : "--");
+    this._setText("ml-model-type", d.model_type || "--");
+    this._setText("ml-vectorizer", d.vectorizer_type || "--");
+    this._setText(
+      "ml-dataset-size",
+      d.dataset_size ? `${d.dataset_size.toLocaleString()} samples` : "--",
+    );
+    this._setText(
+      "ml-test-size",
+      d.test_size ? `${d.test_size} samples` : "--",
+    );
   },
 
   // ── KPI Card ──────────────────────────────────────────────────
   _setKPI(id, displayValue, barPercent, isRaw = false) {
-    const valEl  = document.getElementById(id);
+    const valEl = document.getElementById(id);
     const fillEl = document.getElementById(`${id}-fill`);
 
     if (!valEl) return;
 
     // Animate number counting up
-    const target  = parseFloat(displayValue) || 0;
+    const target = parseFloat(displayValue) || 0;
     const display = isRaw
-      ? target.toFixed(4)          // AUC shown as 0.XXXX
-      : `${target.toFixed(1)}%`;   // others as XX.X%
+      ? target.toFixed(4) // AUC shown as 0.XXXX
+      : `${target.toFixed(1)}%`; // others as XX.X%
 
     this._animateValue(valEl, display);
 
@@ -132,10 +159,11 @@ const MLStats = {
     // Max importance for relative bar widths
     const maxImp = features[0].importance || 1;
 
-    container.innerHTML = features.map((f, i) => {
-      const pct   = ((f.importance / maxImp) * 100).toFixed(1);
-      const score = f.importance.toFixed(4);
-      return `
+    container.innerHTML = features
+      .map((f, i) => {
+        const pct = ((f.importance / maxImp) * 100).toFixed(1);
+        const score = f.importance.toFixed(4);
+        return `
         <div class="ml-feature-item">
           <span class="ml-feature-rank">${i + 1}.</span>
           <span class="ml-feature-name" title="${f.feature}">${f.feature}</span>
@@ -145,11 +173,12 @@ const MLStats = {
           <span class="ml-feature-score">${score}</span>
         </div>
       `;
-    }).join("");
+      })
+      .join("");
 
     // Animate bars after render
     setTimeout(() => {
-      container.querySelectorAll(".ml-feature-bar-fill").forEach(bar => {
+      container.querySelectorAll(".ml-feature-bar-fill").forEach((bar) => {
         bar.style.width = bar.dataset.target;
       });
     }, 120);
@@ -157,9 +186,9 @@ const MLStats = {
 
   // ── Status Badge ─────────────────────────────────────────────
   _setStatus(state, text) {
-    const badge  = document.getElementById("ml-status-badge");
-    const label  = document.getElementById("ml-status-text");
-    const dot    = badge?.querySelector(".ml-status-dot");
+    const badge = document.getElementById("ml-status-badge");
+    const label = document.getElementById("ml-status-text");
+    const dot = badge?.querySelector(".ml-status-dot");
 
     if (!badge || !label) return;
 

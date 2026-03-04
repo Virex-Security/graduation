@@ -1,8 +1,6 @@
-"""
-Simple API Security System for Testing
-Lightweight version for demonstration and testing with dashboard integration
-"""
-
+from security.filters import is_trivial, is_business_relevant
+from ml.model import ml_detect
+from security.events import new_request_id, build_event
 from flask import Flask, request, jsonify
 import time
 import re
@@ -18,103 +16,6 @@ from flask_cors import CORS
 
 load_dotenv("env")
 
-# ================= ML MODEL =================
-import pandas as pd
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.model_selection import train_test_split
-
-# Global model state
-_model = None
-_vectorizer = None
-_model_lock = threading.Lock()
-MODEL_LOADED = False
-RETRAIN_INTERVAL = 3600  # retrain every 1 hour
-
-def _load_or_train():
-    """Load existing model or train from scratch."""
-    global _model, _vectorizer, MODEL_LOADED
-    try:
-        _model      = joblib.load("model.pkl")
-        _vectorizer = joblib.load("vectorizer.pkl")
-        MODEL_LOADED = True
-        print("✅ ML Model loaded from disk")
-    except Exception:
-        print("⚠️  No model found — training from scratch...")
-        _retrain_model()
-
-def _retrain_model():
-    """Train/retrain the ML model from ml_training_data.csv."""
-    global _model, _vectorizer, MODEL_LOADED
-    try:
-        data = pd.read_csv("ml_training_data.csv")
-        X_train, X_test, y_train, y_test = train_test_split(
-            data['text'], data['label'],
-            test_size=0.2, random_state=42, stratify=data['label']
-        )
-        vec = TfidfVectorizer(ngram_range=(1, 2), max_features=5000, lowercase=True)
-        X_tr = vec.fit_transform(X_train)
-        clf  = RandomForestClassifier(n_estimators=100, max_depth=20, random_state=42, n_jobs=-1)
-        clf.fit(X_tr, y_train)
-
-        with _model_lock:
-            _model      = clf
-            _vectorizer = vec
-            MODEL_LOADED = True
-
-        joblib.dump(clf, "model.pkl")
-        joblib.dump(vec, "vectorizer.pkl")
-
-        from sklearn.metrics import accuracy_score
-        acc = accuracy_score(y_test, clf.predict(vec.transform(X_test)))
-        print(f"✅ ML Model retrained — Accuracy: {acc*100:.2f}%  Samples: {len(data)}")
-    except Exception as e:
-        print(f"❌ Retrain failed: {e}")
-
-def _auto_retrain_loop():
-    """Background thread: retrain model every RETRAIN_INTERVAL seconds."""
-    while True:
-        time.sleep(RETRAIN_INTERVAL)
-        print("🔄 Auto-retraining ML model...")
-        _retrain_model()
-
-# Load model on startup
-_load_or_train()
-
-# Start background auto-retrain thread
-_retrain_thread = threading.Thread(target=_auto_retrain_loop, daemon=True)
-_retrain_thread.start()
-print(f"🔄 Auto-retrain scheduled every {RETRAIN_INTERVAL//60} minutes")
-
-def ml_detect(text):
-    """Run ML model on text and return (is_attack, raw_prediction).
-
-    The existing code simply returned a boolean, but we now expose the raw
-    prediction value so that callers can make additional decisions. A log
-    entry is also emitted showing the text snippet and prediction for
-    debugging/analytics.
-    """
-    if not MODEL_LOADED:
-        return False, None
-
-    # bypass ML check for trivial strings (avoid false positives on things
-    # like passwords or usernames)
-    text_str = str(text)
-    if len(text_str) <= 3:
-        return False, 0
-    if len(text_str) <= 20 and text_str.isalnum():
-        return False, 0
-
-    try:
-        with _model_lock:
-            X = _vectorizer.transform([text_str])
-            raw = _model.predict(X)[0]
-        is_att = raw == 1
-        logger.debug(f"[ML DETECT] text='{' '.join(text_str.split()[:8])}' pred={raw}")
-        return is_att, raw
-    except Exception as e:
-        logger.error(f"[ML DETECT] model error: {e}")
-        return False, None
 
 
 # Setup logging
@@ -123,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 class SimpleSecurityManager:
     """Simplified security manager for testing with ML integration"""
-    
+
     def __init__(self):
         self.total_requests = 0
         self.blocked_requests = 0
@@ -136,14 +37,14 @@ class SimpleSecurityManager:
         self.rate_limit_storage = defaultdict(deque)
         self.start_time = time.time()
         self.dashboard_url = os.getenv("DASHBOARD_URL", "http://127.0.0.1:8070")
-        
+
         # Robust patterns
         self.sql_patterns = [
             r"(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|UNION|EXEC|TRUNCATE|GRANT|REVOKE)",
             r"(\bOR\b|\bAND\b).+(\=|\bLIKE\b|\bIN\b)",
             r"(--|#|/\*|\*/|;|@@|\bSLEEP\b|\bBENCHMARK\b|\bWAITFOR\b)",
             r"('|%27).+(\bOR\b|\bAND\b).+",
-            r"UNION\s+SELECT"
+            r"UNION\s+SELECT",
         ]
 
         self.xss_patterns = [
@@ -156,16 +57,29 @@ class SimpleSecurityManager:
             r"<svg.*?>",
             r"<img.*?onerror",
             r"<body.*?onload",
-            r"alert\(.*\)"
+            r"alert\(.*\)",
         ]
-        
+
         self.compiled_sql_patterns = [re.compile(p, re.IGNORECASE) for p in self.sql_patterns]
         self.compiled_xss_patterns = [re.compile(p, re.IGNORECASE) for p in self.xss_patterns]
-    
+      
     # ================= DASHBOARD =================
-    def log_to_dashboard(self, threat_type, ip, description, severity="Medium", endpoint="", method="", snippet="", detection_type="Other", blocked=True):
+    def log_to_dashboard(
+        self,
+        threat_type,
+        ip,
+        description,
+        severity="Medium",
+        endpoint="",
+        method="",
+        snippet="",
+        detection_type="Other",
+        blocked=True,
+        request_id="",
+    ):
         def send_log():
             try:
+                logger.debug(f"[TRACE] sending to dashboard request_id={request_id} type={threat_type} ip={ip}")
                 requests.post(
                     f"{self.dashboard_url}/api/dashboard/threat",
                     json={
@@ -177,11 +91,12 @@ class SimpleSecurityManager:
                         "method": method,
                         "snippet": snippet,
                         "detection_type": detection_type,
-                        "blocked": blocked
+                        "blocked": blocked,
+                        "request_id": request_id,
                     },
-                    timeout=2
+                    timeout=2,
                 )
-            except:
+            except Exception:
                 pass
 
         threading.Thread(target=send_log, daemon=True).start()
@@ -190,25 +105,25 @@ class SimpleSecurityManager:
         # Disabled pushing local memory stats to dashboard
         # Dashboard recalculates its own accurate stats from siem_audit.json
         pass
-    
+
     # ================= REGEX =================
     def detect_sql_injection(self, text, ip):
         for pattern in self.compiled_sql_patterns:
             if pattern.search(text):
                 self.sql_injection_count += 1
                 logger.info(f"[REGEX-SQLi] Blocked {ip} — {text[:80]}")
-                # blocked_requests will be incremented in before_request when request is rejected
                 logger.debug(f"[REGEX-SQL] raw_text='{text[:80]}'")
                 self.log_to_dashboard(
-                    "SQL Injection", 
-                    ip, 
-                    f"[REGEX] SQL Injection detected — pattern matched in: {text[:60]}", 
+                    "SQL Injection",
+                    ip,
+                    f"[REGEX] SQL Injection detected — pattern matched in: {text[:60]}",
                     "High",
                     endpoint=request.path,
                     method=request.method,
                     snippet=text[:100],
                     detection_type="Signature-based",
-                    blocked=True
+                    blocked=True,
+                    request_id=getattr(request, "request_id", ""),
                 )
                 return True
         return False
@@ -218,22 +133,22 @@ class SimpleSecurityManager:
             if pattern.search(text):
                 self.xss_count += 1
                 logger.info(f"[REGEX-XSS] Blocked {ip} — {text[:80]}")
-                # blocked_requests will be incremented in before_request when request is rejected
                 logger.debug(f"[REGEX-XSS] raw_text='{text[:80]}'")
                 self.log_to_dashboard(
-                    "XSS", 
-                    ip, 
-                    f"[REGEX] XSS detected — pattern matched in: {text[:60]}", 
+                    "XSS",
+                    ip,
+                    f"[REGEX] XSS detected — pattern matched in: {text[:60]}",
                     "High",
                     endpoint=request.path,
                     method=request.method,
                     snippet=text[:100],
                     detection_type="Signature-based",
-                    blocked=True
+                    blocked=True,
+                    request_id=getattr(request, "request_id", ""),
                 )
                 return True
         return False
-    
+
     # ================= RATE LIMIT =================
     def check_rate_limit(self, ip):
         now = time.time()
@@ -245,32 +160,27 @@ class SimpleSecurityManager:
 
         if len(q) >= 10:
             self.rate_limit_hits += 1
-            # blocked_requests will be incremented in before_request when request is rejected
             logger.debug(f"[RATE] limit hit for ip={ip}")
             self.log_to_dashboard(
-                "Rate Limit", 
-                ip, 
-                "Rate limit exceeded", 
+                "Rate Limit",
+                ip,
+                "Rate limit exceeded",
                 "Medium",
                 endpoint=request.path,
                 method=request.method,
                 detection_type="Rule-based",
-                blocked=True
+                blocked=True,
+                request_id=getattr(request, "request_id", ""),
             )
             return False
 
         q.append(now)
         return True
-    
+
     # ================= MAIN SECURITY =================
     def check_request_security(self, data, ip):
         def classify_ml_attack(text):
-            """Simple heuristic classifier to assign an attack type when the ML
-            engine flags something as malicious. This is separate from the ML
-            prediction itself, and runs only when ml_detect returns positive.
-            """
             t = str(text)
-            # reuse existing regex patterns for familiarity
             for patt in self.compiled_sql_patterns:
                 if patt.search(t):
                     return "SQL Injection"
@@ -305,12 +215,8 @@ class SimpleSecurityManager:
                     self.ml_detections += 1
                     attack_label = classify_ml_attack(text)
                     detection_method = "ML Model"
-                    logger.info(
-                        f"[ML-MODEL] {attack_label} flagged for {ip} "
-                        f"(raw={raw_pred})"
-                    )
+                    logger.info(f"[ML-MODEL] {attack_label} flagged for {ip} (raw={raw_pred})")
 
-                    # log full raw output for auditing
                     logger.debug(
                         f"[ML-RAW] text='{text[:100]}', attack_type='{attack_label}', "
                         f"detection_method='{detection_method}', prediction={raw_pred}"
@@ -326,6 +232,7 @@ class SimpleSecurityManager:
                         snippet=text[:100],
                         detection_type=detection_method,
                         blocked=True,
+                        request_id=getattr(request, "request_id", ""),
                     )
                     return False
 
@@ -335,74 +242,6 @@ class SimpleSecurityManager:
             return False, "Malicious content detected"
 
         return True, "OK"
-
-def is_trivial(req):
-    """
-    Determine if a request is trivial (monitoring/health checks).
-    Trivial requests are NEVER counted in any metric.
-    """
-    path = req.path
-    
-    # Health and status checks
-    if path in ['/health', '/api/health', '/status', '/ping']:
-        return True
-    
-    # Dashboard internal APIs
-    if path.startswith('/api/dashboard/'):
-        return True
-    
-    # Static files
-    static_extensions = ['.js', '.css', '.png', '.jpg', '.ico', '.svg', '.woff', '.ttf']
-    if any(path.endswith(ext) for ext in static_extensions):
-        return True
-    
-    # Stats endpoint (monitoring only)
-    if path == '/api/security/stats':
-        return True
-    
-    return False
-
-def is_business_relevant(req):
-    """
-    Determine if a request represents real business interaction.
-    Only business-relevant requests count as total_requests (if not blocked).
-    
-    Business-relevant criteria:
-    - POST/PUT/PATCH/DELETE to any endpoint
-    - Access to sensitive endpoints (login, admin, data, user, transaction)
-    - Any request to /api/* endpoints (except health/dashboard)
-    """
-    path = req.path
-    method = req.method
-    
-    # All data-modifying methods are business-relevant
-    if method in ['POST', 'PUT', 'PATCH', 'DELETE']:
-        return True
-    
-    # Any API endpoint (except health and dashboard)
-    if path.startswith('/api/') and not path.startswith('/api/dashboard/') and path not in ['/api/health', '/api/security/stats']:
-        return True
-    
-    # Sensitive endpoints (even GET)
-    sensitive_endpoints = [
-        '/login', '/api/login',
-        '/admin', '/api/admin',
-        '/api/data',
-        '/user/', '/api/user/',
-        '/transaction/', '/api/transaction/'
-    ]
-    
-    for endpoint in sensitive_endpoints:
-        if endpoint in path:
-            return True
-    
-    # GET with query parameters (filtered searches)
-    if method == 'GET' and req.args:
-        return True
-    
-    # Default: not business-relevant
-    return False
-
 def create_simple_app():
     """Create a simple Flask app for testing"""
     app = Flask(__name__)
@@ -431,7 +270,7 @@ def create_simple_app():
         - Allowed business requests: counted in total_requests
         - Attack types: counted separately (sql_detections, xss_detections, etc.)
         """
-        
+        request.request_id = new_request_id()
         # Step 1: Filter trivial requests
         if is_trivial(request):
             return  # Skip all processing and metrics
@@ -457,14 +296,15 @@ def create_simple_app():
             request_blocked = True
             block_reason = "Scanner detected"
             security.log_to_dashboard(
-                "Scanner", 
-                request.remote_addr, 
-                f"Accessed sensitive path: {request.path}", 
+              "Scanner",
+                request.remote_addr,
+                f"Accessed sensitive path: {request.path}",
                 "Medium",
                 endpoint=request.path,
                 method=request.method,
                 detection_type="Scanner",
-                blocked=True
+                blocked=True,
+                request_id=getattr(request, "request_id", "")
             )
             security.blocked_requests += 1
             security.update_dashboard_stats()
@@ -662,7 +502,8 @@ def create_simple_app():
                     "High",
                     endpoint=request.path, method=request.method,
                     snippet=f"user: {username}",
-                    detection_type="Brute Force", blocked=True
+                    detection_type="Brute Force", blocked=True,
+                    request_id=getattr(request, "request_id", "")
                 )
                 security.blocked_requests += 1
                 security.update_dashboard_stats()
@@ -692,7 +533,8 @@ def create_simple_app():
                     "High",
                     endpoint=request.path, method=request.method,
                     snippet=f"user: {username}",
-                    detection_type="Brute Force", blocked=True
+                    detection_type="Brute Force", blocked=True,
+                    request_id=getattr(request, "request_id", "")
                 )
                 security.blocked_requests += 1
                 security.update_dashboard_stats()
@@ -704,7 +546,8 @@ def create_simple_app():
                     "Medium",
                     endpoint=request.path, method=request.method,
                     snippet=f"user: {username}",
-                    detection_type="Brute Force", blocked=False
+                    detection_type="Brute Force", blocked=False,
+                    request_id=getattr(request, "request_id", "")
                 )
             return jsonify({'error': 'Invalid credentials'}), 401
     

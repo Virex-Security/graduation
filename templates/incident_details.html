@@ -33,7 +33,6 @@
       <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
           <div class="sidebar-brand">
-            <i class="fas fa-shield-halved"></i>
             <span class="brand-text">Virex</span>
           </div>
         </div>
@@ -60,7 +59,7 @@
               <span class="menu-text">Incidents</span>
             </a>
             <a
-              href="/threats/ml-detection"
+              href="/ml-detections"
               class="menu-item"
               data-tooltip="ML Detections"
             >
@@ -151,10 +150,8 @@
           <div
             class="brand"
             onclick="location.href = '/'"
-            style="cursor: pointer"
-          >
-            <i class="fas fa-shield-halved fa-lg"></i>
-            <span>CYBERSHIELD PRO</span>
+            style="cursor: pointer">
+            <span>Virex</span>
           </div>
           <div class="nav-actions">
             <!-- Back Button -->
@@ -206,21 +203,22 @@
               </p>
             </div>
             {% else %}
-            <div class="table-card admin-only" style="width: 100%">
-              <div
-                style="
-                  display: flex;
-                  justify-content: space-between;
-                  align-items: center;
-                "
-              >
-                <div>
+            <div class="table-card admin-only incident-header">
+              <div class="incident-header-row">
+                <div class="incident-header-text">
                   <h1 id="incident-id-display">{{ incident.id }}</h1>
                   <p id="incident-meta-p">
-                    {{ incident.category }} ({{ incident.detection_type }}) | {{
-                    incident.source_ip }} | Status: {{ incident.status }}
+                    {{ incident.category }} ({{ incident.detection_type }}) |
+                    {{ incident.source_ip }} |
+                    Status: <strong>{{ incident.status }}</strong>
                   </p>
                 </div>
+
+    <button class="btn btn-secondary incident-export-btn" onclick="exportIncident()">
+      <i class="fas fa-file-export fa-lg"></i> Export JSON
+    </button>
+  </div>
+</div>
                 <button class="btn btn-secondary" onclick="exportIncident()">
                   <i class="fas fa-file-export fa-lg"></i> Export JSON
                 </button>
@@ -341,29 +339,28 @@
                 </div>
 
                 <div class="action-btns">
-                  <button
-                    class="btn-action btn-investigate"
-                    onclick="performAction('Investigate')"
-                  >
+                  <button class="btn-action btn-investigate"
+                    onclick="performAction('Investigate')">
                     <i class="fas fa-search fa-lg"></i> Investigate
                   </button>
-                  <button
-                    class="btn-action btn-close"
-                    onclick="performAction('Close')"
-                  >
+                  <button class="btn-action btn-close"
+                    onclick="performAction('Close')">
                     <i class="fas fa-check fa-lg"></i> Close
                   </button>
-                  <button
-                    class="btn-action btn-block"
-                    onclick="performAction('Block IP')"
-                  >
+                  <button class="btn-action btn-block"
+                    onclick="performAction('Block IP')">
                     <i class="fas fa-ban fa-lg"></i> Block IP
                   </button>
                   <button
                     class="btn-action btn-limit"
-                    onclick="performAction('Rate Limit')"
-                  >
+                    onclick="performAction('Rate Limit')">
                     <i class="fas fa-gauge-high fa-lg"></i> Limit
+                  </button>
+                <button
+                    class="btn-action btn-fp"
+                    onclick="performAction('False Positive')">
+                    <i class="fas fa-circle-xmark fa-lg"></i> False Positive
+                    
                   </button>
                 </div>
               </div>
@@ -442,21 +439,28 @@
 
       const incidentId = "{{ incident.id }}";
 
-      async function performAction(action) {
-        const comment = document.getElementById("action-comment").value;
-        const response = await fetch(`/api/incident/${incidentId}/action`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action, comment, actor: "admin" }),
-        });
-        const result = await response.json();
-        if (result.status === "success") {
-          document.getElementById("action-comment").value = "";
-          location.reload();
-        } else {
-          alert("Error: " + result.message);
-        }
-      }
+  async function performAction(action) {
+    const comment = document.getElementById("action-comment").value;
+
+    const response = await fetch(`/api/incident/${incidentId}/action`, {
+      method: "POST",
+      credentials: "same-origin",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action, comment }),
+    });
+
+    const result = await response.json();
+    if (result.status === "success") {
+      document.getElementById("action-comment").value = "";
+      location.reload();
+    } else {
+      alert("Error: " + result.message);
+    }
+  }
+
+  async function exportIncident() {
+    window.open(`/api/incident/${incidentId}/export`, "_blank");
+  }
 
       async function exportIncident() {
         window.open(`/api/incident/${incidentId}/export`, "_blank");

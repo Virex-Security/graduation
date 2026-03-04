@@ -1,133 +1,339 @@
 .details-grid {
-      display: grid;
-      grid-template-columns: 2fr 1fr;
-      gap: 2.5rem;
-      margin-top: 1.5rem;
-    }
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 2.5rem;
+  margin-top: 1.5rem;
+}
 
-    .details-grid[data-user-role="user"] {
-      grid-template-columns: 1fr;
-    }
+/* make sure the content area never slips beneath the sidebar and leaves
+   a comfortable gap on either side */
+.main-wrapper {
+  /* padding stays regardless of sidebar state */
+  padding-left: 1rem;
+  padding-right: 1rem;
+  box-sizing: border-box;
+  z-index: 1;
+  transition: margin-left 0.3s ease; /* mirror sidebar transition */
+}
 
-    .action-panel {
-      background: var(--bg-layout);
-      padding: 2rem;
-      border-radius: var(--radius-lg);
-      border: 1px solid var(--border-dim);
-      position: sticky;
-      top: 2rem;
-      height: fit-content;
-    }
+/* re‑apply margin-left only when sidebar is open; the collapse rule from
+   sidebar-collapsible.css will reduce it to 60px automatically */
+#sidebar-toggler:not(:checked) ~ .dashboard-wrapper .main-wrapper {
+  margin-left: 260px;
+}
 
-    .user-simple-notice {
-      background: rgba(168, 85, 247, 0.1);
-      border: 1px solid rgba(168, 85, 247, 0.3);
-      border-radius: 10px;
-      padding: 1.5rem;
-      margin: 1.5rem 0;
-      color: var(--text-primary);
-    }
+/* sidebar should always float above the main content */
+.sidebar {
+  z-index: 100;
+}
 
-    .admin-only-element {
-      display: block;
-    }
+/* extra safe constraint for wide grids */
+.main-wrapper .main-content {
+  max-width: calc(100% - 280px);
+}
 
-    [data-user-role="user"] .admin-only-element {
-      display: none;
-    }
+.details-grid[data-user-role="user"] {
+  grid-template-columns: 1fr;
+}
 
-    .action-btns {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1rem;
-      /* Increased gap */
-      margin-top: 1.5rem;
-    }
+.action-panel {
+  background: var(--bg-layout);
+  padding: 2rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-dim);
+  position: sticky;
+  top: 2rem;
+  height: fit-content;
+}
 
-    .btn-action {
-      padding: 1rem;
-      /* Increased padding */
-      border-radius: 10px;
-      font-weight: 700;
-      cursor: pointer;
-      border: none;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.75rem;
-      /* Increased gap */
-      transition: all 0.2s;
-      color: white;
-      font-size: 1rem;
-      /* Scaled up */
-    }
+.user-simple-notice {
+  background: rgba(168, 85, 247, 0.1);
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  border-radius: 10px;
+  padding: 1.5rem;
+  margin: 1.5rem 0;
+  color: var(--text-primary);
+}
 
-    .btn-investigate {
-      background: var(--info);
-    }
+.admin-only-element {
+  display: block;
+}
 
-    .btn-block {
-      background: var(--danger);
-    }
+[data-user-role="user"] .admin-only-element {
+  display: none;
+}
 
-    .btn-limit {
-      background: var(--warning);
-    }
+/* ---------- Action Buttons ---------- */
+.action-btns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.9rem;
+  margin-top: 1.25rem;
+}
 
-    .btn-close {
-      background: var(--text-secondary);
-    }
+.btn-action {
+  padding: 0.95rem 1rem;
+  border-radius: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  border: 1px solid transparent;
 
-    .btn-action:hover {
-      opacity: 0.9;
-      transform: translateY(-2px);
-    }
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
 
-    .audit-trail {
-      margin-top: 2.5rem;
-    }
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    opacity 0.18s ease,
+    border-color 0.18s ease;
+  color: var(--text-primary);
+  font-size: 0.95rem;
 
-    .audit-item {
-      padding: 1rem 1.25rem;
-      /* Increased padding */
-      border-left: 4px solid var(--brand-primary);
-      background: rgba(124, 58, 237, 0.05);
-      margin-bottom: 0.75rem;
-      border-radius: 0 6px 6px 0;
-      border-bottom: 1px solid var(--border-dim);
-    }
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25);
+}
 
-    .audit-meta {
-      font-size: 0.85rem;
-      /* Scaled up */
-      color: var(--text-secondary);
-      margin-bottom: 0.4rem;
-      font-weight: 600;
-    }
+.btn-action:hover {
+  transform: translateY(-2px);
+  opacity: 0.96;
+  border-color: rgba(59, 130, 246, 0.3);
+}
 
-    .snippet-code {
-      font-family: "JetBrains Mono", monospace;
-      background: #000;
-      padding: 4px 8px;
-      /* Increased padding */
-      border-radius: 6px;
-      font-size: 0.9rem;
-      /* Scaled up */
-      color: var(--brand-secondary);
-      max-width: 300px;
-      /* Scaled up */
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      display: inline-block;
-      border: 1px solid var(--border-dim);
-    }
+.btn-action:active {
+  transform: translateY(0);
+  opacity: 0.92;
+}
 
-    /* Role-based visibility */
-    [data-user-role="user"] .admin-only {
-      display: none !important;
-    }
+/* themed button colors (use project vars) */
+.btn-investigate {
+  background: rgba(59, 130, 246, 0.22);
+  border-color: rgba(59, 130, 246, 0.45);
+  color: var(--info);
+}
 
-    [data-user-role="user"] .details-grid {
-      display: none !important;
-    }
+.btn-close {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--border-dim);
+  color: var(--text-secondary);
+}
+
+.btn-block {
+  background: rgba(239, 68, 68, 0.18);
+  border-color: rgba(239, 68, 68, 0.45);
+  color: var(--danger);
+}
+
+.btn-limit {
+  background: color-mix(in srgb, var(--warning) 18%, transparent);
+  border-color: rgba(255, 193, 7, 0.45);
+  color: var(--warning);
+}
+
+.btn-fp {
+  background: rgba(255, 193, 7, 0.12);
+  border-color: rgba(255, 193, 7, 0.35);
+  color: var(--warning);
+}
+
+/* Mobile: make buttons full width */
+@media (max-width: 520px) {
+  .action-btns {
+    grid-template-columns: 1fr;
+  }
+}
+
+.audit-trail {
+  margin-top: 2.5rem;
+}
+
+.audit-item {
+  padding: 1rem 1.25rem;
+  /* Increased padding */
+  border-left: 4px solid var(--brand-primary);
+  background: rgba(124, 58, 237, 0.05);
+  margin-bottom: 0.75rem;
+  border-radius: 0 6px 6px 0;
+  border-bottom: 1px solid var(--border-dim);
+}
+
+.audit-meta {
+  font-size: 0.85rem;
+  /* Scaled up */
+  color: var(--text-secondary);
+  margin-bottom: 0.4rem;
+  font-weight: 600;
+}
+
+.snippet-code {
+  font-family: "JetBrains Mono", monospace;
+  background: #000;
+  padding: 4px 8px;
+  /* Increased padding */
+  border-radius: 6px;
+  font-size: 0.9rem;
+  /* Scaled up */
+  color: var(--brand-secondary);
+  max-width: 300px;
+  /* Scaled up */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: inline-block;
+  border: 1px solid var(--border-dim);
+}
+
+/* Role-based visibility */
+[data-user-role="user"] .admin-only {
+  display: none !important;
+}
+
+[data-user-role="user"] .details-grid {
+  display: none !important;
+}
+/* ---------- Incident Header Spacing Fix ---------- */
+.incident-header {
+  width: 100%;
+  padding: 1.25rem 1.5rem; /* أقل من table-card الافتراضي */
+}
+
+.incident-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+#incident-id-display {
+  margin: 0; /* أهم سطر */
+  line-height: 1.05;
+}
+
+#incident-meta-p {
+  margin: 0.6rem 0 0 0; /* أهم سطر */
+  color: var(--text-secondary);
+}
+
+.incident-export-btn {
+  white-space: nowrap;
+  margin-top: 0.25rem;
+}
+
+@media (max-width: 700px) {
+  .incident-header-row {
+    flex-direction: column;
+  }
+}
+
+/* ensure the header itself stays clear of the sidebar when collapsed */
+.incident-header {
+  margin-left: 0.5rem;
+}
+/* ---------- Filters Bar (Themed) ---------- */
+.filters-bar {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  margin: 14px 0 18px;
+
+  padding: 12px;
+  border-radius: var(--radius-lg);
+  background: var(--bg-layout);
+  border: 1px solid var(--border-dim);
+}
+
+.filters-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 160px;
+}
+
+.filters-label {
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.filters-select,
+.filters-input {
+  height: 42px; /* يخليهم نفس الارتفاع */
+  background: var(--bg-main);
+  border: 1px solid var(--border-dim);
+  color: var(--text-primary);
+  border-radius: 12px;
+  padding: 0 12px;
+  outline: none;
+  font-size: 0.92rem;
+}
+
+.filters-input {
+  min-width: 240px;
+  font-family: "JetBrains Mono", monospace;
+}
+
+.filters-input::placeholder {
+  color: rgba(128, 128, 128, 0.7);
+}
+
+.filters-select:focus,
+.filters-input:focus {
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 3px
+    color-mix(in srgb, var(--brand-primary) 20%, transparent);
+}
+
+.filters-actions {
+  display: flex;
+  gap: 10px;
+  height: 42px;
+}
+
+.filters-btn {
+  height: 42px;
+  border-radius: 12px;
+  padding: 0 14px;
+  cursor: pointer;
+  font-weight: 800;
+  font-size: 0.85rem;
+
+  background: transparent;
+  color: var(--text-primary);
+  border: 1px solid var(--border-dim);
+  transition:
+    transform 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.filters-btn:hover {
+  transform: translateY(-1px);
+  border-color: var(--brand-primary);
+}
+
+.filters-btn-primary {
+  background: rgba(59, 130, 246, 0.18);
+  border-color: rgba(59, 130, 246, 0.35);
+}
+
+.filters-btn-secondary {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+@media (max-width: 650px) {
+  .filters-group,
+  .filters-input {
+    width: 100%;
+    min-width: 100%;
+  }
+
+  .filters-actions {
+    width: 100%;
+  }
+
+  .filters-btn {
+    flex: 1;
+  }
+}

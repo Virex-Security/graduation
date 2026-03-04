@@ -1,4 +1,4 @@
-from flask import Flask, render_template, jsonify, request, redirect, url_for, make_response
+from flask import Flask, render_template, jsonify, request, redirect, url_for, g
 import json
 import time
 from datetime import datetime, timedelta
@@ -744,6 +744,7 @@ from dobby_chat import SecurityChatbot
 # Initialize Dobby — Rule-based NLP Security Assistant
 # NOTE: Dobby uses keyword detection & pattern matching (NOT a generative AI / LLM)
 security_bot = SecurityChatbot(dashboard)
+
 def create_dashboard_app():
     app = Flask(__name__)
     app.config['SECRET_KEY'] = dashboard.secret_key
@@ -772,6 +773,12 @@ def create_dashboard_app():
         '/threats/scanner', '/threats/rate-limit',
         '/login', '/signup', '/',
     }
+    @app.before_request
+    def load_global_context():
+        logs = dashboard.load_audit_log()
+        g.logs = logs
+        g.global_stats = compute_global_stats(logs)
+
     @app.before_request
     def track_request():
         path = request.path
@@ -981,10 +988,10 @@ def create_dashboard_app():
         for inc in incidents_list:
             distribution[inc['detection_type']] += 1
         return render_template('incident_list.html',
-                             incidents=incidents_list,
-                             distribution=dict(distribution),
-                             total_incidents=len(incidents_list),
-                             user=current_user)
+                            incidents=incidents_list,
+                            distribution=dict(distribution),
+                            total_incidents=len(incidents_list),
+                            user=current_user)
     @app.route('/incident/<id>')
     @token_required
     def incident_details_page(current_user, id):
@@ -1079,10 +1086,42 @@ def create_dashboard_app():
                 'Connection': 'keep-alive'
             }
         )
+    def _attack_logs_only(logs):
+      return [
+          l for l in logs
+          if "action" not in l
+          and l.get("attack_type") not in ("Clean", None, "")
+          and l.get("type") not in ("Clean", None, "")
+      ]
+
+    def compute_global_stats(logs):
+        attack_logs = _attack_logs_only(logs)
+
+        critical_count = sum(
+            1 for l in attack_logs
+            if l.get("severity") in ("High", "Critical")
+        )
+
+        total_attacks = len(attack_logs)
+        blocked_count = sum(1 for l in attack_logs if l.get("blocked") is True)
+
+        unique_ips = len(set(
+            l.get("ip") for l in attack_logs
+            if l.get("ip") and l.get("ip") not in ("Unknown", "XXX.XXX.XXX.XXX")
+        ))
+
+        return {
+            "critical_count": critical_count,      # نفس اسم التيمبلت القديم
+            "total_attacks": total_attacks,
+            "blocked_count": blocked_count,
+            "unique_ips": unique_ips,
+        }
     @app.route('/threats/<category>')
     @token_required
     def threats_page(current_user, category):
-        logs = dashboard.load_audit_log()
+        logs = getattr(g, "logs", dashboard.load_audit_log())
+        stats = getattr(g, "global_stats", compute_global_stats(logs))
+
         category_map = {
             'sql-injection': 'SQL Injection',
             'xss': 'XSS',
@@ -1092,13 +1131,24 @@ def create_dashboard_app():
             'ml-detection': 'ML Detection'
         }
         filter_value = category_map.get(category, category)
-        filtered_logs = [l for l in logs if l.get('attack_type') == filter_value or l.get('type') == filter_value]
-        # Filter by IP if provided in URL parameters
+
+        if category == 'ml-detection':
+            filtered_logs = [
+                l for l in logs
+                if l.get('attack_type') == filter_value
+                or l.get('type') == filter_value
+                or l.get('ml_detected') is True
+                or str(l.get('detection_type', '')).lower().startswith('ml')
+            ]
+        else:
+            filtered_logs = [l for l in logs if l.get('attack_type') == filter_value or l.get('type') == filter_value]
+
         filter_ip = request.args.get('ip')
         if filter_ip:
             filtered_logs = [l for l in filtered_logs if l.get('ip') == filter_ip or l.get('source_ip') == filter_ip]
+
         filtered_logs.sort(key=lambda x: x.get('timestamp', ''), reverse=True)
-        # Data Masking for Users
+
         if current_user['role'] != Role.ADMIN:
             masked_logs = []
             for log in filtered_logs:
@@ -1109,10 +1159,14 @@ def create_dashboard_app():
                 masked_log['endpoint'] = "[HIDDEN]"
                 masked_logs.append(masked_log)
             filtered_logs = masked_logs
+
         total_count = len(filtered_logs)
         blocked_count = len([l for l in filtered_logs if l.get('blocked') is True])
-        critical_count = len([l for l in filtered_logs if l.get('severity') == 'High'])
+
+      
+
         unique_ips = len(set(l.get('ip', '') for l in filtered_logs if l.get('ip')))
+
         descriptions = {
             'SQL Injection': 'SQL Injection attempts detected and analyzed',
             'XSS': 'Cross-Site Scripting (XSS) attacks detected',
@@ -1121,55 +1175,47 @@ def create_dashboard_app():
             'Rate Limit': 'Rate limit violations and abuse attempts',
             'ML Detection': 'Anomalies detected by machine learning model'
         }
-        return render_template('threat_details.html',
-            logs=filtered_logs,
-            title=filter_value,
-            description=descriptions.get(filter_value, f'{filter_value} detections'),
-            total_count=total_count,
-            blocked_count=blocked_count,
-            critical_count=critical_count,
-            unique_ips=unique_ips,
-            user=current_user
-        )
+
+        return render_template(
+          'threat_details.html',
+          logs=filtered_logs,
+          title=filter_value,
+          description=descriptions.get(filter_value, f'{filter_value} detections'),
+          total_count=total_count,
+          blocked_count=blocked_count,
+          unique_ips=unique_ips, #
+          critical_count=stats["critical_count"],
+
+          user=current_user
+  )
+
     @app.route('/blocked')
     @token_required
     def blocked_page(current_user):
-        logs = dashboard.load_audit_log()
+        logs = getattr(g, "logs", dashboard.load_audit_log())
+        stats = getattr(g, "global_stats", compute_global_stats(logs))
+
         blocked_logs = [l for l in logs if l.get('blocked') is True]
         blocked_logs.sort(key=lambda x: x.get('timestamp', ''), reverse=True)
-        total_count = len(blocked_logs)
-        critical_count = len([l for l in blocked_logs if l.get('severity') == 'High'])
-        unique_ips = len(set(l.get('ip', '') for l in blocked_logs if l.get('ip')))
-        return render_template('blocked.html',
+
+        return render_template(
+            'blocked.html',
             logs=blocked_logs,
             title="Blocked Requests",
-            total_count=total_count,
-            critical_count=critical_count,
-            unique_ips=unique_ips,
+            description="Automatically blocked security events",
+            total_count=len(blocked_logs),
+            blocked_count=len(blocked_logs),
+            critical_count=stats["critical_count"],
+            unique_ips=len(set(l.get('ip', '') for l in blocked_logs if l.get('ip'))),
             user=current_user
         )
+
     @app.route('/ml-detections')
     @token_required
     def ml_detections_page(current_user):
-        logs = dashboard.load_audit_log()
-        # select entries that were flagged by ML (explicit flag) or whose
-        # detection method indicates ML. attack_type no longer used for
-        # filtering since it now contains the actual attack classification.
-        ml_logs = [l for l in logs if l.get('ml_detected') is True or
-                   (l.get('detection_type', '').lower().startswith('ml'))]
-        ml_logs.sort(key=lambda x: x.get('timestamp', ''), reverse=True)
-        # Data Masking for Users
-        if current_user['role'] != Role.ADMIN:
-            masked_logs = []
-            for log in ml_logs:
-                masked_log = log.copy()
-                masked_log['ip'] = "XXX.XXX.XXX.XXX"
-                masked_log['payload'] = "[HIDDEN]"
-                masked_log['snippet'] = "[HIDDEN]"
-                masked_log['endpoint'] = "[HIDDEN]"
-                masked_logs.append(masked_log)
-            ml_logs = masked_logs
-        return render_template('ml_detections.html', logs=ml_logs, title="ML Detections", user=current_user)
+        # Keep this URL for compatibility, but render the exact same page
+        # and layout used by /threats/sql-injection.
+        return redirect(url_for('threats_page', category='ml-detection'))
     @app.route('/ml-performance')
     @token_required
     def ml_performance_page(current_user):
