@@ -5,33 +5,6 @@
   margin-top: 1.5rem;
 }
 
-/* make sure the content area never slips beneath the sidebar and leaves
-   a comfortable gap on either side */
-.main-wrapper {
-  /* padding stays regardless of sidebar state */
-  padding-left: 1rem;
-  padding-right: 1rem;
-  box-sizing: border-box;
-  z-index: 1;
-  transition: margin-left 0.3s ease; /* mirror sidebar transition */
-}
-
-/* re‑apply margin-left only when sidebar is open; the collapse rule from
-   sidebar-collapsible.css will reduce it to 60px automatically */
-#sidebar-toggler:not(:checked) ~ .dashboard-wrapper .main-wrapper {
-  margin-left: 260px;
-}
-
-/* sidebar should always float above the main content */
-.sidebar {
-  z-index: 100;
-}
-
-/* extra safe constraint for wide grids */
-.main-wrapper .main-content {
-  max-width: calc(100% - 280px);
-}
-
 .details-grid[data-user-role="user"] {
   grid-template-columns: 1fr;
 }
