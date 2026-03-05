@@ -70,7 +70,7 @@
           <!-- Blocked Area Section -->
           <div class="menu-section">
             <div class="menu-section-title">Blocked Area</div>
-            <a href="/blocked" class="menu-item" data-tooltip="Blocked">
+            <a href="/blocked_page" class="menu-item" data-tooltip="Blocked">
               <i class="fas fa-hand"></i>
               <span class="menu-text">Blocked</span>
             </a>
@@ -211,7 +211,7 @@
 
           <div
             class="stat-card card type-blocked clickable"
-            onclick="location.href = '/blocked'"
+            onclick="location.href = '/blocked_page'"
           >
             <div class="stat-header">
               <i class="fas fa-hand" style="color: red"></i>
@@ -434,128 +434,6 @@
     <script src="/static/javascript/chatbot.js"></script>
     <script src="/static/javascript/notifications.js"></script>
     <script src="/static/javascript/ramadan.js"></script>
-
-    <!-- Sidebar Toggle Script -->
-    <script>
-      // Sidebar Toggle Functionality
-      document.addEventListener('DOMContentLoaded', function() {
-        const sidebar = document.getElementById('sidebar');
-        const mainWrapper = document.getElementById('mainWrapper');
-        const sidebarToggle = document.getElementById('sidebarToggle');
-        const sidebarToggler = document.getElementById('sidebar-toggler');
-        
-        // Check localStorage for saved state
-        const sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
-        
-        if (sidebarCollapsed && sidebarToggler) {
-          sidebarToggler.checked = true;
-        }
-        
-        // Toggle sidebar using checkbox
-        if (sidebarToggle && sidebarToggler && sidebar && mainWrapper) {
-          sidebarToggle.addEventListener('click', function() {
-            sidebarToggler.checked = !sidebarToggler.checked;
-            
-            // Add/remove collapsed class
-            if (sidebarToggler.checked) {
-              sidebar.classList.add('collapsed');
-              mainWrapper.classList.add('sidebar-collapsed');
-            } else {
-              sidebar.classList.remove('collapsed');
-              mainWrapper.classList.remove('sidebar-collapsed');
-            }
-            
-            // Save state to localStorage
-            localStorage.setItem('sidebarCollapsed', sidebarToggler.checked);
-          });
-          
-          // Apply initial state on page load
-          if (sidebarCollapsed) {
-            sidebar.classList.add('collapsed');
-            mainWrapper.classList.add('sidebar-collapsed');
-          }
-        }
-        
-        // Auto-collapse on mobile
-        function handleResize() {
-          if (window.innerWidth <= 768 && sidebarToggler) {
-            sidebarToggler.checked = true;
-          }
-        }
-        
-        handleResize();
-        window.addEventListener('resize', handleResize);
-
-        // Reset Button in Sidebar - Custom Modal
-        const sidebarResetBtn = document.getElementById('sidebar-reset-btn');
-        const resetModal = document.getElementById('reset-confirm-modal');
-        const resetCancelBtn = document.getElementById('reset-cancel-btn');
-        const resetConfirmBtn = document.getElementById('reset-confirm-btn');
-        
-        if (sidebarResetBtn && resetModal) {
-          sidebarResetBtn.addEventListener('click', function() {
-            resetModal.style.display = 'flex';
-            // Trigger animation
-            setTimeout(() => resetModal.classList.add('show'), 10);
-          });
-        }
-        
-        // Cancel button closes modal
-        if (resetCancelBtn) {
-          resetCancelBtn.addEventListener('click', function() {
-            resetModal.classList.remove('show');
-            setTimeout(() => resetModal.style.display = 'none', 300);
-          });
-        }
-        
-        // Confirm button performs reset
-        if (resetConfirmBtn) {
-          resetConfirmBtn.addEventListener('click', function() {
-            resetModal.classList.remove('show');
-            setTimeout(() => resetModal.style.display = 'none', 300);
-            
-            // Perform the reset
-            fetch('/api/dashboard/reset', {
-              method: 'POST',
-              credentials: 'same-origin',
-              headers: {
-                'Content-Type': 'application/json'
-              }
-            })
-            .then(response => response.json())
-            .then(data => {
-              if (data.status === 'stats_reset') {
-                location.reload();
-              }
-            })
-            .catch(error => {
-              console.error('Reset error:', error);
-              alert('Failed to reset statistics');
-            });
-          });
-        }
-        
-        // Close modal when clicking outside
-        if (resetModal) {
-          resetModal.addEventListener('click', function(e) {
-            if (e.target === resetModal) {
-              resetModal.classList.remove('show');
-              setTimeout(() => resetModal.style.display = 'none', 300);
-            }
-          });
-        }
-
-        // Settings Button
-        const settingsBtn = document.getElementById('settings-btn');
-        if (settingsBtn) {
-          settingsBtn.addEventListener('click', function() {
-            // You can add settings functionality here
-            // For now, it can redirect to a settings page or open a modal
-            console.log('Settings clicked');
-            // Example: window.location.href = '/settings';
-          });
-        }
-      });
-    </script>
+    <script src="/static/javascript/layout.js"></script>
   </body>
 </html>

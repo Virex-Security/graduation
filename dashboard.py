@@ -766,7 +766,7 @@ def create_dashboard_app():
     SKIP_PREFIXES = ('/static/', '/api/dashboard/', '/favicon', '/api/auth/', '/api/critical-threats', '/api/chat', '/api/ml/', '/api/user', '/api/incidents', '/api/critical')
     # Dashboard internal pages - should not be counted as traffic
     SKIP_EXACT = {
-        '/dashboard', '/critical', '/blocked', '/incidents',
+        '/dashboard', '/critical', '/blocked', '/blocked_page', '/incidents',
         '/requests', '/profile', '/ml-detections',
         '/threats/sql-injection', '/threats/xss',
         '/threats/ml-detection', '/threats/brute-force',
@@ -1189,6 +1189,7 @@ def create_dashboard_app():
           user=current_user
   )
 
+    @app.route('/blocked_page')
     @app.route('/blocked')
     @token_required
     def blocked_page(current_user):
@@ -1199,7 +1200,7 @@ def create_dashboard_app():
         blocked_logs.sort(key=lambda x: x.get('timestamp', ''), reverse=True)
 
         return render_template(
-            'blocked.html',
+            'blocked_page.html',
             logs=blocked_logs,
             title="Blocked Requests",
             description="Automatically blocked security events",

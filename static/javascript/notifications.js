@@ -591,7 +591,7 @@ const SecurityAlerts = {
 
     // Click handler to navigate
     alert.addEventListener("click", () => {
-      window.location.href = "/blocked";
+      window.location.href = "/blocked_page";
     });
 
     // Add to list

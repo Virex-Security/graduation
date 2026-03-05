@@ -60,7 +60,7 @@
           <!-- Blocked Area Section -->
           <div class="menu-section">
             <div class="menu-section-title">Blocked Area</div>
-            <a href="/blocked" class="menu-item" data-tooltip="Blocked">
+            <a href="/blocked_page" class="menu-item" data-tooltip="Blocked">
               <i class="fas fa-hand"></i>
               <span class="menu-text">Blocked</span>
             </a>
@@ -374,66 +374,9 @@
 
     <script>
       // Sidebar Toggle Functionality
-      document.addEventListener('DOMContentLoaded', function() {
-        const sidebar = document.getElementById('sidebar');
-        const mainWrapper = document.getElementById('mainWrapper');
-        const sidebarToggle = document.getElementById('sidebarToggle');
-        
-        const sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
-        
-        if (sidebarCollapsed) {
-          sidebar.classList.add('collapsed');
-          mainWrapper.classList.add('sidebar-collapsed');
-        }
-        
-        if (sidebarToggle) {
-          sidebarToggle.addEventListener('click', function() {
-            sidebar.classList.toggle('collapsed');
-            mainWrapper.classList.toggle('sidebar-collapsed');
-            
-            const isCollapsed = sidebar.classList.contains('collapsed');
-            localStorage.setItem('sidebarCollapsed', isCollapsed);
-          });
-        }
-        
-        function handleResize() {
-          if (window.innerWidth <= 768) {
-            sidebar.classList.add('collapsed');
-            mainWrapper.classList.add('sidebar-collapsed');
-          }
-        }
-        
-        handleResize();
-        window.addEventListener('resize', handleResize);
-
-        const sidebarResetBtn = document.getElementById('sidebar-reset-btn');
-        if (sidebarResetBtn) {
-          sidebarResetBtn.addEventListener('click', function() {
-            if (confirm('Are you sure you want to reset all statistics? This action cannot be undone.')) {
-              fetch('/api/dashboard/reset', {
-                method: 'POST',
-                credentials: 'same-origin',
-                headers: {
-                  'Content-Type': 'application/json'
-                }
-              })
-              .then(response => response.json())
-              .then(data => {
-                if (data.status === 'stats_reset') {
-                  alert('Statistics reset successfully!');
-                  location.reload();
-                }
-              })
-              .catch(error => {
-                console.error('Reset error:', error);
-                alert('Failed to reset statistics');
-              });
-            }
-          });
-        }
-      });
+   
     </script>
-
+    <script src="/static/javascript/layout.js"></script>
     <script src="/static/javascript/critical.js"></script>
   </body>
 </html>

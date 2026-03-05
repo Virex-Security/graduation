@@ -1347,7 +1347,7 @@ body::after {
 
 /* Table cards */
 .table-card {
-  min-height: 500px;
+  min-height: 150px;
 }
 
 .table-card h2 {

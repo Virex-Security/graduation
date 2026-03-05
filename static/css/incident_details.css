@@ -165,16 +165,33 @@
   display: none !important;
 }
 /* ---------- Incident Header Spacing Fix ---------- */
+/* ---------- Incident Header (Smaller) ---------- */
 .incident-header {
-  width: 100%;
-  padding: 1.25rem 1.5rem; /* أقل من table-card الافتراضي */
+  padding: 1rem 1.25rem;   /* أصغر من table-card العادي */
+}
+
+.incident-header h1 {
+  font-size: 1.35rem;      /* تصغير رقم/عنوان الـ incident */
+  line-height: 1.2;
+  margin-bottom: 0.35rem;
+}
+
+.incident-header p {
+  font-size: 0.9rem;       /* تصغير السطر اللي تحت */
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+/* لو الهيدر فيه row flex (optional) */
+.incident-header .incident-header-row {
+  gap: 1rem;
 }
 
 .incident-header-row {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 1rem;
+  gap: 0.5rem;
 }
 
 #incident-id-display {
@@ -308,5 +325,61 @@
 
   .filters-btn {
     flex: 1;
+  }
+}
+/* ---------- Export Button (Themed) ---------- */
+.btn-export {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+
+  padding: 10px 14px;
+  border-radius: 12px;
+
+  background: rgba(168, 85, 247, 0.16);
+  border: 1px solid rgba(168, 85, 247, 0.35);
+  color: var(--text-primary);
+
+  font-weight: 800;
+  font-size: 0.9rem;
+  cursor: pointer;
+
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+}
+
+@supports (color: color-mix(in srgb, white 50%, black)) {
+  .btn-export {
+    background: color-mix(in srgb, var(--brand-primary) 16%, transparent);
+    border: 1px solid color-mix(in srgb, var(--brand-primary) 35%, var(--border-dim));
+  }
+}
+
+.btn-export i {
+  color: var(--brand-primary);
+}
+
+.btn-export:hover {
+  transform: translateY(-1px);
+  border-color: var(--brand-primary);
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.35);
+}
+
+.btn-export:active {
+  transform: translateY(0);
+  opacity: 0.92;
+}
+
+.btn-export:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--brand-primary) 22%, transparent),
+    0 14px 28px rgba(0, 0, 0, 0.35);
+}
+
+/* Fallback if color-mix isn't supported */
+@supports not (color: color-mix(in srgb, white 50%, black)) {
+  .btn-export {
+    background: rgba(168, 85, 247, 0.16);
+    border-color: rgba(168, 85, 247, 0.35);
   }
 }
