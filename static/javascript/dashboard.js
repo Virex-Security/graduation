@@ -119,9 +119,9 @@ const Dashboard = {
     // Re-initialize charts to match theme
     Object.values(this.charts).forEach((chart) => {
       chart.options.scales.x.grid.color =
-        newTheme === "dark" ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)";
+        newTheme === "dark" ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)";
       chart.options.scales.y.grid.color =
-        newTheme === "dark" ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)";
+        newTheme === "dark" ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)";
       chart.update();
     });
   },
@@ -145,8 +145,8 @@ const Dashboard = {
         datasets: [
           {
             label: "Total Requests",
-            borderColor: "#7C3AED",
-            backgroundColor: "rgba(124, 58, 237, 0.1)",
+            borderColor: "#6366f1",
+            backgroundColor: "rgba(99, 102, 241, 0.1)",
             data: [],
             tension: 0.4,
             fill: true,
@@ -161,8 +161,8 @@ const Dashboard = {
           },
           {
             label: "Rate Limited",
-            borderColor: "#f59e0b",
-            backgroundColor: "rgba(245, 158, 11, 0.1)",
+            borderColor: "#f97316",
+            backgroundColor: "rgba(249, 115, 22, 0.1)",
             data: [],
             tension: 0.4,
             fill: true,
@@ -174,16 +174,26 @@ const Dashboard = {
         maintainAspectRatio: false,
         scales: {
           x: {
-            grid: { color: "rgba(255,255,255,0.05)" },
-            ticks: { color: "#9CA3AF" },
+            grid: { color: "rgba(255,255,255,0.08)" },
+            ticks: { color: "#a1a1aa" },
           },
           y: {
-            grid: { color: "rgba(255,255,255,0.05)" },
-            ticks: { color: "#9CA3AF" },
+            grid: { color: "rgba(255,255,255,0.08)" },
+            ticks: { color: "#a1a1aa" },
           },
         },
         plugins: {
           legend: { display: false },
+          tooltip: {
+            backgroundColor: 'rgba(24, 24, 27, 0.9)',
+            titleColor: '#fafafa',
+            bodyColor: '#a1a1aa',
+            borderColor: 'rgba(255,255,255,0.1)',
+            borderWidth: 1,
+            padding: 10,
+            displayColors: true,
+            usePointStyle: true,
+          }
         },
       },
     });
@@ -197,14 +207,15 @@ const Dashboard = {
           {
             data: [0, 0, 0, 0, 0, 0],
             backgroundColor: [
-              "#F59E0B",
-              "#38BDF8",
-              "#EF4444",
-              "#22C55E",
-              "#8B5CF6",
-              "#1F1B2E",
+              "#f59e0b", // Amber
+              "#06b6d4", // Cyan
+              "#f43f5e", // Rose
+              "#10b981", // Emerald
+              "#8b5cf6", // Violet
+              "#f97316", // Orange
             ],
             borderWidth: 0,
+            hoverOffset: 4,
           },
         ],
       },
@@ -214,10 +225,17 @@ const Dashboard = {
         plugins: {
           legend: {
             position: "bottom",
-            labels: { color: "#9CA3AF", padding: 20 },
+            labels: { color: "#a1a1aa", padding: 20, usePointStyle: true },
           },
+          tooltip: {
+            backgroundColor: 'rgba(15, 23, 42, 0.9)',
+            bodyColor: '#f1f5f9',
+            borderColor: 'rgba(99, 102, 241, 0.2)',
+            borderWidth: 1,
+            padding: 10,
+          }
         },
-        cutout: "70%",
+        cutout: "75%",
       },
     });
   },
