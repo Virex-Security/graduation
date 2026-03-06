@@ -1,20 +1,5 @@
 /* ==================== DEMO WEBSITE CSS — ShopSecure ==================== */
 
-:root {
-  /* CyberShield Pro — Unified Theme */
-  --bg:     #0d0d1a;
-  --card:   #1a1033;
-  --border: rgba(168, 85, 247, 0.18);
-  --accent: #a855f7;
-  --purple: #7c3aed;
-  --red:    #ef4444;
-  --green:  #10b981;
-  --yellow: #f59e0b;
-  --text:   #ffffff;
-  --muted:  rgba(255, 255, 255, 0.7);
-  --muted2: rgba(255, 255, 255, 0.45);
-}
-
 * {
   margin: 0;
   padding: 0;
@@ -23,10 +8,10 @@
 
 body {
   font-family: "Inter", system-ui, -apple-system, sans-serif;
-  background-color: var(--bg);
+  background-color: var(--bg-main);
   background-size: 400% 400%;
   animation: gradientBG 15s ease infinite;
-  color: var(--text);
+  color: var(--text-primary);
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
 }
@@ -53,7 +38,7 @@ nav {
   justify-content: space-between;
   padding: 1rem 2.5rem;
   border-bottom: 1px solid var(--border);
-  background: var(--card);
+  background: var(--bg-card);
   position: sticky;
   top: 0;
   z-index: 200;
@@ -74,7 +59,7 @@ nav {
 }
 
 .logo .p {
-  color: var(--text);
+  color: var(--text-primary);
 }
 
 .nav-tabs {
@@ -90,17 +75,17 @@ nav {
   cursor: pointer;
   border: none;
   background: transparent;
-  color: var(--muted2);
+  color: var(--text-muted);
   transition: all 0.2s;
 }
 
 .nav-tab:hover {
-  color: var(--text);
+  color: var(--text-primary);
   background: rgba(255, 255, 255, 0.05);
 }
 
 .nav-tab.active {
-  color: var(--text);
+  color: var(--text-primary);
   background: rgba(168, 85, 247, 0.15);
   border: 1px solid rgba(168, 85, 247, 0.3);
 }
@@ -154,7 +139,7 @@ nav {
   border-radius: 20px;
   background: rgba(168, 85, 247, 0.1);
   border: 1px solid rgba(168, 85, 247, 0.3);
-  color: var(--accent);
+  color: var(--brand-secondary);
 }
 
 /* ==================== PAGES ==================== */
@@ -178,7 +163,7 @@ nav {
 }
 
 .stat {
-  background: var(--card);
+  background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 20px;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
@@ -195,12 +180,12 @@ nav {
 }
 
 .stat-l {
-  color: var(--muted);
+  color: var(--text-secondary);
   font-size: 16px;
 }
 
 .c-accent {
-  color: var(--accent);
+  color: var(--brand-secondary);
 }
 
 .c-red {
@@ -212,7 +197,7 @@ nav {
 }
 
 .c-yellow {
-  color: var(--yellow);
+  color: var(--amber);
 }
 
 /* ==================== GRIDS ==================== */
@@ -232,7 +217,7 @@ nav {
 /* ==================== CARDS ==================== */
 
 .card {
-  background: var(--card);
+  background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 20px;
   padding: 24px;
@@ -264,7 +249,7 @@ nav {
 
 .card-sub {
   font-size: 11px;
-  color: var(--muted2);
+  color: var(--text-muted);
   margin-top: 2px;
 }
 
@@ -278,7 +263,7 @@ label {
   display: block;
   font-size: 11px;
   font-weight: 600;
-  color: var(--muted2);
+  color: var(--text-muted);
   margin-bottom: 5px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -292,7 +277,7 @@ textarea {
   border: 1px solid var(--border);
   border-radius: 9px;
   padding: 10px 14px;
-  color: var(--text);
+  color: var(--text-primary);
   font-family: "Inter", sans-serif;
   font-size: 13px;
   outline: none;
@@ -309,7 +294,7 @@ textarea:focus {
 }
 
 select option {
-  background: var(--card);
+  background: var(--bg-card);
 }
 
 textarea {
@@ -359,7 +344,7 @@ textarea {
 .btn-ghost {
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--border);
-  color: var(--text);
+  color: var(--text-primary);
 }
 
 .btn-ghost:hover {
@@ -386,7 +371,7 @@ textarea {
   border: 1px solid var(--border);
   border-radius: 7px;
   background: rgba(255, 255, 255, 0.02);
-  color: var(--muted2);
+  color: var(--text-muted);
   font-size: 11px;
   font-weight: 600;
   cursor: pointer;
@@ -399,8 +384,8 @@ textarea {
 }
 
 .pre.sqli:hover {
-  border-color: var(--yellow);
-  color: var(--yellow);
+  border-color: var(--amber);
+  color: var(--amber);
   background: rgba(245, 158, 11, 0.07);
 }
 
@@ -463,13 +448,13 @@ textarea {
 }
 
 .res.warn {
-  border-color: var(--yellow);
-  color: var(--yellow);
+  border-color: var(--amber);
+  color: var(--amber);
   background: rgba(245, 158, 11, 0.06);
 }
 
 .res.idle {
-  color: var(--muted);
+  color: var(--text-secondary);
 }
 
 /* ==================== TABLE ==================== */
@@ -501,13 +486,13 @@ th {
   text-align: left;
   font-size: 10px;
   font-weight: 700;
-  color: var(--muted2);
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   border-bottom: 1px solid var(--border);
   position: sticky;
   top: 0;
-  background: var(--card);
+  background: var(--bg-card);
 }
 
 td {
@@ -536,12 +521,12 @@ tr:hover td {
 
 .by {
   background: rgba(245, 158, 11, 0.12);
-  color: var(--yellow);
+  color: var(--amber);
 }
 
 .bb {
   background: rgba(0, 229, 255, 0.1);
-  color: var(--accent);
+  color: var(--brand-secondary);
 }
 
 .br {
@@ -561,12 +546,12 @@ tr:hover td {
 
 .r-manager {
   background: rgba(245, 158, 11, 0.1);
-  color: var(--yellow);
+  color: var(--amber);
 }
 
 .r-user {
   background: rgba(0, 229, 255, 0.08);
-  color: var(--accent);
+  color: var(--brand-secondary);
 }
 
 /* ==================== LIVE FEED ==================== */
@@ -624,7 +609,7 @@ tr:hover td {
 }
 
 .fd.y {
-  background: var(--yellow);
+  background: var(--amber);
 }
 
 .fd.p {
@@ -643,20 +628,20 @@ tr:hover td {
 
 .fd2 {
   font-size: 11px;
-  color: var(--muted2);
+  color: var(--text-muted);
   margin-top: 2px;
 }
 
 .ftm {
   font-size: 10px;
-  color: var(--muted);
+  color: var(--text-secondary);
   white-space: nowrap;
 }
 
 .feed-empty {
   text-align: center;
   padding: 36px;
-  color: var(--muted);
+  color: var(--text-secondary);
   font-size: 12px;
 }
 
@@ -671,7 +656,7 @@ tr:hover td {
 
 .sec-sub {
   font-size: 13px;
-  color: var(--muted2);
+  color: var(--text-muted);
   margin-bottom: 24px;
 }
 
@@ -693,13 +678,13 @@ tr:hover td {
 .empty {
   text-align: center;
   padding: 40px;
-  color: var(--muted2);
+  color: var(--text-muted);
   font-size: 13px;
 }
 
 .prog {
   font-size: 12px;
-  color: var(--muted2);
+  color: var(--text-muted);
   margin-bottom: 10px;
   min-height: 16px;
 }
