@@ -4,18 +4,17 @@ html {
 }
 
 :root {
-    /* CyberShield Pro Phase 3: Balanced & Refined */
-    --bg-main: #160e1c;
-    --bg-layout: #0A0A0F;
-    --brand-primary: #7813cad8;
-    --brand-secondary: #8B5CF6;
-    --brand-gradient: linear-gradient(135deg, #6D28D9 0%, #A855F7 100%);
+    /* CyberShield Pro — Unified Theme */
+    --bg-main:       #0d0d1a;
+    --bg-layout:     #120929;
+    --brand-primary:        #7c3aed;
+    --brand-secondary:      #a855f7;
+    --brand-gradient:       linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
 
-    --text-primary: #FFFFFF;
-    --text-secondary: #FFFFFF;
-    /* High contrast white */
+    --text-primary:   #FFFFFF;
+    --text-secondary: rgba(255, 255, 255, 0.7);
 
-    --border-dim: #262626;
+    --border-dim: rgba(168, 85, 247, 0.18);
 
     --danger: #EF4444;
 }
@@ -28,7 +27,7 @@ html {
 }
 
 body {
-    background: #160e1c;
+    background: var(--bg-main);
     background-size: 400% 400%;
     animation: gradientBG 15s ease infinite;
     height: 100vh;

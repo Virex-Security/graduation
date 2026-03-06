@@ -1,49 +1,53 @@
 :root {
-  /* Core Base Colors - Deep Slate / Midnight Palette (No Black) */
-  --bg-main: #0f172a; /* Slate 900 */
-  --bg-secondary: #1e293b; /* Slate 800 */
-  --bg-card: rgba(30, 41, 59, 0.7); /* Slate 800 alpha */
-  --bg-card-hover: rgba(51, 65, 85, 0.8); /* Slate 700 alpha */
-  --bg-sidebar: rgba(15, 23, 42, 0.95); /* Slate 900 alpha */
-  --bg-layout: var(--bg-main);
-  
+  /* Core Base Colors — Dark Navy / Violet Palette */
+  --bg-main:       #0d0d1a;
+  --bg-secondary:  #1a1033;
+  --bg-card:       rgba(26, 16, 51, 0.85);
+  --bg-card-hover: rgba(36, 22, 68, 0.9);
+  --bg-sidebar:    rgba(13, 13, 26, 0.97);
+  --bg-layout:     #120929;
+
   /* Borders */
-  --border-dim: rgba(255, 255, 255, 0.08);
-  --border-light: rgba(255, 255, 255, 0.12);
-  --border-glow: rgba(99, 102, 241, 0.2);
+  --border-dim:   rgba(168, 85, 247, 0.18);
+  --border-light: rgba(168, 85, 247, 0.30);
+  --border-glow:  rgba(124, 58, 237, 0.25);
 
-  /* Primary Brand - Sophisticated Blue-Violet Gradient */
-  --brand-primary: #6366f1; /* Indigo 500 */
-  --brand-secondary: #8b5cf6; /* Violet 500 */
-  --brand-accent: #ec4899; /* Pink 500 */
-  --brand-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-  --brand-gradient-hover: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  /* Primary Brand — Violet / Purple Gradient */
+  --brand-primary:          #7c3aed;
+  --brand-secondary:        #a855f7;
+  --brand-accent:           #c084fc;
+  --brand-gradient:         linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+  --brand-gradient-hover:   linear-gradient(135deg, #6d28d9 0%, #9333ea 100%);
 
-  /* Functional Status Colors - Clear & Accessible */
-  --success: #10b981; /* Emerald 500 */
+  /* Accent */
+  --cyan:     #06b6d4;
+  --cyan-dim: rgba(6, 182, 212, 0.12);
+
+  /* Functional Status Colors */
+  --success:    #10b981;
   --success-bg: rgba(16, 185, 129, 0.1);
-  --warning: #f59e0b; /* Amber 500 */
+  --warning:    #f59e0b;
   --warning-bg: rgba(245, 158, 11, 0.1);
-  --danger: #ef4444; /* Red 500 */
-  --danger-bg: rgba(239, 68, 68, 0.1);
-  --info: #3b82f6; /* Blue 500 */
-  --info-bg: rgba(59, 130, 246, 0.1);
+  --danger:     #ef4444;
+  --danger-bg:  rgba(239, 68, 68, 0.1);
+  --info:       #3b82f6;
+  --info-bg:    rgba(59, 130, 246, 0.1);
 
   /* Text Colors */
-  --text-primary: #fafafa;
-  --text-secondary: #a1a1aa;
-  --text-muted: #71717a;
-  --text-inverse: #ffffff;
+  --text-primary:   #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.7);
+  --text-muted:     rgba(255, 255, 255, 0.45);
+  --text-inverse:   #ffffff;
 
   /* Card Specific Accents */
-  --card-total: #3b82f6;
+  --card-total:   #3b82f6;
   --card-blocked: #ef4444;
-  --card-ml: #8b5cf6;
-  --card-sqli: #f59e0b;
-  --card-xss: #06b6d4; /* Cyan 500 */
-  --card-brute: #f43f5e; /* Rose 500 */
+  --card-ml:      #a855f7;
+  --card-sqli:    #f59e0b;
+  --card-xss:     #06b6d4;
+  --card-brute:   #f43f5e;
   --card-scanner: #10b981;
-  --card-rate: #f97316; /* Orange 500 */
+  --card-rate:    #f97316;
 
   /* Spacing & Radius */
   --radius-lg: 16px;
@@ -51,11 +55,13 @@
   --radius-sm: 8px;
   --radius-xs: 4px;
 
-  /* Shadows - Deep Slate based instead of pure black */
-  --shadow-sm: 0 1px 2px 0 rgba(15, 23, 42, 0.3);
-  --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.3), 0 2px 4px -1px rgba(15, 23, 42, 0.15);
-  --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.3), 0 4px 6px -2px rgba(15, 23, 42, 0.15);
-  --shadow-glow: 0 0 20px rgba(99, 102, 241, 0.15);
+  /* Shadows */
+  --shadow-sm:    0 1px 2px 0 rgba(13, 13, 26, 0.4);
+  --shadow-md:    0 4px 6px -1px rgba(13, 13, 26, 0.4), 0 2px 4px -1px rgba(13, 13, 26, 0.2);
+  --shadow-lg:    0 10px 15px -3px rgba(13, 13, 26, 0.4), 0 4px 6px -2px rgba(13, 13, 26, 0.2);
+  --shadow-glow:  0 0 20px rgba(124, 58, 237, 0.2);
+  --glow-purple:  0 0 24px rgba(168, 85, 247, 0.35);
+  --glow-cyan:    0 0 20px rgba(6, 182, 212, 0.25);
 
   /* Transitions */
   --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -81,7 +87,7 @@
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  --shadow-glow: 0 0 15px rgba(99, 102, 241, 0.1);
+  --shadow-glow: 0 0 15px rgba(124, 58, 237, 0.1);
 }
 
 * {
@@ -109,8 +115,8 @@ body::before {
   width: 100%;
   height: 100%;
   background: 
-    radial-gradient(circle at 15% 50%, rgba(99, 102, 241, 0.08), transparent 25%),
-    radial-gradient(circle at 85% 30%, rgba(139, 92, 246, 0.08), transparent 25%);
+    radial-gradient(circle at 15% 50%, rgba(124, 58, 237, 0.08), transparent 25%),
+    radial-gradient(circle at 85% 30%, rgba(168, 85, 247, 0.08), transparent 25%);
   z-index: -1;
   pointer-events: none;
 }
@@ -162,9 +168,9 @@ body::before {
 }
 
 .menu-item.active {
-  background: rgba(99, 102, 241, 0.1);
+  background: rgba(124, 58, 237, 0.1);
   color: var(--brand-primary);
-  border: 1px solid rgba(99, 102, 241, 0.2);
+  border: 1px solid rgba(124, 58, 237, 0.2);
 }
 
 .menu-item i {
@@ -356,7 +362,7 @@ body::before {
 /* Stat Card Colors */
 .stat-card.type-total .stat-header i { background: rgba(59, 130, 246, 0.15); color: var(--card-total); }
 .stat-card.type-blocked .stat-header i { background: rgba(239, 68, 68, 0.15); color: var(--card-blocked); }
-.stat-card.type-ml .stat-header i { background: rgba(139, 92, 246, 0.15); color: var(--card-ml); }
+.stat-card.type-ml .stat-header i { background: rgba(168, 85, 247, 0.15); color: var(--card-ml); }
 .stat-card.type-sqli .stat-header i { background: rgba(245, 158, 11, 0.15); color: var(--card-sqli); }
 .stat-card.type-xss .stat-header i { background: rgba(6, 182, 212, 0.15); color: var(--card-xss); }
 .stat-card.type-brute .stat-header i { background: rgba(244, 63, 94, 0.15); color: var(--card-brute); }
@@ -520,7 +526,7 @@ body::before {
   justify-content: center;
   font-size: 1.5rem;
   color: white;
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
 }
 
 .mlp-summary-title {

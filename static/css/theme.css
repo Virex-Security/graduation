@@ -1,0 +1,41 @@
+/* ==================== UNIFIED THEME — CyberShield Design System ==================== */
+/* Single source of truth for all design tokens used across the project.              */
+/* All pages share this dark navy + neon purple/violet + cyan palette.                 */
+
+:root {
+  /* ── Backgrounds ── */
+  --bg-main:       #0d0d1a;
+  --bg-secondary:  #1a1033;
+  --bg-card:       rgba(26, 16, 51, 0.85);
+  --bg-layout:     #120929;
+
+  /* ── Brand Colors ── */
+  --brand-primary:          #7c3aed;
+  --brand-secondary:        #a855f7;
+  --brand-accent:           #c084fc;
+  --brand-gradient:         linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+  --brand-gradient-hover:   linear-gradient(135deg, #6d28d9 0%, #9333ea 100%);
+
+  /* ── Accent Colors ── */
+  --cyan:     #06b6d4;
+  --cyan-dim: rgba(6, 182, 212, 0.12);
+
+  /* ── Status Colors ── */
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger:  #ef4444;
+  --info:    #3b82f6;
+
+  /* ── Text ── */
+  --text-primary:   #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.7);
+  --text-muted:     rgba(255, 255, 255, 0.45);
+
+  /* ── Borders ── */
+  --border-dim:   rgba(168, 85, 247, 0.18);
+  --border-light: rgba(168, 85, 247, 0.30);
+
+  /* ── Glow Shadows ── */
+  --glow-purple: 0 0 24px rgba(168, 85, 247, 0.35);
+  --glow-cyan:   0 0 20px rgba(6, 182, 212, 0.25);
+}
