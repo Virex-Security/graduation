@@ -10,11 +10,5 @@
         "username": "user",
         "password_hash": "pbkdf2:sha256:260000$A5b8mJxkrSQIHawj$bbf6ed0100a07c04464decaad601ac9c2880dda40e5140b986d639a0a35fc67d",
         "role": "user"
-    },
-    "test": {
-        "id": 3,
-        "username": "test",
-        "password_hash": "scrypt:32768:8:1$VMrN4SFtI3yXHEdo$25fe279e405ffedde33a6926f49434e2c58dbfdc967f2f9703d470c4d3530c282e51139d714e70fb5faafbf86050565f4247488106d0ebc67ef35ccbf47658f8",
-        "role": "user"
     }
 }
