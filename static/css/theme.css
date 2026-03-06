@@ -48,9 +48,9 @@
   /* ── Glow / Shadows ── */
   --glow-purple: 0 0 24px rgba(168, 85, 247, 0.35);
   --glow-cyan:   0 0 20px rgba(6, 182, 212, 0.25);
-  --shadow-sm:   0 2px 8px 0 rgba(13, 13, 26, 0.6), 0 0 0 1px rgba(168, 85, 247, 0.1);
-  --shadow-md:   0 4px 6px -1px rgba(13, 13, 26, 0.4), 0 2px 4px -1px rgba(13, 13, 26, 0.2);
-  --shadow-lg:   0 10px 15px -3px rgba(13, 13, 26, 0.4), 0 4px 6px -2px rgba(13, 13, 26, 0.2);
+  --shadow-sm:   0 2px 8px 0 rgba(13, 13, 26, 0.6);
+  --shadow-md:   0 4px 6px -1px rgba(13, 13, 26, 0.4);
+  --shadow-lg:   0 10px 15px -3px rgba(13, 13, 26, 0.4);
   --shadow-glow: 0 0 20px rgba(124, 58, 237, 0.2);
 
   /* ── Card Accents ── */
@@ -105,16 +105,6 @@
   --font-mono:    "Courier Prime", monospace;
   --font-head:    'Rajdhani', sans-serif;
   --font-body:    'DM Sans', sans-serif;
-
-  /* ── Chatbot Widget ── */
-  --chat-bg:            #2a1f3d;
-  --chat-header:        #3a2b55;
-  --chat-border:        #1a0f33;
-  --chat-text:          #ffffff;
-  --chat-primary:       #8b5cf6;
-  --chat-user-msg:      #6b46c1;
-  --chat-bot-msg:       #3f2e5c;
-  --chat-window-border: 10px solid #1a0f33;
 }
 
 /* ── Light Theme Overrides ── */
@@ -142,19 +132,10 @@
   --color-darker:   #ffffff;
 
   --shadow-sm:   0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md:   0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-lg:   0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-md:   0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg:   0 10px 15px -3px rgba(0, 0, 0, 0.1);
   --shadow-glow: 0 0 15px rgba(124, 58, 237, 0.1);
 
   --bg-hover:       #e2e8f0;
   --bg-hover-light: #cbd5e1;
-
-  /* ── Chatbot Widget ── */
-  --chat-bg:       #ffffff;
-  --chat-header:   #f3f4f6;
-  --chat-border:   #d1d5db;
-  --chat-text:     #1f2937;
-  --chat-primary:  #7c3aed;
-  --chat-user-msg: #dbeafe;
-  --chat-bot-msg:  #f3f4f6;
 }
