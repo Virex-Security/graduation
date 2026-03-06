@@ -6,19 +6,6 @@
   box-sizing: border-box;
 }
 
-:root {
-  --color-dark:        #0d0d1a;
-  --color-darker:      #120929;
-  --color-purple:      #a855f7;
-  --color-purple-dark: #7c3aed;
-  --color-blue:        #3b82f6;
-  --color-cyan:        #06b6d4;
-  --color-text:        #ffffff;
-  --color-text-muted:  rgba(255, 255, 255, 0.7);
-  --font-primary: "Inter", sans-serif;
-  --font-mono: "Courier Prime", monospace;
-}
-
 html {
   scroll-behavior: smooth;
 }

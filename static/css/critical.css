@@ -1,23 +1,11 @@
 /* ==================== CRITICAL THREAT PAGE CSS ==================== */
 
-:root {
-  --bg-primary: #0b0f1a;
-  --bg-card: #19032d;
-  --critical: #dc2626;
-  --warning: #f59e0b;
-  --info: #3b82f6;
-  --success: #10b981;
-  --text-primary: #e5e7eb;
-  --text-secondary: #9ca3af;
-  --border-color: #2d1b4e;
-}
-
 [data-theme="light"] {
-  --bg-primary: #f3f4f6;
+  --bg-main: #f3f4f6;
   --bg-card: #ffffff;
   --text-primary: #000000;
   --text-secondary: #000000;
-  --border-color: #e5e7eb;
+  --border-dim: #e5e7eb;
 }
 
 .critical-page {
@@ -41,7 +29,7 @@
 }
 
 .section-title h1 i {
-  color: var(--critical);
+  color: var(--danger);
 }
 
 .section-title p {
@@ -58,7 +46,7 @@
   margin-bottom: 2rem;
   padding: 1.5rem;
   background: var(--bg-card);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-dim);
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
@@ -67,14 +55,14 @@
   padding: 1.25rem;
   border-radius: 6px;
   background: var(--bg-card);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-dim);
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
 }
 
 .overview-card:hover {
-  border-color: var(--critical);
+  border-color: var(--danger);
   background: rgba(220, 38, 38, 0.15);
 }
 
@@ -93,7 +81,7 @@
 }
 
 .card-value.critical {
-  color: var(--critical);
+  color: var(--danger);
 }
 
 .card-value.warning {
@@ -149,7 +137,7 @@
 .filter-select {
   padding: 0.6rem 1rem;
   background: var(--bg-card);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-dim);
   border-radius: 6px;
   color: var(--text-primary);
   font-size: 0.9rem;
@@ -163,7 +151,7 @@
 .search-input:focus,
 .filter-select:focus {
   outline: none;
-  border-color: var(--critical);
+  border-color: var(--danger);
   box-shadow: 0 0 8px rgba(220, 38, 38, 0.2);
 }
 
@@ -190,7 +178,7 @@
 
 .data-table thead {
   background: var(--bg-card);
-  border-bottom: 2px solid var(--border-color);
+  border-bottom: 2px solid var(--border-dim);
 }
 
 .data-table th {
@@ -215,13 +203,13 @@
 }
 
 .data-table tbody tr {
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-dim);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .data-table tbody tr:hover {
-  background: var(--bg-primary);
+  background: var(--bg-main);
 }
 
 .threat-row {
@@ -229,11 +217,11 @@
 }
 
 .threat-row.critical-high {
-  border-left: 3px solid var(--critical);
+  border-left: 3px solid var(--danger);
 }
 
 .threat-row.critical-high:hover {
-  border-left-color: var(--critical);
+  border-left-color: var(--danger);
   background: rgba(220, 38, 38, 0.05);
 }
 
@@ -254,7 +242,7 @@
 .threat-id {
   font-weight: 600;
   font-family: "JetBrains Mono", monospace;
-  color: var(--critical);
+  color: var(--danger);
 }
 
 .threat-type {
@@ -392,7 +380,7 @@
 .analytics-card {
   padding: 1.5rem;
   background: var(--bg-card);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-dim);
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
@@ -441,7 +429,7 @@
 }
 
 .severity-label.critical {
-  color: var(--critical);
+  color: var(--danger);
 }
 
 .severity-label.warning {
@@ -455,10 +443,10 @@
 .severity-bar {
   flex: 1;
   height: 24px;
-  background: var(--bg-primary);
+  background: var(--bg-main);
   border-radius: 4px;
   overflow: hidden;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-dim);
 }
 
 .severity-fill {
@@ -468,7 +456,7 @@
 }
 
 .severity-bar.critical .severity-fill {
-  background: linear-gradient(90deg, var(--critical), #ef4444);
+  background: linear-gradient(90deg, var(--danger), #ef4444);
 }
 
 .severity-bar.warning .severity-fill {
@@ -506,7 +494,7 @@
 .intelligence-panel {
   padding: 2rem;
   background: var(--bg-card);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-dim);
   border-radius: 8px;
   min-height: 300px;
   display: flex;
@@ -541,7 +529,7 @@
   grid-template-columns: 200px 1fr;
   gap: 1rem;
   padding-bottom: 1.5rem;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-dim);
 }
 
 .intel-row:last-child {
@@ -563,10 +551,10 @@
 
 .progress-bar {
   height: 8px;
-  background: var(--bg-primary);
+  background: var(--bg-main);
   border-radius: 4px;
   overflow: hidden;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-dim);
 }
 
 .progress-fill {
@@ -591,7 +579,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 0.5rem;
-  background: var(--bg-primary);
+  background: var(--bg-main);
   border-radius: 4px;
   font-size: 0.85rem;
 }
@@ -611,7 +599,7 @@
 .timeline-container {
   padding: 2rem;
   background: var(--bg-card);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-dim);
   border-radius: 8px;
   min-height: 300px;
   display: flex;
@@ -629,8 +617,8 @@
   padding: 1.5rem;
   padding-left: 3rem;
   margin-bottom: 1rem;
-  background: var(--bg-primary);
-  border-left: 2px solid var(--border-color);
+  background: var(--bg-main);
+  border-left: 2px solid var(--border-dim);
   border-radius: 4px;
 }
 
@@ -639,7 +627,7 @@
 }
 
 .timeline-item.critical-event {
-  border-left-color: var(--critical);
+  border-left-color: var(--danger);
   background: rgba(220, 38, 38, 0.05);
 }
 
@@ -651,12 +639,12 @@
   height: 14px;
   border-radius: 50%;
   background: var(--bg-card);
-  border: 2px solid var(--border-color);
+  border: 2px solid var(--border-dim);
 }
 
 .timeline-item.critical-event .timeline-marker {
-  background: var(--critical);
-  border-color: var(--critical);
+  background: var(--danger);
+  border-color: var(--danger);
   box-shadow: 0 0 12px rgba(220, 38, 38, 0.6);
 }
 
@@ -688,7 +676,7 @@
 .indicator-card {
   padding: 1.5rem;
   background: var(--bg-card);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-dim);
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
@@ -709,8 +697,8 @@
 .gauge-bar {
   position: relative;
   height: 32px;
-  background: var(--bg-primary);
-  border: 1px solid var(--border-color);
+  background: var(--bg-main);
+  border: 1px solid var(--border-dim);
   border-radius: 6px;
   overflow: hidden;
   display: flex;
@@ -731,7 +719,7 @@
 }
 
 .gauge-bar.critical {
-  color: var(--critical);
+  color: var(--danger);
 }
 
 .gauge-bar.critical .gauge-level {
@@ -750,7 +738,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1rem;
-  background: var(--bg-primary);
+  background: var(--bg-main);
   border-radius: 6px;
   font-weight: 600;
   margin-bottom: 1rem;
@@ -759,7 +747,7 @@
 }
 
 .trend-indicator.rising {
-  color: var(--critical);
+  color: var(--danger);
   background: rgba(220, 38, 38, 0.15);
 }
 
@@ -875,7 +863,7 @@
 
 .modal-content {
   background: var(--bg-card);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-dim);
   border-radius: 8px;
   max-width: 800px;
   margin: 0 auto;
@@ -889,7 +877,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 1.5rem;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-dim);
   position: sticky;
   top: 0;
   background: var(--bg-card);
@@ -911,7 +899,7 @@
 }
 
 .modal-close:hover {
-  color: var(--critical);
+  color: var(--danger);
 }
 
 .modal-body {
@@ -939,7 +927,7 @@
 .feature-weights {
   padding: 1rem;
   background: rgba(55, 65, 81, 0.2);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-dim);
   border-radius: 6px;
   font-family: "JetBrains Mono", monospace;
   font-size: 0.85rem;
@@ -1068,7 +1056,7 @@
 .refresh-btn {
   padding: 0.6rem 1rem;
   background: var(--bg-card);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-dim);
   border-radius: 6px;
   color: var(--text-primary);
   cursor: pointer;
@@ -1082,8 +1070,8 @@
 }
 
 .refresh-btn:hover {
-  border-color: var(--critical);
-  color: var(--critical);
+  border-color: var(--danger);
+  color: var(--danger);
   box-shadow: 0 0 8px rgba(220, 38, 38, 0.2);
 }
 

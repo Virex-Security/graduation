@@ -3,22 +3,6 @@ html {
     /* Balanced Phase 3 Scaling */
 }
 
-:root {
-    /* CyberShield Pro — Unified Theme */
-    --bg-main:       #0d0d1a;
-    --bg-layout:     #120929;
-    --brand-primary:        #7c3aed;
-    --brand-secondary:      #a855f7;
-    --brand-gradient:       linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
-
-    --text-primary:   #FFFFFF;
-    --text-secondary: rgba(255, 255, 255, 0.7);
-
-    --border-dim: rgba(168, 85, 247, 0.18);
-
-    --danger: #EF4444;
-}
-
 * {
     margin: 0;
     padding: 0;

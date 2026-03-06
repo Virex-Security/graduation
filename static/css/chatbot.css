@@ -1,14 +1,4 @@
 /* Chatbot Widget CSS */
-:root {
-  --chat-bg: #2a1f3d;
-  --chat-header: #3a2b55;
-  --chat-border: #1a0f33;
-  --chat-text: #ffffff;
-  --chat-primary: #8b5cf6;
-  --chat-user-msg: #6b46c1;
-  --chat-bot-msg: #3f2e5c;
-  --chat-window-border: 10px solid #1a0f33;
-}
 
 [data-theme="light"] {
   --chat-bg: #ffffff;
