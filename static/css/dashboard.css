@@ -3,6 +3,7 @@ html {
 }
 
 :root {
+<<<<<<< HEAD
   /* Modern Cyber Theme - Same Purple Palette */
   --bg-main: #0a001a;
   --bg-layout: rgba(25, 3, 45, 0.85);
@@ -38,6 +39,57 @@ html {
   --radius-sm: 12px;
   --transition: cubic-bezier(0.4, 0, 0.2, 1);
 }
+=======
+  /* Core Base Colors — Dark Navy / Violet Palette */
+  --bg-main:       #0d0d1a;
+  --bg-secondary:  #1a1033;
+  --bg-card:       rgba(36, 22, 72, 0.95); /* slightly lighter than --bg-secondary for card elevation */
+  --bg-card-hover: rgba(36, 22, 68, 0.9);
+  --bg-sidebar:    rgba(13, 13, 26, 0.97);
+  --bg-layout:     #120929;
+
+  /* Borders */
+  --border-dim:   rgba(168, 85, 247, 0.35);
+  --border-light: rgba(168, 85, 247, 0.55);
+  --border-glow:  rgba(124, 58, 237, 0.25);
+
+  /* Primary Brand — Violet / Purple Gradient */
+  --brand-primary:          #7c3aed;
+  --brand-secondary:        #a855f7;
+  --brand-accent:           #c084fc;
+  --brand-gradient:         linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+  --brand-gradient-hover:   linear-gradient(135deg, #6d28d9 0%, #9333ea 100%);
+
+  /* Accent */
+  --cyan:     #06b6d4;
+  --cyan-dim: rgba(6, 182, 212, 0.12);
+
+  /* Functional Status Colors */
+  --success:    #10b981;
+  --success-bg: rgba(16, 185, 129, 0.1);
+  --warning:    #f59e0b;
+  --warning-bg: rgba(245, 158, 11, 0.1);
+  --danger:     #ef4444;
+  --danger-bg:  rgba(239, 68, 68, 0.1);
+  --info:       #3b82f6;
+  --info-bg:    rgba(59, 130, 246, 0.1);
+
+  /* Text Colors */
+  --text-primary:   #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.7);
+  --text-muted:     rgba(255, 255, 255, 0.45);
+  --text-inverse:   #ffffff;
+
+  /* Card Specific Accents */
+  --card-total:   #3b82f6;
+  --card-blocked: #ef4444;
+  --card-ml:      #a855f7;
+  --card-sqli:    #f59e0b;
+  --card-xss:     #06b6d4;
+  --card-brute:   #f43f5e;
+  --card-scanner: #10b981;
+  --card-rate:    #f97316;
+>>>>>>> ee0467fb41c21c37b21693b3931c248fb38e18d2
 
 /* View More Button Styling */
 .btn-view-more {
@@ -54,17 +106,28 @@ html {
   white-space: nowrap;
 }
 
+<<<<<<< HEAD
 .btn-view-more:hover {
   background: var(--brand-secondary);
   transform: translateY(-1px);
   box-shadow: 0 2px 8px rgba(168, 85, 247, 0.3);
 }
+=======
+  /* Shadows */
+  --shadow-sm:    0 2px 8px 0 rgba(13, 13, 26, 0.6), 0 0 0 1px rgba(168, 85, 247, 0.1);
+  --shadow-md:    0 4px 6px -1px rgba(13, 13, 26, 0.4), 0 2px 4px -1px rgba(13, 13, 26, 0.2);
+  --shadow-lg:    0 10px 15px -3px rgba(13, 13, 26, 0.4), 0 4px 6px -2px rgba(13, 13, 26, 0.2);
+  --shadow-glow:  0 0 20px rgba(124, 58, 237, 0.2);
+  --glow-purple:  0 0 24px rgba(168, 85, 247, 0.35);
+  --glow-cyan:    0 0 20px rgba(6, 182, 212, 0.25);
+>>>>>>> ee0467fb41c21c37b21693b3931c248fb38e18d2
 
 .btn-view-more:active {
   transform: translateY(0);
 }
 
 [data-theme="light"] {
+<<<<<<< HEAD
   --bg-main: #f0f2f8;
   --bg-layout: rgba(255, 255, 255, 0.85);
   --text-primary: #1f1b2e;
@@ -72,6 +135,28 @@ html {
   --text-muted: rgba(31, 27, 46, 0.5);
   --border-dim: rgba(168, 85, 247, 0.15);
   --border-glow: rgba(168, 85, 247, 0.3);
+=======
+  --bg-main: #f8fafc;
+  --bg-secondary: #f1f5f9;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f8fafc;
+  --bg-sidebar: #ffffff;
+  --bg-layout: var(--bg-main);
+  
+  --border-dim: #e2e8f0;
+  --border-light: #cbd5e1;
+  --border-glow: #94a3b8;
+
+  --text-primary: #0f172a;
+  --text-secondary: #64748b;
+  --text-muted: #94a3b8;
+  --text-inverse: #ffffff;
+
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-glow: 0 0 15px rgba(124, 58, 237, 0.1);
+>>>>>>> ee0467fb41c21c37b21693b3931c248fb38e18d2
 }
 
 * {
@@ -103,6 +188,7 @@ body::before {
   left: 0;
   width: 100%;
   height: 100%;
+<<<<<<< HEAD
   background:
     radial-gradient(
       ellipse at 20% 20%,
@@ -119,6 +205,12 @@ body::before {
       rgba(6, 182, 212, 0.05) 0%,
       transparent 70%
     );
+=======
+  background: 
+    radial-gradient(circle at 15% 50%, rgba(124, 58, 237, 0.08), transparent 25%),
+    radial-gradient(circle at 85% 30%, rgba(168, 85, 247, 0.08), transparent 25%);
+  z-index: -1;
+>>>>>>> ee0467fb41c21c37b21693b3931c248fb38e18d2
   pointer-events: none;
   z-index: -1;
   animation: bgPulse 8s ease-in-out infinite;
@@ -249,9 +341,25 @@ body::after {
   text-decoration: none;
   font-size: 0.95rem;
   font-weight: 500;
+<<<<<<< HEAD
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
+=======
+  font-size: 0.9rem;
+  transition: var(--transition);
+}
+
+.menu-item:hover {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.menu-item.active {
+  background: rgba(124, 58, 237, 0.1);
+  color: var(--brand-primary);
+  border: 1px solid rgba(124, 58, 237, 0.2);
+>>>>>>> ee0467fb41c21c37b21693b3931c248fb38e18d2
 }
 
 .menu-item i {
@@ -353,10 +461,22 @@ body::after {
   transition: margin-left 0.3s ease;
 }
 
+<<<<<<< HEAD
 /* sidebar collapse/expand toggle (checkbox driven) */
 #sidebar-toggler:checked ~ .dashboard-wrapper .sidebar {
   width: 60px;
 }
+=======
+/* Stat Card Colors */
+.stat-card.type-total .stat-header i { background: rgba(59, 130, 246, 0.15); color: var(--card-total); }
+.stat-card.type-blocked .stat-header i { background: rgba(239, 68, 68, 0.15); color: var(--card-blocked); }
+.stat-card.type-ml .stat-header i { background: rgba(168, 85, 247, 0.15); color: var(--card-ml); }
+.stat-card.type-sqli .stat-header i { background: rgba(245, 158, 11, 0.15); color: var(--card-sqli); }
+.stat-card.type-xss .stat-header i { background: rgba(6, 182, 212, 0.15); color: var(--card-xss); }
+.stat-card.type-brute .stat-header i { background: rgba(244, 63, 94, 0.15); color: var(--card-brute); }
+.stat-card.type-scanner .stat-header i { background: rgba(16, 185, 129, 0.15); color: var(--card-scanner); }
+.stat-card.type-rate .stat-header i { background: rgba(249, 115, 22, 0.15); color: var(--card-rate); }
+>>>>>>> ee0467fb41c21c37b21693b3931c248fb38e18d2
 
 #sidebar-toggler:checked ~ .dashboard-wrapper .main-wrapper {
   margin-left: 60px;
@@ -1888,7 +2008,11 @@ body::after {
   justify-content: center;
   font-size: 1.5rem;
   color: white;
+<<<<<<< HEAD
   box-shadow: 0 8px 25px rgba(168, 85, 247, 0.4);
+=======
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+>>>>>>> ee0467fb41c21c37b21693b3931c248fb38e18d2
 }
 
 .mlp-summary-title {

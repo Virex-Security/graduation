@@ -1,18 +1,18 @@
 /* ==================== DEMO WEBSITE CSS — ShopSecure ==================== */
 
 :root {
-  /* CyberShield Pro Theme */
-  --bg: #0a001a;
-  --card: #19032d;
-  --border: #262626;
+  /* CyberShield Pro — Unified Theme */
+  --bg:     #0d0d1a;
+  --card:   #1a1033;
+  --border: rgba(168, 85, 247, 0.18);
   --accent: #a855f7;
-  --purple: #8b5cf6;
-  --red: #ef4444;
-  --green: #22c55e;
+  --purple: #7c3aed;
+  --red:    #ef4444;
+  --green:  #10b981;
   --yellow: #f59e0b;
-  --text: #ffffff;
-  --muted: #a1a1aa;
-  --muted2: #d4d4d8;
+  --text:   #ffffff;
+  --muted:  rgba(255, 255, 255, 0.7);
+  --muted2: rgba(255, 255, 255, 0.45);
 }
 
 * {

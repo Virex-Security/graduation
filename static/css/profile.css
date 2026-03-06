@@ -7,23 +7,23 @@
    Rajdhani · DM Sans · JetBrains Mono    ── */
 
 :root {
-  /* Match Dashboard Theme */
-  --bg-main: #0a001a;
-  --bg-layout: rgba(25, 3, 45, 0.85);
-  --bg:           #0A001A;
-  --bg2:          #0f0022;
-  --card:         rgba(25, 3, 45, 0.85);
-  --card2:        #1f0438;
-  --border:       rgba(168, 85, 247, 0.2);
-  --border-dim:   rgba(168, 85, 247, 0.2);
-  --border-cyan:  rgba(34, 211, 238, 0.15);
-  --brand-primary: #a855f7;
-  --brand-secondary: #8b5cf6;
+  /* Match Unified Theme */
+  --bg-main:    #0d0d1a;
+  --bg-layout:  rgba(26, 16, 51, 0.85);
+  --bg:         #0d0d1a;
+  --bg2:        #1a1033;
+  --card:       rgba(26, 16, 51, 0.85);
+  --card2:      #1a1033;
+  --border:       rgba(168, 85, 247, 0.18);
+  --border-dim:   rgba(168, 85, 247, 0.18);
+  --border-cyan:  rgba(6, 182, 212, 0.12);
+  --brand-primary:   #7c3aed;
+  --brand-secondary: #a855f7;
   --purple:       #a855f7;
-  --purple-light: #9d5ff5;
+  --purple-light: #c084fc;
   --purple-dim:   rgba(168, 85, 247, 0.12);
-  --cyan:         #22D3EE;
-  --cyan-dim:     rgba(34, 211, 238, 0.10);
+  --cyan:         #06b6d4;
+  --cyan-dim:     rgba(6, 182, 212, 0.12);
   --green:        #10B981;
   --green-dim:    rgba(16, 185, 129, 0.12);
   --red:          #EF4444;
@@ -34,9 +34,9 @@
   --text-primary: #ffffff;
   --text-sec:     rgba(255, 255, 255, 0.7);
   --text-secondary: rgba(255, 255, 255, 0.7);
-  --text-dim:     rgba(255, 255, 255, 0.5);
-  --glow-purple:  0 0 24px rgba(168, 85, 247, 0.25);
-  --glow-cyan:    0 0 24px rgba(34, 211, 238, 0.2);
+  --text-dim:     rgba(255, 255, 255, 0.45);
+  --glow-purple:  0 0 24px rgba(168, 85, 247, 0.35);
+  --glow-cyan:    0 0 20px rgba(6, 182, 212, 0.25);
   --font-head:    'Rajdhani', sans-serif;
   --font-body:    'DM Sans', sans-serif;
   --font-mono:    'JetBrains Mono', monospace;
