@@ -2,14 +2,14 @@
   /* Core Base Colors — Dark Navy / Violet Palette */
   --bg-main:       #0d0d1a;
   --bg-secondary:  #1a1033;
-  --bg-card:       rgba(26, 16, 51, 0.85);
+  --bg-card:       rgba(36, 22, 72, 0.95); /* slightly lighter than --bg-secondary for card elevation */
   --bg-card-hover: rgba(36, 22, 68, 0.9);
   --bg-sidebar:    rgba(13, 13, 26, 0.97);
   --bg-layout:     #120929;
 
   /* Borders */
-  --border-dim:   rgba(168, 85, 247, 0.18);
-  --border-light: rgba(168, 85, 247, 0.30);
+  --border-dim:   rgba(168, 85, 247, 0.35);
+  --border-light: rgba(168, 85, 247, 0.55);
   --border-glow:  rgba(124, 58, 237, 0.25);
 
   /* Primary Brand — Violet / Purple Gradient */
@@ -56,7 +56,7 @@
   --radius-xs: 4px;
 
   /* Shadows */
-  --shadow-sm:    0 1px 2px 0 rgba(13, 13, 26, 0.4);
+  --shadow-sm:    0 2px 8px 0 rgba(13, 13, 26, 0.6), 0 0 0 1px rgba(168, 85, 247, 0.1);
   --shadow-md:    0 4px 6px -1px rgba(13, 13, 26, 0.4), 0 2px 4px -1px rgba(13, 13, 26, 0.2);
   --shadow-lg:    0 10px 15px -3px rgba(13, 13, 26, 0.4), 0 4px 6px -2px rgba(13, 13, 26, 0.2);
   --shadow-glow:  0 0 20px rgba(124, 58, 237, 0.2);

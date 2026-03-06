@@ -176,11 +176,14 @@
 
 /* Main Wrapper Adjustment */
 .main-wrapper {
-  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              width 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  width: calc(100% - 260px);
 }
 
 .main-wrapper.sidebar-collapsed {
   margin-left: 0;
+  width: 100%;
 }
 
 /* Responsive Adjustments */
@@ -189,12 +192,9 @@
     width: 260px;
   }
 
-  .main-wrapper {
-    margin-left: 260px;
-  }
-
   .main-wrapper.sidebar-collapsed {
     margin-left: 0;
+    width: 100%;
   }
   
   .navbar-security-score .score-text {
@@ -219,6 +219,7 @@
   .main-wrapper,
   .main-wrapper.sidebar-collapsed {
     margin-left: 0;
+    width: 100%;
   }
 
   /* Mobile overlay */
