@@ -21,16 +21,16 @@ endblock %} {% block stylesheets %}
           class="fas fa-shield-alt"
           style="color: var(--brand-primary); font-size: 1.5rem"
         ></i>
-        <h3 style="margin: 0">تنبيه أمان</h3>
+        <h3 style="margin: 0">Security Alert</h3>
       </div>
       <p style="margin: 0; color: var(--text-secondary)">
-        تم اكتشاف محاولة هجوم من نوع
-        <strong>{{ incident.category }}</strong> في
+        An attack attempt of type
+        <strong>{{ incident.category }}</strong> was detected at
         <strong>{{ incident.first_seen }}</strong>
       </p>
       <p style="margin: 1rem 0 0 0; color: var(--text-secondary)">
-        تم إرسال التفاصيل إلى فريق الأمان المتخصص لتحليل الموقف واتخاذ الإجراءات
-        اللازمة.
+        The details have been sent to the specialized security team to analyze
+        the situation and take the necessary actions.
       </p>
     </div>
     {% else %}
