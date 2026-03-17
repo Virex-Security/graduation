@@ -27,6 +27,18 @@ def create_dashboard_app():
     template_folder = str(project_root / 'templates')
     static_folder = str(project_root / 'static')
     
+    # Try absolute path as fallback
+    if not os.path.exists(template_folder):
+        # Get absolute path from current working directory
+        cwd = Path.cwd()
+        template_folder = str(cwd / 'app' / 'templates')
+        static_folder = str(cwd / 'app' / 'static')
+    
+    print(f"Debug - Template folder: {template_folder}")
+    print(f"Debug - Static folder: {static_folder}")
+    print(f"Debug - Template folder exists: {os.path.exists(template_folder)}")
+    print(f"Debug - signup.html exists: {os.path.exists(os.path.join(template_folder, 'signup.html'))}")
+    
     app = Flask(__name__, 
                 template_folder=template_folder,
                 static_folder=static_folder)

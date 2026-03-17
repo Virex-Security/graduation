@@ -90,15 +90,15 @@ function validatePassword(password) {
 async function handleSignup(event) {
   event.preventDefault();
 
-  const fullName = document.getElementById("full-name").value.trim();
+  const fullName = document.getElementById("fullName").value.trim();
   const username = document.getElementById("username").value.trim();
   const email = document.getElementById("email").value.trim();
   const phone = document.getElementById("phone").value.trim();
   const position = document.getElementById("position").value;
   const password = document.getElementById("password").value;
-  const confirmPassword = document.getElementById("confirm-password").value;
+  const confirmPassword = document.getElementById("confirmPassword").value;
   const messageBox = document.getElementById("message-box");
-  const submitButton = document.querySelector(".btn-primary");
+  const submitButton = document.querySelector(".signup-btn");
 
   // Validation
   if (!fullName) {

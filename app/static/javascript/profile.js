@@ -380,9 +380,34 @@ function renderError(containerId, title, detail) {
 function openEditModal() {
   if (!state.profile) return;
   const p = state.profile;
+  
   document.getElementById('edit-fullname').value = p.full_name   || '';
   document.getElementById('edit-email').value    = p.email       || '';
-  document.getElementById('edit-dept').value     = p.department  || '';
+  
+  // Handle department dropdown selection
+  const deptSelect = document.getElementById('edit-dept');
+  if (deptSelect && p.department) {
+    // Try to find exact match first
+    let optionFound = false;
+    for (let option of deptSelect.options) {
+      if (option.value === p.department) {
+        option.selected = true;
+        optionFound = true;
+        break;
+      }
+    }
+    
+    // If no exact match, try partial match or set to "Other"
+    if (!optionFound) {
+      for (let option of deptSelect.options) {
+        if (option.value === 'Other') {
+          option.selected = true;
+          break;
+        }
+      }
+    }
+  }
+  
   document.getElementById('edit-role').value     = p.role        || '';
   openModal('modal-edit');
 }

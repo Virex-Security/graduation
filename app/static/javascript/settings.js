@@ -159,7 +159,31 @@ function openEditProfileModal() {
   
   document.getElementById('edit-fullname').value = state.profile.full_name || '';
   document.getElementById('edit-email').value = state.profile.email || '';
-  document.getElementById('edit-department').value = state.profile.department || '';
+  
+  // Handle department dropdown selection
+  const deptSelect = document.getElementById('edit-department');
+  if (deptSelect && state.profile.department) {
+    // Try to find exact match first
+    let optionFound = false;
+    for (let option of deptSelect.options) {
+      if (option.value === state.profile.department) {
+        option.selected = true;
+        optionFound = true;
+        break;
+      }
+    }
+    
+    // If no exact match, try to set to "Other"
+    if (!optionFound) {
+      for (let option of deptSelect.options) {
+        if (option.value === 'Other') {
+          option.selected = true;
+          break;
+        }
+      }
+    }
+  }
+  
   document.getElementById('edit-password').value = '';
   
   openModal('edit-profile-modal');
@@ -168,11 +192,17 @@ function openEditProfileModal() {
 async function saveProfile() {
   const fullname = document.getElementById('edit-fullname').value.trim();
   const email = document.getElementById('edit-email').value.trim();
-  const department = document.getElementById('edit-department').value.trim();
+  const deptSelect = document.getElementById('edit-department');
+  const department = deptSelect ? deptSelect.value.trim() : '';
   const password = document.getElementById('edit-password').value;
   
   if (!fullname || !email) {
     toast('Name and email are required', 'error');
+    return;
+  }
+  
+  if (!department) {
+    toast('Department is required', 'error');
     return;
   }
   
