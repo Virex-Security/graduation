@@ -1,0 +1,473 @@
+{% extends "sidebar_layout.html" %} {% set active_page = 'settings' %} {% block
+title %}Settings - Virex{% endblock %} {% block stylesheets %}
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/settings.css') }}"
+/>
+{% endblock %} {% block content %}
+<main class="main-content">
+  <div class="page-header">
+    <div class="page-header-inner">
+      <div class="page-title-group">
+        <h1 class="page-title"><i class="fas fa-sliders"></i> Settings</h1>
+        <p class="page-subtitle">
+          Configure system preferences and security options
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Profile Section -->
+  <div class="settings-section profile-section">
+    <div class="section-header">
+      <div class="section-icon purple">
+        <i class="fas fa-user-circle"></i>
+      </div>
+      <div>
+        <h2 class="section-title">Profile Information</h2>
+        <p class="section-subtitle">Your account details and preferences</p>
+      </div>
+      <button class="btn btn-outline" onclick="openEditProfileModal()">
+        <i class="fas fa-edit"></i> Edit Profile
+      </button>
+    </div>
+
+    <div class="profile-grid">
+      <div class="profile-item">
+        <div class="profile-avatar" id="profile-avatar">
+          {{ (user.username[:2] if user and user.username else 'US')|upper }}
+        </div>
+        <div class="profile-info">
+          <div class="profile-name" id="profile-name">
+            {{ user.username if user else 'User' }}
+          </div>
+          <div class="profile-role" id="profile-role">
+            {{ user.role if user else 'Role' }}
+          </div>
+        </div>
+      </div>
+
+      <div class="profile-details">
+        <div class="detail-row">
+          <span class="detail-label"
+            ><i class="fas fa-envelope"></i> Email</span
+          >
+          <span class="detail-value" id="profile-email"
+            >{{ user.email if user and user.email else '—' }}</span
+          >
+        </div>
+        <div class="detail-row">
+          <span class="detail-label"
+            ><i class="fas fa-building"></i> Department</span
+          >
+          <span class="detail-value" id="profile-department"
+            >{{ user.department if user and user.department else '—' }}</span
+          >
+        </div>
+        <div class="detail-row">
+          <span class="detail-label"
+            ><i class="fas fa-calendar"></i> Member Since</span
+          >
+          <span class="detail-value" id="profile-created">—</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label"
+            ><i class="fas fa-clock"></i> Last Login</span
+          >
+          <span class="detail-value" id="profile-last-login">—</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- General Settings -->
+  <div class="settings-section">
+    <div class="section-header">
+      <div class="section-icon purple">
+        <i class="fas fa-sliders"></i>
+      </div>
+      <div>
+        <h2 class="section-title">General Settings</h2>
+        <p class="section-subtitle">Basic system configuration</p>
+      </div>
+    </div>
+
+    <div class="settings-grid">
+      <div class="setting-item">
+        <div class="setting-info">
+          <div class="setting-label">Site Name</div>
+          <div class="setting-description">
+            Display name for the application
+          </div>
+        </div>
+        <input
+          type="text"
+          class="setting-input"
+          id="site-name"
+          value="VIREX Security"
+        />
+      </div>
+
+      <div class="setting-item">
+        <div class="setting-info">
+          <div class="setting-label">Timezone</div>
+          <div class="setting-description">Default timezone for timestamps</div>
+        </div>
+        <select class="setting-select" id="timezone">
+          <option value="UTC">UTC</option>
+          <option value="America/New_York">Eastern Time</option>
+          <option value="America/Los_Angeles">Pacific Time</option>
+          <option value="Europe/London">London</option>
+          <option value="Asia/Dubai">Dubai</option>
+        </select>
+      </div>
+
+      <div class="setting-item">
+        <div class="setting-info">
+          <div class="setting-label">Language</div>
+          <div class="setting-description">Interface language</div>
+        </div>
+        <select class="setting-select" id="language">
+          <option value="en">English</option>
+          <option value="ar">العربية</option>
+        </select>
+      </div>
+
+      <div class="setting-item">
+        <div class="setting-info">
+          <div class="setting-label">Date Format</div>
+          <div class="setting-description">How dates are displayed</div>
+        </div>
+        <select class="setting-select" id="date-format">
+          <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+          <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+          <option value="MM/DD/YYYY">MM/DD/YYYY</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Security Settings -->
+  <div class="settings-section">
+    <div class="section-header">
+      <div class="section-icon red">
+        <i class="fas fa-shield-halved"></i>
+      </div>
+      <div>
+        <h2 class="section-title">Security Settings</h2>
+        <p class="section-subtitle">Authentication and access control</p>
+      </div>
+    </div>
+
+    <div class="settings-grid">
+      <div class="setting-item">
+        <div class="setting-info">
+          <div class="setting-label">Session Timeout</div>
+          <div class="setting-description">Minutes before auto-logout</div>
+        </div>
+        <input
+          type="number"
+          class="setting-input"
+          id="session-timeout"
+          value="30"
+          min="5"
+          max="120"
+        />
+      </div>
+
+      <div class="setting-item">
+        <div class="setting-info">
+          <div class="setting-label">Max Login Attempts</div>
+          <div class="setting-description">Failed attempts before lockout</div>
+        </div>
+        <input
+          type="number"
+          class="setting-input"
+          id="max-login-attempts"
+          value="5"
+          min="3"
+          max="10"
+        />
+      </div>
+
+      <div class="setting-item">
+        <div class="setting-info">
+          <div class="setting-label">Password Expiry</div>
+          <div class="setting-description">
+            Days before password must be changed
+          </div>
+        </div>
+        <input
+          type="number"
+          class="setting-input"
+          id="password-expiry"
+          value="90"
+          min="30"
+          max="365"
+        />
+      </div>
+
+      <div class="setting-item">
+        <div class="setting-info">
+          <div class="setting-label">Require 2FA</div>
+          <div class="setting-description">
+            Force two-factor authentication for all users
+          </div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="require-2fa" />
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notification Settings -->
+  <div class="settings-section">
+    <div class="section-header">
+      <div class="section-icon blue">
+        <i class="fas fa-bell"></i>
+      </div>
+      <div>
+        <h2 class="section-title">Notifications</h2>
+        <p class="section-subtitle">Alert and notification preferences</p>
+      </div>
+    </div>
+
+    <div class="settings-grid">
+      <div class="setting-item">
+        <div class="setting-info">
+          <div class="setting-label">Email Alerts</div>
+          <div class="setting-description">Send security alerts via email</div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="email-alerts" checked />
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
+      <div class="setting-item">
+        <div class="setting-info">
+          <div class="setting-label">Slack Integration</div>
+          <div class="setting-description">Post alerts to Slack channel</div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="slack-integration" />
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
+      <div class="setting-item">
+        <div class="setting-info">
+          <div class="setting-label">Alert Threshold</div>
+          <div class="setting-description">
+            Minimum severity for notifications
+          </div>
+        </div>
+        <select class="setting-select" id="alert-threshold">
+          <option value="low">Low</option>
+          <option value="medium" selected>Medium</option>
+          <option value="high">High</option>
+          <option value="critical">Critical</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- ML Model Settings -->
+  <div class="settings-section">
+    <div class="section-header">
+      <div class="section-icon purple">
+        <i class="fas fa-brain"></i>
+      </div>
+      <div>
+        <h2 class="section-title">ML Model Configuration</h2>
+        <p class="section-subtitle">Machine learning model settings</p>
+      </div>
+    </div>
+
+    <div class="settings-grid">
+      <div class="setting-item">
+        <div class="setting-info">
+          <div class="setting-label">Auto Retrain</div>
+          <div class="setting-description">
+            Automatically retrain model with new data
+          </div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="auto-retrain" checked />
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
+      <div class="setting-item">
+        <div class="setting-info">
+          <div class="setting-label">Confidence Threshold</div>
+          <div class="setting-description">
+            Minimum confidence for ML detection
+          </div>
+        </div>
+        <input
+          type="number"
+          class="setting-input"
+          id="confidence-threshold"
+          value="0.85"
+          min="0.5"
+          max="1"
+          step="0.05"
+        />
+      </div>
+
+      <div class="setting-item">
+        <div class="setting-info">
+          <div class="setting-label">Model Version</div>
+          <div class="setting-description">Current ML model version</div>
+        </div>
+        <input
+          type="text"
+          class="setting-input"
+          id="model-version"
+          value="2.1.0"
+          readonly
+        />
+      </div>
+    </div>
+  </div>
+
+  <!-- API Settings -->
+  <div class="settings-section">
+    <div class="section-header">
+      <div class="section-icon green">
+        <i class="fas fa-plug"></i>
+      </div>
+      <div>
+        <h2 class="section-title">API Configuration</h2>
+        <p class="section-subtitle">API access and rate limiting</p>
+      </div>
+    </div>
+
+    <div class="settings-grid">
+      <div class="setting-item">
+        <div class="setting-info">
+          <div class="setting-label">Rate Limit</div>
+          <div class="setting-description">Requests per hour per API key</div>
+        </div>
+        <input
+          type="number"
+          class="setting-input"
+          id="rate-limit"
+          value="1000"
+          min="100"
+          max="10000"
+          step="100"
+        />
+      </div>
+
+      <div class="setting-item">
+        <div class="setting-info">
+          <div class="setting-label">API Key Expiry</div>
+          <div class="setting-description">Days before API keys expire</div>
+        </div>
+        <input
+          type="number"
+          class="setting-input"
+          id="api-key-expiry"
+          value="365"
+          min="30"
+          max="730"
+        />
+      </div>
+
+      <div class="setting-item">
+        <div class="setting-info">
+          <div class="setting-label">CORS Enabled</div>
+          <div class="setting-description">Allow cross-origin requests</div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="cors-enabled" />
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- Save Button -->
+  <div class="settings-actions">
+    <button class="btn btn-outline" onclick="location.reload()">
+      <i class="fas fa-rotate-right"></i> Reset
+    </button>
+    <button
+      class="btn btn-primary"
+      id="save-settings-btn"
+      onclick="saveSettings()"
+    >
+      <i class="fas fa-save"></i> Save Changes
+    </button>
+  </div>
+
+  <!-- Edit Profile Modal -->
+  <div id="edit-profile-modal" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title">
+          <i class="fas fa-user-edit"></i> Edit Profile
+        </h3>
+        <button class="modal-close" onclick="closeModal('edit-profile-modal')">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Full Name</label>
+          <input
+            type="text"
+            class="form-input"
+            id="edit-fullname"
+            placeholder="Enter full name"
+          />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input
+            type="email"
+            class="form-input"
+            id="edit-email"
+            placeholder="Enter email"
+          />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Department</label>
+          <input
+            type="text"
+            class="form-input"
+            id="edit-department"
+            placeholder="Enter department"
+          />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Change Password (Optional)</label>
+          <input
+            type="password"
+            class="form-input"
+            id="edit-password"
+            placeholder="Leave empty to keep current password"
+          />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button
+          class="btn btn-outline"
+          onclick="closeModal('edit-profile-modal')"
+        >
+          Cancel
+        </button>
+        <button class="btn btn-primary" onclick="saveProfile()">
+          <i class="fas fa-save"></i> Save Changes
+        </button>
+      </div>
+    </div>
+  </div>
+</main>
+{% endblock %} {% block scripts %}
+<script src="{{ url_for('static', filename='javascript/settings.js') }}"></script>
+{% endblock %}

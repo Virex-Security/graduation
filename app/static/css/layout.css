@@ -1,4 +1,3 @@
-
 .dashboard-wrapper {
   display: flex;
   min-height: 100vh;
@@ -20,7 +19,9 @@
   display: flex;
   flex-direction: column;
   z-index: 1000;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+  transition:
+    transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.3s ease;
   overflow: hidden;
 }
 
@@ -88,14 +89,18 @@
 }
 
 @keyframes textGlow {
-  0%, 100% {
-    filter: drop-shadow(0 0 5px color-mix(in srgb, var(--brand-primary) 50%, transparent));
+  0%,
+  100% {
+    filter: drop-shadow(
+      0 0 5px color-mix(in srgb, var(--brand-primary) 50%, transparent)
+    );
   }
   50% {
-    filter: drop-shadow(0 0 15px color-mix(in srgb, var(--brand-secondary) 60%, transparent));
+    filter: drop-shadow(
+      0 0 15px color-mix(in srgb, var(--brand-secondary) 60%, transparent)
+    );
   }
 }
-
 
 .sidebar-menu {
   flex: 1;
@@ -270,7 +275,8 @@
   justify-content: center;
   gap: 0.75rem;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 15px color-mix(in srgb, var(--brand-primary) 35%, transparent);
+  box-shadow: 0 4px 15px
+    color-mix(in srgb, var(--brand-primary) 35%, transparent);
 }
 
 .sidebar-logout-btn:hover {
@@ -303,15 +309,112 @@
 }
 
 .user-connection-status.status-disconnected {
-  background: color-mix(in srgb, var(--brand-primary) 16%, transparent);
-  border-color: color-mix(in srgb, var(--brand-primary) 35%, transparent);
-  color: var(--brand-primary);
+  background: color-mix(in srgb, var(--danger) 16%, transparent);
+  border-color: color-mix(in srgb, var(--danger) 35%, transparent);
+  color: var(--danger);
 }
 
 .user-connection-status.status-waiting {
   background: color-mix(in srgb, #f59e0b 16%, transparent);
   border-color: color-mix(in srgb, #f59e0b 35%, transparent);
   color: #f59e0b;
+}
+
+/* ===========================================
+   RESET CONFIRM MODAL
+   =========================================== */
+.reset-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 4000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(2, 6, 23, 0.62);
+  backdrop-filter: blur(8px);
+}
+
+.reset-confirm-modal {
+  width: min(460px, 95vw);
+  border-radius: 18px;
+  border: 1px solid var(--border-dim);
+  background: linear-gradient(
+    160deg,
+    color-mix(in srgb, var(--brand-primary) 8%, transparent) 0%,
+    color-mix(in srgb, var(--bg-card) 94%, black 6%) 100%
+  );
+  box-shadow:
+    0 20px 44px rgba(0, 0, 0, 0.35),
+    0 0 26px color-mix(in srgb, var(--brand-primary) 18%, transparent);
+  overflow: hidden;
+}
+
+.reset-confirm-header {
+  padding: 1rem 1.1rem 0.7rem;
+  border-bottom: 1px solid var(--border-dim);
+}
+
+.reset-confirm-header h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.reset-confirm-body {
+  padding: 0.95rem 1.1rem 0.4rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  font-size: 0.92rem;
+}
+
+.reset-confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  padding: 0.9rem 1.1rem 1rem;
+}
+
+.reset-confirm-btn {
+  border: 1px solid var(--border-dim);
+  border-radius: 10px;
+  padding: 0.52rem 0.95rem;
+  font-size: 0.86rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: var(--text-primary);
+  background: color-mix(in srgb, var(--bg-secondary) 80%, transparent);
+}
+
+.reset-confirm-btn:hover {
+  transform: translateY(-1px);
+  border-color: var(--border-light);
+}
+
+.reset-confirm-danger {
+  border-color: color-mix(in srgb, var(--danger) 45%, transparent);
+  background: color-mix(in srgb, var(--danger) 16%, transparent);
+  color: var(--danger);
+}
+
+.reset-confirm-danger:hover {
+  border-color: color-mix(in srgb, var(--danger) 70%, transparent);
+  background: color-mix(in srgb, var(--danger) 24%, transparent);
+  box-shadow: 0 0 16px color-mix(in srgb, var(--danger) 22%, transparent);
+}
+
+.reset-confirm-primary {
+  border-color: color-mix(in srgb, var(--brand-primary) 45%, transparent);
+  background: color-mix(in srgb, var(--brand-primary) 14%, transparent);
+  color: var(--text-primary);
+}
+
+.reset-confirm-primary:hover {
+  border-color: color-mix(in srgb, var(--brand-primary) 70%, transparent);
+  background: color-mix(in srgb, var(--brand-primary) 24%, transparent);
+  box-shadow: 0 0 16px color-mix(in srgb, var(--brand-primary) 22%, transparent);
 }
 
 /* ===========================================
@@ -390,27 +493,47 @@
 
 /* Icon Buttons */
 .btn-icon {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--border-dim);
+  background: color-mix(in srgb, var(--brand-primary) 6%, transparent);
+  border: 1.5px solid color-mix(in srgb, var(--brand-primary) 22%, transparent);
   color: var(--text-secondary);
   width: 40px;
   height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--radius-sm);
+  border-radius: 50%;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.25s ease;
   backdrop-filter: blur(10px);
-  font-size: 1.1rem;
+  font-size: 1rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-icon::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--brand-gradient);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.btn-icon i {
+  position: relative;
+  z-index: 1;
 }
 
 .btn-icon:hover {
-  color: var(--brand-primary);
+  color: #fff;
   border-color: var(--brand-primary);
-  background: color-mix(in srgb, var(--brand-primary) 10%, transparent);
-  box-shadow: 0 0 20px color-mix(in srgb, var(--brand-primary) 30%, transparent);
-  transform: translateY(-2px);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--brand-primary) 45%, transparent);
+  transform: translateY(-2px) scale(1.06);
+}
+
+.btn-icon:hover::before {
+  opacity: 1;
 }
 
 /* Profile Button */
@@ -444,12 +567,14 @@
 }
 
 [data-theme="light"] .btn-icon {
-  background: rgba(0, 0, 0, 0.05);
-  border-color: var(--border-dim);
+  background: color-mix(in srgb, var(--brand-primary) 6%, transparent);
+  border-color: color-mix(in srgb, var(--brand-primary) 25%, transparent);
+  color: var(--text-secondary);
 }
 
 [data-theme="light"] .btn-icon:hover {
-  background: color-mix(in srgb, var(--brand-primary) 10%, transparent);
+  color: #fff;
+  box-shadow: 0 0 16px color-mix(in srgb, var(--brand-primary) 40%, transparent);
 }
 
 /* ===========================================

@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 import threading
 import os
 from pathlib import Path
+from collections import defaultdict
 import jwt
 
 from app.dashboard.services import SecurityDashboard
@@ -45,7 +46,7 @@ def create_dashboard_app():
     # ----------------------------------------------------------
     # TRAFFIC LOGGER â€” intercepts every request automatically
     # ----------------------------------------------------------
-    SKIP_PREFIXES = ('/static/', '/api/dashboard/', '/favicon', '/api/auth/', '/api/critical-threats', '/api/chat', '/api/ml/', '/api/user', '/api/incidents', '/api/critical')
+    SKIP_PREFIXES = ('/static/', '/api/dashboard/', '/api/system/', '/favicon', '/api/auth/', '/api/critical-threats', '/api/chat', '/api/ml/', '/api/user', '/api/incidents', '/api/critical')
     # Dashboard internal pages - should not be counted as traffic
     SKIP_EXACT = {
         '/dashboard', '/critical', '/blocked', '/blocked_page', '/incidents',
@@ -91,8 +92,9 @@ def create_dashboard_app():
         # Validation
         if len(username) < 3:
             return jsonify({'message': 'Username must be at least 3 characters'}), 400
-        if len(password) < 8:
-            return jsonify({'message': 'Password must be at least 8 characters'}), 400
+        is_valid_password, password_message = user_manager.validate_password_policy(password)
+        if not is_valid_password:
+            return jsonify({'message': password_message}), 400
         # Check if user already exists
         if user_manager.get_user(username):
             return jsonify({'message': 'Username already exists'}), 409
@@ -130,7 +132,24 @@ def create_dashboard_app():
     @app.route('/dashboard')
     @token_required
     def dashboard_page(current_user):
-        return render_template('dashboard.html', user=current_user)
+        api_flag = os.getenv('DASHBOARD_API_ENABLED', 'true').strip().lower()
+        dashboard_api_enabled = api_flag in ('1', 'true', 'yes', 'on')
+        return render_template(
+            'dashboard.html',
+            user=current_user,
+            dashboard_api_enabled=dashboard_api_enabled,
+        )
+    @app.route('/api/system/health')
+    @token_required
+    def system_health(current_user):
+        state = dashboard.connection_state or 'Connected'
+        api_online = state == 'Connected'
+        return jsonify({
+            'status': 'ok' if api_online else 'offline',
+            'api_online': api_online,
+            'connection_state': state,
+            'user': current_user.get('username'),
+        })
     @app.route('/login')
     def login_page():
         token = request.cookies.get('auth_token')
@@ -247,6 +266,7 @@ def create_dashboard_app():
                 "message": str(e),
                 "attack_indicators": indicators
             }), 200
+    @app.route('/incidents')
     @app.route('/incidents_list')
     @token_required
     def incidents_page(current_user):
@@ -273,7 +293,8 @@ def create_dashboard_app():
                             incidents=incidents_list,
                             distribution=dict(distribution),
                             total_incidents=len(incidents_list),
-                            user=current_user)
+                            user=current_user,
+                            active_page='incidents')
     @app.route('/incident/<id>')
     @token_required
     def incident_details_page(current_user, id):
@@ -525,7 +546,9 @@ def create_dashboard_app():
                 'created_at': current_user.get('created_at', ''),
                 'last_login': current_user.get('last_login', ''),
                 'active_sessions': current_user.get('active_sessions', 1),
-                'security_score': current_user.get('security_score', 85)
+                'security_score': current_user.get('security_score', 85),
+                'account_status': current_user.get('account_status', 'Active'),
+                'avatar_url': current_user.get('avatar_url')
             }
         })
     @app.route('/api/profile/activity')
@@ -535,7 +558,13 @@ def create_dashboard_app():
         # Mock activity data - replace with real data from your logs
         return jsonify({
             'status': 'success',
-            'activity': [
+            'stats': {
+                'alerts_reviewed': 42,
+                'incidents_resolved': 15,
+                'investigations_created': 8,
+                'threat_reports_generated': 3
+            },
+            'activity_log': [
                 {'action': 'Login', 'timestamp': '2025-01-15 09:30:00', 'ip': '192.168.1.100'},
                 {'action': 'View Dashboard', 'timestamp': '2025-01-15 10:15:00', 'ip': '192.168.1.100'},
                 {'action': 'Security Check', 'timestamp': '2025-01-15 11:45:00', 'ip': '192.168.1.100'}
@@ -572,14 +601,23 @@ def create_dashboard_app():
     @token_required
     def change_password_profile(current_user):
         """Change user password"""
-        data = request.get_json()
+        data = request.get_json() or {}
         current_password = data.get('current_password')
         new_password = data.get('new_password')
-        # Here you would validate and update the password
-        if current_password and new_password:
-            log_action(current_user, "Password Changed", "User changed their password")
-            return jsonify({'status': 'success', 'message': 'Password changed successfully'})
-        return jsonify({'status': 'error', 'message': 'Invalid request'})
+        username = current_user.get('username')
+
+        if not current_password or not new_password:
+            return jsonify({'status': 'error', 'message': 'Current and new password are required'}), 400
+
+        if not user_manager.verify_password(username, current_password):
+            return jsonify({'status': 'error', 'message': 'Current password is incorrect'}), 400
+
+        success, message = user_manager.change_password(username, new_password)
+        if not success:
+            return jsonify({'status': 'error', 'message': message}), 400
+
+        log_action(current_user, "Password Changed", "User changed their password")
+        return jsonify({'status': 'success', 'message': message})
     @app.route('/api/profile/logout-session', methods=['POST'])
     @token_required
     def logout_session(current_user):
@@ -587,6 +625,252 @@ def create_dashboard_app():
         session_id = request.get_json().get('session_id')
         log_action(current_user, "Session Revoked", f"Revoked session: {session_id}")
         return jsonify({'status': 'success', 'message': 'Session revoked successfully'})
+
+    @app.route('/api/profile/avatar', methods=['POST'])
+    @token_required
+    def upload_avatar(current_user):
+        """Upload user profile picture"""
+        from werkzeug.utils import secure_filename
+        import time
+        if 'avatar' not in request.files:
+            return jsonify({'error': 'No file part'}), 400
+        
+        file = request.files['avatar']
+        if file.filename == '':
+            return jsonify({'error': 'No selected file'}), 400
+            
+        if file:
+            filename = secure_filename(file.filename)
+            ext = os.path.splitext(filename)[1]
+            if not ext:
+                ext = '.png'
+            
+            new_filename = f"avatar_{current_user.get('username')}_{int(time.time())}{ext}"
+            upload_folder = os.path.join(app.static_folder, 'uploads', 'avatars')
+            os.makedirs(upload_folder, exist_ok=True)
+            
+            filepath = os.path.join(upload_folder, new_filename)
+            file.save(filepath)
+            
+            avatar_url = url_for('static', filename=f'uploads/avatars/{new_filename}')
+            user_manager.update_user(current_user.get('username'), avatar_url=avatar_url)
+            log_action(current_user, "Avatar Upload", "User uploaded a new profile picture")
+            
+            return jsonify({'status': 'success', 'avatar_url': avatar_url})
+
+    # ============================================================
+    # SETTINGS PAGE
+    # ============================================================
+    @app.route('/settings')
+    @token_required
+    def settings_page(current_user):
+        """Settings page for system configuration"""
+        return render_template('settings.html', user=current_user)
+    
+    @app.route('/api/settings', methods=['GET'])
+    @token_required
+    def get_settings(current_user):
+        """Get current system settings"""
+        # Load settings from a config file or database
+        settings = {
+            'general': {
+                'site_name': 'VIREX Security',
+                'timezone': 'UTC',
+                'language': 'en',
+                'date_format': 'YYYY-MM-DD',
+            },
+            'security': {
+                'session_timeout': 30,
+                'max_login_attempts': 5,
+                'password_expiry_days': 90,
+                'require_2fa': False,
+            },
+            'notifications': {
+                'email_alerts': True,
+                'slack_integration': False,
+                'alert_threshold': 'medium',
+            },
+            'ml_model': {
+                'auto_retrain': True,
+                'confidence_threshold': 0.85,
+                'model_version': '2.1.0',
+            },
+            'api': {
+                'rate_limit': 1000,
+                'api_key_expiry_days': 365,
+                'cors_enabled': False,
+            }
+        }
+        return jsonify(settings)
+    
+    @app.route('/api/settings', methods=['POST'])
+    @token_required
+    @admin_required
+    def update_settings(current_user):
+        """Update system settings (Admin only)"""
+        data = request.get_json()
+        # Here you would save settings to database or config file
+        log_action(current_user, "Settings Updated", f"Updated system settings")
+        return jsonify({'status': 'success', 'message': 'Settings updated successfully'})
+
+    # ============================================================
+    # USER MANAGER (Admin Only)
+    # ============================================================
+    @app.route('/user-manager')
+    @admin_required
+    def user_manager_page(current_user):
+        """User management page for admins"""
+        return render_template('user_manager.html', user=current_user)
+    
+    @app.route('/api/users', methods=['GET'])
+    @admin_required
+    def get_users(current_user):
+        """Get all users with their activity"""
+        users = user_manager.get_all_users()
+        
+        # Get user activities from audit log
+        audit_logs = dashboard.load_audit_log()
+        user_activities = {}
+        
+        for log in audit_logs:
+            username = log.get('username')
+            if username and username not in user_activities:
+                user_activities[username] = {
+                    'actions': 0,
+                    'last_action': None,
+                    'actions_list': []
+                }
+            
+            if username:
+                user_activities[username]['actions'] += 1
+                user_activities[username]['actions_list'].append({
+                    'action': log.get('action', 'Unknown'),
+                    'timestamp': log.get('timestamp'),
+                    'details': log.get('details', '')
+                })
+                if not user_activities[username]['last_action']:
+                    user_activities[username]['last_action'] = log.get('timestamp')
+        
+        # Combine user data with activities
+        users_with_activity = []
+        for user in users:
+            username = user.get('username')
+            activity = user_activities.get(username, {
+                'actions': 0,
+                'last_action': None,
+                'actions_list': []
+            })
+            
+            users_with_activity.append({
+                **user,
+                'total_actions': activity['actions'],
+                'last_action': activity['last_action'],
+                'recent_actions': activity['actions_list'][-10:]  # Last 10 actions
+            })
+        
+        return jsonify({'users': users_with_activity})
+    
+    @app.route('/api/users/<user_id>', methods=['GET'])
+    @admin_required
+    def get_user_details(current_user, user_id):
+        """Get detailed information about a specific user"""
+        user = user_manager.get_user_by_id(user_id)
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+        
+        # Get all actions by this user
+        audit_logs = dashboard.load_audit_log()
+        user_actions = [log for log in audit_logs if log.get('username') == user.get('username')]
+        
+        return jsonify({
+            'user': user,
+            'actions': user_actions[-50:]  # Last 50 actions
+        })
+    
+    @app.route('/api/users/<user_id>/toggle-status', methods=['POST'])
+    @admin_required
+    def toggle_user_status(current_user, user_id):
+        """Activate or deactivate a user"""
+        user = user_manager.get_user_by_id(user_id)
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+        
+        new_status = 'inactive' if user.get('status') == 'active' else 'active'
+        # Update user status in database
+        log_action(current_user, "User Status Changed", f"Changed {user.get('username')} status to {new_status}")
+        
+        return jsonify({'status': 'success', 'new_status': new_status})
+    
+    @app.route('/api/users/<user_id>/change-role', methods=['POST'])
+    @admin_required
+    def change_user_role(current_user, user_id):
+        """Change user role"""
+        data = request.get_json()
+        new_role = data.get('role')
+        
+        user = user_manager.get_user_by_id(user_id)
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+        
+        # Update user role
+        log_action(current_user, "User Role Changed", f"Changed {user.get('username')} role to {new_role}")
+        
+        return jsonify({'status': 'success', 'new_role': new_role})
+    
+    @app.route('/api/users/<user_id>', methods=['DELETE'])
+    @admin_required
+    def delete_user(current_user, user_id):
+        """Delete a user"""
+        user = user_manager.get_user_by_id(user_id)
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+        
+        if user.get('username') == current_user.get('username'):
+            return jsonify({'error': 'Cannot delete your own account'}), 400
+        
+        # Delete user
+        log_action(current_user, "User Deleted", f"Deleted user {user.get('username')}")
+        
+        return jsonify({'status': 'success', 'message': 'User deleted successfully'})
+    
+    @app.route('/api/users', methods=['POST'])
+    @admin_required
+    def create_user(current_user):
+        """Create a new user"""
+        try:
+            data = request.get_json()
+            username = data.get('username')
+            email = data.get('email')
+            password = data.get('password')
+            role = data.get('role', 'viewer')
+            
+            if not username or not email or not password:
+                return jsonify({'error': 'Username, email, and password are required'}), 400
+            
+            # Check if user already exists
+            existing_user = user_manager.get_user(username)
+            if existing_user:
+                return jsonify({'error': 'Username already exists'}), 400
+            
+            # Create new user
+            new_user = user_manager.create_user(
+                username=username,
+                password=password,
+                email=email,
+                role=role
+            )
+            
+            log_action(current_user, "User Created", f"Created new user: {username} with role: {role}")
+            
+            return jsonify({
+                'status': 'success',
+                'message': 'User created successfully',
+                'user': new_user
+            })
+        except Exception as e:
+            print(f"Error creating user: {e}")
+            return jsonify({'error': str(e)}), 500
+
     @app.route('/critical')
     @token_required
     def critical_page(current_user):
@@ -640,6 +924,154 @@ def create_dashboard_app():
             'response': response_text,
             'timestamp': datetime.now().strftime("%H:%M")
         })
+
+    # ============================================================
+    # BLACKLIST MANAGEMENT (Admin Only)
+    # ============================================================
+    @app.route('/blacklist')
+    @admin_required
+    def blacklist_page(current_user):
+        """Blacklist management page for admins"""
+        return render_template('blacklist.html', user=current_user)
+    
+    @app.route('/api/blacklist', methods=['GET'])
+    @admin_required
+    def get_blacklist(current_user):
+        """Get all blacklist entries"""
+        try:
+            blacklist_file = Path('data/blacklist.json')
+            if blacklist_file.exists():
+                with open(blacklist_file, 'r') as f:
+                    blacklist = json.load(f)
+            else:
+                blacklist = []
+            
+            return jsonify({'blacklist': blacklist})
+        except Exception as e:
+            print(f"Error loading blacklist: {e}")
+            return jsonify({'blacklist': []})
+    
+    @app.route('/api/blacklist', methods=['POST'])
+    @admin_required
+    def add_blacklist(current_user):
+        """Add new entry to blacklist"""
+        try:
+            data = request.get_json()
+            blacklist_type = data.get('type')
+            value = data.get('value')
+            reason = data.get('reason')
+            status = data.get('status', 'active')
+            
+            if not blacklist_type or not value or not reason:
+                return jsonify({'error': 'Type, value, and reason are required'}), 400
+            
+            # Load existing blacklist
+            blacklist_file = Path('data/blacklist.json')
+            if blacklist_file.exists():
+                with open(blacklist_file, 'r') as f:
+                    blacklist = json.load(f)
+            else:
+                blacklist = []
+            
+            # Generate new ID
+            new_id = max([item.get('id', 0) for item in blacklist], default=0) + 1
+            
+            # Create new entry
+            new_entry = {
+                'id': new_id,
+                'type': blacklist_type,
+                'value': value,
+                'reason': reason,
+                'status': status,
+                'added_by': current_user.get('username'),
+                'date_added': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            }
+            
+            blacklist.append(new_entry)
+            
+            # Save blacklist
+            blacklist_file.parent.mkdir(parents=True, exist_ok=True)
+            with open(blacklist_file, 'w') as f:
+                json.dump(blacklist, f, indent=2)
+            
+            log_action(current_user, "Blacklist Entry Added", f"Added {blacklist_type}: {value}")
+            
+            return jsonify({'status': 'success', 'message': 'Added to blacklist successfully', 'entry': new_entry})
+        except Exception as e:
+            print(f"Error adding to blacklist: {e}")
+            return jsonify({'error': str(e)}), 500
+    
+    @app.route('/api/blacklist/<int:entry_id>', methods=['PUT'])
+    @admin_required
+    def update_blacklist(current_user, entry_id):
+        """Update blacklist entry"""
+        try:
+            data = request.get_json()
+            
+            # Load existing blacklist
+            blacklist_file = Path('data/blacklist.json')
+            if not blacklist_file.exists():
+                return jsonify({'error': 'Blacklist not found'}), 404
+            
+            with open(blacklist_file, 'r') as f:
+                blacklist = json.load(f)
+            
+            # Find and update entry
+            entry = next((item for item in blacklist if item.get('id') == entry_id), None)
+            if not entry:
+                return jsonify({'error': 'Entry not found'}), 404
+            
+            # Update fields
+            if 'reason' in data:
+                entry['reason'] = data['reason']
+            if 'status' in data:
+                entry['status'] = data['status']
+            
+            entry['updated_by'] = current_user.get('username')
+            entry['date_updated'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            
+            # Save blacklist
+            with open(blacklist_file, 'w') as f:
+                json.dump(blacklist, f, indent=2)
+            
+            log_action(current_user, "Blacklist Entry Updated", f"Updated entry ID: {entry_id}")
+            
+            return jsonify({'status': 'success', 'message': 'Blacklist entry updated successfully'})
+        except Exception as e:
+            print(f"Error updating blacklist: {e}")
+            return jsonify({'error': str(e)}), 500
+    
+    @app.route('/api/blacklist/<int:entry_id>', methods=['DELETE'])
+    @admin_required
+    def delete_blacklist(current_user, entry_id):
+        """Delete blacklist entry"""
+        try:
+            # Load existing blacklist
+            blacklist_file = Path('data/blacklist.json')
+            if not blacklist_file.exists():
+                return jsonify({'error': 'Blacklist not found'}), 404
+            
+            with open(blacklist_file, 'r') as f:
+                blacklist = json.load(f)
+            
+            # Find and remove entry
+            entry = next((item for item in blacklist if item.get('id') == entry_id), None)
+            if not entry:
+                return jsonify({'error': 'Entry not found'}), 404
+            
+            blacklist = [item for item in blacklist if item.get('id') != entry_id]
+            
+            # Save blacklist
+            with open(blacklist_file, 'w') as f:
+                json.dump(blacklist, f, indent=2)
+            
+            log_action(current_user, "Blacklist Entry Deleted", f"Deleted {entry.get('type')}: {entry.get('value')}")
+            
+            return jsonify({'status': 'success', 'message': 'Blacklist entry deleted successfully'})
+        except Exception as e:
+            print(f"Error deleting blacklist: {e}")
+            return jsonify({'error': str(e)}), 500
+
     return app
 def calculate_threat_score(threat):
     """Calculate threat score based on multiple factors (0-100)"""

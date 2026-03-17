@@ -8,6 +8,7 @@ const LayoutManager = {
   mainWrapper: null,
   sidebarToggle: null,
   navbar: null,
+  connectionPollId: null,
 
   init() {
     this.sidebar = document.getElementById("sidebar");
@@ -21,6 +22,7 @@ const LayoutManager = {
     this.initNavbar();
     this.initActiveMenuItem();
     this.initResetButton();
+    this.initConnectionMonitor();
     this.handleResize();
 
     window.addEventListener("resize", () => this.handleResize());
@@ -154,7 +156,9 @@ const LayoutManager = {
    */
   initActiveMenuItem() {
     const currentPath = window.location.pathname;
-    const menuItems = document.querySelectorAll(".menu-item");
+    const menuItems = document.querySelectorAll(
+      ".menu-item, .modern-sidebar__item[href]",
+    );
 
     menuItems.forEach((item) => {
       const href = item.getAttribute("href");
@@ -163,7 +167,10 @@ const LayoutManager = {
         item.classList.remove("active");
 
         // Add active class to matching item
-        if (currentPath === href || currentPath.startsWith(href + "/")) {
+        if (
+          currentPath === href ||
+          (href !== "/" && currentPath.startsWith(href + "/"))
+        ) {
           item.classList.add("active");
         }
 
@@ -185,15 +192,53 @@ const LayoutManager = {
     }
   },
 
+  initConnectionMonitor() {
+    this.checkApiConnection();
+
+    if (this.connectionPollId) {
+      clearInterval(this.connectionPollId);
+    }
+
+    this.connectionPollId = window.setInterval(() => {
+      this.checkApiConnection();
+    }, 15000);
+  },
+
+  async checkApiConnection() {
+    try {
+      const response = await fetch("/api/system/health", {
+        method: "GET",
+        credentials: "same-origin",
+        cache: "no-store",
+        headers: {
+          "Cache-Control": "no-cache",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      const data = await response.json();
+      const isConnected = data.api_online === true;
+      this.updateConnectionStatus(
+        isConnected ? "connected" : "disconnected",
+        data.connection_state,
+      );
+      this.updateProfileConnectionStatus(isConnected);
+    } catch (error) {
+      this.updateConnectionStatus("disconnected");
+      this.updateProfileConnectionStatus(false);
+    }
+  },
+
   /**
    * Handle Reset Statistics
    */
   handleReset() {
-    if (
-      confirm(
-        "Are you sure you want to reset all statistics? This action cannot be undone.",
-      )
-    ) {
+    this.showResetConfirmModal().then((confirmed) => {
+      if (!confirmed) return;
+
       fetch("/api/dashboard/reset", {
         method: "POST",
         credentials: "same-origin",
@@ -202,17 +247,126 @@ const LayoutManager = {
         .then((response) => response.json())
         .then((data) => {
           if (data.status === "stats_reset") {
-            alert("Statistics reset successfully!");
-            location.reload();
+            this.showResetNoticeModal(
+              "Reset Completed",
+              "All dashboard statistics were reset successfully.",
+            ).then(() => {
+              location.reload();
+            });
           } else {
-            alert("Reset failed");
+            this.showResetNoticeModal(
+              "Reset Failed",
+              "Unable to reset dashboard statistics.",
+            );
           }
         })
         .catch((error) => {
           console.error("Reset error:", error);
-          alert("Failed to reset statistics");
+          this.showResetNoticeModal(
+            "Reset Failed",
+            "An error occurred while resetting dashboard statistics.",
+          );
         });
-    }
+    });
+  },
+
+  showResetConfirmModal() {
+    return new Promise((resolve) => {
+      const existing = document.getElementById("reset-confirm-overlay");
+      if (existing) {
+        existing.remove();
+      }
+
+      const overlay = document.createElement("div");
+      overlay.id = "reset-confirm-overlay";
+      overlay.className = "reset-confirm-overlay";
+      overlay.innerHTML = `
+        <div class="reset-confirm-modal" role="dialog" aria-modal="true" aria-labelledby="reset-confirm-title">
+          <div class="reset-confirm-header">
+            <h3 id="reset-confirm-title">Confirm Reset</h3>
+          </div>
+          <div class="reset-confirm-body">
+            Are you sure you want to reset all dashboard statistics? This action cannot be undone.
+          </div>
+          <div class="reset-confirm-actions">
+            <button type="button" class="reset-confirm-btn reset-confirm-cancel">Cancel</button>
+            <button type="button" class="reset-confirm-btn reset-confirm-danger">Reset</button>
+          </div>
+        </div>
+      `;
+
+      document.body.appendChild(overlay);
+
+      const cancelBtn = overlay.querySelector(".reset-confirm-cancel");
+      const confirmBtn = overlay.querySelector(".reset-confirm-danger");
+      const close = (result) => {
+        overlay.remove();
+        resolve(result);
+      };
+
+      cancelBtn.addEventListener("click", () => close(false));
+      confirmBtn.addEventListener("click", () => close(true));
+      overlay.addEventListener("click", (event) => {
+        if (event.target === overlay) {
+          close(false);
+        }
+      });
+
+      const onEscape = (event) => {
+        if (event.key === "Escape") {
+          document.removeEventListener("keydown", onEscape);
+          close(false);
+        }
+      };
+      document.addEventListener("keydown", onEscape);
+    });
+  },
+
+  showResetNoticeModal(title, message) {
+    return new Promise((resolve) => {
+      const existing = document.getElementById("reset-confirm-overlay");
+      if (existing) {
+        existing.remove();
+      }
+
+      const overlay = document.createElement("div");
+      overlay.id = "reset-confirm-overlay";
+      overlay.className = "reset-confirm-overlay";
+      overlay.innerHTML = `
+        <div class="reset-confirm-modal" role="dialog" aria-modal="true" aria-labelledby="reset-notice-title">
+          <div class="reset-confirm-header">
+            <h3 id="reset-notice-title">${title}</h3>
+          </div>
+          <div class="reset-confirm-body">${message}</div>
+          <div class="reset-confirm-actions">
+            <button type="button" class="reset-confirm-btn reset-confirm-primary">OK</button>
+          </div>
+        </div>
+      `;
+
+      document.body.appendChild(overlay);
+
+      const okBtn = overlay.querySelector(".reset-confirm-primary");
+      const close = () => {
+        overlay.remove();
+        resolve(true);
+      };
+
+      okBtn.addEventListener("click", close);
+      overlay.addEventListener("click", (event) => {
+        if (event.target === overlay) {
+          close();
+        }
+      });
+
+      const onEscape = (event) => {
+        if (event.key === "Escape") {
+          document.removeEventListener("keydown", onEscape);
+          close();
+        }
+      };
+      document.addEventListener("keydown", onEscape);
+    });
   },
 
   /**
@@ -251,6 +405,15 @@ const LayoutManager = {
       statusEl.innerHTML =
         '<i class="fas fa-spinner fa-spin"></i> Wait for API';
     }
+  },
+
+  updateProfileConnectionStatus(isOnline) {
+    const badge = document.getElementById("profile-api-badge");
+    const text = document.getElementById("profile-api-badge-text");
+    if (!badge || !text) return;
+
+    badge.classList.toggle("offline", !isOnline);
+    text.textContent = isOnline ? "ONLINE" : "OFFLINE";
   },
 };
 

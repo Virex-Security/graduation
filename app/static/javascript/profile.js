@@ -25,6 +25,7 @@ const CONFIG = {
     toggle2fa:      '/api/profile/toggle-2fa',
     logoutSession:  '/api/profile/logout-session',
     logout:         '/api/auth/logout',
+    uploadAvatar:   '/api/profile/avatar',
   },
   sessionKey: 'cyber_shield_session',
   userKey: 'cyber_shield_user',
@@ -87,9 +88,10 @@ async function apiFetch(url, options = {}) {
 async function fetchProfile() {
   try {
     const data = await apiFetch(CONFIG.endpoints.profile);
-    state.profile = data;
-    renderProfile(data);
-    renderSecurity(data);
+    const user = data.user || data;
+    state.profile = user;
+    renderProfile(user);
+    renderSecurity(user);
   } catch (err) {
     if (err.message !== 'Unauthorized') {
       renderError('user-card',     'Failed to load profile', err.message);
@@ -101,8 +103,9 @@ async function fetchProfile() {
 async function fetchActivity() {
   try {
     const data = await apiFetch(CONFIG.endpoints.activity);
-    state.activity = data;
-    renderActivity(data);
+    const stats = data.stats || data;
+    state.activity = stats;
+    renderActivity(stats);
   } catch (err) {
     if (err.message !== 'Unauthorized') {
       renderError('activity-grid', 'Failed to load activity', err.message);
@@ -126,9 +129,15 @@ async function fetchSessions() {
    RENDER: PROFILE HERO (Section 1)
 ───────────────────────────────────────────── */
 function renderProfile(p) {
-  // Avatar initials
-  document.getElementById('avatar-initials').textContent =
-    getInitials(p.full_name || p.username || 'U');
+  // Avatar initials or image
+  const avatarEl = document.getElementById('avatar-initials');
+  if (p.avatar_url) {
+    avatarEl.style.backgroundImage = `url(${p.avatar_url}?t=${new Date().getTime()})`;
+    avatarEl.textContent = '';
+  } else {
+    avatarEl.style.backgroundImage = 'none';
+    avatarEl.textContent = getInitials(p.full_name || p.username || 'U');
+  }
 
   // Hero text
   document.getElementById('hero-name').textContent = p.full_name || p.username || '—';
@@ -390,7 +399,7 @@ async function saveProfile() {
 
   setLoading(btn, true);
   try {
-    await apiFetch(CONFIG.endpoints.update, { method: 'PUT', body: JSON.stringify(body) });
+    await apiFetch(CONFIG.endpoints.update, { method: 'POST', body: JSON.stringify(body) });
     state.profile = { ...state.profile, ...body };
     renderProfile(state.profile);
     closeModal('modal-edit');
@@ -431,6 +440,68 @@ async function changePassword() {
     toast(err.message || 'Password change failed', 'error');
   } finally {
     setLoading(btn, false);
+  }
+}
+
+/* ─────────────────────────────────────────────
+   ACTION: UPLOAD AVATAR
+───────────────────────────────────────────── */
+async function uploadAvatar(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  if (file.size > 5 * 1024 * 1024) {
+    toast('Image must be less than 5MB', 'error');
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append('avatar', file);
+
+  const cameraIcon = document.querySelector('#avatar-camera-overlay i');
+  if (cameraIcon) cameraIcon.style.display = 'none';
+  
+  const loader = document.createElement('div');
+  loader.className = 'spinner-sm';
+  loader.style.zIndex = 20;
+  loader.style.color = 'white';
+  document.getElementById('avatar-camera-overlay').appendChild(loader);
+
+  // We don't use apiFetch because FormData needs browser-generated Content-Type
+  try {
+    const res = await fetch(CONFIG.endpoints.uploadAvatar || '/api/profile/avatar', {
+      method: 'POST',
+      body: formData,
+      // The browser automatically sets Content-Type to multipart/form-data
+    });
+
+    if (res.status === 401 || res.status === 403) {
+      redirectToLogin(`Unauthorized — Avatar upload`);
+      return;
+    }
+
+    let data;
+    try { data = await res.json(); } catch { data = {}; }
+    if (!res.ok) throw new Error(data.message || data.error || `HTTP ${res.status}`);
+
+    toast('Profile picture updated successfully', 'success');
+    state.profile.avatar_url = data.avatar_url;
+    renderProfile(state.profile);
+    
+    // Also update sidebar avatar if it exists
+    const sidebarAvatar = document.querySelector('.sidebar .avatar');
+    if (sidebarAvatar) {
+      sidebarAvatar.style.backgroundImage = `url(${data.avatar_url}?t=${new Date().getTime()})`;
+      sidebarAvatar.style.backgroundSize = 'cover';
+      sidebarAvatar.style.backgroundPosition = 'center';
+      sidebarAvatar.textContent = '';
+    }
+  } catch (err) {
+    toast(err.message || 'Avatar upload failed', 'error');
+  } finally {
+    loader.remove();
+    if (cameraIcon) cameraIcon.style.display = '';
+    event.target.value = ''; // Reset input
   }
 }
 

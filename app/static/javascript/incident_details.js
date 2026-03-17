@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", function () {
           sidebarResetBtn.addEventListener("click", function () {
             if (
               confirm(
-                "Are you sure you want to reset all statistics? This action cannot be undone.",
+                "هل أنت متأكد من إعادة تعيين جميع الإحصائيات؟ لا يمكن التراجع عن هذا الإجراء."
               )
             ) {
               fetch("/api/dashboard/reset", {
@@ -19,13 +19,13 @@ document.addEventListener("DOMContentLoaded", function () {
                 .then((response) => response.json())
                 .then((data) => {
                   if (data.status === "stats_reset") {
-                    alert("Statistics reset successfully!");
+                    alert("تم إعادة تعيين الإحصائيات بنجاح!");
                     location.reload();
                   }
                 })
                 .catch((error) => {
                   console.error("Reset error:", error);
-                  alert("Failed to reset statistics");
+                  alert("فشل في إعادة تعيين الإحصائيات");
                 });
             }
           });

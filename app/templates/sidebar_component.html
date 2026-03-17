@@ -1,0 +1,154 @@
+<aside class="sidebar modern-sidebar" id="sidebar" aria-expanded="true">
+  <div class="modern-sidebar__brand-row">
+    <div class="sidebar-brand modern-sidebar__brand">
+      <span class="brand-text">VIREX</span>
+    </div>
+
+    <button
+      type="button"
+      class="modern-sidebar__toggle"
+      data-sidebar-toggle
+      data-sidebar-target="sidebar"
+      aria-label="Toggle sidebar"
+      aria-controls="sidebar"
+      aria-expanded="true"
+    >
+      <i class="fas fa-bars"></i>
+    </button>
+  </div>
+
+  <div class="modern-sidebar__profile">
+    <div class="modern-sidebar__profile-main">
+      <div class="modern-sidebar__avatar" aria-hidden="true">
+        {% if user and user.avatar_url %}
+        <img
+          src="{{ user.avatar_url }}"
+          alt="avatar"
+          style="
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 13px;
+          "
+        />
+        {% else %} {{ (user.username[:2] if user and user.username else
+        'US')|upper }} {% endif %}
+      </div>
+      <div class="modern-sidebar__profile-copy">
+        <div class="modern-sidebar__username">
+          {{ user.username if user else 'User' }}
+        </div>
+        <div class="modern-sidebar__role">
+          {{ user.role if user else 'Role' }}
+        </div>
+        <div
+          class="modern-sidebar__status user-connection-status"
+          id="sidebar-connection-status"
+        >
+          <i class="fas fa-circle"></i>
+          <span>Connected</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="modern-sidebar__nav" aria-label="Primary">
+    <a
+      href="/dashboard"
+      class="modern-sidebar__item {% if active_page == 'dashboard' %}active{% endif %}"
+    >
+      <span class="modern-sidebar__icon"><i class="fas fa-home"></i></span>
+      <span class="modern-sidebar__label">Dashboard</span>
+    </a>
+
+    <a
+      href="/incidents"
+      class="modern-sidebar__item {% if active_page == 'incidents' %}active{% endif %}"
+    >
+      <span class="modern-sidebar__icon"
+        ><i class="fas fa-exclamation-triangle"></i
+      ></span>
+      <span class="modern-sidebar__label">Incidents</span>
+    </a>
+
+    <a
+      href="/ml-detections"
+      class="modern-sidebar__item {% if active_page == 'ml-detections' %}active{% endif %}"
+    >
+      <span class="modern-sidebar__icon"><i class="fas fa-brain"></i></span>
+      <span class="modern-sidebar__label">ML Detections</span>
+    </a>
+
+    <a
+      href="/blocked_page"
+      class="modern-sidebar__item {% if active_page == 'blocked' %}active{% endif %}"
+    >
+      <span class="modern-sidebar__icon"><i class="fas fa-hand"></i></span>
+      <span class="modern-sidebar__label">Blocked</span>
+    </a>
+
+    <a
+      href="/critical"
+      class="modern-sidebar__item {% if active_page == 'critical' %}active{% endif %}"
+    >
+      <span class="modern-sidebar__icon"
+        ><i class="fas fa-skull-crossbones"></i
+      ></span>
+      <span class="modern-sidebar__label">Critical</span>
+    </a>
+
+    <a
+      href="/requests"
+      class="modern-sidebar__item {% if active_page == 'requests' %}active{% endif %}"
+    >
+      <span class="modern-sidebar__icon"><i class="fas fa-globe"></i></span>
+      <span class="modern-sidebar__label">All Requests</span>
+    </a>
+
+    <a
+      href="/settings"
+      class="modern-sidebar__item {% if active_page == 'settings' %}active{% endif %}"
+    >
+      <span class="modern-sidebar__icon"><i class="fas fa-sliders"></i></span>
+      <span class="modern-sidebar__label">Settings</span>
+    </a>
+
+    {% if user and user.role == 'admin' %}
+    <a
+      href="/user-manager"
+      class="modern-sidebar__item {% if active_page == 'user-manager' %}active{% endif %}"
+    >
+      <span class="modern-sidebar__icon"
+        ><i class="fas fa-users-gear"></i
+      ></span>
+      <span class="modern-sidebar__label">User Manager</span>
+    </a>
+
+    <a
+      href="/blacklist"
+      class="modern-sidebar__item {% if active_page == 'blacklist' %}active{% endif %}"
+    >
+      <span class="modern-sidebar__icon"><i class="fas fa-ban"></i></span>
+      <span class="modern-sidebar__label">Blacklist</span>
+    </a>
+
+    <button
+      type="button"
+      class="modern-sidebar__item modern-sidebar__reset"
+      id="sidebar-reset-btn"
+    >
+      <span class="modern-sidebar__icon"><i class="fas fa-trash-can"></i></span>
+      <span class="modern-sidebar__label">Reset Stats</span>
+    </button>
+    {% endif %}
+  </nav>
+
+  <div class="modern-sidebar__footer">
+    <button type="button" class="modern-sidebar__logout" id="logout-btn">
+      <span class="modern-sidebar__icon"
+        ><i class="fas fa-right-from-bracket"></i
+      ></span>
+      <span class="modern-sidebar__label">Logout</span>
+    </button>
+  </div>
+</aside>

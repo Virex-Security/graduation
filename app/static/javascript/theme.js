@@ -47,7 +47,7 @@ const ThemeManager = {
   updateThemeIcon(theme) {
     // Update clickable theme toggle button (landing/login pages)
     const themeButtons = document.querySelectorAll("#theme-toggle");
-    themeButtons.forEach(button => {
+    themeButtons.forEach((button) => {
       const icon = button.querySelector("i");
       if (icon) {
         icon.className = theme === "dark" ? "fas fa-sun" : "fas fa-moon";
@@ -56,7 +56,7 @@ const ThemeManager = {
 
     // Update theme icon displays (other pages)
     const themeIcons = document.querySelectorAll(".theme-icon i");
-    themeIcons.forEach(icon => {
+    themeIcons.forEach((icon) => {
       icon.className = theme === "dark" ? "fas fa-sun" : "fas fa-moon";
     });
   },
@@ -82,21 +82,27 @@ const ThemeManager = {
 
 // Initialize theme immediately to prevent flash
 (function () {
-  const savedTheme = localStorage.getItem(ThemeManager.STORAGE_KEY) || ThemeManager.DEFAULT_THEME;
+  const savedTheme =
+    localStorage.getItem(ThemeManager.STORAGE_KEY) ||
+    ThemeManager.DEFAULT_THEME;
   document.documentElement.setAttribute("data-theme", savedTheme);
 })();
 
 // Initialize event listeners when DOM is ready
 if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", () => ThemeManager.setupThemeToggle());
+  document.addEventListener("DOMContentLoaded", () =>
+    ThemeManager.setupThemeToggle(),
+  );
   document.addEventListener("DOMContentLoaded", () => {
-    const currentTheme = localStorage.getItem(ThemeManager.STORAGE_KEY) || ThemeManager.DEFAULT_THEME;
+    const currentTheme =
+      localStorage.getItem(ThemeManager.STORAGE_KEY) ||
+      ThemeManager.DEFAULT_THEME;
     ThemeManager.updateThemeIcon(currentTheme);
   });
 } else {
   ThemeManager.setupThemeToggle();
-  const currentTheme = localStorage.getItem(ThemeManager.STORAGE_KEY) || ThemeManager.DEFAULT_THEME;
+  const currentTheme =
+    localStorage.getItem(ThemeManager.STORAGE_KEY) ||
+    ThemeManager.DEFAULT_THEME;
   ThemeManager.updateThemeIcon(currentTheme);
 }
-
-

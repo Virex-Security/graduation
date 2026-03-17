@@ -15,17 +15,28 @@ const Dashboard = {
   previousStats: {},
   charts: {},
   theme: localStorage.getItem("theme") || "dark",
+  apiEnabled: true,
 
   /**
    * Initialize Dashboard
    */
   init() {
+    this.apiEnabled = window.DASHBOARD_CONFIG?.apiEnabled !== false;
     this.setupTheme();
     this.initCharts();
     this.checkAdmin();
+    this.bindEvents();
+
+    if (!this.apiEnabled) {
+      this.updateSidebarConnectionStatus("disconnected");
+      this.updateConnectionUI("Disconnected");
+      const lastUpdateEl = document.getElementById("last-update");
+      if (lastUpdateEl) lastUpdateEl.textContent = "API Disabled";
+      return;
+    }
+
     this.startAutoRefresh();
     this.startHealthPolling();
-    this.bindEvents();
     this.updateData();
 
     // Listen for theme changes
@@ -110,6 +121,61 @@ const Dashboard = {
     }
   },
 
+  getCssVarColor(varName, fallback) {
+    const value = getComputedStyle(document.documentElement)
+      .getPropertyValue(varName)
+      .trim();
+    return value || fallback;
+  },
+
+  getColorWithAlpha(varName, fallbackHex, alpha = 1) {
+    const base = this.getCssVarColor(varName, fallbackHex);
+
+    if (base.startsWith("#")) {
+      let hex = base.slice(1);
+      if (hex.length === 3) {
+        hex = hex
+          .split("")
+          .map((ch) => ch + ch)
+          .join("");
+      }
+      if (hex.length === 6) {
+        const num = Number.parseInt(hex, 16);
+        const r = (num >> 16) & 255;
+        const g = (num >> 8) & 255;
+        const b = num & 255;
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+      }
+    }
+
+    const rgbMatch = base.match(/^rgb\((\d+)\s*,\s*(\d+)\s*,\s*(\d+)\)$/i);
+    if (rgbMatch) {
+      const [, r, g, b] = rgbMatch;
+      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+
+    const rgbaMatch = base.match(
+      /^rgba\((\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*([\d.]+)\)$/i,
+    );
+    if (rgbaMatch) {
+      const [, r, g, b] = rgbaMatch;
+      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+
+    return base;
+  },
+
+  getDistributionColors() {
+    return [
+      "#f59e0b", // SQLi (type-sqli)
+      "#38bdf8", // XSS (type-xss)
+      "#f87171", // Brute Force (type-brute)
+      "#22c55e", // Scanner (type-scanner)
+      "#a78bfa", // ML (type-ml)
+      "#fbbf24", // Rate Limit (type-rate)
+    ];
+  },
+
   /**
    * Handle theme change event from ThemeManager
    */
@@ -124,6 +190,12 @@ const Dashboard = {
         newTheme === "dark" ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)";
       chart.update();
     });
+
+    if (this.charts.distribution) {
+      this.charts.distribution.data.datasets[0].backgroundColor =
+        this.getDistributionColors();
+      this.charts.distribution.update();
+    }
   },
 
   /**
@@ -196,14 +268,7 @@ const Dashboard = {
         datasets: [
           {
             data: [0, 0, 0, 0, 0, 0],
-            backgroundColor: [
-              "var(--text-secondary)",
-              "var(--text-secondary)",
-              "var(--text-secondary)",
-              "var(--text-secondary)",
-              "var(--brand-primary)",
-              "#1F1B2E",
-            ],
+            backgroundColor: this.getDistributionColors(),
             borderWidth: 0,
           },
         ],
@@ -226,6 +291,7 @@ const Dashboard = {
    * Start data refresh timer
    */
   startAutoRefresh() {
+    if (!this.apiEnabled) return;
     setInterval(() => this.updateData(), this.updateInterval);
   },
 
@@ -237,23 +303,26 @@ const Dashboard = {
       .getElementById("logout-btn")
       .addEventListener("click", () => Auth.logout());
     // Theme toggle is handled by ThemeManager
-    document
-      .getElementById("refresh-btn")
-      .addEventListener("click", () => {
-        const refreshBtn = document.getElementById("refresh-btn");
-        refreshBtn.classList.add("spinning");
-        this.updateData();
-        // Remove spinning class after animation
-        setTimeout(() => {
-          refreshBtn.classList.remove("spinning");
-        }, 1000);
-      });
+    document.getElementById("refresh-btn").addEventListener("click", () => {
+      if (!this.apiEnabled) {
+        this.updateSidebarConnectionStatus("disconnected");
+        this.updateConnectionUI("Disconnected");
+        return;
+      }
+      const refreshBtn = document.getElementById("refresh-btn");
+      refreshBtn.classList.add("spinning");
+      this.updateData();
+      // Remove spinning class after animation
+      setTimeout(() => {
+        refreshBtn.classList.remove("spinning");
+      }, 1000);
+    });
 
     const resetBtn = document.getElementById("reset-btn");
     if (resetBtn) {
       resetBtn.addEventListener("click", async () => {
         const confirmed = await this.showConfirmation(
-          "Are you sure you want to reset all security statistics?",
+          "هل أنت متأكد من إعادة تعيين جميع الإحصائيات الأمنية؟",
           async () => {
             const resp = await fetch("/api/dashboard/reset", {
               method: "POST",
@@ -309,6 +378,11 @@ const Dashboard = {
     });
   },
   async updateData() {
+    if (!this.apiEnabled) {
+      this.updateSidebarConnectionStatus("disconnected");
+      this.updateConnectionUI("Disconnected");
+      return;
+    }
     try {
       console.log("[Dashboard] Fetching /api/dashboard/data");
       const response = await fetch("/api/dashboard/data");
@@ -960,6 +1034,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* ── fetch & render ─────────────────────────────────────── */
   async function load() {
+    if (window.DASHBOARD_CONFIG?.apiEnabled === false) {
+      setStatus(false);
+      buildMiniChart(
+        null,
+        document.documentElement.getAttribute("data-theme") ?? "dark",
+      );
+      return;
+    }
     try {
       const res = await fetch("/api/ml/stats?t=" + Date.now());
       if (!res.ok) throw new Error(`HTTP ${res.status}`);

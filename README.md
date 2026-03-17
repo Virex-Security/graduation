@@ -21,39 +21,6 @@ The project has been refactored into a clean, modular structure for better maint
 
 ---
 
-## 📁 New Project Structure
-
-```
-graduation/
-├── app/                          # Main application package
-│   ├── api/                      # API module (routes, security, services)
-│   ├── dashboard/                # Dashboard module (routes, services, incidents, metrics)
-│   ├── auth/                     # Authentication & authorization
-│   ├── ml/                       # Machine Learning inference
-│   ├── security/                 # Security utilities (filters, events)
-│   ├── chatbot/                  # Dobby AI assistant
-│   ├── templates/                # HTML templates
-│   └── static/                   # Static assets (CSS/JS/images)
-├── scripts/                      # Utility scripts
-│   ├── attack_simulator.py      # Attack simulation tool
-│   └── train_model_enhanced.py  # ML model training
-├── docs/                         # Documentation
-│   └── ACCESS_CONTROL_GUIDE.md
-├── data/                         # Data files
-│   ├── ml_training_data.csv     # ML training dataset
-│   ├── model.pkl                # Trained ML model
-│   ├── vectorizer.pkl           # TF-IDF vectorizer
-│   ├── siem_audit.json          # Security event audit log
-│   └── users.json               # User database
-├── tests/                        # Unit tests
-├── run_api.py                    # API entry point
-├── run_dashboard.py              # Dashboard entry point
-├── requirements.txt
-└── README.md
-```
-
----
-
 ## 🚀 Quick Start
 
 ### 1) Setup Environment
@@ -95,12 +62,6 @@ python scripts/attack_simulator.py
 ```
 
 ---
-
-## 🔐 Default Users
-
-- **Admin:** `admin / admin123`
-- **User:** `user / user123`
-
 ---
 
 ## 📊 Key Features

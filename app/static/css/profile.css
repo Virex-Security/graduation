@@ -1,8 +1,40 @@
-:before,
+*,
+*::before,
 *::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+}
+
+:root {
+  --font-head: "Inter", system-ui, -apple-system, sans-serif;
+  --font-body: "Inter", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --radius-sm: 12px;
+  --radius-lg: 20px;
+  --transition: 0.25s ease;
+
+  --text: var(--text-primary);
+  --text-sec: var(--text-secondary);
+  --text-dim: var(--text-muted);
+
+  --border: var(--border-dim);
+  --border-cyan: color-mix(in srgb, var(--brand-secondary) 35%, transparent);
+
+  --purple: var(--brand-primary);
+  --purple-light: color-mix(in srgb, var(--brand-secondary) 70%, white 30%);
+  --purple-dim: color-mix(in srgb, var(--brand-primary) 16%, transparent);
+
+  --cyan: color-mix(in srgb, var(--brand-secondary) 75%, #7dd3fc 25%);
+  --cyan-dim: color-mix(in srgb, var(--brand-secondary) 16%, transparent);
+
+  --green: var(--success);
+  --green-dim: color-mix(in srgb, var(--success) 16%, transparent);
+  --amber: var(--warning);
+  --amber-dim: color-mix(in srgb, var(--warning) 16%, transparent);
+  --red: var(--danger);
+  --red-dim: color-mix(in srgb, var(--danger) 16%, transparent);
 }
 html {
   scroll-behavior: smooth;
@@ -259,12 +291,21 @@ body::after {
   color: var(--green);
   letter-spacing: 0.05em;
 }
+.online-badge.offline {
+  background: var(--red-dim);
+  border-color: rgba(239, 68, 68, 0.25);
+  color: var(--red);
+}
 .online-dot {
   width: 7px;
   height: 7px;
   border-radius: 50%;
   background: var(--green);
   animation: blink 2s ease-in-out infinite;
+}
+.online-badge.offline .online-dot {
+  background: var(--red);
+  box-shadow: 0 0 6px var(--red);
 }
 
 @keyframes blink {

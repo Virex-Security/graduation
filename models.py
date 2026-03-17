@@ -1,5 +1,6 @@
 import json
 import os
+import re
 from pathlib import Path
 from werkzeug.security import generate_password_hash, check_password_hash
 from roles import Role
@@ -21,8 +22,8 @@ class UserManager:
         else:
             # Initialize with default users if not exists
             os.makedirs(os.path.dirname(self.storage_path), exist_ok=True)
-            self.add_user("admin", "admin123", Role.ADMIN)
-            self.add_user("user", "user123", Role.USER)
+            self.add_user("admin", "Admin@123", Role.ADMIN)
+            self.add_user("user", "User@123", Role.USER)
             self._save_users()
 
     def _save_users(self):
@@ -30,9 +31,25 @@ class UserManager:
         with open(self.storage_path, 'w') as f:
             json.dump(self.users, f, indent=4)
 
+    @staticmethod
+    def validate_password_policy(password):
+        if not isinstance(password, str) or not password:
+            return False, "Password is required"
+        if len(password) < 8:
+            return False, "Password must be at least 8 characters"
+        if not re.search(r"[A-Z]", password):
+            return False, "Password must include at least one uppercase letter"
+        if not re.search(r"[^A-Za-z0-9]", password):
+            return False, "Password must include at least one symbol"
+        return True, "Valid password"
+
     def add_user(self, username, password, role=Role.USER):
         if username in self.users:
             return False, "User already exists"
+
+        valid, message = self.validate_password_policy(password)
+        if not valid:
+            return False, message
         
         self.users[username] = {
             "id": len(self.users) + 1,
@@ -51,6 +68,18 @@ class UserManager:
         if user and check_password_hash(user['password_hash'], password):
             return user
         return None
+
+    def change_password(self, username, new_password):
+        if username not in self.users:
+            return False, "User not found"
+
+        valid, message = self.validate_password_policy(new_password)
+        if not valid:
+            return False, message
+
+        self.users[username]["password_hash"] = generate_password_hash(new_password)
+        self._save_users()
+        return True, "Password changed successfully"
 
 # Singleton-like instance
 user_manager = UserManager()
