@@ -98,7 +98,7 @@ async function handleSignup(event) {
   const password = document.getElementById("password").value;
   const confirmPassword = document.getElementById("confirmPassword").value;
   const messageBox = document.getElementById("message-box");
-  const submitButton = document.querySelector(".signup-btn");
+  const submitButton = document.querySelector(".btn-primary");
 
   // Validation
   if (!fullName) {
@@ -152,6 +152,13 @@ async function handleSignup(event) {
     return;
   }
 
+  // Check terms and conditions
+  const termsCheckbox = document.getElementById("terms");
+  if (!termsCheckbox.checked) {
+    showMessage(messageBox, "Please accept the Terms of Service and Privacy Policy", "error");
+    return;
+  }
+
   // Disable submit button and show loading state
   submitButton.disabled = true;
   submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating Account...';
@@ -181,7 +188,7 @@ async function handleSignup(event) {
         "success",
       );
       // Clear form
-      document.getElementById("signup-form").reset();
+      document.getElementById("signupForm").reset();
       // Redirect to login after 2 seconds
       setTimeout(() => {
         window.location.href = "/login";
@@ -212,13 +219,13 @@ async function handleSignup(event) {
  */
 document.addEventListener("DOMContentLoaded", () => {
   // Attach form submission handler
-  const signupForm = document.getElementById("signup-form");
+  const signupForm = document.getElementById("signupForm");
   if (signupForm) {
     signupForm.addEventListener("submit", handleSignup);
   }
 
   // Add real-time validation
-  const fullNameInput = document.getElementById("full-name");
+  const fullNameInput = document.getElementById("fullName");
   if (fullNameInput) {
     fullNameInput.addEventListener("input", (e) => {
       const value = e.target.value.trim();
@@ -279,7 +286,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  const confirmPasswordInput = document.getElementById("confirm-password");
+  const confirmPasswordInput = document.getElementById("confirmPassword");
   if (confirmPasswordInput && passwordInput) {
     confirmPasswordInput.addEventListener("input", (e) => {
       if (e.target.value !== passwordInput.value && e.target.value) {

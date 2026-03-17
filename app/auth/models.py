@@ -66,7 +66,11 @@ class UserManager:
     def update_user(self, username, **kwargs):
         if username in self.users:
             for k, v in kwargs.items():
-                self.users[username][k] = v
+                if k == 'password':
+                    # Hash the password before storing
+                    self.users[username]['password_hash'] = generate_password_hash(v)
+                else:
+                    self.users[username][k] = v
             self._save_users()
             return True, "User updated successfully"
         return False, "User not found"

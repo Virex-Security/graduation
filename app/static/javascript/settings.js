@@ -190,11 +190,15 @@ function openEditProfileModal() {
 }
 
 async function saveProfile() {
+  console.log('Save Profile button clicked'); // Debug log
+  
   const fullname = document.getElementById('edit-fullname').value.trim();
   const email = document.getElementById('edit-email').value.trim();
   const deptSelect = document.getElementById('edit-department');
   const department = deptSelect ? deptSelect.value.trim() : '';
   const password = document.getElementById('edit-password').value;
+  
+  console.log('Form data:', { fullname, email, department, password: password ? '[HIDDEN]' : '' }); // Debug log
   
   if (!fullname || !email) {
     toast('Name and email are required', 'error');
@@ -216,16 +220,21 @@ async function saveProfile() {
     body.password = password;
   }
   
+  console.log('Sending API request with body:', body); // Debug log
+  
   try {
-    await apiFetch('/api/profile/update', {
+    const response = await apiFetch('/api/profile/update', {
       method: 'POST',
       body: JSON.stringify(body),
     });
+    
+    console.log('API response:', response); // Debug log
     
     toast('Profile updated successfully', 'success');
     closeModal('edit-profile-modal');
     await loadProfile();
   } catch (err) {
+    console.error('API error:', err); // Debug log
     toast(err.message || 'Failed to update profile', 'error');
   }
 }
@@ -482,6 +491,16 @@ async function init() {
     loadSettings()
   ]);
   trackChanges();
+  
+  // Initialize Save Profile Button
+  const saveProfileBtn = document.getElementById('save-profile-btn');
+  if (saveProfileBtn) {
+    saveProfileBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      console.log('Save Profile button clicked via event listener');
+      saveProfile();
+    });
+  }
   
   // Initialize Reset Button
   const sidebarResetBtn = document.getElementById('sidebar-reset-btn');

@@ -114,30 +114,6 @@ body {
   transform: scale(1.05);
 }
 
-.btn-login {
-  padding: 0.75rem 1.5rem;
-  border: 2px solid var(--brand-primary);
-  border-radius: 12px;
-  background: transparent;
-  color: var(--brand-primary);
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-size: 0.95rem;
-  text-decoration: none;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-family: var(--font-main);
-}
-
-.btn-login:hover {
-  background: var(--brand-gradient);
-  color: white;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px color-mix(in srgb, var(--brand-primary) 40%, transparent);
-}
-
 /* ==================== MAIN CONTAINER ==================== */
 .auth-container {
   position: relative;
@@ -153,81 +129,11 @@ body {
 .auth-wrapper {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 5rem;
+  gap: 6rem;
   width: 100%;
-  max-width: 1400px;
+  max-width: 1300px;
   align-items: center;
-  min-height: 650px;
-}
-
-/* ==================== INFO SECTION ==================== */
-.auth-info-section {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem;
-}
-
-.info-content {
-  max-width: 500px;
-}
-
-.info-header {
-  margin-bottom: 3rem;
-}
-
-.info-header h2 {
-  font-size: 2.5rem;
-  font-weight: 800;
-  color: var(--text-primary);
-  margin-bottom: 1rem;
-  line-height: 1.2;
-  letter-spacing: -0.02em;
-}
-
-.info-header p {
-  font-size: 1.2rem;
-  color: var(--text-secondary);
-  line-height: 1.6;
-}
-
-.features-list {
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-}
-
-.feature-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 1.5rem;
-}
-
-.feature-icon {
-  width: 60px;
-  height: 60px;
-  background: var(--brand-gradient);
-  border-radius: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5rem;
-  color: white;
-  flex-shrink: 0;
-  box-shadow: 0 8px 20px color-mix(in srgb, var(--brand-primary) 35%, transparent);
-}
-
-.feature-text h3 {
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 0.5rem;
-}
-
-.feature-text p {
-  font-size: 1rem;
-  color: var(--text-secondary);
-  line-height: 1.6;
+  min-height: 600px;
 }
 
 /* ==================== FORM SECTION ==================== */
@@ -409,27 +315,60 @@ body {
   color: var(--brand-primary);
 }
 
-.password-hint {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  margin-top: 0.2rem;
+/* ==================== CHECKBOX GROUP ==================== */
+.checkbox-group {
+  margin: 0.5rem 0;
 }
 
-/* Password validation styles */
-.input-wrapper input:valid {
-  border-color: var(--success);
+.checkbox-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
 }
 
-.input-wrapper input:invalid:not(:placeholder-shown) {
-  border-color: var(--danger);
+.checkbox-label input[type="checkbox"] {
+  display: none;
 }
 
-.input-wrapper input.password-match {
-  border-color: var(--success);
+.checkmark {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--border-dim);
+  border-radius: 4px;
+  background: var(--bg-card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+  margin-top: 2px;
 }
 
-.input-wrapper input.password-mismatch {
-  border-color: var(--danger);
+.checkbox-label input[type="checkbox"]:checked + .checkmark {
+  background: var(--brand-primary);
+  border-color: var(--brand-primary);
+}
+
+.checkbox-label input[type="checkbox"]:checked + .checkmark::after {
+  content: '✓';
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.checkbox-label .link {
+  color: var(--brand-primary);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.checkbox-label .link:hover {
+  color: var(--brand-secondary);
+  text-decoration: underline;
 }
 
 /* ==================== BUTTONS ==================== */
@@ -533,6 +472,91 @@ body {
   text-decoration: underline;
 }
 
+/* ==================== INFO SECTION ==================== */
+.auth-info-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.info-content {
+  max-width: 500px;
+}
+
+.info-header {
+  margin-bottom: 3rem;
+}
+
+.info-header h2 {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.info-header p {
+  font-size: 1.2rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.features-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.feature-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.5rem;
+}
+
+.feature-icon {
+  width: 60px;
+  height: 60px;
+  background: var(--brand-gradient);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: white;
+  flex-shrink: 0;
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--brand-primary) 35%, transparent);
+}
+
+.feature-text h3 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.feature-text p {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+/* ==================== VALIDATION STYLES ==================== */
+.input-wrapper input.invalid,
+.input-wrapper select.invalid {
+  border-color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 5%, var(--bg-main));
+}
+
+.input-wrapper input.password-match {
+  border-color: var(--success);
+}
+
+.input-wrapper input.password-mismatch {
+  border-color: var(--danger);
+}
+
 /* ==================== RESPONSIVE DESIGN ==================== */
 @media (max-width: 1024px) {
   .auth-wrapper {
@@ -631,10 +655,5 @@ body {
   
   .features-list {
     gap: 1.5rem;
-  }
-  
-  .btn-login {
-    padding: 0.625rem 1rem;
-    font-size: 0.85rem;
   }
 }

@@ -99,23 +99,57 @@ def create_dashboard_app():
         auth = request.get_json()
         if not auth or not auth.get('username') or not auth.get('password'):
             return jsonify({'message': 'Missing username or password'}), 400
+        
         username = auth.get('username').strip()
         password = auth.get('password')
+        full_name = auth.get('fullName', '').strip()
+        email = auth.get('email', '').strip()
+        phone = auth.get('phone', '').strip()
+        position = auth.get('position', '').strip()
+        
         # Validation
         if len(username) < 3:
             return jsonify({'message': 'Username must be at least 3 characters'}), 400
+            
+        if not full_name:
+            return jsonify({'message': 'Full name is required'}), 400
+            
+        if not email:
+            return jsonify({'message': 'Email is required'}), 400
+            
+        # Basic email validation
+        import re
+        email_pattern = r'^[^\s@]+@[^\s@]+\.[^\s@]+$'
+        if not re.match(email_pattern, email):
+            return jsonify({'message': 'Please enter a valid email address'}), 400
+            
+        if not phone:
+            return jsonify({'message': 'Phone number is required'}), 400
+            
+        if not position:
+            return jsonify({'message': 'Position is required'}), 400
+        
         is_valid_password, password_message = user_manager.validate_password_policy(password)
         if not is_valid_password:
             return jsonify({'message': password_message}), 400
+            
         # Check if user already exists
         if user_manager.get_user(username):
             return jsonify({'message': 'Username already exists'}), 409
-        # Add new user with USER role
+            
+        # Add new user with USER role and additional info
         success, message = user_manager.add_user(username, password, Role.USER)
         if success:
+            # Update user with additional information
+            user_manager.update_user(username, 
+                                   full_name=full_name,
+                                   email=email,
+                                   phone=phone,
+                                   position=position)
+            
             # Log the new user creation
             new_user = user_manager.get_user(username)
-            log_action(new_user, "Account Created")
+            log_action(new_user, "Account Created", f"Full name: {full_name}, Email: {email}")
             return jsonify({'message': 'Account created successfully'}), 201
         else:
             return jsonify({'message': message}), 400
@@ -606,9 +640,34 @@ def create_dashboard_app():
     def update_profile(current_user):
         """Update user profile"""
         data = request.get_json()
-        # Here you would update the user in your database
-        log_action(current_user, "Profile Updated", f"Updated profile information")
-        return jsonify({'status': 'success', 'message': 'Profile updated successfully'})
+        if not data:
+            return jsonify({'status': 'error', 'message': 'No data provided'}), 400
+        
+        username = current_user.get('username')
+        
+        # Update user data
+        update_data = {}
+        if 'full_name' in data:
+            update_data['full_name'] = data['full_name']
+        if 'email' in data:
+            update_data['email'] = data['email']
+        if 'department' in data:
+            update_data['department'] = data['department']
+        if 'password' in data and data['password']:
+            # Validate password if provided
+            is_valid_password, password_message = user_manager.validate_password_policy(data['password'])
+            if not is_valid_password:
+                return jsonify({'status': 'error', 'message': password_message}), 400
+            update_data['password'] = data['password']
+        
+        # Update user in user manager
+        success, message = user_manager.update_user(username, **update_data)
+        
+        if success:
+            log_action(current_user, "Profile Updated", f"Updated profile information: {', '.join(update_data.keys())}")
+            return jsonify({'status': 'success', 'message': 'Profile updated successfully'})
+        else:
+            return jsonify({'status': 'error', 'message': message or 'Failed to update profile'}), 400
     @app.route('/api/profile/change-password', methods=['POST'])
     @token_required
     def change_password_profile(current_user):
