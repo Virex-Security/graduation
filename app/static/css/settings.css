@@ -522,6 +522,56 @@
   opacity: 0.6;
 }
 
+/* Input Wrapper Styles for Dropdown with Icon */
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-wrapper i {
+  position: absolute;
+  left: 1rem;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  z-index: 1;
+}
+
+.input-wrapper .form-input {
+  padding-left: 2.5rem;
+}
+
+.input-wrapper select.form-input {
+  cursor: pointer;
+  padding-right: 2.5rem;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 0.75rem center;
+  background-repeat: no-repeat;
+  background-size: 1.5em 1.5em;
+  appearance: none;
+}
+
+.input-wrapper select.form-input option {
+  background: var(--bg-main) !important;
+  color: var(--text-primary) !important;
+  padding: 0.5rem;
+}
+
+/* Dark theme specific styling for select options */
+[data-theme="dark"] .input-wrapper select.form-input option {
+  background: #1e293b !important;
+  color: #f1f5f9 !important;
+}
+
+[data-theme="light"] .input-wrapper select.form-input option {
+  background: #ffffff !important;
+  color: #1e293b !important;
+}
+
+.input-wrapper .form-input:focus + i {
+  color: #8b5cf6;
+}
+
 /* Toast Styles */
 #toast-container {
   position: fixed;

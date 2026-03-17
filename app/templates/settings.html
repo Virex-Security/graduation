@@ -426,12 +426,22 @@ title %}Settings - Virex{% endblock %} {% block stylesheets %}
         </div>
         <div class="form-group">
           <label class="form-label">Department</label>
-          <input
-            type="text"
-            class="form-input"
-            id="edit-department"
-            placeholder="Enter department"
-          />
+          <div class="input-wrapper">
+            <i class="fas fa-briefcase"></i>
+            <select class="form-input" id="edit-department" required>
+              <option value="">Select your department</option>
+              <option value="Security Analyst">Security Analyst</option>
+              <option value="Security Engineer">Security Engineer</option>
+              <option value="DevOps Engineer">DevOps Engineer</option>
+              <option value="Software Developer">Software Developer</option>
+              <option value="System Administrator">System Administrator</option>
+              <option value="IT Manager">IT Manager</option>
+              <option value="Security Manager">Security Manager</option>
+              <option value="CTO">CTO</option>
+              <option value="CISO">CISO</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
         </div>
         <div class="form-group">
           <label class="form-label">Change Password (Optional)</label>

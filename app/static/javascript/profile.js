@@ -389,13 +389,16 @@ function openEditModal() {
 
 async function saveProfile() {
   const btn  = document.getElementById('btn-save-profile');
+  const deptElement = document.getElementById('edit-dept');
+  
   const body = {
     full_name:  document.getElementById('edit-fullname').value.trim(),
     email:      document.getElementById('edit-email').value.trim(),
-    department: document.getElementById('edit-dept').value.trim(),
+    department: deptElement.value.trim(), // This now works with select dropdown
   };
 
   if (!body.full_name || !body.email) { toast('Name and email are required', 'error'); return; }
+  if (!body.department) { toast('Department is required', 'error'); return; }
 
   setLoading(btn, true);
   try {
