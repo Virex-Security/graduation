@@ -3,9 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Virex - AI Powered Cyber Threat Detection</title>
+    <title>Virex Security | Real-Time API Security Monitoring</title>
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Courier+Prime:wght@400;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
     <link
@@ -18,34 +18,33 @@
   </head>
 
   <body>
-    <!-- Animated Background -->
-    <div class="animated-bg">
-      <div class="code-line code-line-1">const detectSQLInjection = {}</div>
-      <div class="code-line code-line-2">api.security.monitor()</div>
-      <div class="code-line code-line-3">ML.analyze.threat()</div>
-      <div class="code-line code-line-4">return blockSuspicious()</div>
-    </div>
-
     <!-- Navbar -->
     <nav class="navbar">
       <div class="navbar-container">
-        <div class="logo">
-          <span>Virex</span>
+        <div class="logo" onclick="window.location.href = '/'">
+          <span class="logo-name"
+            ></i
+            >Virex</span
+          >
         </div>
+
+        <ul class="nav-menu">
+          <li><a href="#features">Features</a></li>
+          <li><a href="#how-it-works">How It Works</a></li>
+          <li><a href="#security">Security</a></li>
+          <li><a href="#contact">Contact Us</a></li>
+        </ul>
+
         <div class="nav-buttons">
           <button
             class="btn-icon"
             id="theme-toggle"
             title="Toggle Light/Dark Mode"
-            style="margin-right: 1rem"
           >
             <i class="fas fa-sun"></i>
           </button>
-          <button class="btn-signup" onclick="window.location.href = '/signup'">
-            Sign Up
-          </button>
           <button class="btn-login" onclick="window.location.href = '/login'">
-            Login
+            Get Started
           </button>
         </div>
       </div>
@@ -53,161 +52,302 @@
 
     <!-- Hero Section -->
     <section class="hero">
-      <div class="hero-content">
-        <h1 class="hero-title">
-          AI Powered<br />
-          <span class="gradient-text">Cyber Threat Detection</span>
-        </h1>
-        <p class="hero-description">
-          Advanced security dashboard powered by machine learning to detect and
-          prevent attacks in real-time. Monitor API requests, identify SQL
-          injection patterns, and protect your infrastructure with intelligent
-          threat detection.
-        </p>
-        <div class="hero-buttons">
-          <button class="btn-primary" onclick="window.location.href = '/login'">
-            <span>Get Started</span>
-            <i class="fas fa-arrow-right"></i>
-          </button>
-          <button
-            class="btn-secondary"
-            onclick="
-              document
-                .querySelector('.features')
-                .scrollIntoView({ behavior: 'smooth' })
-            "
-          >
-            <span>View Dashboard Demo</span>
-            <i class="fas fa-play"></i>
-          </button>
-        </div>
-      </div>
-      <div class="hero-card">
-        <div class="card-glow"></div>
-        <div class="card-content">
-          <div class="card-stat">
-            <div class="stat-number">99.2%</div>
-            <div class="stat-label">Detection Rate</div>
+      <div class="hero-container">
+        <div class="hero-content">
+          <h1 class="hero-title">Real-Time API Security Monitoring</h1>
+          <p class="hero-description">
+            Protect your APIs from threats with real-time monitoring. Our
+            advanced machine learning system detects and blocks suspicious
+            activities before they impact your applications.
+          </p>
+          <div class="hero-buttons">
+            <button
+              class="btn-primary"
+              onclick="window.location.href = '/login'"
+            >
+              <span>View Security Dashboard</span>
+              <i class="fas fa-arrow-right"></i>
+            </button>
+            <button
+              class="btn-secondary"
+              onclick="
+                document
+                  .querySelector('#contact')
+                  .scrollIntoView({ behavior: 'smooth' })
+              "
+            >
+              <span>Contact Us</span>
+            </button>
           </div>
-          <div class="card-divider"></div>
-          <div class="card-info">
-            <p><i class="fas fa-check-circle"></i> Real-time Monitoring</p>
-            <p><i class="fas fa-check-circle"></i> ML-Based Analysis</p>
-            <p><i class="fas fa-check-circle"></i> Instant Alerts</p>
+        </div>
+
+        <div class="hero-visual">
+          <!-- Central Shield -->
+          <div class="shield-container">
+            <div class="shield-glow"></div>
+            <div class="rotating-ring"></div>
+            <div class="shield-main">
+              <i class="fas fa-shield-alt shield-icon"></i>
+            </div>
+          </div>
+
+          <!-- Floating Cards -->
+          <div class="floating-card card-1">
+            <div class="card-icon">
+              <i class="fas fa-chart-line"></i>
+            </div>
+            <div class="card-content">
+              <h4>Real-Time Analytics</h4>
+              <p>Monitor threats instantly</p>
+            </div>
+          </div>
+
+          <div class="floating-card card-2">
+            <div class="card-icon">
+              <i class="fas fa-lock"></i>
+            </div>
+            <div class="card-content">
+              <h4>Advanced Protection</h4>
+              <p>ML-powered security</p>
+            </div>
+          </div>
+
+          <div class="floating-card card-3">
+            <div class="card-icon">
+              <i class="fas fa-bell"></i>
+            </div>
+            <div class="card-content">
+              <h4>Instant Alerts</h4>
+              <p>Get notified immediately</p>
+            </div>
+          </div>
+
+          <div class="floating-card card-4">
+            <div class="card-icon">
+              <i class="fas fa-database"></i>
+            </div>
+            <div class="card-content">
+              <h4>Data Insights</h4>
+              <p>Comprehensive reports</p>
+            </div>
           </div>
         </div>
       </div>
     </section>
 
     <!-- Features Section -->
-    <section id="features" class="features">
-      <div class="features-header">
-        <h2>Why Choose Virex?</h2>
-        <p>
-          Enterprise-grade security features powered by artificial intelligence
-        </p>
-      </div>
-      <div class="features-grid">
-        <!-- Feature 1: SQL Injection Detection -->
-        <div class="feature-card">
-          <div class="feature-icon">
-            <i class="fas fa-database"></i>
-          </div>
-          <h3>SQL Injection Detection</h3>
-          <p>
-            Advanced pattern recognition and ML-based analysis to identify and
-            block SQL injection attacks before they reach your database.
+    <section class="features" id="features">
+      <div class="features-container">
+        <div class="section-header">
+          <div class="section-eyebrow">Our Features</div>
+          <h2 class="section-title">Comprehensive Security Solutions</h2>
+          <p class="section-description">
+            Virex provides enterprise-grade security monitoring with advanced
+            machine learning capabilities to protect your APIs and applications.
           </p>
-          <div class="feature-hover-glow"></div>
         </div>
 
-        <!-- Feature 2: API Threat Monitoring -->
-        <div class="feature-card">
-          <div class="feature-icon">
-            <i class="fas fa-network-wired"></i>
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="fas fa-shield-virus"></i>
+            </div>
+            <h3 class="feature-title">Threat Detection</h3>
+            <p class="feature-description">
+              Advanced ML algorithms detect SQL injection, XSS, and other attack
+              patterns in real-time with 99%+ accuracy.
+            </p>
           </div>
-          <h3>API Threat Monitoring</h3>
-          <p>
-            Real-time monitoring of all API requests with intelligent anomaly
-            detection and behavioral analysis.
-          </p>
-          <div class="feature-hover-glow"></div>
-        </div>
 
-        <!-- Feature 3: Real-Time Analytics -->
-        <div class="feature-card">
-          <div class="feature-icon">
-            <i class="fas fa-chart-line"></i>
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="fas fa-chart-line"></i>
+            </div>
+            <h3 class="feature-title">Real-Time Monitoring</h3>
+            <p class="feature-description">
+              Monitor all API requests and responses with live dashboards
+              showing security metrics and threat levels.
+            </p>
           </div>
-          <h3>Real-Time Analytics</h3>
-          <p>
-            Comprehensive dashboard with live statistics, threat visualization,
-            and instant alerts on suspicious activities.
-          </p>
-          <div class="feature-hover-glow"></div>
+
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="fas fa-brain"></i>
+            </div>
+            <h3 class="feature-title">Machine Learning</h3>
+            <p class="feature-description">
+              Self-learning system that adapts to new threats and improves
+              detection accuracy over time.
+            </p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="fas fa-bell"></i>
+            </div>
+            <h3 class="feature-title">Instant Alerts</h3>
+            <p class="feature-description">
+              Get immediate notifications via email, Slack, or webhook when
+              critical threats are detected.
+            </p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="fas fa-file-alt"></i>
+            </div>
+            <h3 class="feature-title">Detailed Reports</h3>
+            <p class="feature-description">
+              Generate comprehensive security reports with incident timelines,
+              attack patterns, and remediation steps.
+            </p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="fas fa-users-cog"></i>
+            </div>
+            <h3 class="feature-title">Team Management</h3>
+            <p class="feature-description">
+              Role-based access control with admin, analyst, and viewer
+              permissions for your security team.
+            </p>
+          </div>
         </div>
       </div>
     </section>
 
     <!-- How It Works Section -->
-    <section id="how-it-works" class="how-it-works">
-      <div class="section-header">
-        <h2>How Virex Works</h2>
-        <p>Three simple steps to protect your infrastructure</p>
+    <section class="how-it-works" id="how-it-works">
+      <div class="how-it-works-container">
+        <div class="section-header">
+          <div class="section-eyebrow">How It Works</div>
+          <h2 class="section-title">Simple 3-Step Process</h2>
+          <p class="section-description">
+            Get started with Virex in minutes and protect your APIs immediately.
+          </p>
+        </div>
+
+        <div class="steps-grid">
+          <div class="step-card">
+            <div class="step-number">1</div>
+            <div class="step-icon">
+              <i class="fas fa-plug"></i>
+            </div>
+            <h3 class="step-title">Connect Your APIs</h3>
+            <p class="step-description">
+              Integrate Virex with your existing APIs using our simple SDK or proxy setup.
+            </p>
+          </div>
+
+          <div class="step-card">
+            <div class="step-number">2</div>
+            <div class="step-icon">
+              <i class="fas fa-cogs"></i>
+            </div>
+            <h3 class="step-title">Configure Rules</h3>
+            <p class="step-description">
+              Set up security rules and thresholds based on your application requirements.
+            </p>
+          </div>
+
+          <div class="step-card">
+            <div class="step-number">3</div>
+            <div class="step-icon">
+              <i class="fas fa-shield-alt"></i>
+            </div>
+            <h3 class="step-title">Monitor & Protect</h3>
+            <p class="step-description">
+              Watch real-time threats being detected and blocked automatically.
+            </p>
+          </div>
+        </div>
       </div>
+    </section>
 
-      <div class="timeline">
-        <!-- Step 1 -->
-        <div class="timeline-item">
-          <div class="timeline-marker">
-            <span class="step-number">1</span>
-          </div>
-          <div class="timeline-content">
-            <div class="step-card">
-              <i class="fas fa-inbox"></i>
-              <h3>Collect API Requests</h3>
-              <p>
-                All incoming API requests are captured and logged in real-time.
-                Every request is tagged with metadata including timestamp,
-                source IP, headers, and payload.
-              </p>
-            </div>
-          </div>
+    <!-- Security Section -->
+    <section class="security-section" id="security">
+      <div class="security-container">
+        <div class="section-header">
+          <div class="section-eyebrow">Security First</div>
+          <h2 class="section-title">Enterprise-Grade Protection</h2>
+          <p class="section-description">
+            Built with security best practices and compliance standards in mind.
+          </p>
         </div>
 
-        <!-- Step 2 -->
-        <div class="timeline-item">
-          <div class="timeline-marker">
-            <span class="step-number">2</span>
-          </div>
-          <div class="timeline-content">
-            <div class="step-card">
-              <i class="fas fa-brain"></i>
-              <h3>Analyze using ML Model</h3>
-              <p>
-                Advanced machine learning algorithms analyze patterns and
-                behavior. Our models detect SQL injection, XSS, brute force
-                attacks, and other malicious patterns with high accuracy.
-              </p>
+        <div class="security-grid">
+          <div class="security-card">
+            <div class="security-icon">
+              <i class="fas fa-lock"></i>
             </div>
+            <h3 class="security-title">End-to-End Encryption</h3>
+            <p class="security-description">
+              All data is encrypted in transit and at rest using AES-256 encryption.
+            </p>
+          </div>
+
+          <div class="security-card">
+            <div class="security-icon">
+              <i class="fas fa-certificate"></i>
+            </div>
+            <h3 class="security-title">SOC 2 Compliant</h3>
+            <p class="security-description">
+              Certified for security, availability, and confidentiality controls.
+            </p>
+          </div>
+
+          <div class="security-card">
+            <div class="security-icon">
+              <i class="fas fa-user-shield"></i>
+            </div>
+            <h3 class="security-title">Zero Trust Architecture</h3>
+            <p class="security-description">
+              Built on zero trust principles with multi-factor authentication.
+            </p>
+          </div>
+
+          <div class="security-card">
+            <div class="security-icon">
+              <i class="fas fa-eye"></i>
+            </div>
+            <h3 class="security-title">Privacy by Design</h3>
+            <p class="security-description">
+              No sensitive data is stored, only security metadata and patterns.
+            </p>
           </div>
         </div>
+      </div>
+    </section>
 
-        <!-- Step 3 -->
-        <div class="timeline-item">
-          <div class="timeline-marker">
-            <span class="step-number">3</span>
-          </div>
-          <div class="timeline-content">
-            <div class="step-card">
-              <i class="fas fa-shield-virus"></i>
-              <h3>Block Suspicious Traffic</h3>
-              <p>
-                Identified threats are immediately blocked. Administrators
-                receive instant alerts and can monitor all incidents through the
-                dashboard for further investigation.
-              </p>
+    <!-- Contact Section -->
+    <section class="contact-section" id="contact">
+      <div class="contact-container">
+        <div class="section-header">
+          <div class="section-eyebrow">Get In Touch</div>
+          <h2 class="section-title">Contact Our Security Experts</h2>
+          <p class="section-description">
+            Ready to secure your APIs? Our team is here to help you get started.
+          </p>
+        </div>
+
+        <div class="contact-grid">
+          <div class="contact-card">
+            <div class="contact-icon">
+              <i class="fas fa-envelope"></i>
             </div>
+            <h3 class="contact-title">Email Support</h3>
+            <p class="contact-description">smartwebdef@gmail.com</p>
+            <a href="mailto:smartwebdef@gmail.com" class="contact-link">Send Email</a>
+          </div>
+
+          <div class="contact-card">
+            <div class="contact-icon">
+              <i class="fab fa-slack"></i>
+            </div>
+            <h3 class="contact-title">Slack Community</h3>
+            <p class="contact-description">Join our workspace</p>
+            <a href="https://virexworld.slack.com/archives/C0AM7PA4S4A" target="_blank" class="contact-link">Join Slack</a>
           </div>
         </div>
       </div>
@@ -215,14 +355,14 @@
 
     <!-- CTA Section -->
     <section class="cta-section">
-      <div class="cta-content">
-        <h2>Ready to Protect Your Infrastructure?</h2>
-        <p>
-          Join enterprise teams using Virex for advanced threat detection and
-          prevention
+      <div class="cta-container">
+        <h2 class="cta-title">Ready to Secure Your APIs?</h2>
+        <p class="cta-description">
+          Join hundreds of companies protecting their applications with Virex.
+          Start monitoring your API security today with our powerful platform.
         </p>
         <button class="btn-cta" onclick="window.location.href = '/login'">
-          Start Free Trial Now
+          <span>Start Free Trial Now</span>
           <i class="fas fa-arrow-right"></i>
         </button>
       </div>
@@ -231,39 +371,15 @@
     <!-- Footer -->
     <footer class="footer">
       <div class="footer-content">
-        <div class="footer-section">
-          <h4><i class="fas fa-shield-alt"></i> Virex</h4>
-          <p>AI-Powered Cyber Threat Detection System</p>
+        <div class="footer-text">
+          © 2024 Virex Security. All rights reserved.
         </div>
-        <div class="footer-section">
-          <h4>Project Info</h4>
-          <p><strong>Supervisor:</strong> Dr. Hager mohammed</p>
-          <p>
-            <strong>University:</strong> Faculty of Computers and Artificial
-            Intelligence , Beni-Suef National University
-          </p>
+        <div class="footer-links">
+          <a href="#" class="footer-link">Privacy Policy</a>
+          <a href="#" class="footer-link">Terms of Service</a>
+          <a href="#" class="footer-link">Documentation</a>
+          <a href="#" class="footer-link">Support</a>
         </div>
-        <div class="footer-section">
-          <h4>Contact</h4>
-          <p><a href="mailto:security@virex.dev">security@virex.dev</a></p>
-          <p>
-            <a href="https://github.com/Virex-Security" target="_blank"
-              ><i class="fab fa-github"></i> GitHub</a
-            >
-          </p>
-        </div>
-        <div class="footer-section">
-          <h4>Quick Links</h4>
-          <p><a href="/login">Dashboard</a></p>
-          <p><a href="#features">Features</a></p>
-          <p><a href="#how-it-works">How It Works</a></p>
-        </div>
-      </div>
-      <div class="footer-bottom">
-        <p>
-          &copy; 2026 Virex Security. All rights reserved. | Developed by Team
-          Virex
-        </p>
       </div>
     </footer>
 

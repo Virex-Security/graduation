@@ -27,32 +27,36 @@ function setupSmoothScroll() {
   document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
     anchor.addEventListener("click", function (e) {
       e.preventDefault();
-      const target = document.querySelector(this.getAttribute("href"));
+      const targetId = this.getAttribute("href");
+      const target = document.querySelector(targetId);
+      
+      console.log(`Navigating to: ${targetId}`);
+      
       if (target) {
-        target.scrollIntoView({
-          behavior: "smooth",
-          block: "start",
+        console.log(`Target found: ${target.tagName}#${target.id}`);
+        
+        // Calculate offset for fixed navbar (approximately 80px)
+        const navbarHeight = 80;
+        const targetPosition = target.getBoundingClientRect().top + window.pageYOffset - navbarHeight;
+        
+        window.scrollTo({
+          top: targetPosition,
+          behavior: "smooth"
         });
+      } else {
+        console.error(`Target not found for: ${targetId}`);
       }
     });
   });
 }
 
 /**
- * Handle navbar transparency on scroll
+ * Handle navbar transparency on scroll - DISABLED
+ * Navbar now maintains theme colors consistently
  */
 function setupNavbarScroll() {
-  const navbar = document.querySelector(".navbar");
-
-  window.addEventListener("scroll", () => {
-    if (window.scrollY > 50) {
-      navbar.style.background = "rgba(10, 14, 39, 0.9)";
-      navbar.style.boxShadow = "0 4px 20px rgba(224,70,186, 0.1)";
-    } else {
-      navbar.style.background = "rgba(10, 14, 39, 0.7)";
-      navbar.style.boxShadow = "none";
-    }
-  });
+  // Navbar scroll effects disabled to maintain theme consistency
+  // The navbar will use CSS variables and maintain theme colors
 }
 
 /**

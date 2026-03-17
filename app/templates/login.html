@@ -3,9 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Login - Virex</title>
+    <title>Login - Virex Security</title>
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Courier+Prime:wght@400;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
     <link
@@ -13,103 +13,129 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
     />
     <link rel="stylesheet" href="/static/css/theme.css" />
-    <link rel="stylesheet" href="/static/css/signup.css" />
+    <link rel="stylesheet" href="/static/css/login.css" />
     <script src="/static/javascript/theme.js"></script>
   </head>
 
   <body>
-    <div class="signup-container">
-      <!-- Background Animation -->
-      <div class="animated-bg">
-        <div class="code-line code-line-1">const authenticateUser = {}</div>
-        <div class="code-line code-line-2">security.verify()</div>
-        <div class="code-line code-line-3">access.grant("dashboard")</div>
-        <div class="code-line code-line-4">return login(user)</div>
+    <!-- Background Pattern -->
+    <div class="bg-pattern"></div>
+    
+    <!-- Navbar -->
+    <nav class="navbar">
+      <div class="navbar-container">
+        <div class="logo" onclick="window.location.href = '/'" style="cursor: pointer">
+          <i class="fas fa-shield-alt"></i>
+          <span>Virex</span>
+        </div>
+        <div class="nav-actions">
+          <button class="btn-theme" id="theme-toggle" title="Toggle Theme">
+            <i class="fas fa-sun"></i>
+          </button>
+        </div>
       </div>
+    </nav>
 
-      <!-- Navbar -->
-      <nav class="navbar">
-        <div class="navbar-container">
-          <div
-            class="logo"
-            onclick="window.location.href = '/'"
-            style="cursor: pointer"
-          >
-            <span>Virex</span>
-          </div>
-          <div class="nav-buttons"></div>
-        </div>
-      </nav>
-
-      <!-- Login Form -->
-      <div class="form-wrapper">
-        <div class="form-container">
-          <div class="form-header">
-            <h1>login</h1>
-            <p>Access your Virex security dashboard</p>
-          </div>
-
-          <form id="login-form">
-            <div class="form-group">
-              <label for="username">Username</label>
-              <input
-                type="text"
-                id="username"
-                name="username"
-                placeholder="Enter your username"
-                required
-              />
+    <!-- Main Container -->
+    <div class="auth-container">
+      <div class="auth-wrapper">
+        <!-- Left Side - Form -->
+        <div class="auth-form-section">
+          <div class="form-container">
+            <div class="form-header">
+              <div class="brand-logo">
+                <i class="fas fa-shield-alt"></i>
+                <h1>Welcome Back</h1>
+              </div>
+              <p class="form-subtitle">Sign in to your Virex Security account</p>
             </div>
 
-            <div class="form-group">
-              <label for="password">Password</label>
-              <input
-                type="password"
-                id="password"
-                name="password"
-                placeholder="Enter your password"
-                required
-              />
+            <form id="login-form" class="auth-form">
+              <div class="form-group">
+                <label for="username">Username</label>
+                <div class="input-wrapper">
+                  <i class="fas fa-user"></i>
+                  <input
+                    type="text"
+                    id="username"
+                    name="username"
+                    placeholder="Enter your username"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="password">Password</label>
+                <div class="input-wrapper">
+                  <i class="fas fa-lock"></i>
+                  <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    placeholder="Enter your password"
+                    required
+                  />
+                  <button type="button" class="password-toggle" onclick="togglePassword('password')">
+                    <i class="fas fa-eye"></i>
+                  </button>
+                </div>
+              </div>
+
+              <button type="submit" class="btn-primary">
+                <span>Sign In</span>
+                <i class="fas fa-arrow-right"></i>
+              </button>
+            </form>
+
+            <!-- Error/Success Messages -->
+            <div id="message-box" class="hidden"></div>
+
+            <div class="form-footer">
+              <p>Don't have an account? <a href="/signup">Create one here</a></p>
             </div>
-
-            <button type="submit" class="btn-submit">
-              <i class="fas fa-sign-in-alt"></i> Login
-            </button>
-          </form>
-
-          <!-- Error/Success Messages -->
-          <div id="message-box" class="hidden"></div>
-
-          <div class="form-footer">
-            <p>Don't have an account? <a href="/signup">Sign up here</a></p>
           </div>
         </div>
 
-        <div class="form-side">
-          <div class="side-content">
-            <h2>Welcome Back</h2>
-            <ul class="benefits-list">
-              <li>
-                <i class="fas fa-check-circle"></i>
-                <span>Real-time threat detection with AI</span>
-              </li>
-              <li>
-                <i class="fas fa-check-circle"></i>
-                <span>Advanced security analytics</span>
-              </li>
-              <li>
-                <i class="fas fa-check-circle"></i>
-                <span>24/7 monitoring and alerts</span>
-              </li>
-              <li>
-                <i class="fas fa-check-circle"></i>
-                <span>Comprehensive incident management</span>
-              </li>
-              <li>
-                <i class="fas fa-check-circle"></i>
-                <span>Machine learning powered protection</span>
-              </li>
-            </ul>
+        <!-- Right Side - Info -->
+        <div class="auth-info-section">
+          <div class="info-content">
+            <div class="info-header">
+              <h2>Secure Your Digital Assets</h2>
+              <p>Advanced AI-powered security monitoring for modern applications</p>
+            </div>
+            
+            <div class="features-list">
+              <div class="feature-item">
+                <div class="feature-icon">
+                  <i class="fas fa-brain"></i>
+                </div>
+                <div class="feature-text">
+                  <h3>AI-Powered Detection</h3>
+                  <p>Machine learning algorithms detect threats in real-time</p>
+                </div>
+              </div>
+              
+              <div class="feature-item">
+                <div class="feature-icon">
+                  <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="feature-text">
+                  <h3>Real-Time Analytics</h3>
+                  <p>Comprehensive dashboards with live security metrics</p>
+                </div>
+              </div>
+              
+              <div class="feature-item">
+                <div class="feature-icon">
+                  <i class="fas fa-shield-virus"></i>
+                </div>
+                <div class="feature-text">
+                  <h3>Advanced Protection</h3>
+                  <p>Multi-layered security against sophisticated attacks</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

@@ -3,9 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Sign Up - Virex</title>
+    <title>Sign Up - Virex Security</title>
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Courier+Prime:wght@400;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
     <link
@@ -18,110 +18,214 @@
   </head>
 
   <body>
-    <div class="signup-container">
-      <!-- Background Animation -->
-      <div class="animated-bg">
-        <div class="code-line code-line-1">const registerUser = {}</div>
-        <div class="code-line code-line-2">security.authenticate()</div>
-        <div class="code-line code-line-3">access.grant("user")</div>
-        <div class="code-line code-line-4">return onboard(user)</div>
+    <!-- Background Pattern -->
+    <div class="bg-pattern"></div>
+    
+    <!-- Navbar -->
+    <nav class="navbar">
+      <div class="navbar-container">
+        <div class="logo" onclick="window.location.href = '/'" style="cursor: pointer">
+          <i class="fas fa-shield-alt"></i>
+          <span>Virex</span>
+        </div>
+        <div class="nav-actions">
+          <button class="btn-theme" id="theme-toggle" title="Toggle Theme">
+            <i class="fas fa-sun"></i>
+          </button>
+          <a href="/login" class="btn-login">
+            <span>Sign In</span>
+          </a>
+        </div>
       </div>
+    </nav>
 
-      <!-- Navbar -->
-      <nav class="navbar">
-        <div class="navbar-container">
-          <div
-            class="logo"
-            onclick="window.location.href = '/'"
-            style="cursor: pointer"
-          >
-            <i class="fas fa-shield-alt"></i>
-            <span>Virex</span>
-          </div>
-          <div class="nav-buttons"></div>
-        </div>
-      </nav>
-
-      <!-- Sign Up Form -->
-      <div class="form-wrapper">
-        <div class="form-container">
-          <div class="form-header">
-            <h1>Create Account</h1>
-            <p>Join Virex and protect your security</p>
-          </div>
-
-          <form id="signup-form">
-            <div class="form-group">
-              <label for="username">Username</label>
-              <input
-                type="text"
-                id="username"
-                name="username"
-                placeholder="Choose your username"
-                required
-              />
+    <!-- Main Container -->
+    <div class="auth-container">
+      <div class="auth-wrapper">
+        <!-- Left Side - Info -->
+        <div class="auth-info-section">
+          <div class="info-content">
+            <div class="info-header">
+              <h2>Join Virex Security</h2>
+              <p>Protect your applications with enterprise-grade security monitoring</p>
             </div>
-
-            <div class="form-group">
-              <label for="password">Password</label>
-              <input
-                type="password"
-                id="password"
-                name="password"
-                placeholder="Create a strong password"
-                required
-              />
+            
+            <div class="features-list">
+              <div class="feature-item">
+                <div class="feature-icon">
+                  <i class="fas fa-rocket"></i>
+                </div>
+                <div class="feature-text">
+                  <h3>Quick Setup</h3>
+                  <p>Get started in minutes with our simple integration process</p>
+                </div>
+              </div>
+              
+              <div class="feature-item">
+                <div class="feature-icon">
+                  <i class="fas fa-users-cog"></i>
+                </div>
+                <div class="feature-text">
+                  <h3>Team Collaboration</h3>
+                  <p>Role-based access control for your security team</p>
+                </div>
+              </div>
+              
+              <div class="feature-item">
+                <div class="feature-icon">
+                  <i class="fas fa-bell"></i>
+                </div>
+                <div class="feature-text">
+                  <h3>Instant Alerts</h3>
+                  <p>Get notified immediately when threats are detected</p>
+                </div>
+              </div>
             </div>
-
-            <div class="form-group">
-              <label for="confirm-password">Confirm Password</label>
-              <input
-                type="password"
-                id="confirm-password"
-                name="confirm-password"
-                placeholder="Re-enter your password"
-                required
-              />
-            </div>
-
-            <button type="submit" class="btn-submit">
-              <i class="fas fa-user-plus"></i> Create Account
-            </button>
-          </form>
-
-          <!-- Error/Success Messages -->
-          <div id="message-box" class="hidden"></div>
-
-          <div class="form-footer">
-            <p>Already have an account? <a href="/login">Login here</a></p>
           </div>
         </div>
 
-        <div class="form-side">
-          <div class="side-content">
-            <h2>Why Join Virex?</h2>
-            <ul class="benefits-list">
-              <li>
-                <i class="fas fa-check-circle"></i>
-                <span>Real-time threat detection with AI</span>
-              </li>
-              <li>
-                <i class="fas fa-check-circle"></i>
-                <span>Advanced security analytics</span>
-              </li>
-              <li>
-                <i class="fas fa-check-circle"></i>
-                <span>24/7 monitoring and alerts</span>
-              </li>
-              <li>
-                <i class="fas fa-check-circle"></i>
-                <span>Comprehensive incident management</span>
-              </li>
-              <li>
-                <i class="fas fa-check-circle"></i>
-                <span>Machine learning powered protection</span>
-              </li>
-            </ul>
+        <!-- Right Side - Form -->
+        <div class="auth-form-section">
+          <div class="form-container">
+            <div class="form-header">
+              <div class="brand-logo">
+                <i class="fas fa-shield-alt"></i>
+                <h1>Create Account</h1>
+              </div>
+              <p class="form-subtitle">Start protecting your applications today</p>
+            </div>
+
+            <form id="signup-form" class="auth-form">
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="full-name">Full Name</label>
+                  <div class="input-wrapper">
+                    <i class="fas fa-user"></i>
+                    <input
+                      type="text"
+                      id="full-name"
+                      name="full-name"
+                      placeholder="Enter your full name"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label for="username">Username</label>
+                  <div class="input-wrapper">
+                    <i class="fas fa-at"></i>
+                    <input
+                      type="text"
+                      id="username"
+                      name="username"
+                      placeholder="Choose your username"
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="email">Email</label>
+                  <div class="input-wrapper">
+                    <i class="fas fa-envelope"></i>
+                    <input
+                      type="email"
+                      id="email"
+                      name="email"
+                      placeholder="Enter your email"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label for="phone">Phone Number</label>
+                  <div class="input-wrapper">
+                    <i class="fas fa-phone"></i>
+                    <input
+                      type="tel"
+                      id="phone"
+                      name="phone"
+                      placeholder="Enter your phone number"
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="position">Position</label>
+                <div class="input-wrapper">
+                  <i class="fas fa-briefcase"></i>
+                  <select id="position" name="position" required>
+                    <option value="">Select your position</option>
+                    <option value="Security Analyst">Security Analyst</option>
+                    <option value="Security Engineer">Security Engineer</option>
+                    <option value="DevOps Engineer">DevOps Engineer</option>
+                    <option value="Software Developer">Software Developer</option>
+                    <option value="IT Manager">IT Manager</option>
+                    <option value="Security Manager">Security Manager</option>
+                    <option value="CTO">CTO</option>
+                    <option value="CISO">CISO</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="password">Password</label>
+                  <div class="input-wrapper">
+                    <i class="fas fa-lock"></i>
+                    <input
+                      type="password"
+                      id="password"
+                      name="password"
+                      placeholder="Create a strong password"
+                      required
+                      minlength="8"
+                    />
+                    <button type="button" class="password-toggle" onclick="togglePassword('password')">
+                      <i class="fas fa-eye"></i>
+                    </button>
+                  </div>
+                  <small class="password-hint">At least 8 characters</small>
+                </div>
+
+                <div class="form-group">
+                  <label for="confirm-password">Confirm Password</label>
+                  <div class="input-wrapper">
+                    <i class="fas fa-lock"></i>
+                    <input
+                      type="password"
+                      id="confirm-password"
+                      name="confirm-password"
+                      placeholder="Re-enter your password"
+                      required
+                      minlength="8"
+                    />
+                    <button type="button" class="password-toggle" onclick="togglePassword('confirm-password')">
+                      <i class="fas fa-eye"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <button type="submit" class="btn-primary">
+                <span>Create Account</span>
+                <i class="fas fa-arrow-right"></i>
+              </button>
+            </form>
+
+            <!-- Error/Success Messages -->
+            <div id="message-box" class="hidden"></div>
+
+            <div class="form-footer">
+              <p>Already have an account? <a href="/login">Sign in here</a></p>
+            </div>
           </div>
         </div>
       </div>
