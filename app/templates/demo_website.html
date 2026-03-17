@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ShopSecure — Protected by Virex</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="../static/css/theme.css">
+  <link rel="stylesheet" href="../static/css/demo_website.css">
+</head>
+
+<body>
+
+  <nav>
+    <div class="logo"><span class="s">Shop</span><span class="p">Secure</span></div>
+    <div class="nav-tabs">
+      <button class="nav-tab active" onclick="showPage('home')">Home</button>
+      <button class="nav-tab" onclick="showPage('users')">Users</button>
+      <button class="nav-tab" onclick="showPage('orders')">Orders</button>
+      <button class="nav-tab" onclick="showPage('attack')">Attack Lab</button>
+      <button class="nav-tab" onclick="showPage('logs')">Logs</button>
+    </div>
+    <div class="nav-right">
+      <div class="api-pill">
+        <div class="api-dot" id="api-dot"></div>
+        <span id="api-txt" style="color:var(--muted2)">Checking...</span>
+      </div>
+      <div class="virex-pill">VIREX ON</div>
+    </div>
+  </nav>
+
+  <!-- HOME -->
+  <div class="page active" id="page-home">
+    <div class="stat-bar">
+      <div class="stat">
+        <div class="stat-n c-accent" id="h-total">0</div>
+        <div class="stat-l">Total Requests</div>
+      </div>
+      <div class="stat">
+        <div class="stat-n c-red" id="h-blocked">0</div>
+        <div class="stat-l">Blocked</div>
+      </div>
+      <div class="stat">
+        <div class="stat-n c-yellow" id="h-attacks">0</div>
+        <div class="stat-l">Attacks Caught</div>
+      </div>
+      <div class="stat">
+        <div class="stat-n c-green" id="h-clean">0</div>
+        <div class="stat-l">Clean Requests</div>
+      </div>
+    </div>
+    <div class="grid2">
+      <div class="card">
+        <div class="card-head">
+          <div class="card-icon" style="background:rgba(0,229,255,.1)">🔐</div>
+          <div>
+            <div class="card-title">Login</div>
+            <div class="card-sub">Test normal login or attacks</div>
+          </div>
+        </div>
+        <div class="fg"><label>Username</label><input id="lu" value="admin"></div>
+        <div class="fg"><label>Password</label><input type="password" id="lp" value="admin123"></div>
+        <div class="presets">
+          <div class="pre ok" onclick="sl('admin','admin123')">✅ Valid Login</div>
+          <div class="pre sqli" onclick="sl('admin', `' OR '1'='1`)">💉 SQLi Password</div>
+          <div class="pre xss" onclick="sl('&lt;script&gt;alert(1)&lt;/script&gt;','x')">🔴 XSS Username</div>
+          <div class="pre cmd" onclick="bruteLoop()">🔑 Brute Force x6</div>
+        </div>
+        <button class="btn btn-primary btn-full" id="btn-login" onclick="doLogin()">Sign In</button>
+        <div class="res idle" id="r-login">Waiting...</div>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <div class="card-icon" style="background:rgba(239,68,68,.1)">📡</div>
+          <div>
+            <div class="card-title">Live Request Feed</div>
+            <div class="card-sub">All requests in real-time</div>
+          </div>
+        </div>
+        <div class="feed" id="feed">
+          <div class="feed-empty" id="feed-empty">No requests yet</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- USERS -->
+  <div class="page" id="page-users">
+    <div class="sec-title">👥 User Management</div>
+    <div class="sec-sub">Browse users — try injecting SQL in the search field</div>
+    <div class="search-bar">
+      <input id="user-search" placeholder="Search username or email..."
+        onkeydown="if(event.key==='Enter')searchUsers()">
+      <button class="btn btn-primary" onclick="searchUsers()">Search</button>
+      <button class="btn btn-ghost"
+        onclick="document.getElementById('user-search').value='';searchUsers()">Reset</button>
+    </div>
+    <div class="presets" style="max-width:500px;margin-bottom:18px;">
+      <div class="pre sqli" onclick="setAndSearch(`1' OR '1'='1`)">💉 SQLi Dump All</div>
+      <div class="pre sqli" onclick="setAndSearch(`' UNION SELECT * FROM admins--`)">💉 UNION Attack</div>
+      <div class="pre xss" onclick="setAndSearch('&lt;script&gt;alert(1)&lt;/script&gt;')">🔴 XSS Inject</div>
+      <div class="pre ok" onclick="setAndSearch('sara')">✅ Normal Search</div>
+    </div>
+    <div class="card">
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Username</th>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Joined</th>
+              <th>Orders</th>
+            </tr>
+          </thead>
+          <tbody id="users-body">
+            <tr>
+              <td colspan="6" class="empty">Click Search to load users</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="res idle" id="r-users" style="margin-top:12px;">Ready</div>
+    </div>
+  </div>
+
+  <!-- ORDERS -->
+  <div class="page" id="page-orders">
+    <div class="sec-title">📦 Orders</div>
+    <div class="sec-sub">View all orders — place new orders or test attacks</div>
+    <div class="grid2">
+      <div class="card" style="grid-column:1/3">
+        <div class="card-head">
+          <div class="card-icon" style="background:rgba(16,185,129,.1)">📋</div>
+          <div>
+            <div class="card-title">All Orders</div>
+            <div class="card-sub">Live from API</div>
+          </div>
+          <button class="btn btn-ghost" style="margin-left:auto;font-size:12px" onclick="loadOrders()">↻
+            Refresh</button>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Customer</th>
+                <th>Product</th>
+                <th>Price</th>
+                <th>Status</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody id="orders-body">
+              <tr>
+                <td colspan="6" class="empty">Loading...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <div class="card-icon" style="background:rgba(168,85,247,.1)">➕</div>
+          <div>
+            <div class="card-title">Place New Order</div>
+            <div class="card-sub">Try injecting in product name</div>
+          </div>
+        </div>
+        <div class="fg"><label>Customer</label><input id="o-user" value="sara.ali"></div>
+        <div class="fg"><label>Product Name</label><input id="o-product" value="iPhone 15 Pro"></div>
+        <div class="fg"><label>Price ($)</label><input id="o-price" type="number" value="1299"></div>
+        <div class="presets">
+          <div class="pre sqli" onclick="setOrder(`'; DROP TABLE orders--`)">💉 SQLi Drop</div>
+          <div class="pre xss" onclick="setOrder('&lt;img src=x onerror=alert(1)&gt;')">🔴 XSS</div>
+          <div class="pre cmd" onclick="setOrder('../../../../etc/passwd')">📁 Path Traversal</div>
+          <div class="pre ok" onclick="setOrder('MacBook Air M3')">✅ Normal</div>
+        </div>
+        <button class="btn btn-primary btn-full" onclick="placeOrder()">Place Order</button>
+        <div class="res idle" id="r-order">Ready</div>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <div class="card-icon" style="background:rgba(245,158,11,.1)">🛒</div>
+          <div>
+            <div class="card-title">Product Search</div>
+            <div class="card-sub">Search or attack</div>
+          </div>
+        </div>
+        <div class="fg"><label>Search</label><input id="p-search" value="iPhone"></div>
+        <div class="fg"><label>Category</label>
+          <select id="p-cat">
+            <option value="all">All</option>
+            <option value="phones">Phones</option>
+            <option value="laptops">Laptops</option>
+            <option value="audio">Audio</option>
+            <option value="tablets">Tablets</option>
+            <option value="wearables">Wearables</option>
+          </select>
+        </div>
+        <div class="presets">
+          <div class="pre sqli" onclick="document.getElementById('p-search').value=`1' OR '1'='1`">💉 SQLi
+          </div>
+          <div class="pre xss" onclick="document.getElementById('p-search').value='&lt;svg onload=alert(1)&gt;'">🔴 XSS
+          </div>
+          <div class="pre ok" onclick="document.getElementById('p-search').value='Sony'">✅ Normal</div>
+          <div class="pre ok" onclick="document.getElementById('p-search').value=''">All Products</div>
+        </div>
+        <button class="btn btn-primary btn-full" onclick="searchProducts()">Search</button>
+        <div class="res idle" id="r-products">Ready</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ATTACK LAB -->
+  <div class="page" id="page-attack">
+    <div class="sec-title">⚔️ Attack Lab</div>
+    <div class="sec-sub">Test all attack vectors — watch Virex block them in real-time</div>
+    <div class="grid3">
+      <div class="card">
+        <div class="card-head">
+          <div class="card-icon" style="background:rgba(245,158,11,.1)">💉</div>
+          <div>
+            <div class="card-title">SQL Injection</div>
+            <div class="card-sub">Database attacks</div>
+          </div>
+        </div>
+        <div class="fg"><label>Payload</label><textarea id="sqli-pay" rows="3">1' OR '1'='1</textarea></div>
+        <div class="presets">
+          <div class="pre sqli" onclick="document.getElementById('sqli-pay').value=`1' OR '1'='1`">Basic OR
+          </div>
+          <div class="pre sqli"
+            onclick="document.getElementById('sqli-pay').value=`1 UNION SELECT username,password FROM users--`">
+            UNION SELECT</div>
+          <div class="pre sqli" onclick="document.getElementById('sqli-pay').value=`1'; DROP TABLE users--`">
+            DROP TABLE</div>
+          <div class="pre sqli" onclick="document.getElementById('sqli-pay').value=`1' AND SLEEP(5)--`">
+            Time-Based</div>
+        </div>
+        <button class="btn btn-danger btn-full" onclick="fireAttack('sqli','sqli-pay','r-sqli')">🚀 Fire Attack</button>
+        <div class="res idle" id="r-sqli">Ready</div>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <div class="card-icon" style="background:rgba(239,68,68,.1)">🔴</div>
+          <div>
+            <div class="card-title">XSS Attack</div>
+            <div class="card-sub">Script injection</div>
+          </div>
+        </div>
+        <div class="fg"><label>Payload</label><textarea id="xss-pay"
+            rows="3">&lt;script&gt;alert('XSS')&lt;/script&gt;</textarea></div>
+        <div class="presets">
+          <div class="pre xss"
+            onclick="document.getElementById('xss-pay').value='&lt;script&gt;alert(1)&lt;/script&gt;'">Script Tag</div>
+          <div class="pre xss" onclick="document.getElementById('xss-pay').value='&lt;img src=x onerror=alert(1)&gt;'">
+            IMG onerror</div>
+          <div class="pre xss" onclick="document.getElementById('xss-pay').value='&lt;svg onload=alert(1)&gt;'">SVG
+            onload</div>
+          <div class="pre xss" onclick="document.getElementById('xss-pay').value='javascript:alert(document.cookie)'">JS
+            Protocol</div>
+        </div>
+        <button class="btn btn-danger btn-full" onclick="fireAttack('xss','xss-pay','r-xss')">🚀 Fire Attack</button>
+        <div class="res idle" id="r-xss">Ready</div>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <div class="card-icon" style="background:rgba(168,85,247,.1)">🔑</div>
+          <div>
+            <div class="card-title">Brute Force</div>
+            <div class="card-sub">Auto-blocked after 5 attempts</div>
+          </div>
+        </div>
+        <div class="fg"><label>Target Username</label><input id="bf-user" value="admin"></div>
+        <div class="fg"><label>Attempts</label>
+          <select id="bf-count">
+            <option value="3">3 attempts</option>
+            <option value="5">5 attempts</option>
+            <option value="8" selected>8 attempts — triggers block</option>
+          </select>
+        </div>
+        <div class="prog" id="bf-prog"></div>
+        <button class="btn btn-danger btn-full" id="btn-bf" onclick="fireBrute()">🚀 Start Brute Force</button>
+        <div class="res idle" id="r-bf">Ready</div>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <div class="card-icon" style="background:rgba(16,185,129,.1)">📁</div>
+          <div>
+            <div class="card-title">Path Traversal</div>
+            <div class="card-sub">File system attacks</div>
+          </div>
+        </div>
+        <div class="fg"><label>Path</label><input id="pt-path" value="../../../../etc/passwd"></div>
+        <div class="presets">
+          <div class="pre cmd" onclick="document.getElementById('pt-path').value='../../../../etc/passwd'">/etc/passwd
+          </div>
+          <div class="pre cmd" onclick="document.getElementById('pt-path').value='../../.env'">.env File</div>
+          <div class="pre cmd" onclick="document.getElementById('pt-path').value='../../wp-config.php'">WP Config</div>
+          <div class="pre cmd" onclick="document.getElementById('pt-path').value='../.git/config'">Git Config</div>
+        </div>
+        <button class="btn btn-danger btn-full" onclick="fireAttack('path','pt-path','r-path')">🚀 Fire Attack</button>
+        <div class="res idle" id="r-path">Ready</div>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <div class="card-icon" style="background:rgba(0,229,255,.1)">💻</div>
+          <div>
+            <div class="card-title">Command Injection</div>
+            <div class="card-sub">OS command execution</div>
+          </div>
+        </div>
+        <div class="fg"><label>Command</label><input id="ci-cmd" value="; ls -la"></div>
+        <div class="presets">
+          <div class="pre sqli" onclick="document.getElementById('ci-cmd').value='; ls -la'">ls -la</div>
+          <div class="pre sqli" onclick="document.getElementById('ci-cmd').value='| cat /etc/passwd'">cat passwd</div>
+          <div class="pre sqli" onclick="document.getElementById('ci-cmd').value='$(whoami)'">whoami</div>
+          <div class="pre sqli" onclick="document.getElementById('ci-cmd').value='&amp;&amp; id'">id</div>
+        </div>
+        <button class="btn btn-danger btn-full" onclick="fireAttack('cmd','ci-cmd','r-cmd')">🚀 Fire Attack</button>
+        <div class="res idle" id="r-cmd">Ready</div>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <div class="card-icon" style="background:rgba(245,158,11,.1)">⚡</div>
+          <div>
+            <div class="card-title">Rate Limit Test</div>
+            <div class="card-sub">Flood the API</div>
+          </div>
+        </div>
+        <div class="fg"><label>Number of requests</label>
+          <select id="rl-count">
+            <option value="5">5 requests</option>
+            <option value="10" selected>10 requests</option>
+            <option value="15">15 requests</option>
+          </select>
+        </div>
+        <div class="prog" id="rl-prog"></div>
+        <button class="btn btn-danger btn-full" id="btn-rl" onclick="fireRateLimit()">🚀 Flood API</button>
+        <div class="res idle" id="r-rl">Ready</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOGS -->
+  <div class="page" id="page-logs">
+    <div class="sec-title">📋 Request Logs</div>
+    <div class="sec-sub">Real logs from the API — auto-refreshes every 3 seconds</div>
+    <div class="card">
+      <div class="card-head">
+        <div class="card-icon" style="background:rgba(0,229,255,.1)">🗂</div>
+        <div>
+          <div class="card-title">Live API Request Log</div>
+          <div class="card-sub">Last 50 requests processed by Virex</div>
+        </div>
+        <button class="btn btn-ghost" style="margin-left:auto;font-size:12px" onclick="loadLogs()">↻ Refresh</button>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Method</th>
+              <th>Endpoint</th>
+              <th>IP</th>
+              <th>Status</th>
+              <th>Payload</th>
+            </tr>
+          </thead>
+          <tbody id="logs-body">
+            <tr>
+              <td colspan="6" class="empty">Loading logs...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script src="../static/javascript/demo_website.js"></script>
+</body>
+
+</html>
+

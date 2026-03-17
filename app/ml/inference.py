@@ -1,3 +1,6 @@
+"""
+ML Inference Module - Real-time threat detection
+"""
 import time
 import threading
 import joblib
@@ -10,13 +13,6 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-# Setup paths to data directory
-PROJECT_ROOT = Path(__file__).parent.parent
-DATA_DIR = PROJECT_ROOT / "data"
-MODEL_PATH = DATA_DIR / "model.pkl"
-VECTORIZER_PATH = DATA_DIR / "vectorizer.pkl"
-TRAINING_DATA_PATH = DATA_DIR / "ml_training_data.csv"
-
 # Global model state
 _model = None
 _vectorizer = None
@@ -24,17 +20,26 @@ _model_lock = threading.Lock()
 MODEL_LOADED = False
 RETRAIN_INTERVAL = 3600  # retrain every 1 hour
 
+# Project paths
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+DATA_DIR = PROJECT_ROOT / "data"
+MODEL_PATH = DATA_DIR / "model.pkl"
+VECTORIZER_PATH = DATA_DIR / "vectorizer.pkl"
+TRAINING_DATA_PATH = DATA_DIR / "ml_training_data.csv"
+
+
 def _load_or_train():
     """Load existing model or train from scratch."""
     global _model, _vectorizer, MODEL_LOADED
     try:
-        _model      = joblib.load(str(MODEL_PATH))
+        _model = joblib.load(str(MODEL_PATH))
         _vectorizer = joblib.load(str(VECTORIZER_PATH))
         MODEL_LOADED = True
         print("✅ ML Model loaded from disk")
     except Exception:
         print("⚠️  No model found — training from scratch...")
         _retrain_model()
+
 
 def _retrain_model():
     """Train/retrain the ML model from ml_training_data.csv."""
@@ -47,16 +52,17 @@ def _retrain_model():
         )
         vec = TfidfVectorizer(ngram_range=(1, 2), max_features=5000, lowercase=True)
         X_tr = vec.fit_transform(X_train)
-        clf  = RandomForestClassifier(n_estimators=100, max_depth=20, random_state=42, n_jobs=-1)
+        clf = RandomForestClassifier(n_estimators=100, max_depth=20, random_state=42, n_jobs=-1)
         clf.fit(X_tr, y_train)
 
         with _model_lock:
-            _model      = clf
+            _model = clf
             _vectorizer = vec
             MODEL_LOADED = True
 
         # Ensure data directory exists
         DATA_DIR.mkdir(parents=True, exist_ok=True)
+        
         joblib.dump(clf, str(MODEL_PATH))
         joblib.dump(vec, str(VECTORIZER_PATH))
 
@@ -66,12 +72,14 @@ def _retrain_model():
     except Exception as e:
         print(f"❌ Retrain failed: {e}")
 
+
 def _auto_retrain_loop():
     """Background thread: retrain model every RETRAIN_INTERVAL seconds."""
     while True:
         time.sleep(RETRAIN_INTERVAL)
         print("🔄 Auto-retraining ML model...")
         _retrain_model()
+
 
 # Load model on startup
 _load_or_train()
@@ -80,6 +88,7 @@ _load_or_train()
 _retrain_thread = threading.Thread(target=_auto_retrain_loop, daemon=True)
 _retrain_thread.start()
 print(f"🔄 Auto-retrain scheduled every {RETRAIN_INTERVAL//60} minutes")
+
 
 def ml_detect(text):
     """Run ML model on text and return (is_attack, raw_prediction).

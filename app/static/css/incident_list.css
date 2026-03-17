@@ -1,0 +1,92 @@
+.filters-bar {
+        background: var(--bg-layout);
+        padding: 1.5rem;
+        /* Increased padding */
+        border-radius: var(--radius-lg);
+        display: flex;
+        gap: 1.5rem;
+        /* Increased gap */
+        margin-bottom: 2.5rem;
+        border: 1px solid var(--border-dim);
+        align-items: center;
+        flex-wrap: wrap;
+      }
+
+      .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        /* Increased gap */
+      }
+
+      .filter-group label {
+        font-size: 0.9rem;
+        /* Scaled up */
+        color: var(--text-secondary);
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      .filter-group select,
+      .filter-group input {
+        background: rgba(0, 0, 0, 0.3);
+        border: 1px solid var(--border-dim);
+        color: var(--text-primary);
+        padding: 0.75rem 1rem;
+        /* Increased padding */
+        border-radius: 10px;
+        outline: none;
+        font-size: 1rem;
+        /* Scaled up */
+      }
+
+      .status-badge {
+        padding: 6px 12px;
+        /* Increased padding */
+        border-radius: 6px;
+        font-size: 0.8rem;
+        /* Scaled up */
+        font-weight: 700;
+        text-transform: uppercase;
+      }
+
+      .status-detected {
+        background: rgba(56, 189, 248, 0.2);
+        color: var(--info);
+      }
+
+      .status-investigating {
+        background: rgba(245, 158, 11, 0.2);
+        color: var(--warning);
+      }
+
+      .status-mitigated {
+        background: rgba(34, 197, 94, 0.2);
+        color: var(--success);
+      }
+
+      .status-closed {
+        background: rgba(229, 231, 235, 0.2);
+        color: var(--text-secondary);
+      }
+
+      .action-link {
+        color: var(--brand-primary);
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 1rem;
+        /* Scaled up */
+      }
+
+      .action-link:hover {
+        color: var(--brand-secondary);
+        text-decoration: underline;
+      }
+
+      /* Role-based visibility */
+      [data-user-role="user"] .admin-only {
+        display: none !important;
+      }
+
+

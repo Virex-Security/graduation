@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}Virex Security{% endblock %}</title>
+    <!-- Google Fonts -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap"
+      rel="stylesheet"/>
+
+    <!-- Font Awesome -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+
+    <!-- Base CSS -->
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/theme.css') }}"/>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/dashboard.css') }}"/>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/layout.css') }}"/>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/sidebar-collapsible.css') }}"/>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/chatbot.css') }}"/>
+
+    <!-- Page-specific CSS -->
+    {% block stylesheets %}{% endblock %}
+
+    <!-- Theme Manager -->
+    <script src="{{ url_for('static', filename='javascript/theme.js') }}"></script>
+    <script src="{{ url_for('static', filename='javascript/access-control.js') }}"></script>
+  </head>
+
+  <body data-user-role="{{ user.role if user else 'guest' }}">
+    <input
+      type="checkbox"
+      id="sidebar-toggler"
+      class="sidebar-toggler"
+      hidden
+    />
+
+    <div class="dashboard-wrapper">
+      <!-- Sidebar -->
+     <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+          <div class="sidebar-brand">
+            <span class="brand-text">VIREX</span>
+          </div>
+          
+        </div>
+
+        <nav class="sidebar-menu">
+          <!-- Dashboard Section -->
+          <div class="menu-section">
+            <div class="menu-section-title">Dashboard</div>
+            <a href="/dashboard" class="menu-item active" data-tooltip="Dashboard">
+              <i class="fas fa-home"></i>
+              <span class="menu-text">Dashboard</span>
+            </a>
+          </div>
+
+          <!-- Inside Board Section -->
+          <div class="menu-section">
+            <div class="menu-section-title">Inside Board</div>
+            <a href="/incidents" class="menu-item" data-tooltip="Incidents">
+              <i class="fas fa-exclamation-triangle"></i>
+              <span class="menu-text">Incidents</span>
+            </a>
+            <a href="/ml-detections" class="menu-item" data-tooltip="ML Detections">
+              <i class="fas fa-brain"></i>
+              <span class="menu-text">ML Detections</span>
+            </a>
+          </div>
+
+          <!-- Blocked Area Section -->
+          <div class="menu-section">
+            <div class="menu-section-title">Blocked Area</div>
+            <a href="/blocked_page" class="menu-item" data-tooltip="Blocked">
+              <i class="fas fa-hand"></i>
+              <span class="menu-text">Blocked</span>
+            </a>
+            <a
+              href="/critical"
+              class="menu-item {% if active_page == 'critical' %}active{% endif %}"
+              data-tooltip="Critical"
+            >
+              <i class="fas fa-skull-crossbones"></i>
+              <span class="menu-text">Critical</span>
+            </a>
+          </div>
+
+          <!-- Weeks Section -->
+          <div class="menu-section">
+            <div class="menu-section-title">Weeks</div>
+            <a href="/requests" class="menu-item" data-tooltip="All Requests">
+              <i class="fas fa-globe"></i>
+              <span class="menu-text">All Requests</span>
+            </a>
+          </div>
+
+          <!-- Po Fake Section -->
+          <div class="menu-section">
+            <div class="menu-section-title">information</div>
+            <a href="/profile" class="menu-item" data-tooltip="Profile">
+              <i class="fas fa-user-shield"></i>
+              <span class="menu-text">Profile</span>
+            </a>
+          </div>
+
+          <!-- Reset Button (Admin Only) -->
+          {% if user and user.role == 'admin' %}
+          <div class="menu-section">
+            <button class="menu-item reset-menu-btn" id="sidebar-reset-btn" data-tooltip="Reset Stats">
+              <i class="fas fa-trash-can"></i>
+              <span class="menu-text">Reset Stats</span>
+            </button>
+          </div>
+          {% endif %}
+        </nav>
+
+        <div class="sidebar-footer">
+          <div class="sidebar-user">
+            <div class="user-avatar">
+              <i class="fas fa-user"></i>
+            </div>
+            <div class="user-info">
+              <div class="user-name">{{ user.username if user else 'User' }}</div>
+              <div class="user-role">{{ user.role if user else 'Role' }}</div>
+              <div class="user-connection-status" id="sidebar-connection-status">
+                <i class="fas fa-circle"></i>
+                <span>Connected</span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Logout Button -->
+          <button class="sidebar-logout-btn" id="logout-btn">
+            <i class="fas fa-right-from-bracket"></i>
+            <span class="logout-text">Logout</span>
+          </button>
+        </div>
+      </aside>
+
+      <!-- Main Content Area -->
+      <div class="main-wrapper" id="mainWrapper">
+        <nav class="navbar">
+          <div class="navbar-left">
+          <!-- Sidebar Toggle Button -->
+          <button class="btn-icon" id="sidebarToggle" title="Toggle Sidebar">
+            <i class="fas fa-bars"></i>
+          </button>
+
+          <div
+            class="brand"
+            onclick="location.href = '/'"
+            style="cursor: pointer"
+          >
+            <span>VIREX</span>
+          </div>
+        </div>
+
+          <div class="nav-actions">
+            {% block nav_actions %}
+            <!-- Back Button -->
+            <button
+              class="btn-icon back-btn"
+              onclick="history.back()"
+              title="Go Back"
+            >
+              <i class="fas fa-arrow-left"></i>
+            </button>
+
+            <!-- Theme Toggle Icon -->
+            <button
+              class="btn-icon"
+              id="theme-toggle"
+              title="Toggle Light/Dark Mode"
+            >
+              <i class="fas fa-sun"></i>
+            </button>
+            {% endblock %}
+          </div>
+        </nav>
+
+        <!-- Page Content -->
+        {% block content %}
+        <main class="main-content">
+          <p>Page content goes here</p>
+        </main>
+        {% endblock %}
+      </div>
+      <!-- End Main Wrapper -->
+    </div>
+
+    <!-- Chatbot Widget -->
+    {% include 'chatbot.html' %}
+
+    <!-- Common JavaScript -->
+    <script src="{{ url_for('static', filename='javascript/auth.js') }}"></script>
+    <script src="{{ url_for('static', filename='javascript/layout.js') }}"></script>
+    <script src="{{ url_for('static', filename='javascript/chatbot.js') }}"></script>
+    <script src="{{ url_for('static', filename='javascript/notifications.js') }}"></script>
+
+    <!-- Page-specific JavaScript -->
+    {% block scripts %}{% endblock %}
+  </body>
+</html>

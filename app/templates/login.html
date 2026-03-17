@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login - Virex</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Courier+Prime:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
+    <link rel="stylesheet" href="/static/css/theme.css" />
+    <link rel="stylesheet" href="/static/css/signup.css" />
+    <script src="/static/javascript/theme.js"></script>
+  </head>
+
+  <body>
+    <div class="signup-container">
+      <!-- Background Animation -->
+      <div class="animated-bg">
+        <div class="code-line code-line-1">const authenticateUser = {}</div>
+        <div class="code-line code-line-2">security.verify()</div>
+        <div class="code-line code-line-3">access.grant("dashboard")</div>
+        <div class="code-line code-line-4">return login(user)</div>
+      </div>
+
+      <!-- Navbar -->
+      <nav class="navbar">
+        <div class="navbar-container">
+          <div
+            class="logo"
+            onclick="window.location.href = '/'"
+            style="cursor: pointer"
+          >
+            <span>Virex</span>
+          </div>
+          <div class="nav-buttons"></div>
+        </div>
+      </nav>
+
+      <!-- Login Form -->
+      <div class="form-wrapper">
+        <div class="form-container">
+          <div class="form-header">
+            <h1>login</h1>
+            <p>Access your Virex security dashboard</p>
+          </div>
+
+          <form id="login-form">
+            <div class="form-group">
+              <label for="username">Username</label>
+              <input
+                type="text"
+                id="username"
+                name="username"
+                placeholder="Enter your username"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="password">Password</label>
+              <input
+                type="password"
+                id="password"
+                name="password"
+                placeholder="Enter your password"
+                required
+              />
+            </div>
+
+            <button type="submit" class="btn-submit">
+              <i class="fas fa-sign-in-alt"></i> Login
+            </button>
+          </form>
+
+          <!-- Error/Success Messages -->
+          <div id="message-box" class="hidden"></div>
+
+          <div class="form-footer">
+            <p>Don't have an account? <a href="/signup">Sign up here</a></p>
+          </div>
+        </div>
+
+        <div class="form-side">
+          <div class="side-content">
+            <h2>Welcome Back</h2>
+            <ul class="benefits-list">
+              <li>
+                <i class="fas fa-check-circle"></i>
+                <span>Real-time threat detection with AI</span>
+              </li>
+              <li>
+                <i class="fas fa-check-circle"></i>
+                <span>Advanced security analytics</span>
+              </li>
+              <li>
+                <i class="fas fa-check-circle"></i>
+                <span>24/7 monitoring and alerts</span>
+              </li>
+              <li>
+                <i class="fas fa-check-circle"></i>
+                <span>Comprehensive incident management</span>
+              </li>
+              <li>
+                <i class="fas fa-check-circle"></i>
+                <span>Machine learning powered protection</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="/static/javascript/auth.js"></script>
+    <script src="/static/javascript/login.js"></script>
+  </body>
+</html>
+
+

@@ -2,13 +2,13 @@ import json
 import os
 from pathlib import Path
 from werkzeug.security import generate_password_hash, check_password_hash
-from roles import Role
+from app.auth.roles import Role
 
 class UserManager:
     def __init__(self, storage_path=None):
         # Use data/ directory for storage
         if storage_path is None:
-            project_root = Path(__file__).parent
+            project_root = Path(__file__).parent.parent.parent
             storage_path = project_root / "data" / "users.json"
         self.storage_path = str(storage_path)
         self.users = {}

@@ -1,0 +1,203 @@
+{% extends "sidebar_layout.html" %} {% block title %}Incident Details - Virex{%
+endblock %} {% block stylesheets %}
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/incident_details.css') }}"
+/>
+{% endblock %} {% block content %}
+<main class="main-content">
+  <header class="section-title">
+    {% if user.role == 'user' %}
+    <div class="user-simple-notice">
+      <div
+        style="
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+          margin-bottom: 1rem;
+        "
+      >
+        <i
+          class="fas fa-shield-alt"
+          style="color: var(--brand-primary); font-size: 1.5rem"
+        ></i>
+        <h3 style="margin: 0">تنبيه أمان</h3>
+      </div>
+      <p style="margin: 0; color: var(--text-secondary)">
+        تم اكتشاف محاولة هجوم من نوع
+        <strong>{{ incident.category }}</strong> في
+        <strong>{{ incident.first_seen }}</strong>
+      </p>
+      <p style="margin: 1rem 0 0 0; color: var(--text-secondary)">
+        تم إرسال التفاصيل إلى فريق الأمان المتخصص لتحليل الموقف واتخاذ الإجراءات
+        اللازمة.
+      </p>
+    </div>
+    {% else %}
+    <div class="table-card admin-only incident-header">
+      <div class="incident-header-row">
+        <div class="incident-header-text">
+          <h1 id="incident-id-display">{{ incident.id }}</h1>
+          <p id="incident-meta-p">
+            {{ incident.category }} ({{ incident.detection_type }}) | {{
+            incident.source_ip }} | Status:
+            <strong>{{ incident.status }}</strong>
+          </p>
+        </div>
+        <input type="hidden" id="incident-id" value="{{ incident.id }}" />
+        <button class="btn-export" onclick="exportIncident()">
+          <i class="fas fa-file-export"></i> Export JSON
+        </button>
+      </div>
+    </div>
+    {% endif %}
+  </header>
+
+  <div class="details-grid admin-only">
+    <div class="left-col">
+      <div class="table-card">
+        <h2>Event Log Activity ({{ incident.events|length }} Events)</h2>
+        <table class="data-table" aria-label="Event Log Activity">
+          <thead>
+            <tr>
+              <th scope="col">Timestamp</th>
+              <th scope="col">Endpoint</th>
+              <th scope="col">Method</th>
+              <th scope="col">Snippet</th>
+              <th scope="col">Severity</th>
+            </tr>
+          </thead>
+          <tbody id="events-table-body">
+            {% if incident.events %} {% for event in incident.events %}
+            <tr>
+              <td>{{ event.timestamp }}</td>
+              <td>
+                <code class="JetBrains Mono" style="color: var(--primary-color)"
+                  >{{ event.endpoint or '/' }}</code
+                >
+              </td>
+              <td>
+                <span class="badge">{{ event.method or 'GET' }}</span>
+              </td>
+              <td>
+                <span class="snippet-code" title="{{ event.snippet }}"
+                  >{{ event.snippet or 'N/A' }}</span
+                >
+              </td>
+              <td>
+                <span class="severity-badge sev-{{ event.severity.lower() }}"
+                  >{{ event.severity }}</span
+                >
+              </td>
+            </tr>
+            {% endfor %} {% else %}
+            <tr>
+              <td
+                colspan="5"
+                style="
+                  text-align: center;
+                  padding: 1rem;
+                  color: var(--text-muted);
+                "
+              >
+                No events recorded
+              </td>
+            </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="audit-trail">
+        <h2>Action Audit Trail (SIEM)</h2>
+        <div id="audit-list">
+          {% if incident.actions %} {% for action in incident.actions %}
+          <div class="audit-item">
+            <div class="audit-meta">
+              {{ action.timestamp }} by
+              <strong>{{ action.actor }}</strong>
+            </div>
+            <div>Applied: <strong>{{ action.action }}</strong></div>
+            <div style="font-size: 0.85rem; margin-top: 4px">
+              Comment: {{ action.comment or 'N/A' }}
+            </div>
+          </div>
+          {% endfor %} {% else %}
+          <p style="color: var(--text-muted)">No actions taken yet.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="right-col">
+      <div class="action-panel">
+        <h3>Response Actions</h3>
+        <p
+          style="
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+          "
+        >
+          Change status or apply mitigation steps for this incident.
+        </p>
+
+        <div class="filter-group">
+          <label for="action-comment">Internal Comment</label>
+          <textarea
+            id="action-comment"
+            class="form-control"
+            aria-describedby="action-comment-hint"
+            style="
+              width: 100%;
+              min-height: 80px;
+              background: var(--bg-color);
+              color: white;
+              border: 1px solid var(--border-color);
+              padding: 0.5rem;
+              border-radius: 6px;
+            "
+          ></textarea>
+        </div>
+
+        <div class="action-btns">
+          <button
+            class="btn-action btn-investigate"
+            onclick="performAction('Investigate')"
+          >
+            <i class="fas fa-search fa-lg" aria-hidden="true"></i> Investigate
+          </button>
+          <button class="btn-action btn-close" onclick="performAction('Close')">
+            <i class="fas fa-check fa-lg" aria-hidden="true"></i> Close
+          </button>
+          <button
+            class="btn-action btn-block"
+            onclick="performAction('Block IP')"
+          >
+            <i class="fas fa-ban fa-lg" aria-hidden="true"></i> Block IP
+          </button>
+          <button
+            class="btn-action btn-limit"
+            onclick="performAction('Rate Limit')"
+          >
+            <i class="fas fa-gauge-high fa-lg" aria-hidden="true"></i> Limit
+          </button>
+          <button
+            class="btn-action btn-fp"
+            onclick="performAction('False Positive')"
+          >
+            <i class="fas fa-circle-xmark fa-lg" aria-hidden="true"></i> False
+            Positive
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+{% endblock %} {% block scripts %}
+<script>
+  // Only page-specific JavaScript here
+</script>
+<script src="{{ url_for('static', filename='javascript/incident_details.js') }}"></script>
+{% endblock %}
+

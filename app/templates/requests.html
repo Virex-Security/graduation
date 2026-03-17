@@ -1,0 +1,293 @@
+{% extends "sidebar_layout.html" %} {% set active_page = 'requests' %} {% block
+title %}Total Requests - Virex{% endblock %} {% block stylesheets %}
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/requests.css') }}"
+/>
+{% endblock %} {% block content %}
+<main class="main-content">
+  <header class="section-title">
+    <h1>{{ title }}</h1>
+    <p>Complete log of all traffic processed by the system.</p>
+  </header>
+
+  <!-- Summary Cards -->
+  {% set total = logs | length %} {% set clean = logs |
+  selectattr('attack_type', 'equalto', 'Clean') | list | length %} {% set
+  attacks = total - clean %} {% set blocked_count = logs | selectattr('blocked',
+  'equalto', true) | list | length %}
+
+  <div class="req-summary">
+    <div class="req-card card-total">
+      <div class="req-card-icon"><i class="fas fa-globe"></i></div>
+      <div class="req-card-label">Total Requests</div>
+      <div class="req-card-value">{{ total }}</div>
+    </div>
+    <div class="req-card card-clean">
+      <div class="req-card-icon">
+        <i class="fas fa-circle-check"></i>
+      </div>
+      <div class="req-card-label">Clean</div>
+      <div class="req-card-value">{{ clean }}</div>
+    </div>
+    <div class="req-card card-attack">
+      <div class="req-card-icon">
+        <i class="fas fa-triangle-exclamation"></i>
+      </div>
+      <div class="req-card-label">Attacks Detected</div>
+      <div class="req-card-value">{{ attacks }}</div>
+    </div>
+    <div class="req-card card-blocked">
+      <div class="req-card-icon"><i class="fas fa-ban"></i></div>
+      <div class="req-card-label">Blocked</div>
+      <div class="req-card-value">{{ blocked_count }}</div>
+    </div>
+  </div>
+
+  <!-- Table Card -->
+  <div class="table-card">
+    {% if user.role == 'user' %}
+    <div class="user-notice">
+      <i class="fas fa-list-ul"></i>
+      <h>Activity history </h2>
+    </div>
+    {% endif %} {% if user.role == 'admin' %}
+    <div class="req-toolbar">
+      <div class="filter-group">
+        <button
+          class="filter-btn filter-all active"
+          onclick="filterTable('all', this)"
+        >
+          <i class="fas fa-layer-group"></i> All
+        </button>
+        <button
+          class="filter-btn filter-clean"
+          onclick="filterTable('clean', this)"
+        >
+          <i class="fas fa-circle-check"></i> Clean
+        </button>
+        <button
+          class="filter-btn filter-sqli"
+          onclick="filterTable('sqli', this)"
+        >
+          <i class="fas fa-database"></i> SQLi
+        </button>
+        <button
+          class="filter-btn filter-xss"
+          onclick="filterTable('xss', this)"
+        >
+          <i class="fas fa-code"></i> XSS
+        </button>
+        <button
+          class="filter-btn filter-brute"
+          onclick="filterTable('brute', this)"
+        >
+          <i class="fas fa-key"></i> Brute Force
+        </button>
+        <button
+          class="filter-btn filter-scanner"
+          onclick="filterTable('scanner', this)"
+        >
+          <i class="fas fa-eye"></i> Scanner
+        </button>
+        <button class="filter-btn filter-ml" onclick="filterTable('ml', this)">
+          <i class="fas fa-brain"></i> ML
+        </button>
+        <button
+          class="filter-btn filter-rate"
+          onclick="filterTable('rate', this)"
+        >
+          <i class="fas fa-bolt"></i> Rate Limit
+        </button>
+        <button
+          class="filter-btn filter-blocked"
+          onclick="filterTable('blocked', this)"
+        >
+          <i class="fas fa-ban"></i> Blocked
+        </button>
+      </div>
+      <input
+        class="req-search"
+        type="text"
+        placeholder="Search IP / type / endpoint…"
+        oninput="searchTable(this.value)"
+      />
+      <span class="row-count" id="row-count"></span>
+    </div>
+    {% endif %}
+
+    <div class="req-table-wrap">
+      <table class="req-table" id="req-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Timestamp</th>
+            <th class="admin-only">IP Address</th>
+            <th>Type</th>
+            <th>Severity</th>
+            <th class="admin-only">Method</th>
+            <th class="admin-only">Endpoint</th>
+            <th class="admin-only">Payload</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="req-tbody">
+          {% for log in logs %} {% set t = (log.attack_type or log.type or '') |
+          lower %} {% if log.blocked %}{% set row_tint = 'row-blocked-tint' %}
+          {% elif 'clean' in t %}{% set row_tint = 'row-clean-tint' %} {% else
+          %}{% set row_tint = 'row-attack-tint' %}{% endif %}
+
+          <tr
+            class="{{ row_tint }}"
+            data-type="{{ t }}"
+            data-blocked="{{ 'true' if log.blocked else 'false' }}"
+            data-search="{{ (log.ip or '') ~ ' ' ~ (log.attack_type or '') ~ ' ' ~ (log.endpoint or '') | lower }}"
+          >
+            <td class="mono idx-cell">{{ loop.index }}</td>
+            <td class="mono">{{ log.timestamp }}</td>
+            <td class="admin-only mono">{{ log.ip or '—' }}</td>
+
+            <!-- Type badge -->
+            <td>
+              {% if user.role == 'admin' %} {% if 'sql' in t %}<span
+                class="threat-badge t-sqli"
+                ><i class="fas fa-database"></i> {{ log.attack_type }}</span
+              >
+              {% elif 'xss' in t %}<span class="threat-badge t-xss"
+                ><i class="fas fa-code"></i> {{ log.attack_type }}</span
+              >
+              {% elif 'brute' in t %}<span class="threat-badge t-brute"
+                ><i class="fas fa-key"></i> {{ log.attack_type }}</span
+              >
+              {% elif 'scan' in t %}<span class="threat-badge t-scanner"
+                ><i class="fas fa-eye"></i> {{ log.attack_type }}</span
+              >
+              {% elif 'ml' in t or 'anomaly' in t %}<span
+                class="threat-badge t-ml"
+                ><i class="fas fa-brain"></i> {{ log.attack_type }}</span
+              >
+              {% elif 'rate' in t %}<span class="threat-badge t-rate"
+                ><i class="fas fa-bolt"></i> {{ log.attack_type }}</span
+              >
+              {% elif 'clean' in t %}<span class="threat-badge t-clean"
+                ><i class="fas fa-circle-check"></i> Clean</span
+              >
+              {% else %}<span class="threat-badge t-unknown"
+                ><i class="fas fa-circle-question"></i> {{ log.attack_type or
+                '—' }}</span
+              >
+              {% endif %} {% else %} {% if log.attack_type != 'Clean' %}
+              <span class="threat-badge t-unknown"
+                ><i class="fas fa-triangle-exclamation"></i> threats </span
+              >
+              {% else %}
+              <span class="threat-badge t-clean"
+                ><i class="fas fa-circle-check"></i> clean </span
+              >
+              {% endif %} {% endif %}
+            </td>
+
+            <!-- Severity -->
+            <td>
+              {% set sev = (log.severity or 'clean') | lower %}
+              <span class="sev-badge sev-{{ sev }}"
+                >{{ log.severity or 'Clean' }}</span
+              >
+            </td>
+
+            <td class="admin-only mono method-cell">{{ log.method or '—' }}</td>
+            <td class="admin-only mono payload-td">
+              {{ log.endpoint or '—' }}
+            </td>
+            <td class="admin-only mono payload-td">
+              {{ log.payload or log.snippet or log.description or '—' }}
+            </td>
+
+            <!-- Status -->
+            <td>
+              {% if log.blocked %}<span class="status-badge s-blocked"
+                ><i class="fas fa-ban"></i> Blocked</span
+              >
+              {% elif log.ml_detected %}<span class="status-badge s-ml"
+                ><i class="fas fa-brain"></i> ML Detected</span
+              >
+              {% elif log.attack_type == 'Clean' %}<span
+                class="status-badge s-allowed"
+                ><i class="fas fa-circle-check"></i> Allowed</span
+              >
+              {% else %}<span class="status-badge s-detected"
+                ><i class="fas fa-triangle-exclamation"></i> Detected</span
+              >
+              {% endif %}
+            </td>
+          </tr>
+          {% else %}
+          <tr class="empty-row">
+            <td colspan="9">
+              <i class="fas fa-inbox"></i>No requests logged yet.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</main>
+{% endblock %} {% block scripts %}
+<script>
+  let activeFilter = "all";
+  let activeSearch = "";
+
+  function filterTable(type, btn) {
+    activeFilter = type;
+    document
+      .querySelectorAll(".filter-btn")
+      .forEach((b) => b.classList.remove("active"));
+    btn.classList.add("active");
+    applyFilters();
+  }
+
+  function searchTable(q) {
+    activeSearch = q.toLowerCase().trim();
+    applyFilters();
+  }
+
+  function applyFilters() {
+    const rows = document.querySelectorAll("#req-tbody tr[data-type]");
+    let visible = 0;
+    rows.forEach((row) => {
+      const t = row.dataset.type || "";
+      const blocked = row.dataset.blocked === "true";
+      const search = (row.dataset.search || "").toLowerCase();
+      let show = true;
+
+      if (activeFilter !== "all") {
+        if (activeFilter === "clean") show = t === "clean";
+        else if (activeFilter === "blocked") show = blocked;
+        else if (activeFilter === "sqli") show = t.includes("sql");
+        else if (activeFilter === "xss") show = t.includes("xss");
+        else if (activeFilter === "brute") show = t.includes("brute");
+        else if (activeFilter === "scanner") show = t.includes("scan");
+        else if (activeFilter === "ml")
+          show = t.includes("ml") || t.includes("anomaly");
+        else if (activeFilter === "rate") show = t.includes("rate");
+      }
+
+      if (show && activeSearch) show = search.includes(activeSearch);
+      row.classList.toggle("row-hidden", !show);
+      if (show) visible++;
+    });
+
+    const counter = document.getElementById("row-count");
+    if (counter)
+      counter.textContent = `${visible} row${visible !== 1 ? "s" : ""}`;
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const rows = document.querySelectorAll("#req-tbody tr[data-type]");
+    const counter = document.getElementById("row-count");
+    if (counter)
+      counter.textContent = `${rows.length} row${rows.length !== 1 ? "s" : " "}`;
+  });
+</script>
+{% endblock %}

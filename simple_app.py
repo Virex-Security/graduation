@@ -1,6 +1,12 @@
-from security.filters import is_trivial, is_business_relevant
-from ml.model import ml_detect
-from security.events import new_request_id, build_event
+try:
+    from app.security.filters import is_trivial, is_business_relevant
+    from app.ml.inference import ml_detect
+    from app.security.events import new_request_id, build_event
+except ImportError:
+    # Fallback to old structure
+    from security.filters import is_trivial, is_business_relevant
+    from ml.model import ml_detect
+    from security.events import new_request_id, build_event
 from flask import Flask, request, jsonify
 import time
 import re
@@ -244,7 +250,17 @@ class SimpleSecurityManager:
         return True, "OK"
 def create_simple_app():
     """Create a simple Flask app for testing"""
-    app = Flask(__name__)
+    import os
+    from pathlib import Path
+    
+    # Set template and static folders to use refactored structure
+    project_root = Path(__file__).parent
+    template_folder = str(project_root / "app" / "templates")
+    static_folder = str(project_root / "app" / "static")
+    
+    app = Flask(__name__, 
+                template_folder=template_folder,
+                static_folder=static_folder)
     CORS(app, resources={r"/api/*": {"origins": "*"}})
     security = SimpleSecurityManager()
     

@@ -1,5 +1,5 @@
 @echo off
 echo Starting Security Dashboard...
 echo ================================
-python dashboard.py
+python run_dashboard.py
 pause
