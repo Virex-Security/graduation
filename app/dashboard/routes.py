@@ -216,6 +216,23 @@ def create_dashboard_app():
             except Exception:
                 pass
         return render_template('signup.html')
+    
+    # Static pages routes
+    @app.route('/privacy')
+    def privacy_page():
+        return render_template('privacy.html')
+    
+    @app.route('/terms')
+    def terms_page():
+        return render_template('terms.html')
+    
+    @app.route('/docs')
+    def docs_page():
+        return render_template('docs.html')
+    
+    @app.route('/support')
+    def support_page():
+        return render_template('support.html')
     @app.route('/api/dashboard/data')
     @token_required
     def dashboard_data(current_user):

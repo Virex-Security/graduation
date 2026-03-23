@@ -11,13 +11,13 @@ const Auth = {
    * Initialize authentication state
    */
   init() {
-    // Avoid automatic redirects from the login page which can cause
-    // a brief flash/flicker if a stale session value exists in
-    // `localStorage`. Only enforce redirects when the user is trying
-    // to access protected pages (not the login page).
+    // Avoid automatic redirects from the login and signup pages
+    // and the landing page to prevent redirect loops.
     if (
       !this.isAuthenticated() &&
-      !window.location.pathname.includes("login")
+      !window.location.pathname.includes("login") &&
+      !window.location.pathname.includes("signup") &&
+      window.location.pathname !== "/"
     ) {
       window.location.href = "/login";
     }
