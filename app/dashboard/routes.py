@@ -67,6 +67,7 @@ def create_dashboard_app():
         '/threats/ml-detection', '/threats/brute-force',
         '/threats/scanner', '/threats/rate-limit',
         '/login', '/signup', '/',
+        '/privacy', '/terms', '/docs', '/support',
     }
     @app.before_request
     def load_global_context():
