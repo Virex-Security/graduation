@@ -896,6 +896,10 @@ def create_dashboard_app():
         data = request.get_json()
         new_role = data.get('role')
         
+        valid_roles = ['admin', 'user', 'viewer']
+        if not new_role or new_role not in valid_roles:
+            return jsonify({'error': f'Invalid role. Must be one of: {", ".join(valid_roles)}'}), 400
+        
         user = user_manager.get_user_by_id(user_id)
         if not user:
             return jsonify({'error': 'User not found'}), 404
