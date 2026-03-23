@@ -14,7 +14,7 @@ from app.api import services
 from app.auth import user_manager
 from app.security import new_request_id, is_trivial, is_business_relevant
 
-load_dotenv("env")
+load_dotenv()
 
 logger = logging.getLogger(__name__)
 
@@ -96,7 +96,7 @@ def create_api_app():
                 data = request.get_json()
                 if data:
                     data_to_scan.update(data)
-            except:
+            except Exception:
                 pass
         
         if data_to_scan:

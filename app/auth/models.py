@@ -130,6 +130,14 @@ class UserManager:
                 }
         return None
     
+    def delete_user(self, username):
+        """Delete a user by username"""
+        if username not in self.users:
+            return False, "User not found"
+        del self.users[username]
+        self._save_users()
+        return True, "User deleted successfully"
+
     def create_user(self, username, password, email=None, role=Role.USER):
         """Create a new user"""
         from datetime import datetime

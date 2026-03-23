@@ -321,15 +321,6 @@ class SecurityDashboard:
                 'blocked_requests': self.stats['blocked_requests'],
                 'rate_limit_hits': self.stats['rate_limit_hits']
             })
-    def check_api_connection(self):
-        # Always report as CONNECTED to prevent dashboard issues
-        self.connection_state = CONNECTED
-        self.had_connection = True
-    def update_failed_connection(self):
-        if self.had_connection:
-            self.connection_state = DISCONNECTED
-        else:
-            self.connection_state = WAITING
     def get_top_attackers(self, limit=5):
         sorted_ips = sorted(self.ip_tracker.items(), key=lambda x: x[1], reverse=True)
         return sorted_ips[:limit]
@@ -552,7 +543,7 @@ class SecurityDashboard:
                 self.had_connection = True
             else:
                 self.update_failed_connection()
-        except:
+        except Exception:
             self.update_failed_connection()
     
     def update_failed_connection(self):

@@ -51,7 +51,7 @@ def is_recent(timestamp_str, minutes=5):
         now = datetime.now()
         diff = (now - threat_time).total_seconds() / 60
         return diff <= minutes
-    except:
+    except (ValueError, TypeError):
         return False
 
 

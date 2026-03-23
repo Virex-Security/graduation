@@ -13,7 +13,7 @@ from dotenv import load_dotenv
 from app.ml import ml_detect
 from app.security import build_event
 
-load_dotenv("env")
+load_dotenv()
 
 logger = logging.getLogger(__name__)
 

@@ -56,7 +56,7 @@ def create_dashboard_app():
         print(f"[AUDIT] {log_entry}")
         dashboard.write_audit_log(log_entry)
     # ----------------------------------------------------------
-    # TRAFFIC LOGGER â€” intercepts every request automatically
+    # TRAFFIC LOGGER - intercepts every request automatically
     # ----------------------------------------------------------
     SKIP_PREFIXES = ('/static/', '/api/dashboard/', '/api/system/', '/favicon', '/api/auth/', '/api/critical-threats', '/api/chat', '/api/ml/', '/api/user', '/api/incidents', '/api/critical')
     # Dashboard internal pages - should not be counted as traffic
@@ -162,7 +162,7 @@ def create_dashboard_app():
                 user = user_manager.get_user(data['user'])
                 if user:
                     log_action(user, "Logout")
-            except:
+            except Exception:
                 pass
         return logout_user()
     @app.route('/')
@@ -792,7 +792,6 @@ def create_dashboard_app():
         return jsonify(settings)
     
     @app.route('/api/settings', methods=['POST'])
-    @token_required
     @admin_required
     def update_settings(current_user):
         """Update system settings (Admin only)"""
@@ -885,6 +884,7 @@ def create_dashboard_app():
         
         new_status = 'inactive' if user.get('status') == 'active' else 'active'
         # Update user status in database
+        user_manager.update_user(user.get('username'), status=new_status)
         log_action(current_user, "User Status Changed", f"Changed {user.get('username')} status to {new_status}")
         
         return jsonify({'status': 'success', 'new_status': new_status})
@@ -901,6 +901,7 @@ def create_dashboard_app():
             return jsonify({'error': 'User not found'}), 404
         
         # Update user role
+        user_manager.update_user(user.get('username'), role=new_role)
         log_action(current_user, "User Role Changed", f"Changed {user.get('username')} role to {new_role}")
         
         return jsonify({'status': 'success', 'new_role': new_role})
@@ -917,6 +918,7 @@ def create_dashboard_app():
             return jsonify({'error': 'Cannot delete your own account'}), 400
         
         # Delete user
+        user_manager.delete_user(user.get('username'))
         log_action(current_user, "User Deleted", f"Deleted user {user.get('username')}")
         
         return jsonify({'status': 'success', 'message': 'User deleted successfully'})
@@ -1027,7 +1029,8 @@ def create_dashboard_app():
     def get_blacklist(current_user):
         """Get all blacklist entries"""
         try:
-            blacklist_file = Path('data/blacklist.json')
+            project_root = Path(__file__).parent.parent.parent
+            blacklist_file = project_root / 'data' / 'blacklist.json'
             if blacklist_file.exists():
                 with open(blacklist_file, 'r') as f:
                     blacklist = json.load(f)
@@ -1054,7 +1057,8 @@ def create_dashboard_app():
                 return jsonify({'error': 'Type, value, and reason are required'}), 400
             
             # Load existing blacklist
-            blacklist_file = Path('data/blacklist.json')
+            project_root = Path(__file__).parent.parent.parent
+            blacklist_file = project_root / 'data' / 'blacklist.json'
             if blacklist_file.exists():
                 with open(blacklist_file, 'r') as f:
                     blacklist = json.load(f)
@@ -1097,7 +1101,8 @@ def create_dashboard_app():
             data = request.get_json()
             
             # Load existing blacklist
-            blacklist_file = Path('data/blacklist.json')
+            project_root = Path(__file__).parent.parent.parent
+            blacklist_file = project_root / 'data' / 'blacklist.json'
             if not blacklist_file.exists():
                 return jsonify({'error': 'Blacklist not found'}), 404
             
@@ -1135,7 +1140,8 @@ def create_dashboard_app():
         """Delete blacklist entry"""
         try:
             # Load existing blacklist
-            blacklist_file = Path('data/blacklist.json')
+            project_root = Path(__file__).parent.parent.parent
+            blacklist_file = project_root / 'data' / 'blacklist.json'
             if not blacklist_file.exists():
                 return jsonify({'error': 'Blacklist not found'}), 404
             
@@ -1184,7 +1190,7 @@ def is_recent(timestamp_str):
         threat_time = datetime.strptime(timestamp_str, "%Y-%m-%d %H:%M:%S")
         now = datetime.now()
         return (now - threat_time).total_seconds() < 86400 # 24 hours
-    except:
+    except (ValueError, TypeError):
         return False
 def determine_threat_status(threat):
     """Determine threat status based on properties"""
@@ -1196,7 +1202,7 @@ def determine_threat_status(threat):
         now = datetime.now()
         if (now - threat_time).total_seconds() < 300:
             return 'Ongoing'
-    except:
+    except (ValueError, TypeError):
         pass
     return 'Dormant'
 def run_timeline_updates():
