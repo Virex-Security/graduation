@@ -12,8 +12,10 @@ How it works:
 """
 
 import re
+import os
 import time
 import random
+
 import difflib
 from collections import defaultdict
 
@@ -273,7 +275,47 @@ INTENTS = {
             "يلا باي", "سلام",
         ]
     },
+    
+    # ── NEW KNOWLEDGE INTENTS ─────────────────────────────────────
+    "what_is_sqli": {
+        "triggers": ["what is sql injection", "explain sql", "يعني ايه sql", "شرح sql", "حقن قواعد بيانات", "sqli meaning", "ما هو sql", "sql injection"]
+    },
+    "what_is_xss": {
+        "triggers": ["what is xss", "explain xss", "cross site scripting", "يعني ايه xss", "شرح xss", "ما هو xss"]
+    },
+    "what_is_ddos": {
+        "triggers": ["what is ddos", "explain ddos", "dos attack", "denial of service", "يعني ايه ddos", "شرح ddos", "ما هو ddos", "حجب الخدمة", "طوفان"]
+    },
+    "what_is_malware": {
+        "triggers": ["what is malware", "explain malware", "virus", "trojan", "ransomware", "يعني ايه فيروس", "برمجيات خبيثة", "فيروسات", "شرح malware"]
+    },
+    "what_is_phishing": {
+        "triggers": ["what is phishing", "explain phishing", "social engineering", "يعني ايه تصيد", "شرح التصيد", "نصب", "احتيال", "phishing meaning"]
+    },
+    "what_is_firewall": {
+        "triggers": ["what is firewall", "explain firewall", "waf", "يعني ايه جدار", "شرح جدار حماية", "ما هو الفايرول", "جدار ناري"]
+    },
+    "virex_info": {
+        "triggers": ["what is virex", "who made virex", "virex info", "ايه هو فايركس", "مين عمل فايركس", "نظام virex", "معلومات عن virex", "فايركس"]
+    },
+    "dashboard_help": {
+        "triggers": ["how to use", "help me", "dashboard guide", "ازاي استخدم الموقع", "شرح الموقع", "مساعدة", "استخدام الداشبورد", "لوحة التحكم", "كيف استخدم"]
+    },
+    "top_attack": {
+        "triggers": ["top attack", "what is top attack", "most frequent attack", "highest threat", "most common attack", "اكتر هجوم متكرر", "اخطر نوع هجوم", "اكثر هجوم", "نوع الهجوم المنتشر", "top attack type"]
+    },
 }
+
+# --- EXTENDED EXISTING INTENTS FOR BETTER RECOGNITION ---
+INTENTS["greeting"]["triggers"].extend(["عامل ايه يا دوبي", "يا دوبي", "صباحو", "مساءو", "hello dobby", "hi dobby", "ازيك يا دوبي"])
+INTENTS["system_status"]["triggers"].extend(["طمني", "كله تمام", "في هجمات دلوقتي", "اي الاخبار", "كله في السليم", "حالة السيرفر"])
+INTENTS["thanks"]["triggers"].extend(["حبيبي", "كفاءة", "الله ينور", "تسلم ايدك", "شكرا يا دوبي", "عظمة"])
+INTENTS["identity"]["triggers"].extend(["انت مين يالا", "مين المطور بتاعك", "مين برمجك", "انت عبارة عن ايه", "عرفني عليك"])
+INTENTS["top_attacker"]["triggers"].extend(["مين اكتر حد بيهاجم", "اسوا اي بي", "مين بيبعت هجمات", "اخطر حد"])
+INTENTS["recent_threats"]["triggers"].extend(["حصل ايه من شوية", "اخر الاخبار", "شوف كده في هجمات", "اخر تهديدات", "ايه بيحصل"])
+
+INTENTS["incident_action"]["triggers"].extend(["تنصحني بايه", "اتصرف ازاي", "اعمل ايه مع الهجوم", "الحل ايه"])
+
 
 
 def _normalize(text: str) -> str:
@@ -290,6 +332,13 @@ def _normalize(text: str) -> str:
     return text
 
 
+STOP_WORDS = {"is", "are", "do", "does", "what", "how", "who", "tell", "me", "about", "can", "you", "the", "a", "an", "في", "ايه", "هو", "مين", "عن", "من", "هل", "بتاع", "يعني", "شرح", "وضح", "قولي"}
+
+def _stem(word: str) -> str:
+    if word.endswith('s') and len(word) > 3 and not word.endswith('ss'):
+        return word[:-1]
+    return word
+
 def _intent_score(query_norm: str, triggers: list) -> float:
     """
     Score how well query matches this intent.
@@ -300,11 +349,14 @@ def _intent_score(query_norm: str, triggers: list) -> float:
     Returns score 0.0 → 1.0
     """
     best = 0.0
-    q_tokens = set(query_norm.split())
+    
+    raw_q_tokens = query_norm.split()
+    q_tokens = { _stem(w) for w in raw_q_tokens if w not in STOP_WORDS }
 
     for trigger in triggers:
         t_norm = _normalize(trigger)
-        t_tokens = set(t_norm.split())
+        raw_t_tokens = t_norm.split()
+        t_tokens = { _stem(w) for w in raw_t_tokens if w not in STOP_WORDS }
 
         # Exact substring
         if t_norm in query_norm or query_norm in t_norm:
@@ -314,7 +366,11 @@ def _intent_score(query_norm: str, triggers: list) -> float:
         # Token overlap ratio
         if t_tokens and q_tokens:
             overlap = len(q_tokens & t_tokens) / max(len(t_tokens), 1)
-            best = max(best, overlap * 0.85)
+            # Boost score significantly if ALL non-stop tokens of the trigger are in the query
+            if len(q_tokens & t_tokens) == len(t_tokens):
+                best = max(best, 0.95)
+            else:
+                best = max(best, overlap * 0.85)
 
         # Fuzzy similarity on full string
         ratio = difflib.SequenceMatcher(None, query_norm, t_norm).ratio()
@@ -323,7 +379,7 @@ def _intent_score(query_norm: str, triggers: list) -> float:
     return best
 
 
-def _classify(query: str, threshold: float = 0.30) -> str:
+def _classify(query: str, threshold: float = 0.20) -> str:
     """Return the best-matching intent name, or 'unknown'."""
     q_norm = _normalize(query)
     scores = {}
@@ -467,6 +523,24 @@ class SecurityChatbot:
         header = "🚨 **أخطر المصادر:**\n" if lang == 'ar' else "🚨 **Top Attackers:**\n"
         return header + "\n".join(lines)
 
+    def _r_top_attack(self, lang):
+        s = self.dashboard.stats
+        attack_types = {
+            "SQL Injection": s.get('sql_injection_attempts', 0),
+            "XSS": s.get('xss_attempts', 0),
+            "Brute Force": s.get('brute_force_attempts', 0),
+            "Scanner": s.get('scanner_attempts', 0),
+            "Rate Limit/DDoS": s.get('rate_limit_hits', 0),
+        }
+        if not attack_types or all(v == 0 for v in attack_types.values()):
+            return ("لاتوجد هجمات حالياً. النظام آمن! 🟢" if lang == 'ar'
+                    else "No attacks recorded currently. System is safe! 🟢")
+            
+        top_name, top_count = max(attack_types.items(), key=lambda x: x[1])
+        if lang == 'ar':
+            return f"🚨 **أعلى نوع هجوم (Top Attack):**\nهو **{top_name}** بعدد `{top_count}` محاولة."
+        return f"🚨 **Top Attack Type:**\nIt is **{top_name}** with `{top_count}` attempts."
+
     def _r_recent_threats(self, lang, is_admin):
         recent = list(self.dashboard.recent_threats)[-5:]
         if not recent:
@@ -565,17 +639,57 @@ class SecurityChatbot:
             "Take care! Dobby keeps watching. 😎",
         ])
 
+    def _r_what_is_sqli(self, lang):
+        if lang == 'ar':
+            return "**حقن قواعد البيانات (SQL Injection):**\nهو هجوم بيستغل ثغرات في الكود عشان ينفذ أوامر SQL خبيثة جوه قاعدة البيانات. المهاجم ممكن يسرق بيانات، يمسحها، أو حتى يتحكم في السيرفر!"
+        return "**SQL Injection (SQLi):**\nAn attack that executes malicious SQL statements to manipulate database data, allowing attackers to view, modify, or delete restricted information."
+
+    def _r_what_is_xss(self, lang):
+        if lang == 'ar':
+            return "**السكربتات العابرة للمواقع (XSS):**\nالمهاجم بيحط كود خبيث (زي جافاسكريبت) جوه صفحة ويب بيشوفها مستخدمين تانيين. ده بيسمحله يسرق الكوكيز أو يغير شكل الصفحة!"
+        return "**Cross-Site Scripting (XSS):**\nA vulnerability where an attacker injects malicious scripts into trusted websites viewed by other users, often used to steal session cookies."
+
+    def _r_what_is_ddos(self, lang):
+        if lang == 'ar':
+            return "**هجوم حجب الخدمة (DDoS):**\nالمهاجم بيبعت آلاف أو ملايين الطلبات الوهمية للسيرفر في نفس الوقت، عشان يخليه يقع أو يبطأ جداً وميقدرش يخدم المستخدمين الحقيقيين."
+        return "**Distributed Denial of Service (DDoS):**\nA malicious attempt to disrupt normal traffic of a targeted server by overwhelming it with a flood of internet traffic."
+
+    def _r_what_is_malware(self, lang):
+        if lang == 'ar':
+            return "**البرمجيات الخبيثة (Malware):**\nأي برنامج متصمم عشان يضر جهاز أو شبكة. بيشمل الفيروسات، حصان طروادة (Trojan)، وبرامج الفدية (Ransomware) اللي بتشفر ملفاتك."
+        return "**Malware:**\nMalicious software designed to harm or exploit any programmable device or network, including viruses, trojans, and ransomware."
+
+    def _r_what_is_phishing(self, lang):
+        if lang == 'ar':
+            return "**التصيد الاحتيالي (Phishing):**\nهجوم بيعتمد على خداعك (غالباً بإيميل أو رسالة مزيفة) عشان تدي المهاجم معلومات حساسة زي كلمات السر أو بيانات البنك."
+        return "**Phishing:**\nA cybercrime in which a target is contacted by someone posing as a legitimate institution to lure them into providing sensitive data."
+
+    def _r_what_is_firewall(self, lang):
+        if lang == 'ar':
+            return "**جدار الحماية (Firewall):**\nهو نظام أمني بيراقب ويتحكم في حركة المرور اللي داخلة وطالعة من الشبكة بناءً على قواعد محددة، عشان يمنع الهجمات. و Virex بيشتغل كجدار حماية ذكي!"
+        return "**Firewall:**\nA network security system that monitors and controls incoming and outgoing network traffic based on predetermined security rules. Virex acts as a smart WAF!"
+
+    def _r_virex_info(self, lang):
+        if lang == 'ar':
+            return "**عن Virex 🛡️:**\nنظام لحماية التطبيقات (WAF) معتمد على الذكاء الاصطناعي لاكتشاف وصد الهجمات في الوقت الفعلي. تم تطويره كمشروع تخرج علشان يكون درع قوي ضد التهديدات السيبرانية!"
+        return "**About Virex 🛡️:**\nAn AI-powered Web Application Firewall (WAF) designed to detect and block threats in real-time. Created as a graduation project to be a robust cyber shield!"
+
+    def _r_dashboard_help(self, lang):
+        if lang == 'ar':
+            return "عشان تستخدم الداشبورد:\n1️⃣ **Incidents**: شوف الهجمات والحوادث المتسجلة.\n2️⃣ **Threats**: خريطة حية وتحليل للتهديدات.\n3️⃣ **Network**: راقب حركة المرور.\n4️⃣ **Settings**: لتعديل الحماية والـ Rate Limiting."
+        return "To use the dashboard:\n1️⃣ **Incidents**: View recorded attacks.\n2️⃣ **Threats**: Live map & threat analysis.\n3️⃣ **Network**: Monitor incoming traffic.\n4️⃣ **Settings**: Configure firewall and rate limits."
+
     def _r_unknown(self, lang):
         if lang == 'ar':
             return random.choice([
-                "مش فاهم قصدك كويس. 🤔\nاقدر أساعدك في:\n• إحصائيات الهجمات\n• تحليل الحوادث\n• التوصيات الأمنية\n• حالة النظام",
-                "ممكن توضح أكتر؟ اقدر أجاوب على أسئلة الأمان والنظام. 🛡️",
-                "مش متأكد من قصدك. جرب تسألني عن الهجمات أو الإحصائيات أو الحوادث.",
+                "مش فاهم قصدك كويس. 🤔\nممكن تسألني عن معنى الهجمات (زي DDoS, SQL, XSS)، أو تسأل عن إحصائيات النظام والتوصيات الأمنية.",
+                "تقدر توضح أكتر؟ الكلمات دي جديدة عليا. 🛡️\nاسألني عن الهجمات أو لوحة التحكم وهجاوبك.",
+                "معلش مفهمتش. جرب تسألني سؤال مباشر عن حالة السيرفر أو أنواع التهديدات.",
             ])
         return random.choice([
-            "I'm not sure what you mean. 🤔\nI can help with:\n• Attack statistics\n• Incident analysis\n• Security recommendations\n• System status",
-            "Could you clarify? I handle security questions, stats, and incident analysis. 🛡️",
-            "Not quite sure. Try asking about attacks, incidents, or system health.",
+            "I'm not sure what you mean. 🤔\nYou can ask me to explain attacks (like DDoS, SQLi, XSS), or ask for system stats and security tips.",
+            "Could you clarify? I handle security definitions, dashboard stats, and incident analysis. 🛡️",
+            "Not quite sure. Try asking about attacks, incidents, or how to use the dashboard.",
         ])
 
     # ── Main Entry ────────────────────────────────────────────────
@@ -589,6 +703,48 @@ class SecurityChatbot:
         role:        str  = "user",
     ) -> str:
 
+        # ── GEMINI AI INTEGRATION (MIND UPGRADE) ────────────────
+        gemini_key = os.getenv("GEMINI_API_KEY")
+        if gemini_key:
+            try:
+                import google.generativeai as genai
+                genai.configure(api_key=gemini_key)
+                # Use gemini-1.5-flash for fast chat
+                model = genai.GenerativeModel("gemini-1.5-flash")
+                
+                # Fetch live data to make Dobby aware
+                s = self.dashboard.stats
+                sys_status = (
+                    f"Live Dashboard Stats:\n"
+                    f"- Total Requests: {s.get('total_requests', 0)}\n"
+                    f"- Blocked: {s.get('blocked_requests', 0)}\n"
+                    f"- ML Detections: {s.get('ml_detections', 0)}\n"
+                    f"- SQL Injection: {s.get('sql_injection_attempts', 0)}\n"
+                    f"- XSS: {s.get('xss_attempts', 0)}\n"
+                    f"- Rate Limit/DDoS: {s.get('rate_limit_hits', 0)}\n"
+                    f"- Brute Force: {s.get('brute_force_attempts', 0)}\n"
+                )
+                
+                prompt = (
+                    f"You are Dobby, a smart, professional, yet friendly cyber-security assistant for the Virex WAF Dashboard. "
+                    f"You answer quickly, concisely, and accurately.\n"
+                    f"Rules:\n"
+                    f"1. You have access to real-time system stats: {sys_status}\n"
+                    f"2. IMPORTANT: If the user asks for the 'top attack', you must figure out the highest attack type from the stats and tell them.\n"
+                    f"3. Answer in the exact language the user used (English or Egyptian Arabic), and keep it natural like a chat.\n"
+                    f"4. Format the response nicely using simple Markdown.\n"
+                    f"5. Do NOT say you are an AI model. You are Dobby, the Virex assistant.\n\n"
+                    f"User asks: {user_query}"
+                )
+                
+                response = model.generate_content(prompt)
+                if response and response.text:
+                    return response.text
+            except Exception as e:
+                print("Gemini API Error:", e)
+                # Fallback to rule-based system if API fails or quota exceeded
+
+        # ── FALLBACK: PURE PYTHON RULE-BASED ENGINE ──────────────
         time.sleep(0.2)
         lang     = self._lang(user_query)
         is_admin = (role == self.Role.ADMIN)
@@ -608,6 +764,7 @@ class SecurityChatbot:
         if intent == "goodbye":        return self._r_goodbye(lang)
         if intent == "system_status":  return self._r_status(lang)
         if intent == "top_attacker":   return self._r_top_attacker(lang, is_admin)
+        if intent == "top_attack":     return self._r_top_attack(lang)
         if intent == "recent_threats": return self._r_recent_threats(lang, is_admin)
         if intent == "security_tips":  return self._r_security_tips(lang)
 
@@ -620,9 +777,21 @@ class SecurityChatbot:
         if intent == "incident_action" and not incident_id:
             return self._r_security_tips(lang)
 
-        # ── incident_why without incident → recent threats ───────
+        # ── incident_why without incident → clarify context ───────
         if intent == "incident_why" and not incident_id:
-            return self._r_recent_threats(lang, is_admin)
+            if lang == 'ar':
+                return "لو بتسأل عن سبب هجمة معينة، ياريت تحددها أو تفتحها من صفحة الـ Incidents عشان أقدر أحللها لك صح. 🔍"
+            return "If you're asking why a specific attack happened, please provide context or open it from the Incidents page so I can analyze it for you. 🔍"
+            
+        # ── newly added knowledge intents ──────────────────────────
+        if intent == "what_is_sqli":   return self._r_what_is_sqli(lang)
+        if intent == "what_is_xss":    return self._r_what_is_xss(lang)
+        if intent == "what_is_ddos":   return self._r_what_is_ddos(lang)
+        if intent == "what_is_malware": return self._r_what_is_malware(lang)
+        if intent == "what_is_phishing":return self._r_what_is_phishing(lang)
+        if intent == "what_is_firewall":return self._r_what_is_firewall(lang)
+        if intent == "virex_info":     return self._r_virex_info(lang)
+        if intent == "dashboard_help": return self._r_dashboard_help(lang)
 
         # ── incident-specific ────────────────────────────────────
         if incident_id:

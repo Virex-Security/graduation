@@ -464,10 +464,12 @@ def create_dashboard_app():
     def compute_global_stats(logs):
         attack_logs = _attack_logs_only(logs)
 
-        critical_count = sum(
-            1 for l in attack_logs
-            if l.get("severity") in ("High", "Critical")
-        )
+        grouped_criticals = set()
+        for l in attack_logs:
+            if l.get("severity") in ("High", "Critical") or calculate_threat_score(l) >= 80:
+                grouped_criticals.add((l.get("ip"), l.get("attack_type"), l.get("endpoint")))
+
+        critical_count = len(grouped_criticals)
 
         total_attacks = len(attack_logs)
         blocked_count = sum(1 for l in attack_logs if l.get("blocked") is True)
@@ -1020,21 +1022,42 @@ def create_dashboard_app():
     @token_required
     def get_critical_threats(current_user):
         """Get critical level threats with dynamic scoring"""
-        critical_threats = []
+        grouped_threats = {}
         logs = dashboard.load_audit_log()
+        
         for threat in logs:
             if threat.get('type', 'Clean') == 'Clean' and threat.get('attack_type', 'Clean') == 'Clean':
                 continue
+            
             threat_score = calculate_threat_score(threat)
             # Include if Critical severity or high score or escalated
             if threat.get('severity') == 'Critical' or threat_score >= 80:
-                threat_with_score = threat.copy()
-                threat_with_score['threat_score'] = threat_score
-                threat_with_score['threat_id'] = f"THR-{len(critical_threats) + 1:03d}"
-                threat_with_score['ml_confidence'] = int(threat.get('confidence', 0) * 100)
-                threat_with_score['frequency'] = dashboard.ip_tracker.get(threat.get('ip', ''), 1)
-                threat_with_score['status'] = determine_threat_status(threat)
-                critical_threats.append(threat_with_score)
+                ip = threat.get('ip', 'Unknown')
+                attack_type = threat.get('attack_type', 'Unknown')
+                endpoint = threat.get('endpoint', 'Unknown')
+                key = (ip, attack_type, endpoint)
+                
+                if key not in grouped_threats:
+                    threat_with_score = threat.copy()
+                    threat_with_score['threat_score'] = threat_score
+                    threat_with_score['ml_confidence'] = int(threat.get('confidence', 0) * 100)
+                    threat_with_score['frequency'] = dashboard.ip_tracker.get(ip, 1)
+                    threat_with_score['status'] = determine_threat_status(threat)
+                    grouped_threats[key] = threat_with_score
+                else:
+                    # Update existing group with latest occurrence data
+                    existing = grouped_threats[key]
+                    if existing.get('threat_score', 0) < threat_score:
+                        existing['threat_score'] = threat_score
+                        existing['ml_confidence'] = int(threat.get('confidence', 0) * 100)
+                    existing['timestamp'] = threat.get('timestamp', existing.get('timestamp'))
+                    existing['frequency'] = dashboard.ip_tracker.get(ip, 1)
+
+        critical_threats = list(grouped_threats.values())
+        
+        # Assign Threat IDs
+        for idx, threat in enumerate(critical_threats):
+            threat['threat_id'] = f"THR-{idx + 1:03d}"
         # Sort by threat score descending
         critical_threats.sort(key=lambda x: x.get('threat_score', 0), reverse=True)
         # Data masking for non-admin users
