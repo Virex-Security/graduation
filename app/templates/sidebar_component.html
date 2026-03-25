@@ -31,12 +31,17 @@
             border-radius: 13px;
           "
         />
-        {% else %} {{ (user.username[:2] if user and user.username else
-        'US')|upper }} {% endif %}
+        {% else %}
+          {% if user and user.full_name %}
+            {{ user.full_name[:2]|upper }}
+          {% else %}
+            {{ (user.username[:2] if user and user.username else 'US')|upper }}
+          {% endif %}
+        {% endif %}
       </div>
       <div class="modern-sidebar__profile-copy">
-        <div class="modern-sidebar__username" style="display: flex; align-items: center; gap: 8px;">
-          {{ user.username if user else 'User' }}
+        <div class="modern-sidebar__username" id="sidebar-username" style="display: flex; align-items: center; gap: 8px;">
+          {{ user.full_name if user and user.full_name else (user.username if user else 'User') }}
           {% if user and user.subscription and user.subscription != 'Free' %}
           <span class="subscription-badge" style="
             font-size: 0.65rem;

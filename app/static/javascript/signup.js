@@ -94,7 +94,7 @@ async function handleSignup(event) {
   const username = document.getElementById("username").value.trim();
   const email = document.getElementById("email").value.trim();
   const phone = document.getElementById("phone").value.trim();
-  const position = document.getElementById("position").value;
+  const department = document.getElementById("department").value;
   const password = document.getElementById("password").value;
   const confirmPassword = document.getElementById("confirmPassword").value;
   const messageBox = document.getElementById("message-box");
@@ -136,8 +136,8 @@ async function handleSignup(event) {
     return;
   }
 
-  if (!position) {
-    showMessage(messageBox, "Please select your position", "error");
+  if (!department) {
+    showMessage(messageBox, "Please select your department", "error");
     return;
   }
 
@@ -174,7 +174,7 @@ async function handleSignup(event) {
         username: username,
         email: email,
         phone: phone,
-        position: position,
+        department: department,
         password: password,
       }),
     });

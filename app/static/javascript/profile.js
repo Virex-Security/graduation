@@ -174,6 +174,29 @@ function renderProfile(p) {
       </span>
     </div>
   `).join('');
+
+  // Update subscription card elements if they exist
+  const subBadge = document.getElementById('profile-subscription-badge');
+  const planName = document.getElementById('profile-plan-name');
+  if (subBadge) subBadge.textContent = (p.subscription || 'FREE').toUpperCase();
+  if (planName) planName.textContent = p.subscription || 'Free';
+
+  // Update Sidebar name and initials if possible
+  const sidebarUser = document.querySelector('.modern-sidebar__username');
+  if (sidebarUser) {
+    // Preserve the badge if it exists
+    const badge = sidebarUser.querySelector('.subscription-badge');
+    sidebarUser.textContent = p.username || 'User';
+    if (badge) {
+      badge.textContent = (p.subscription || 'FREE').toUpperCase();
+      sidebarUser.appendChild(badge);
+    }
+  }
+
+  const sidebarAvatar = document.querySelector('.modern-sidebar__avatar');
+  if (sidebarAvatar && !p.avatar_url) {
+    sidebarAvatar.textContent = getInitials(p.full_name || p.username || 'U');
+  }
 }
 
 /* ─────────────────────────────────────────────
@@ -414,27 +437,46 @@ function openEditModal() {
 }
 
 async function saveProfile() {
-  const btn  = document.getElementById('btn-save-profile');
-  const deptElement = document.getElementById('edit-dept');
-  
+  const btn = document.getElementById("btn-save-profile");
+  const deptElement = document.getElementById("edit-dept");
+
+  if (!btn || !deptElement) {
+    console.error("[Profile] Required elements missing for saveProfile");
+    return;
+  }
+
   const body = {
-    full_name:  document.getElementById('edit-fullname').value.trim(),
-    email:      document.getElementById('edit-email').value.trim(),
-    department: deptElement.value.trim(), // This now works with select dropdown
+    full_name: document.getElementById("edit-fullname").value.trim(),
+    email: document.getElementById("edit-email").value.trim(),
+    department: deptElement.value.trim(),
   };
 
-  if (!body.full_name || !body.email) { toast('Name and email are required', 'error'); return; }
-  if (!body.department) { toast('Department is required', 'error'); return; }
+  if (!body.full_name || !body.email) {
+    toast("Name and email are required", "error");
+    return;
+  }
+  if (!body.department) {
+    toast("Department is required", "error");
+    return;
+  }
 
   setLoading(btn, true);
   try {
-    await apiFetch(CONFIG.endpoints.update, { method: 'POST', body: JSON.stringify(body) });
+    console.log("[Profile] Saving changes...", body);
+    await apiFetch(CONFIG.endpoints.update, {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+
+    // Update local state and UI
     state.profile = { ...state.profile, ...body };
     renderProfile(state.profile);
-    closeModal('modal-edit');
-    toast('Profile updated successfully', 'success');
+
+    closeModal("modal-edit");
+    toast("Profile updated successfully", "success");
   } catch (err) {
-    toast(err.message || 'Update failed', 'error');
+    console.error("[Profile] Update failed:", err);
+    toast(err.message || "Update failed. Please try again.", "error");
   } finally {
     setLoading(btn, false);
   }

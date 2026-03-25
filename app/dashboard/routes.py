@@ -106,7 +106,7 @@ def create_dashboard_app():
         full_name = auth.get('fullName', '').strip()
         email = auth.get('email', '').strip()
         phone = auth.get('phone', '').strip()
-        position = auth.get('position', '').strip()
+        department = auth.get('department', '').strip()
         
         # Validation
         if len(username) < 3:
@@ -127,8 +127,8 @@ def create_dashboard_app():
         if not phone:
             return jsonify({'message': 'Phone number is required'}), 400
             
-        if not position:
-            return jsonify({'message': 'Position is required'}), 400
+        if not department:
+            return jsonify({'message': 'Department is required'}), 400
         
         is_valid_password, password_message = user_manager.validate_password_policy(password)
         if not is_valid_password:
@@ -145,8 +145,8 @@ def create_dashboard_app():
             user_manager.update_user(username, 
                                    full_name=full_name,
                                    email=email,
-                                   phone=phone,
-                                   position=position)
+                                   department=department,
+                                   phone=phone)
             
             # Log the new user creation
             new_user = user_manager.get_user(username)
@@ -652,7 +652,7 @@ def create_dashboard_app():
                 'role': current_user.get('role'),
                 'id': current_user.get('id', ''),
                 'full_name': current_user.get('full_name', current_user.get('username')),
-                'department': current_user.get('department', 'Security Operations'),
+                'department': current_user.get('department', 'Security Analyst'),
                 'created_at': current_user.get('created_at', ''),
                 'last_login': current_user.get('last_login', ''),
                 'active_sessions': current_user.get('active_sessions', 1),

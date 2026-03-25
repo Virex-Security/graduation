@@ -46,7 +46,12 @@ title %}Dashboard - Virex{% endblock %} {% block stylesheets %}
     alt="avatar"
     style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%"
   />
-  {% else %} {{ (user.username[:2] if user and user.username else 'US')|upper }}
+  {% else %} 
+    {% if user and user.full_name %}
+      {{ user.full_name[:2]|upper }}
+    {% else %}
+      {{ (user.username[:2] if user and user.username else 'US')|upper }}
+    {% endif %}
   {% endif %}
 </a>
 
@@ -255,7 +260,7 @@ title %}Dashboard - Virex{% endblock %} {% block stylesheets %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
   window.DASHBOARD_CONFIG = {
-    apiEnabled: {{ 'true' if dashboard_api_enabled else 'false' }}
+    apiEnabled: {{ dashboard_api_enabled | tojson }}
   };
 </script>
 <script src="/static/javascript/dashboard.js"></script>

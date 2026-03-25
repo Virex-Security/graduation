@@ -441,7 +441,7 @@ title %}Profile - Virex{% endblock %} {% block stylesheets %}
       </div>
       <div class="card-body" style="padding: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
         <div style="color: var(--text-secondary); font-size: 0.95rem;">
-          <p>Your account is currently on the <strong>{{ user.subscription if user else 'Free' }}</strong> plan.</p>
+          <p id="profile-plan-desc">Your account is currently on the <strong id="profile-plan-name">{{ user.subscription if user else 'Free' }}</strong> plan.</p>
           <p style="font-size: 0.8rem; margin-top: 0.5rem; opacity: 0.7;">Next billing date: Not applicable</p>
         </div>
         <button class="btn btn-primary" onclick="location.href='/pricing'">
@@ -525,5 +525,5 @@ title %}Profile - Virex{% endblock %} {% block stylesheets %}
 <script>
   // Only page-specific JavaScript here
 </script>
-<script src="{{ url_for('static', filename='javascript/profile.js') }}"></script>
+<script src="{{ url_for('static', filename='javascript/profile.js') }}?v={{ range(1, 10000) | random }}"></script>
 {% endblock %}
