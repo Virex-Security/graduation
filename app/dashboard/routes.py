@@ -497,7 +497,9 @@ def create_dashboard_app():
             'brute-force': 'Brute Force',
             'scanner': 'Scanner',
             'rate-limit': 'Rate Limit',
-            'ml-detection': 'ML Detection'
+            'ml-detection': 'ML Detection',
+            'csrf': 'CSRF',
+            'ssrf': 'SSRF',
         }
         filter_value = category_map.get(category, category)
 
@@ -542,7 +544,9 @@ def create_dashboard_app():
             'Brute Force': 'Brute force authentication attempts',
             'Scanner': 'Security scanner and reconnaissance activities',
             'Rate Limit': 'Rate limit violations and abuse attempts',
-            'ML Detection': 'Anomalies detected by machine learning model'
+            'ML Detection': 'Anomalies detected by machine learning model',
+            'CSRF': 'Cross-Site Request Forgery attempts — missing or invalid CSRF tokens on state-changing requests',
+            'SSRF': 'Server-Side Request Forgery attempts — requests targeting internal IPs, metadata services, or dangerous protocols',
         }
 
         return render_template(
@@ -562,7 +566,18 @@ def create_dashboard_app():
     def threats_overview_page(current_user):
         logs = getattr(g, "logs", dashboard.load_audit_log())
         stats = dashboard.get_dashboard_data().get('stats', {})
-        
+
+        # احسب عدد CSRF و SSRF من سجل التهديدات مباشرةً
+        all_threats = dashboard.threat_log
+        stats['csrf_attempts'] = sum(
+            1 for t in all_threats
+            if str(t.get('type', '')).upper() == 'CSRF'
+        )
+        stats['ssrf_attempts'] = sum(
+            1 for t in all_threats
+            if str(t.get('type', '')).upper() == 'SSRF'
+        )
+
         return render_template(
             'threats_overview.html',
             stats=stats,

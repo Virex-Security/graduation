@@ -7,6 +7,15 @@ except ImportError:
     from security.filters import is_trivial, is_business_relevant
     from ml.model import ml_detect
     from security.events import new_request_id, build_event
+
+# ── CSRF / SSRF كاشفات التهديدات المتقدمة ──────────────────────────────────
+try:
+    from detections import detect_csrf, detect_ssrf
+    _CSRF_SSRF_ENABLED = True
+except ImportError:
+    _CSRF_SSRF_ENABLED = False
+    import warnings
+    warnings.warn("[VIREX] detections package not found — CSRF/SSRF detection disabled", stacklevel=1)
 from flask import Flask, request, jsonify
 import time
 import re
@@ -326,7 +335,73 @@ def create_simple_app():
             security.update_dashboard_stats()
             return jsonify({"error": "Not Found"}), 404
 
-        # 3c. Content Security Scan (SQLi, XSS, ML)
+        # 3c. CSRF Detection — يفحص طلبات تغيير الحالة للتوكن المطلوب
+        if _CSRF_SSRF_ENABLED and request.method in ('POST', 'PUT', 'DELETE', 'PATCH'):
+            _csrf_req = {
+                "method":       request.method,
+                "path":         request.path,
+                "headers":      dict(request.headers),
+                "body":         request.get_json(silent=True) or {},
+                "query_params": request.args.to_dict(),
+                "cookies":      request.cookies.to_dict(),
+                "ip":           request.remote_addr,
+                "user_agent":   request.user_agent.string,
+            }
+            _csrf_result = detect_csrf(_csrf_req)
+            if _csrf_result["detected"]:
+                security.log_to_dashboard(
+                    "CSRF",
+                    request.remote_addr,
+                    f"[CSRF] {_csrf_result['reason']}",
+                    _csrf_result["severity"],
+                    endpoint=request.path,
+                    method=request.method,
+                    snippet=str(_csrf_result.get("payload", ""))[:100],
+                    detection_type="Signature-based",
+                    blocked=True,
+                    request_id=getattr(request, "request_id", ""),
+                )
+                security.blocked_requests += 1
+                security.update_dashboard_stats()
+                return jsonify({
+                    "error":  "CSRF validation failed",
+                    "reason": _csrf_result["reason"],
+                }), 403
+
+        # 3d. SSRF Detection — يفحص كل URLs في الطلب للكشف عن توجيهات داخلية
+        if _CSRF_SSRF_ENABLED:
+            _ssrf_req = {
+                "method":       request.method,
+                "path":         request.path,
+                "headers":      dict(request.headers),
+                "body":         request.get_json(silent=True) or {},
+                "query_params": request.args.to_dict(),
+                "cookies":      request.cookies.to_dict(),
+                "ip":           request.remote_addr,
+                "user_agent":   request.user_agent.string,
+            }
+            _ssrf_result = detect_ssrf(_ssrf_req)
+            if _ssrf_result["detected"]:
+                security.log_to_dashboard(
+                    "SSRF",
+                    request.remote_addr,
+                    f"[SSRF] {_ssrf_result['reason']}",
+                    _ssrf_result["severity"],
+                    endpoint=request.path,
+                    method=request.method,
+                    snippet=str(_ssrf_result.get("payload", ""))[:100],
+                    detection_type="Signature-based",
+                    blocked=True,
+                    request_id=getattr(request, "request_id", ""),
+                )
+                security.blocked_requests += 1
+                security.update_dashboard_stats()
+                return jsonify({
+                    "error":  "SSRF attempt blocked",
+                    "reason": _ssrf_result["reason"],
+                }), 403
+
+        # 3e. Content Security Scan (SQLi, XSS, ML)
         data_to_scan = {}
         if request.args:
             data_to_scan.update(request.args.to_dict())

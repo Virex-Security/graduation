@@ -185,7 +185,7 @@ class SimpleSecurityManager:
                     return "XSS"
             if re.search(r"(password|login|user|admin)", t, re.IGNORECASE):
                 return "Brute Force"
-            return "Unknown"
+            return "Anomaly"
 
         def scan(value):
             if isinstance(value, dict):

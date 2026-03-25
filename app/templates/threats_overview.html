@@ -93,6 +93,29 @@ title %}Threats Overview - IREX{% endblock %} {% block stylesheets %}
       </div>
       <div class="stat-value">{{ stats.rate_limit_hits or 0 }}</div>
     </div>
+
+    <div
+      class="stat-card card type-csrf clickable"
+      onclick="location.href = '/threats/csrf'"
+    >
+      <div class="stat-header">
+        <i class="fas fa-user-secret" style="color: #f59e0b"></i>
+        <h3>CSRF Attacks</h3>
+      </div>
+      <div class="stat-value">{{ stats.csrf_attempts or 0 }}</div>
+    </div>
+
+    <div
+      class="stat-card card type-ssrf clickable"
+      onclick="location.href = '/threats/ssrf'"
+    >
+      <div class="stat-header">
+        <i class="fas fa-server" style="color: #ef4444"></i>
+        <h3>SSRF Attempts</h3>
+      </div>
+      <div class="stat-value">{{ stats.ssrf_attempts or 0 }}</div>
+    </div>
   </section>
 </main>
 {% endblock %}
+

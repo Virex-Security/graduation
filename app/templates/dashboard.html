@@ -260,7 +260,8 @@ title %}Dashboard - Virex{% endblock %} {% block stylesheets %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
   window.DASHBOARD_CONFIG = {
-    apiEnabled: {{ dashboard_api_enabled | tojson }}
+    // Wrap Jinja variable in single quotes and parse it to prevent IDE syntax errors
+    apiEnabled: JSON.parse('{{ dashboard_api_enabled | tojson | safe }}')
   };
 </script>
 <script src="/static/javascript/dashboard.js"></script>

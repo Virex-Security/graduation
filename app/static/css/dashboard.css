@@ -524,6 +524,17 @@ body::after {
   --card-accent: var(--brand-primary);
 }
 
+/* CSRF — amber/orange يرمز إلى هجوم هوية المستخدم */
+.stat-card.type-csrf {
+  --card-accent: #f59e0b;
+}
+
+/* SSRF — أحمر يرمز إلى خطر حرج على البنية التحتية */
+.stat-card.type-ssrf {
+  --card-accent: #ef4444;
+}
+
+
 .stat-header {
   display: flex;
   align-items: center;
