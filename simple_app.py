@@ -10,7 +10,8 @@ except ImportError:
 
 # ── CSRF / SSRF كاشفات التهديدات المتقدمة ──────────────────────────────────
 try:
-    from detections import detect_csrf, detect_ssrf
+    from detections.csrf_rule import detect_csrf_rule
+    from detections.ssrf_rule import detect_ssrf_rule
     _CSRF_SSRF_ENABLED = True
 except ImportError:
     _CSRF_SSRF_ENABLED = False
@@ -193,7 +194,7 @@ class SimpleSecurityManager:
         return True
 
     # ================= MAIN SECURITY =================
-    def check_request_security(self, data, ip):
+    def check_request_security(self, data, ip, request_context):
         def classify_ml_attack(text):
             t = str(text)
             for patt in self.compiled_sql_patterns:
@@ -206,55 +207,52 @@ class SimpleSecurityManager:
                 return "Brute Force"
             return "Unknown"
 
-        def scan(value):
+        def scan_rules(value):
             if isinstance(value, dict):
                 for v in value.values():
-                    if not scan(v):
+                    if not scan_rules(v):
                         return False
             elif isinstance(value, list):
                 for item in value:
-                    if not scan(item):
+                    if not scan_rules(item):
                         return False
             elif value is not None:
                 text = str(value)
-
                 # Regex FIRST
                 if self.detect_sql_injection(text, ip):
                     return False
                 if self.detect_xss(text, ip):
                     return False
-
-                # ML SECOND
-                is_mal, raw_pred = ml_detect(text)
-                if is_mal:
-                    self.ml_detections += 1
-                    attack_label = classify_ml_attack(text)
-                    detection_method = "ML Model"
-                    logger.info(f"[ML-MODEL] {attack_label} flagged for {ip} (raw={raw_pred})")
-
-                    logger.debug(
-                        f"[ML-RAW] text='{text[:100]}', attack_type='{attack_label}', "
-                        f"detection_method='{detection_method}', prediction={raw_pred}"
-                    )
-
-                    self.log_to_dashboard(
-                        attack_label,
-                        ip,
-                        f"[ML] Anomaly detected — suspicious payload: {text[:60]}",
-                        "High",
-                        endpoint=request.path,
-                        method=request.method,
-                        snippet=text[:100],
-                        detection_type=detection_method,
-                        blocked=True,
-                        request_id=getattr(request, "request_id", ""),
-                    )
-                    return False
-
             return True
 
-        if not scan(data):
-            return False, "Malicious content detected"
+        if not scan_rules(data):
+            return False, "Malicious content detected by Signature Rules"
+
+        # ML FALLBACK
+        # If we got here, all rule-based scans for SQLi/XSS passed. Support ML analysis on the whole body string.
+        text_representation = str(data)
+        is_mal, raw_pred = ml_detect(text_representation)
+        if is_mal:
+            # Here we can pass context to ML in the real implementation to distinguish CSRF/SSRF.
+            # Using basic categorization for now based on prompt logic we will define.
+            self.ml_detections += 1
+            attack_label = classify_ml_attack(text_representation)
+            detection_method = "ML Model"
+            logger.info(f"[ML-MODEL] {attack_label} flagged for {ip} (raw={raw_pred})")
+
+            self.log_to_dashboard(
+                attack_label,
+                ip,
+                f"[ML] Anomaly detected — suspicious payload: {text_representation[:60]}",
+                "High",
+                endpoint=request_context.get("path", ""),
+                method=request_context.get("method", ""),
+                snippet=text_representation[:100],
+                detection_type=detection_method,
+                blocked=True,
+                request_id=request_context.get("request_id", ""),
+            )
+            return False, "Malicious anomaly detected by ML"
 
         return True, "OK"
 def create_simple_app():
@@ -336,23 +334,25 @@ def create_simple_app():
             return jsonify({"error": "Not Found"}), 404
 
         # 3c. CSRF Detection — يفحص طلبات تغيير الحالة للتوكن المطلوب
+        req_context = {
+            "method":       request.method,
+            "path":         request.path,
+            "headers":      dict(request.headers),
+            "body":         request.get_json(silent=True) or {},
+            "query_params": request.args.to_dict(),
+            "cookies":      request.cookies.to_dict(),
+            "ip":           request.remote_addr,
+            "user_agent":   request.user_agent.string,
+            "request_id":   getattr(request, "request_id", ""),
+        }
+
         if _CSRF_SSRF_ENABLED and request.method in ('POST', 'PUT', 'DELETE', 'PATCH'):
-            _csrf_req = {
-                "method":       request.method,
-                "path":         request.path,
-                "headers":      dict(request.headers),
-                "body":         request.get_json(silent=True) or {},
-                "query_params": request.args.to_dict(),
-                "cookies":      request.cookies.to_dict(),
-                "ip":           request.remote_addr,
-                "user_agent":   request.user_agent.string,
-            }
-            _csrf_result = detect_csrf(_csrf_req)
+            _csrf_result = detect_csrf_rule(req_context)
             if _csrf_result["detected"]:
                 security.log_to_dashboard(
                     "CSRF",
                     request.remote_addr,
-                    f"[CSRF] {_csrf_result['reason']}",
+                    f"[CSRF R-B] {_csrf_result['reason']}",
                     _csrf_result["severity"],
                     endpoint=request.path,
                     method=request.method,
@@ -370,22 +370,12 @@ def create_simple_app():
 
         # 3d. SSRF Detection — يفحص كل URLs في الطلب للكشف عن توجيهات داخلية
         if _CSRF_SSRF_ENABLED:
-            _ssrf_req = {
-                "method":       request.method,
-                "path":         request.path,
-                "headers":      dict(request.headers),
-                "body":         request.get_json(silent=True) or {},
-                "query_params": request.args.to_dict(),
-                "cookies":      request.cookies.to_dict(),
-                "ip":           request.remote_addr,
-                "user_agent":   request.user_agent.string,
-            }
-            _ssrf_result = detect_ssrf(_ssrf_req)
+            _ssrf_result = detect_ssrf_rule(req_context)
             if _ssrf_result["detected"]:
                 security.log_to_dashboard(
                     "SSRF",
                     request.remote_addr,
-                    f"[SSRF] {_ssrf_result['reason']}",
+                    f"[SSRF R-B] {_ssrf_result['reason']}",
                     _ssrf_result["severity"],
                     endpoint=request.path,
                     method=request.method,
@@ -401,7 +391,7 @@ def create_simple_app():
                     "reason": _ssrf_result["reason"],
                 }), 403
 
-        # 3e. Content Security Scan (SQLi, XSS, ML)
+        # 3e. Content Security Scan (SQLi, XSS) via Rules THEN ML
         data_to_scan = {}
         if request.args:
             data_to_scan.update(request.args.to_dict())
@@ -414,7 +404,7 @@ def create_simple_app():
                 pass
         
         if data_to_scan:
-            safe, msg = security.check_request_security(data_to_scan, request.remote_addr)
+            safe, msg = security.check_request_security(data_to_scan, request.remote_addr, req_context)
             if not safe:
                 request_blocked = True
                 block_reason = msg

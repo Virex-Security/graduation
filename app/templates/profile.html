@@ -436,12 +436,12 @@ title %}Profile - Virex{% endblock %} {% block stylesheets %}
           </div>
         </div>
         <span class="badge badge-purple" id="profile-subscription-badge">
-          {{ user.subscription|upper if user else 'FREE' }}
+          {{ user.subscription|upper if user else 'ENTERPRISE' }}
         </span>
       </div>
       <div class="card-body" style="padding: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
         <div style="color: var(--text-secondary); font-size: 0.95rem;">
-          <p id="profile-plan-desc">Your account is currently on the <strong id="profile-plan-name">{{ user.subscription if user else 'Free' }}</strong> plan.</p>
+          <p id="profile-plan-desc">Your account is currently on the <strong id="profile-plan-name">{{ user.subscription if user else 'ENTERPRISE' }}</strong> plan.</p>
           <p style="font-size: 0.8rem; margin-top: 0.5rem; opacity: 0.7;">Next billing date: Not applicable</p>
         </div>
         <button class="btn btn-primary" onclick="location.href='/pricing'">

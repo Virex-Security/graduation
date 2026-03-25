@@ -670,6 +670,7 @@ def create_dashboard_app():
                 'id': current_user.get('id', ''),
                 'full_name': current_user.get('full_name', current_user.get('username')),
                 'department': current_user.get('department', 'Security Analyst'),
+                'subscription': current_user.get('subscription', 'ENTERPRISE'),
                 'created_at': current_user.get('created_at', ''),
                 'last_login': current_user.get('last_login', ''),
                 'active_sessions': current_user.get('active_sessions', 1),

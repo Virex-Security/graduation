@@ -159,7 +159,7 @@ function renderProfile(p) {
     { icon: 'fa-user-tag',    label: 'Role',         value: p.role           || '—' },
     { icon: 'fa-building',    label: 'Department',   value: p.department     || '—' },
     { icon: 'fa-circle-dot',  label: 'Status',       value: p.account_status || '—', statusColor: p.account_status },
-    { icon: 'fa-crown',       label: 'Subscription', value: p.subscription   || 'Free' },
+    { icon: 'fa-crown',       label: 'Subscription', value: p.subscription   || 'ENTERPRISE' },
     { icon: 'fa-fingerprint', label: 'User ID',      value: p.user_id || p.id || '—', mono: true },
     { icon: 'fa-calendar',    label: 'Member Since', value: formatDate(p.created_at) },
     { icon: 'fa-clock',       label: 'Last Login',   value: formatDateTime(p.last_login) },
@@ -178,8 +178,8 @@ function renderProfile(p) {
   // Update subscription card elements if they exist
   const subBadge = document.getElementById('profile-subscription-badge');
   const planName = document.getElementById('profile-plan-name');
-  if (subBadge) subBadge.textContent = (p.subscription || 'FREE').toUpperCase();
-  if (planName) planName.textContent = p.subscription || 'Free';
+  if (subBadge) subBadge.textContent = (p.subscription || 'ENTERPRISE').toUpperCase();
+  if (planName) planName.textContent = p.subscription || 'ENTERPRISE';
 
   // Update Sidebar name and initials if possible
   const sidebarUser = document.querySelector('.modern-sidebar__username');
@@ -188,7 +188,7 @@ function renderProfile(p) {
     const badge = sidebarUser.querySelector('.subscription-badge');
     sidebarUser.textContent = p.username || 'User';
     if (badge) {
-      badge.textContent = (p.subscription || 'FREE').toUpperCase();
+      badge.textContent = (p.subscription || 'ENTERPRISE').toUpperCase();
       sidebarUser.appendChild(badge);
     }
   }
