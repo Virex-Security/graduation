@@ -401,7 +401,6 @@ body {
   line-height: 1;
   font-family: 'Inter', sans-serif;
   letter-spacing: -0.05em;
-}
   background: var(--brand-gradient);
   -webkit-background-clip: text;
   background-clip: text;

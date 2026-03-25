@@ -79,7 +79,7 @@ body::after {
 }
 
 /* ===========================================
-   LAYOUT - DASHBOARD & SIDEBAR
+  LAYOUT - DASHBOARD & SIDEBAR
    =========================================== */
 
 /* Dashboard Wrapper */
@@ -91,7 +91,7 @@ body::after {
 /* Note: Sidebar, Navbar, and Main Wrapper styles are now in layout.css */
 
 /* ===========================================
-   CARDS & CONTAINERS
+  CARDS & CONTAINERS
    =========================================== */
 .card {
   background: linear-gradient(
@@ -591,7 +591,7 @@ body::after {
   }
 
   .stat-header h3 {
-    font-size: 0.83rem;
+    font-size: 0.93rem;
   }
 
   .stat-card.type-top-attack .stat-header h3 {
@@ -875,7 +875,7 @@ body::after {
 }
 
 /* ===========================================
-   VIEW MORE BUTTON
+  VIEW MORE BUTTON
    =========================================== */
 
 .btn-view-more {
