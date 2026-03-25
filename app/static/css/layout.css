@@ -536,6 +536,26 @@
   opacity: 1;
 }
 
+.notification-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  background: var(--danger, #ef4444);
+  color: white;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 10px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  box-shadow: 0 0 0 2px var(--bg-card, #0a0a0a);
+  z-index: 2;
+  pointer-events: none;
+}
+
 /* Profile Button */
 .profile-btn {
   width: 36px;

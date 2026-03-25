@@ -555,6 +555,10 @@ body::after {
   color: color-mix(in srgb, var(--text-primary) 88%, var(--card-accent) 12%);
 }
 
+.stat-card.type-top-attack .stat-header h3 {
+  font-size: 0.78rem;
+}
+
 .stat-value {
   font-size: clamp(2.3rem, 2.5vw, 3rem);
   font-weight: 800;
@@ -588,6 +592,10 @@ body::after {
 
   .stat-header h3 {
     font-size: 0.83rem;
+  }
+
+  .stat-card.type-top-attack .stat-header h3 {
+    font-size: 0.72rem;
   }
 
   .stat-value {
