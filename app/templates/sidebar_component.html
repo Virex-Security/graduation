@@ -1,7 +1,7 @@
 <aside class="sidebar modern-sidebar" id="sidebar" aria-expanded="true">
   <div class="modern-sidebar__brand-row">
-    <div class="sidebar-brand modern-sidebar__brand">
-      <span class="brand-text">VIREX</span>
+    <div class="sidebar-brand modern-sidebar__brand" style="display: flex; align-items: center; gap: 4px;">
+      <span class="brand-v-icon">VIREX</span>
     </div>
 
     <button
@@ -35,8 +35,18 @@
         'US')|upper }} {% endif %}
       </div>
       <div class="modern-sidebar__profile-copy">
-        <div class="modern-sidebar__username">
+        <div class="modern-sidebar__username" style="display: flex; align-items: center; gap: 8px;">
           {{ user.username if user else 'User' }}
+          {% if user and user.subscription and user.subscription != 'Free' %}
+          <span class="subscription-badge" style="
+            font-size: 0.65rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: var(--brand-primary);
+            color: white;
+            font-weight: 800;
+          ">{{ user.subscription|upper }}</span>
+          {% endif %}
         </div>
         <div class="modern-sidebar__role">
           {{ user.role if user else 'Role' }}
@@ -103,6 +113,14 @@
     >
       <span class="modern-sidebar__icon"><i class="fas fa-globe"></i></span>
       <span class="modern-sidebar__label">All Requests</span>
+    </a>
+
+    <a
+      href="/pricing"
+      class="modern-sidebar__item {% if active_page == 'pricing' %}active{% endif %}"
+    >
+      <span class="modern-sidebar__icon"><i class="fas fa-crown"></i></span>
+      <span class="modern-sidebar__label">Upgrade Plan</span>
     </a>
 
     <a

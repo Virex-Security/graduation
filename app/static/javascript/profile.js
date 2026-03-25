@@ -159,6 +159,7 @@ function renderProfile(p) {
     { icon: 'fa-user-tag',    label: 'Role',         value: p.role           || '—' },
     { icon: 'fa-building',    label: 'Department',   value: p.department     || '—' },
     { icon: 'fa-circle-dot',  label: 'Status',       value: p.account_status || '—', statusColor: p.account_status },
+    { icon: 'fa-crown',       label: 'Subscription', value: p.subscription   || 'Free' },
     { icon: 'fa-fingerprint', label: 'User ID',      value: p.user_id || p.id || '—', mono: true },
     { icon: 'fa-calendar',    label: 'Member Since', value: formatDate(p.created_at) },
     { icon: 'fa-clock',       label: 'Last Login',   value: formatDateTime(p.last_login) },

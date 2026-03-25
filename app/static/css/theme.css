@@ -33,6 +33,42 @@
   --glow-cyan: 0 0 20px rgba(179, 71, 230, 0.25);
 }
 
+/* ── Global Branding ── */
+.brand-v-icon {
+  display: inline-block;
+  font-weight: 950;
+  background: linear-gradient(135deg, #9a277d 0%, #792b9d 48%, #e046ba 52%, #b347e6 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  line-height: 1;
+  font-family: 'Inter', sans-serif;
+  letter-spacing: -0.05em;
+  font-size: 1.4rem;
+}
+
+/* Make entire VIREX text look like the V icon */
+.brand-text {
+  font-weight: 950;
+  background: linear-gradient(135deg, #9a277d 0%, #792b9d 48%, #e046ba 52%, #b347e6 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  line-height: 1;
+  font-family: 'Inter', sans-serif;
+  letter-spacing: -0.05em;
+  text-transform: uppercase;
+  font-size: 1.4rem;
+}
+
+.brand-v-nav {
+  width: 40px;
+  height: 40px;
+  vertical-align: middle;
+  margin-right: 3px;
+  filter: drop-shadow(0 0 10px rgba(224, 70, 186, 0.3));
+}
+
 
 [data-theme="light"] {
   /* ── Backgrounds (Light Theme) ── */

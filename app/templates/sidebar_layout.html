@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{% block title %}Virex Security{% endblock %}</title>
+    <title>{% block title %}VIREX Security{% endblock %}</title>
     <!-- Google Fonts -->
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap"
@@ -64,9 +64,23 @@
             <div
               class="brand"
               onclick="location.href = '/'"
-              style="cursor: pointer"
+              style="cursor: pointer; display: flex; align-items: center; gap: 4px;"
             >
-              <span>VIREX</span>
+              <svg class="brand-v-nav" viewBox="0 0 100 100">
+                <defs>
+                  <linearGradient id="v-nav-left-layout" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" style="stop-color: #9a277d" />
+                    <stop offset="100%" style="stop-color: #792b9d" />
+                  </linearGradient>
+                  <linearGradient id="v-nav-right-layout" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" style="stop-color: #e046ba" />
+                    <stop offset="100%" style="stop-color: #b347e6" />
+                  </linearGradient>
+                </defs>
+                <path d="M25,25 L50,80" stroke="url(#v-nav-left-layout)" stroke-width="18" stroke-linecap="round" fill="none" />
+                <path d="M50,80 L75,25" stroke="url(#v-nav-right-layout)" stroke-width="18" stroke-linecap="round" fill="none" />
+              </svg>
+              
             </div>
           </div>
 

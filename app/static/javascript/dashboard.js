@@ -484,11 +484,6 @@ const Dashboard = {
       "total-requests": { val: stats.total_requests, type: "info" },
       "blocked-requests": { val: stats.blocked_requests, type: "blocked" },
       "ml-detections": { val: stats.ml_detections, type: "ml" },
-      "sqli-attempts": { val: stats.sql_injection_attempts, type: "sqli" },
-      "xss-attempts": { val: stats.xss_attempts, type: "xss" },
-      "brute-force": { val: stats.brute_force_attempts, type: "brute" },
-      "scanner-probes": { val: stats.scanner_attempts, type: "scanner" },
-      "rate-limited": { val: stats.rate_limit_hits, type: "rate" },
     };
 
     for (const [id, config] of Object.entries(mappings)) {
@@ -496,6 +491,44 @@ const Dashboard = {
       if (el) {
         this.animateNumber(el, config.val);
         this.previousStats[id] = config.val;
+      }
+    }
+
+    // Top Attack Calculation
+    const attackStats = [
+      { label: "SQL Injection", val: stats.sql_injection_attempts, icon: "fa-database", color: "#f59e0b" },
+      { label: "XSS Attacks", val: stats.xss_attempts, icon: "fa-code", color: "#38bdf8" },
+      { label: "Brute Force", val: stats.brute_force_attempts, icon: "fa-key", color: "#f87171" },
+      { label: "Scanners", val: stats.scanner_attempts, icon: "fa-eye", color: "#22c55e" },
+      { label: "Rate Limited", val: stats.rate_limit_hits, icon: "fa-bolt", color: "#fbbf24" },
+    ];
+
+    // Find the attack with the highest value
+    const topAttack = attackStats.reduce((prev, current) => (prev.val > current.val) ? prev : current);
+
+    const topAttackCard = document.getElementById("top-attack-card");
+    const topAttackValEl = document.getElementById("top-attack-value");
+    const topAttackLabelEl = document.getElementById("top-attack-label");
+    const topAttackIconEl = document.getElementById("top-attack-icon");
+
+    if (topAttackCard && topAttackValEl && topAttackLabelEl && topAttackIconEl) {
+      if (topAttack.val > 0) {
+        // Show the name of the attack instead of the count
+        topAttackValEl.textContent = topAttack.label.toUpperCase();
+        topAttackValEl.style.fontSize = topAttack.label.length > 12 ? "1.5rem" : "2rem";
+        topAttackLabelEl.textContent = "Top Attack";
+        topAttackIconEl.className = `fas ${topAttack.icon}`;
+        topAttackIconEl.style.color = topAttack.color;
+        topAttackCard.style.setProperty("--card-accent", topAttack.color);
+        topAttackCard.onclick = () => location.href = '/threats-overview';
+      } else {
+        topAttackValEl.textContent = "No Attacks";
+        topAttackValEl.style.fontSize = "1.8rem";
+        topAttackLabelEl.textContent = "Top Attack";
+        topAttackIconEl.className = "fas fa-triangle-exclamation";
+        topAttackIconEl.style.color = "var(--text-secondary)";
+        topAttackCard.style.setProperty("--card-accent", "var(--brand-primary)");
+        topAttackCard.onclick = () => location.href = '/threats-overview';
       }
     }
 

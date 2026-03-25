@@ -55,7 +55,8 @@ class UserManager:
             "id": len(self.users) + 1,
             "username": username,
             "password_hash": generate_password_hash(password),
-            "role": role
+            "role": role,
+            "subscription": "Free"
         }
         self._save_users()
         return True, "User added successfully"
@@ -107,6 +108,7 @@ class UserManager:
                 'role': user_data.get('role', Role.USER),
                 'status': user_data.get('status', 'active'),
                 'account_status': user_data.get('status', 'active'),
+                'subscription': user_data.get('subscription', 'Free'),
                 'created_at': user_data.get('created_at', datetime.now().isoformat()),
                 'last_login': user_data.get('last_login'),
             })
@@ -125,6 +127,7 @@ class UserManager:
                     'role': user_data.get('role', Role.USER),
                     'status': user_data.get('status', 'active'),
                     'account_status': user_data.get('status', 'active'),
+                    'subscription': user_data.get('subscription', 'Free'),
                     'created_at': user_data.get('created_at'),
                     'last_login': user_data.get('last_login'),
                 }
@@ -159,6 +162,7 @@ class UserManager:
             "full_name": username,
             "role": role,
             "status": "active",
+            "subscription": "Free",
             "created_at": datetime.now().isoformat(),
         }
         self._save_users()
@@ -170,6 +174,7 @@ class UserManager:
             'email': email or f'{username}@example.com',
             'role': role,
             'status': 'active',
+            'subscription': 'Free',
         }
 
 # Singleton-like instance

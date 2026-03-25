@@ -555,6 +555,52 @@ def create_dashboard_app():
 
           user=current_user
   )
+    @app.route('/threats-overview')
+    @token_required
+    def threats_overview_page(current_user):
+        logs = getattr(g, "logs", dashboard.load_audit_log())
+        stats = dashboard.get_dashboard_data().get('stats', {})
+        
+        return render_template(
+            'threats_overview.html',
+            stats=stats,
+            user=current_user,
+            active_page='threats-overview'
+        )
+
+    @app.route('/pricing')
+    @token_required
+    def pricing_page(current_user):
+        return render_template(
+            'pricing.html',
+            user=current_user,
+            active_page='pricing'
+        )
+
+    @app.route('/payment')
+    @token_required
+    def payment_page(current_user):
+        plan = request.args.get('plan', 'Pro')
+        price = request.args.get('price', '29')
+        return render_template(
+            'payment.html',
+            user=current_user,
+            plan=plan,
+            price=price,
+            active_page='pricing'
+        )
+
+    @app.route('/api/subscription/upgrade', methods=['POST'])
+    @token_required
+    def upgrade_subscription(current_user):
+        data = request.get_json()
+        new_plan = data.get('plan')
+        if new_plan not in ['Free', 'Pro', 'Enterprise']:
+            return jsonify({'success': False, 'message': 'Invalid plan'}), 400
+        
+        success, message = user_manager.update_user(current_user['username'], subscription=new_plan)
+        return jsonify({'success': success, 'message': message})
+
 
     @app.route('/blocked_page')
     @app.route('/blocked')

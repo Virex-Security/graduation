@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Virex Security | Real-Time API Security Monitoring</title>
+    <title>VIREX Security | Real-Time API Security Monitoring</title>
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
       rel="stylesheet"
@@ -22,17 +22,29 @@
     <nav class="navbar">
       <div class="navbar-container">
         <div class="logo" onclick="window.location.href = '/'">
-          <span class="logo-name"
-            ></i
-            >Virex</span
-          >
+          <span class="logo-name">
+            <svg class="brand-v-nav" viewBox="0 0 100 100" style="width: 40px; height: 40px;">
+              <defs>
+                <linearGradient id="v-nav-left-main" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" style="stop-color: #9a277d" />
+                  <stop offset="100%" style="stop-color: #792b9d" />
+                </linearGradient>
+                <linearGradient id="v-nav-right-main" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" style="stop-color: #e046ba" />
+                  <stop offset="100%" style="stop-color: #b347e6" />
+                </linearGradient>
+              </defs>
+              <path d="M25,25 L50,80" stroke="url(#v-nav-left-main)" stroke-width="18" stroke-linecap="round" fill="none" />
+              <path d="M50,80 L75,25" stroke="url(#v-nav-right-main)" stroke-width="18" stroke-linecap="round" fill="none" />
+            </svg><span class="brand-v-icon">VIREX</span>
+          </span>
         </div>
 
         <ul class="nav-menu">
           <li><a href="#features">Features</a></li>
           <li><a href="#how-it-works">How It Works</a></li>
           <li><a href="#security">Security</a></li>
-          <li><a href="#contact">Contact Us</a></li>
+          <li><a href="/support">Contact Us</a></li>
         </ul>
 
         <div class="nav-buttons">
@@ -71,11 +83,7 @@
             </button>
             <button
               class="btn-secondary"
-              onclick="
-                document
-                  .querySelector('#contact')
-                  .scrollIntoView({ behavior: 'smooth' })
-              "
+              onclick="window.location.href = '/support'"
             >
               <span>Contact Us</span>
             </button>
@@ -88,7 +96,20 @@
             <div class="shield-glow"></div>
             <div class="rotating-ring"></div>
             <div class="shield-main">
-              <i class="fas fa-shield-alt shield-icon"></i>
+              <svg class="brand-v-svg" viewBox="0 0 100 100">
+                <defs>
+                  <linearGradient id="v-gradient-left" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" style="stop-color: #9a277d" />
+                    <stop offset="100%" style="stop-color: #792b9d" />
+                  </linearGradient>
+                  <linearGradient id="v-gradient-right" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" style="stop-color: #e046ba" />
+                    <stop offset="100%" style="stop-color: #b347e6" />
+                  </linearGradient>
+                </defs>
+                <path class="v-path-left" d="M25,25 L50,80" />
+                <path class="v-path-right" d="M50,80 L75,25" />
+              </svg>
             </div>
           </div>
 
@@ -143,7 +164,7 @@
           <div class="section-eyebrow">Our Features</div>
           <h2 class="section-title">Comprehensive Security Solutions</h2>
           <p class="section-description">
-            Virex provides enterprise-grade security monitoring with advanced
+            VIREX provides enterprise-grade security monitoring with advanced
             machine learning capabilities to protect your APIs and applications.
           </p>
         </div>
@@ -225,7 +246,7 @@
           <div class="section-eyebrow">How It Works</div>
           <h2 class="section-title">Simple 3-Step Process</h2>
           <p class="section-description">
-            Get started with Virex in minutes and protect your APIs immediately.
+            Get started with VIREX in minutes and protect your APIs immediately.
           </p>
         </div>
 
@@ -237,7 +258,7 @@
             </div>
             <h3 class="step-title">Connect Your APIs</h3>
             <p class="step-description">
-              Integrate Virex with your existing APIs using our simple SDK or proxy setup.
+              Integrate VIREX with your existing APIs using our simple SDK or proxy setup.
             </p>
           </div>
 
@@ -255,7 +276,7 @@
           <div class="step-card">
             <div class="step-number">3</div>
             <div class="step-icon">
-              <i class="fas fa-shield-alt"></i>
+              <span class="brand-v-icon" style="font-size: 2.2rem;">V</span>
             </div>
             <h3 class="step-title">Monitor & Protect</h3>
             <p class="step-description">
@@ -300,7 +321,7 @@
 
           <div class="security-card">
             <div class="security-icon">
-              <i class="fas fa-user-shield"></i>
+               <span class="brand-v-icon" style="font-size: 2.2rem;">V</span>
             </div>
             <h3 class="security-title">Zero Trust Architecture</h3>
             <p class="security-description">
@@ -321,45 +342,13 @@
       </div>
     </section>
 
-    <!-- Contact Section -->
-    <section class="contact-section" id="contact">
-      <div class="contact-container">
-        <div class="section-header">
-          <div class="section-eyebrow">Get In Touch</div>
-          <h2 class="section-title">Contact Our Security Experts</h2>
-          <p class="section-description">
-            Ready to secure your APIs? Our team is here to help you get started.
-          </p>
-        </div>
-
-        <div class="contact-grid">
-          <div class="contact-card">
-            <div class="contact-icon">
-              <i class="fas fa-envelope"></i>
-            </div>
-            <h3 class="contact-title">Email Support</h3>
-            <p class="contact-description">smartwebdef@gmail.com</p>
-            <a href="mailto:smartwebdef@gmail.com" class="contact-link">Send Email</a>
-          </div>
-
-          <div class="contact-card">
-            <div class="contact-icon">
-              <i class="fab fa-slack"></i>
-            </div>
-            <h3 class="contact-title">Slack Community</h3>
-            <p class="contact-description">Join our workspace</p>
-            <a href="https://virexworld.slack.com/archives/C0AM7PA4S4A" target="_blank" class="contact-link">Join Slack</a>
-          </div>
-        </div>
-      </div>
-    </section>
 
     <!-- CTA Section -->
     <section class="cta-section">
       <div class="cta-container">
         <h2 class="cta-title">Ready to Secure Your APIs?</h2>
         <p class="cta-description">
-          Join hundreds of companies protecting their applications with Virex.
+          Join hundreds of companies protecting their applications with VIREX.
           Start monitoring your API security today with our powerful platform.
         </p>
         <button class="btn-cta" onclick="window.location.href = '/login'">
@@ -373,7 +362,7 @@
     <footer class="footer">
       <div class="footer-content">
         <div class="footer-text">
-          © 2026 Virex Security. All rights reserved.
+          © 2026 VIREX Security. All rights reserved.
         </div>
         <div class="footer-links">
           <a href="/privacy" class="footer-link">Privacy Policy</a>

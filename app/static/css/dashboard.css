@@ -520,6 +520,10 @@ body::after {
   --card-accent: #fbbf24;
 }
 
+.stat-card.type-top-attack {
+  --card-accent: var(--brand-primary);
+}
+
 .stat-header {
   display: flex;
   align-items: center;

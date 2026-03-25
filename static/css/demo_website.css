@@ -134,12 +134,17 @@ nav {
 
 .virex-pill {
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 950;
   padding: 5px 12px;
   border-radius: 20px;
   background: rgba(168, 85, 247, 0.1);
   border: 1px solid rgba(168, 85, 247, 0.3);
-  color: var(--brand-secondary);
+  background: linear-gradient(135deg, #9a277d 0%, #792b9d 48%, #e046ba 52%, #b347e6 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-family: 'Inter', sans-serif;
+  letter-spacing: -0.05em;
 }
 
 /* ==================== PAGES ==================== */

@@ -420,7 +420,38 @@ title %}Profile - Virex{% endblock %} {% block stylesheets %}
     </div>
 
     <div class="section-label section-gap">
-      <span class="section-label-text">03 — System Activity</span>
+      <span class="section-label-text">03 — Subscription Management</span>
+      <div class="section-label-line"></div>
+    </div>
+
+    <div class="card purple-accent section-gap" id="subscription-card">
+      <div class="card-header">
+        <div class="card-title-group">
+          <div class="card-icon purple"><i class="fas fa-crown"></i></div>
+          <div>
+            <div class="card-title">Membership Plan</div>
+            <div class="card-subtitle">
+              Manage your current subscription and billing
+            </div>
+          </div>
+        </div>
+        <span class="badge badge-purple" id="profile-subscription-badge">
+          {{ user.subscription|upper if user else 'FREE' }}
+        </span>
+      </div>
+      <div class="card-body" style="padding: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+        <div style="color: var(--text-secondary); font-size: 0.95rem;">
+          <p>Your account is currently on the <strong>{{ user.subscription if user else 'Free' }}</strong> plan.</p>
+          <p style="font-size: 0.8rem; margin-top: 0.5rem; opacity: 0.7;">Next billing date: Not applicable</p>
+        </div>
+        <button class="btn btn-primary" onclick="location.href='/pricing'">
+          <i class="fas fa-arrow-up-right-from-square"></i> Upgrade Plan
+        </button>
+      </div>
+    </div>
+
+    <div class="section-label section-gap">
+      <span class="section-label-text">04 — System Activity</span>
       <div class="section-label-line"></div>
     </div>
 

@@ -1,0 +1,98 @@
+{% extends "sidebar_layout.html" %} {% set active_page = 'threats-overview' %} {% block
+title %}Threats Overview - IREX{% endblock %} {% block stylesheets %}
+<link rel="stylesheet" href="/static/css/dashboard.css" />
+<link rel="stylesheet" href="/static/css/ramadan.css" />
+<style>
+  .overview-container {
+    padding: 2.5rem;
+    max-width: 1600px;
+    margin: 0 auto;
+    width: 100%;
+  }
+  .overview-header {
+    margin-bottom: 2rem;
+  }
+  .overview-header h1 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(135deg, #fff 0%, rgba(255, 255, 255, 0.7) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .overview-header p {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+  }
+  .overview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+  }
+</style>
+{% endblock %} {% block content %}
+<main class="overview-container">
+  <header class="overview-header">
+    <h1>Threats Overview</h1>
+    <p>Detailed summary of detected security vulnerabilities across all categories.</p>
+  </header>
+
+  <section class="overview-grid">
+    <div
+      class="stat-card card type-sqli clickable"
+      onclick="location.href = '/threats/sql-injection'"
+    >
+      <div class="stat-header">
+        <i class="fas fa-database" style="color: var(--warning)"></i>
+        <h3>SQL Injection</h3>
+      </div>
+      <div class="stat-value">{{ stats.sql_injection_attempts or 0 }}</div>
+    </div>
+
+    <div
+      class="stat-card card type-xss clickable"
+      onclick="location.href = '/threats/xss'"
+    >
+      <div class="stat-header">
+        <i class="fas fa-code" style="color: var(--info)"></i>
+        <h3>XSS Attacks</h3>
+      </div>
+      <div class="stat-value">{{ stats.xss_attempts or 0 }}</div>
+    </div>
+
+    <div
+      class="stat-card card type-brute clickable"
+      onclick="location.href = '/threats/brute-force'"
+    >
+      <div class="stat-header">
+        <i class="fas fa-key" style="color: var(--danger)"></i>
+        <h3>Brute Force</h3>
+      </div>
+      <div class="stat-value">{{ stats.brute_force_attempts or 0 }}</div>
+    </div>
+
+    <div
+      class="stat-card card type-scanner clickable"
+      onclick="location.href = '/threats/scanner'"
+    >
+      <div class="stat-header">
+        <i class="fas fa-eye" style="color: var(--success)"></i>
+        <h3>Scanners</h3>
+      </div>
+      <div class="stat-value">{{ stats.scanner_attempts or 0 }}</div>
+    </div>
+
+    <div
+      class="stat-card card type-rate clickable"
+      onclick="location.href = '/threats/rate-limit'"
+    >
+      <div class="stat-header">
+        <i class="fas fa-bolt" style="color: var(--warning)"></i>
+        <h3>Rate Limited</h3>
+      </div>
+      <div class="stat-value">{{ stats.rate_limit_hits or 0 }}</div>
+    </div>
+  </section>
+</main>
+{% endblock %}

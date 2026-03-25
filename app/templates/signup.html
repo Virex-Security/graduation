@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Sign Up - Virex Security</title>
+    <title>Sign Up - VIREX Security</title>
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
       rel="stylesheet"
@@ -25,8 +25,21 @@
     <nav class="navbar">
       <div class="navbar-container">
         <div class="logo" onclick="window.location.href = '/'" style="cursor: pointer">
-          <i class="fas fa-shield-alt"></i>
-          <span>Virex</span>
+          <svg class="brand-v-nav" viewBox="0 0 100 100" style="width: 40px; height: 40px;">
+            <defs>
+              <linearGradient id="v-nav-left-signup" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" style="stop-color: #9a277d" />
+                <stop offset="100%" style="stop-color: #792b9d" />
+              </linearGradient>
+              <linearGradient id="v-nav-right-signup" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" style="stop-color: #e046ba" />
+                <stop offset="100%" style="stop-color: #b347e6" />
+              </linearGradient>
+            </defs>
+            <path d="M25,25 L50,80" stroke="url(#v-nav-left-signup)" stroke-width="20" stroke-linecap="round" fill="none" />
+            <path d="M50,80 L75,25" stroke="url(#v-nav-right-signup)" stroke-width="20" stroke-linecap="round" fill="none" />
+          </svg>
+          <span class="brand-v-icon">VIREX</span>
         </div>
         <div class="nav-actions">
           <button class="btn-theme" id="theme-toggle" title="Toggle Theme">
@@ -44,10 +57,23 @@
           <div class="form-container">
             <div class="form-header">
               <div class="brand-logo">
-                <i class="fas fa-shield-alt"></i>
+                <svg viewBox="0 0 100 100" style="width: 60px; height: 60px; filter: drop-shadow(0 0 20px rgba(224, 70, 186, 0.4));">
+                  <defs>
+                    <linearGradient id="v-form-left-signup" x1="0%" y1="0%" x2="0%" y2="100%">
+                      <stop offset="0%" style="stop-color: #9a277d" />
+                      <stop offset="100%" style="stop-color: #792b9d" />
+                    </linearGradient>
+                    <linearGradient id="v-form-right-signup" x1="0%" y1="0%" x2="0%" y2="100%">
+                      <stop offset="0%" style="stop-color: #e046ba" />
+                      <stop offset="100%" style="stop-color: #b347e6" />
+                    </linearGradient>
+                  </defs>
+                  <path d="M25,25 L50,80" stroke="url(#v-form-left-signup)" stroke-width="18" stroke-linecap="round" fill="none" />
+                  <path d="M50,80 L75,25" stroke="url(#v-form-right-signup)" stroke-width="18" stroke-linecap="round" fill="none" />
+                </svg>
                 <h1>Create Account</h1>
               </div>
-              <p class="form-subtitle">Join Virex Security platform today</p>
+              <p class="form-subtitle">Join VIREX Security platform today</p>
             </div>
 
             <form id="signupForm" class="auth-form">
@@ -237,7 +263,7 @@
     <footer class="footer">
       <div class="footer-content">
         <div class="footer-text">
-          © 2026 Virex Security. All rights reserved.
+          © 2026 VIREX Security. All rights reserved.
         </div>
         <div class="footer-links">
           <a href="/privacy" class="footer-link">Privacy Policy</a>
