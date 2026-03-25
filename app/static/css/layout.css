@@ -507,7 +507,6 @@
   backdrop-filter: blur(10px);
   font-size: 1rem;
   position: relative;
-  overflow: hidden;
 }
 
 .btn-icon::before {
@@ -538,8 +537,8 @@
 
 .notification-badge {
   position: absolute;
-  top: 2px;
-  right: 2px;
+  top: -4px;
+  right: -4px;
   background: var(--danger, #ef4444);
   color: white;
   min-width: 18px;
