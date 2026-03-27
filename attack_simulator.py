@@ -8,7 +8,7 @@ import time
 import random
 from concurrent.futures import ThreadPoolExecutor
 import uuid
-import requests
+from app.templates.requests import requests
 
 
 # trigger IDE

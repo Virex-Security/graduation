@@ -31,7 +31,7 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
-### 2) Configure `.env` File
+### 2) Configure `.env` Fil
 
 ```env
 SECRET_KEY=your-secret-key-here
