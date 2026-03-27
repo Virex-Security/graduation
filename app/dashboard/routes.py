@@ -300,7 +300,7 @@ def create_dashboard_app():
             'email': current_user.get('email', '')
         })
     @app.route('/api/ml/stats')
-    @token_required
+    @admin_required
     def ml_stats(current_user):
         """
         ML performance metrics built DIRECTLY from siem_audit.json (live traffic).
@@ -642,13 +642,13 @@ def create_dashboard_app():
         )
 
     @app.route('/ml-detections')
-    @token_required
+    @admin_required
     def ml_detections_page(current_user):
         # Keep this URL for compatibility, but render the exact same page
         # and layout used by /threats/sql-injection.
         return redirect(url_for('threats_page', category='ml-detection'))
     @app.route('/ml-performance')
-    @token_required
+    @admin_required
     def ml_performance_page(current_user):
         """Dedicated ML Model Performance Dashboard"""
         return render_template('ml_performance.html', user=current_user)
@@ -815,13 +815,13 @@ def create_dashboard_app():
     # SETTINGS PAGE
     # ============================================================
     @app.route('/settings')
-    @token_required
+    @admin_required
     def settings_page(current_user):
         """Settings page for system configuration"""
         return render_template('settings.html', user=current_user)
     
     @app.route('/api/settings', methods=['GET'])
-    @token_required
+    @admin_required
     def get_settings(current_user):
         """Get current system settings"""
         # Load settings from a config file or database
