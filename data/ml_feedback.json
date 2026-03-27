@@ -1,0 +1,1072 @@
+[
+  {
+    "timestamp": "2026-03-27T20:19:33Z",
+    "text_hash": "ee97e8b72b70df185a8b0e5267495aad",
+    "text_snippet": "sara.ali",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:19:35Z",
+    "text_hash": "f3183d5979332246788027dcfafd18d4",
+    "text_snippet": "ahmed.hassan",
+    "risk_score": 0.7047369830125618,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:19:52Z",
+    "text_hash": "de67b4942a6349519553316ae9c5bbd8",
+    "text_snippet": "lina.mostafa",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:19:53Z",
+    "text_hash": "d5b635848d62c7df25f9ece6125761a3",
+    "text_snippet": "AirPods Pro",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:19:53Z",
+    "text_hash": "094bdcb85e4cd2b36038fceb284f0f14",
+    "text_snippet": "249.99",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:19:56Z",
+    "text_hash": "ec3d6a63d1cc762a7b279a91839ca58a",
+    "text_snippet": "nour.ibrahim",
+    "risk_score": 0.7047369830125618,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:19:56Z",
+    "text_hash": "13f967c3f2239eb94808ba857990d8fa",
+    "text_snippet": "MacBook Air M3",
+    "risk_score": 0.7047369830125618,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:19:56Z",
+    "text_hash": "9a58ce58aeabf55379dc5bde9d8df353",
+    "text_snippet": "1299.99",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:20:06Z",
+    "text_hash": "d00f5d5217896fb7fd601412cb890830",
+    "text_snippet": "Password@123",
+    "risk_score": 0.7596394189891744,
+    "decision": "monitor",
+    "attack_type": "Brute Force",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:20:53Z",
+    "text_hash": "fe5df080dd017aa539d520876388de65",
+    "text_snippet": "user796@mail.com",
+    "risk_score": 0.7499010778397333,
+    "decision": "monitor",
+    "attack_type": "Brute Force",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:21:42Z",
+    "text_hash": "7139d93af9f6f98caf9ec4b26066a875",
+    "text_snippet": "client835@mail.com",
+    "risk_score": 0.7499010778397331,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:22:02Z",
+    "text_hash": "92367ffb06f3ed491640718aa4713315",
+    "text_snippet": "client988@mail.com",
+    "risk_score": 0.7499010778397331,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:22:08Z",
+    "text_hash": "ca883c39b012d41fff3d11761d5eba7a",
+    "text_snippet": "client762@mail.com",
+    "risk_score": 0.7499010778397331,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:22:46Z",
+    "text_hash": "eda93020aaf0b02f2dbdec98e9a46d99",
+    "text_snippet": "client747@mail.com",
+    "risk_score": 0.7499010778397333,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:22:49Z",
+    "text_hash": "16fd27a5d643d3c8ed1948e8c6ee402d",
+    "text_snippet": "omar.khalid",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:23:17Z",
+    "text_hash": "a0e777036cc549eecf80eec67eb0df92",
+    "text_snippet": "client177@mail.com",
+    "risk_score": 0.7499010778397335,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:23:34Z",
+    "text_hash": "869cb7f34d0b89bb5e0ea6edc11f3041",
+    "text_snippet": "user771@mail.com",
+    "risk_score": 0.7499010778397333,
+    "decision": "monitor",
+    "attack_type": "Brute Force",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:23:38Z",
+    "text_hash": "5cef37d128adecdb95a54679730f3c13",
+    "text_snippet": "user737@mail.com",
+    "risk_score": 0.7499010778397333,
+    "decision": "monitor",
+    "attack_type": "Brute Force",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:23:45Z",
+    "text_hash": "1d428f97b365e13cfdd732792dbd7b2a",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.7047369830125618,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:23:45Z",
+    "text_hash": "99cd15ae2f3c6726557b6199eeae90fc",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:23:47Z",
+    "text_hash": "a8123be73e979b9336b4896c27471379",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.704736983012562,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:24:00Z",
+    "text_hash": "dbcadb333163a27a89ec679b408376ed",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:24:43Z",
+    "text_hash": "f3183d5979332246788027dcfafd18d4",
+    "text_snippet": "ahmed.hassan",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:24:43Z",
+    "text_hash": "862c94fbb7917bb5642d54a110c61e58",
+    "text_snippet": "iPhone 15 Pro",
+    "risk_score": 0.7047369830125618,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:24:43Z",
+    "text_hash": "311ed64c67dee96acde2ea4c96565a93",
+    "text_snippet": "799.0",
+    "risk_score": 0.7047369830125618,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:24:46Z",
+    "text_hash": "ee0d30940a99c2ea0efe3979634661c9",
+    "text_snippet": "1099.0",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:24:56Z",
+    "text_hash": "ee97e8b72b70df185a8b0e5267495aad",
+    "text_snippet": "sara.ali",
+    "risk_score": 0.7047369830125618,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:24:59Z",
+    "text_hash": "de67b4942a6349519553316ae9c5bbd8",
+    "text_snippet": "lina.mostafa",
+    "risk_score": 0.7047369830125618,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:24:59Z",
+    "text_hash": "13f967c3f2239eb94808ba857990d8fa",
+    "text_snippet": "MacBook Air M3",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:25:12Z",
+    "text_hash": "d00f5d5217896fb7fd601412cb890830",
+    "text_snippet": "Password@123",
+    "risk_score": 0.7596394189891745,
+    "decision": "monitor",
+    "attack_type": "Brute Force",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:25:27Z",
+    "text_hash": "0009e3d4467ff60c70dbe561982f18c6",
+    "text_snippet": "client196@mail.com",
+    "risk_score": 0.7499010778397333,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:25:30Z",
+    "text_hash": "ec3d6a63d1cc762a7b279a91839ca58a",
+    "text_snippet": "nour.ibrahim",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:25:42Z",
+    "text_hash": "4d3ba201261f4538df084f8040fa6fca",
+    "text_snippet": "client868@mail.com",
+    "risk_score": 0.7499010778397331,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:26:27Z",
+    "text_hash": "f49acd9896651f6877599eb5a2ab902e",
+    "text_snippet": "client384@mail.com",
+    "risk_score": 0.7499010778397333,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:26:40Z",
+    "text_hash": "b486750399f752c1f5c68a8765464dc1",
+    "text_snippet": "client549@mail.com",
+    "risk_score": 0.7499010778397331,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:26:59Z",
+    "text_hash": "a4b5e48d9978b2fb2937248549d12d68",
+    "text_snippet": "client522@mail.com",
+    "risk_score": 0.7499010778397331,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:27:29Z",
+    "text_hash": "d7eb294c99b189a1839b2ee4e8834a7b",
+    "text_snippet": "client711@mail.com",
+    "risk_score": 0.7499010778397333,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:28:25Z",
+    "text_hash": "16fd27a5d643d3c8ed1948e8c6ee402d",
+    "text_snippet": "omar.khalid",
+    "risk_score": 0.7047369830125618,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:29:05Z",
+    "text_hash": "d51d54f264a6e493f25960300abd7a1a",
+    "text_snippet": "user46@mail.com",
+    "risk_score": 0.7499010778397331,
+    "decision": "monitor",
+    "attack_type": "Brute Force",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:29:16Z",
+    "text_hash": "a64df09c3d4631b476a989add5bb7465",
+    "text_snippet": "client404@mail.com",
+    "risk_score": 0.7499010778397333,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:29:27Z",
+    "text_hash": "de67b4942a6349519553316ae9c5bbd8",
+    "text_snippet": "lina.mostafa",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:29:36Z",
+    "text_hash": "ee97e8b72b70df185a8b0e5267495aad",
+    "text_snippet": "sara.ali",
+    "risk_score": 0.7047369830125618,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:29:36Z",
+    "text_hash": "13f967c3f2239eb94808ba857990d8fa",
+    "text_snippet": "MacBook Air M3",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:29:37Z",
+    "text_hash": "094bdcb85e4cd2b36038fceb284f0f14",
+    "text_snippet": "249.99",
+    "risk_score": 0.7047369830125618,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:29:45Z",
+    "text_hash": "84bc75ab2eb1c390d8c2c4c7c2824d08",
+    "text_snippet": "user136@mail.com",
+    "risk_score": 0.7499010778397335,
+    "decision": "monitor",
+    "attack_type": "Brute Force",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:29:47Z",
+    "text_hash": "f80ecb77d6c2a76d506fba52b765de5f",
+    "text_snippet": "user500@mail.com",
+    "risk_score": 0.7499010778397331,
+    "decision": "monitor",
+    "attack_type": "Brute Force",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:29:50Z",
+    "text_hash": "9a217b3034c054b06d9f5a139a9fd570",
+    "text_snippet": "user12@mail.com",
+    "risk_score": 0.7499010778397331,
+    "decision": "monitor",
+    "attack_type": "Brute Force",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:29:57Z",
+    "text_hash": "454e15b2450dd7abacac4c6f20de220c",
+    "text_snippet": "user342@mail.com",
+    "risk_score": 0.7499010778397333,
+    "decision": "monitor",
+    "attack_type": "Brute Force",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:30:00Z",
+    "text_hash": "6421990e71faf140d1548de525a79afa",
+    "text_snippet": "user831@mail.com",
+    "risk_score": 0.7499010778397333,
+    "decision": "monitor",
+    "attack_type": "Brute Force",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:30:15Z",
+    "text_hash": "10606783b34085e0cb6d9aac373b9e8e",
+    "text_snippet": "client100@mail.com",
+    "risk_score": 0.7499010778397333,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:30:58Z",
+    "text_hash": "16fd27a5d643d3c8ed1948e8c6ee402d",
+    "text_snippet": "omar.khalid",
+    "risk_score": 0.7047369830125618,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:31:04Z",
+    "text_hash": "f3183d5979332246788027dcfafd18d4",
+    "text_snippet": "ahmed.hassan",
+    "risk_score": 0.7047369830125618,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:31:40Z",
+    "text_hash": "70f4b9013362ad86b2ef89f1126530c0",
+    "text_snippet": "client974@mail.com",
+    "risk_score": 0.7499010778397333,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:31:43Z",
+    "text_hash": "5c85e98d4cf8253c194732f9d95be37c",
+    "text_snippet": "client422@mail.com",
+    "risk_score": 0.7499010778397331,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:32:17Z",
+    "text_hash": "f6be16b8f266c298f3a2fff5442a944d",
+    "text_snippet": "client253@mail.com",
+    "risk_score": 0.7499010778397331,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:32:21Z",
+    "text_hash": "ec3d6a63d1cc762a7b279a91839ca58a",
+    "text_snippet": "nour.ibrahim",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:32:24Z",
+    "text_hash": "862c94fbb7917bb5642d54a110c61e58",
+    "text_snippet": "iPhone 15 Pro",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:32:24Z",
+    "text_hash": "311ed64c67dee96acde2ea4c96565a93",
+    "text_snippet": "799.0",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:32:33Z",
+    "text_hash": "7c8bdef2fef73934c3de4853bfca5c56",
+    "text_snippet": "user551@mail.com",
+    "risk_score": 0.7499010778397331,
+    "decision": "monitor",
+    "attack_type": "Brute Force",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:32:43Z",
+    "text_hash": "a206f8567cbee8715ceb0770e90ce782",
+    "text_snippet": "client678@mail.com",
+    "risk_score": 0.7499010778397333,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:33:06Z",
+    "text_hash": "d5b635848d62c7df25f9ece6125761a3",
+    "text_snippet": "AirPods Pro",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:33:13Z",
+    "text_hash": "ee0d30940a99c2ea0efe3979634661c9",
+    "text_snippet": "1099.0",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:33:26Z",
+    "text_hash": "9a58ce58aeabf55379dc5bde9d8df353",
+    "text_snippet": "1299.99",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:34:02Z",
+    "text_hash": "ee97e8b72b70df185a8b0e5267495aad",
+    "text_snippet": "sara.ali",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:34:06Z",
+    "text_hash": "f3183d5979332246788027dcfafd18d4",
+    "text_snippet": "ahmed.hassan",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:34:12Z",
+    "text_hash": "0af791d312548ee2c7d820a93b88ea66",
+    "text_snippet": "user69@mail.com",
+    "risk_score": 0.7499010778397333,
+    "decision": "monitor",
+    "attack_type": "Brute Force",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:36:46Z",
+    "text_hash": "16fd27a5d643d3c8ed1948e8c6ee402d",
+    "text_snippet": "omar.khalid",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:36:46Z",
+    "text_hash": "13f967c3f2239eb94808ba857990d8fa",
+    "text_snippet": "MacBook Air M3",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:36:46Z",
+    "text_hash": "094bdcb85e4cd2b36038fceb284f0f14",
+    "text_snippet": "249.99",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:36:52Z",
+    "text_hash": "7de4c92ddcc428382f3671b5d4e5ef6c",
+    "text_snippet": "user671@mail.com",
+    "risk_score": 0.7499010778397333,
+    "decision": "monitor",
+    "attack_type": "Brute Force",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:36:57Z",
+    "text_hash": "43536c976fd9eee9675de8778d69dde9",
+    "text_snippet": "user455@mail.com",
+    "risk_score": 0.7499010778397333,
+    "decision": "monitor",
+    "attack_type": "Brute Force",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:37:00Z",
+    "text_hash": "bf2a0fb34861494d70ed7f9fcb29f959",
+    "text_snippet": "user72@mail.com",
+    "risk_score": 0.7499010778397333,
+    "decision": "monitor",
+    "attack_type": "Brute Force",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:37:03Z",
+    "text_hash": "5fb5f172398475b535f1ee2743a6ffbf",
+    "text_snippet": "user795@mail.com",
+    "risk_score": 0.7499010778397333,
+    "decision": "monitor",
+    "attack_type": "Brute Force",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:37:09Z",
+    "text_hash": "f3183d5979332246788027dcfafd18d4",
+    "text_snippet": "ahmed.hassan",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:37:12Z",
+    "text_hash": "ec3d6a63d1cc762a7b279a91839ca58a",
+    "text_snippet": "nour.ibrahim",
+    "risk_score": 0.7047369830125618,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:37:12Z",
+    "text_hash": "862c94fbb7917bb5642d54a110c61e58",
+    "text_snippet": "iPhone 15 Pro",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:37:12Z",
+    "text_hash": "311ed64c67dee96acde2ea4c96565a93",
+    "text_snippet": "799.0",
+    "risk_score": 0.7047369830125618,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:37:20Z",
+    "text_hash": "ee97e8b72b70df185a8b0e5267495aad",
+    "text_snippet": "sara.ali",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:37:20Z",
+    "text_hash": "ee0d30940a99c2ea0efe3979634661c9",
+    "text_snippet": "1099.0",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:37:28Z",
+    "text_hash": "9ec65364db5d180f1e7edfddba32286d",
+    "text_snippet": "user517@mail.com",
+    "risk_score": 0.7499010778397331,
+    "decision": "monitor",
+    "attack_type": "Brute Force",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:37:31Z",
+    "text_hash": "22126f14396df6355af2e4c8c560206e",
+    "text_snippet": "user803@mail.com",
+    "risk_score": 0.7499010778397331,
+    "decision": "monitor",
+    "attack_type": "Brute Force",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:37:34Z",
+    "text_hash": "13a748daa755aba2c8fc2b7fa436d465",
+    "text_snippet": "user802@mail.com",
+    "risk_score": 0.7499010778397333,
+    "decision": "monitor",
+    "attack_type": "Brute Force",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:37:41Z",
+    "text_hash": "36190ef7df5afe71da269dcaaf4488ec",
+    "text_snippet": "client907@mail.com",
+    "risk_score": 0.7499010778397331,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:37:45Z",
+    "text_hash": "d5b635848d62c7df25f9ece6125761a3",
+    "text_snippet": "AirPods Pro",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:38:20Z",
+    "text_hash": "5ca12795e4ba84eea9003cea016b951e",
+    "text_snippet": "user351@mail.com",
+    "risk_score": 0.7499010778397331,
+    "decision": "monitor",
+    "attack_type": "Brute Force",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:38:24Z",
+    "text_hash": "c75660e725856e01922ec7c888968527",
+    "text_snippet": "user857@mail.com",
+    "risk_score": 0.7499010778397333,
+    "decision": "monitor",
+    "attack_type": "Brute Force",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:38:55Z",
+    "text_hash": "d00f5d5217896fb7fd601412cb890830",
+    "text_snippet": "Password@123",
+    "risk_score": 0.7596394189891744,
+    "decision": "monitor",
+    "attack_type": "Brute Force",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:39:21Z",
+    "text_hash": "ff0a764a6289b3a01e91ac15810d7906",
+    "text_snippet": "client14@mail.com",
+    "risk_score": 0.7499010778397335,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:39:58Z",
+    "text_hash": "b4c97af10337657255caa33681e3fd14",
+    "text_snippet": "client883@mail.com",
+    "risk_score": 0.7499010778397333,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:40:21Z",
+    "text_hash": "fe242e40ad4bf9c4f51acde9b900c484",
+    "text_snippet": "client840@mail.com",
+    "risk_score": 0.7499010778397333,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:40:30Z",
+    "text_hash": "de67b4942a6349519553316ae9c5bbd8",
+    "text_snippet": "lina.mostafa",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:41:29Z",
+    "text_hash": "d0848b82a0eac0ee00a51ef646350c65",
+    "text_snippet": "client349@mail.com",
+    "risk_score": 0.7499010778397331,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:41:46Z",
+    "text_hash": "5d3cd0b7b1b607c59352422e6c69a734",
+    "text_snippet": "client170@mail.com",
+    "risk_score": 0.7499010778397335,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:41:52Z",
+    "text_hash": "00425ad2fdfefc78691d1282cad1813f",
+    "text_snippet": "client336@mail.com",
+    "risk_score": 0.7499010778397333,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:41:55Z",
+    "text_hash": "e5cc907bf65fddd5f3018efda95a34a6",
+    "text_snippet": "client174@mail.com",
+    "risk_score": 0.7499010778397331,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:42:20Z",
+    "text_hash": "f3183d5979332246788027dcfafd18d4",
+    "text_snippet": "ahmed.hassan",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:42:23Z",
+    "text_hash": "ec3d6a63d1cc762a7b279a91839ca58a",
+    "text_snippet": "nour.ibrahim",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:42:23Z",
+    "text_hash": "862c94fbb7917bb5642d54a110c61e58",
+    "text_snippet": "iPhone 15 Pro",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:42:24Z",
+    "text_hash": "9a58ce58aeabf55379dc5bde9d8df353",
+    "text_snippet": "1299.99",
+    "risk_score": 0.7047369830125618,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:43:18Z",
+    "text_hash": "ee97e8b72b70df185a8b0e5267495aad",
+    "text_snippet": "sara.ali",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:43:35Z",
+    "text_hash": "2e5a7f15e756697ca2a99d4188d823b5",
+    "text_snippet": "user465@mail.com",
+    "risk_score": 0.7499010778397333,
+    "decision": "monitor",
+    "attack_type": "Brute Force",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:43:46Z",
+    "text_hash": "d5b635848d62c7df25f9ece6125761a3",
+    "text_snippet": "AirPods Pro",
+    "risk_score": 0.7047369830125618,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:43:52Z",
+    "text_hash": "13f967c3f2239eb94808ba857990d8fa",
+    "text_snippet": "MacBook Air M3",
+    "risk_score": 0.704736983012562,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:43:52Z",
+    "text_hash": "094bdcb85e4cd2b36038fceb284f0f14",
+    "text_snippet": "249.99",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:43:56Z",
+    "text_hash": "16fd27a5d643d3c8ed1948e8c6ee402d",
+    "text_snippet": "omar.khalid",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:44:45Z",
+    "text_hash": "ac9ac1f33b014324b68d72907e9727b3",
+    "text_snippet": "client211@mail.com",
+    "risk_score": 0.7499010778397333,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-03-27T20:45:03Z",
+    "text_hash": "c40ecb5128d8a1f5f421bbcd0116c99b",
+    "text_snippet": "client521@mail.com",
+    "risk_score": 0.7499010778397333,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  }
+]

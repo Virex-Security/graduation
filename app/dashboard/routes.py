@@ -1256,6 +1256,12 @@ def create_dashboard_app():
             print(f"Error deleting blacklist: {e}")
             return jsonify({'error': str(e)}), 500
 
+    # ── Attack History Page ───────────────────────────────────
+    @app.route('/attack-history')
+    @token_required
+    def attack_history_page(current_user):
+        return render_template('attack_history.html', user=current_user)
+
     return app
 def calculate_threat_score(threat):
     """Calculate threat score based on multiple factors (0-100)"""
