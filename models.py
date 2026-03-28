@@ -1,4 +1,3 @@
-
 import re
 from werkzeug.security import generate_password_hash, check_password_hash
 from roles import Role
@@ -6,7 +5,7 @@ from app.database import (
     get_user_by_username, insert_user, update_user, delete_user
 )
 
-
+class UserManager:
 
     @staticmethod
     def validate_password_policy(password):
@@ -53,6 +52,7 @@ from app.database import (
         password_hash = generate_password_hash(new_password)
         update_user(username, password_hash=password_hash)
         return True, "Password changed successfully"
+
 
 # Singleton-like instance
 user_manager = UserManager()
