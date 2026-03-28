@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 class SimpleSecurityManager:
-    """Security manager with ML Risk Score + persistent stats."""
+    """Security manager with DB-rules (Layer 1) + ML Risk Score (Layer 2)."""
 
     def __init__(self):
         # ── Load persisted stats ──────────────────────────────
@@ -41,43 +41,69 @@ class SimpleSecurityManager:
         self.dashboard_url        = os.getenv("DASHBOARD_URL", "http://127.0.0.1:8070")
         self._stats_lock          = threading.Lock()
 
-        # ── Regex Patterns ────────────────────────────────────
-        self.sql_patterns = [
-            r"(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|UNION|EXEC|TRUNCATE|GRANT|REVOKE)",
-            r"(\bOR\b|\bAND\b).+(\=|\bLIKE\b|\bIN\b)",
-            r"(--|#|/\*|\*/|;|@@|\bSLEEP\b|\bBENCHMARK\b|\bWAITFOR\b)",
-            r"('|%27).+(\bOR\b|\bAND\b).+",
-            r"UNION\s+SELECT",
-        ]
-        self.xss_patterns = [
-            r"<script.*?>.*?</script>",
-            r"javascript:",
-            r"onerror\s*=",
-            r"onload\s*=",
-            r"onclick\s*=",
-            r"<iframe.*?>",
-            r"<svg.*?>",
-            r"<img.*?onerror",
-            r"<body.*?onload",
-            r"alert\(.*\)",
-        ]
-        self.cmd_patterns = [
-            r"(;|\|{1,2}|&&|`)\s*(cat|ls|rm|wget|curl|nc|bash|sh|python|perl|ruby|php)\b",
-            r"\$\(.*\)",
-            r"`[^`]+`",
-            r"(\/etc\/passwd|\/etc\/shadow|\/proc\/self)",
-        ]
-        self.path_patterns = [
-            r"\.\./",
-            r"\.\.\\",
-            r"%2e%2e[%2f%5c]",
-            r"(etc/passwd|etc/shadow|windows/system32|boot\.ini)",
-        ]
+        # ── Load WAF rules from DB ────────────────────────────
+        self._load_db_rules()
 
-        self.compiled_sql_patterns  = [re.compile(p, re.IGNORECASE | re.DOTALL) for p in self.sql_patterns]
-        self.compiled_xss_patterns  = [re.compile(p, re.IGNORECASE | re.DOTALL) for p in self.xss_patterns]
-        self.compiled_cmd_patterns  = [re.compile(p, re.IGNORECASE) for p in self.cmd_patterns]
-        self.compiled_path_patterns = [re.compile(p, re.IGNORECASE) for p in self.path_patterns]
+    # ── DB Rule Loader ────────────────────────────────────────
+    def _load_db_rules(self):
+        """
+        Load rules from the 'rules' DB table and compile their regex patterns.
+        Populates self._compiled_db_rules: {type -> [(compiled, rule_dict), ...]}
+        """
+        from app.api.persistence import get_rules
+        from app import database as _db
+
+        # Ensure rules table exists and is seeded BEFORE querying
+        _db._seed_rules_table()
+
+        db_rules = get_rules(active_only=True)
+        print(f"[DEBUG] SimpleSecurityManager: loaded {len(db_rules)} rule(s) from DB")
+
+        self._db_rules = db_rules  # keep raw list for reference
+
+        # type -> list of (compiled_pattern, rule_dict)
+        self._compiled_db_rules: dict = {}
+        for rule in db_rules:
+            rtype   = rule.get("type", "unknown").lower()
+            pattern = rule.get("pattern", "")
+            if not pattern:
+                continue
+            try:
+                compiled = re.compile(pattern, re.IGNORECASE | re.DOTALL)
+                self._compiled_db_rules.setdefault(rtype, []).append((compiled, rule))
+            except re.error as exc:
+                print(f"[DEBUG] Bad regex in rule '{rule.get('name')}': {exc}")
+
+        # DB severity (lowercase) -> display severity (Title case)
+        self._severity_map = {
+            "critical": "Critical",
+            "high":     "High",
+            "medium":   "Medium",
+            "low":      "Low",
+        }
+
+        # DB type -> stats counter attribute name
+        self._type_counter_map = {
+            "sql_injection":     "sql_injection_count",
+            "xss":               "xss_count",
+            "command_injection": "cmd_injection_count",
+            "path_traversal":    "path_traversal_count",
+        }
+
+        # DB type -> human-readable display name
+        self._type_display_map = {
+            "sql_injection":     "SQL Injection",
+            "xss":               "XSS",
+            "command_injection": "Command Injection",
+            "path_traversal":    "Path Traversal",
+        }
+
+        total_patterns = sum(len(v) for v in self._compiled_db_rules.values())
+        print(
+            f"[DEBUG] Compiled {total_patterns} pattern(s) across "
+            f"{len(self._compiled_db_rules)} rule type(s): "
+            f"{list(self._compiled_db_rules.keys())}"
+        )
 
     # ── Persist stats periodically ────────────────────────────
     def _persist_stats(self):
@@ -102,7 +128,10 @@ class SimpleSecurityManager:
 
         def send():
             try:
-                requests.post(f"{self.dashboard_url}/api/dashboard/threat", json=payload, timeout=2)
+                requests.post(
+                    f"{self.dashboard_url}/api/dashboard/threat",
+                    json=payload, timeout=2
+                )
             except Exception:
                 pass
 
@@ -111,45 +140,100 @@ class SimpleSecurityManager:
     def update_dashboard_stats(self):
         pass
 
-    # ── Regex Detectors ───────────────────────────────────────
-    def _regex_detect(self, patterns, text, ip, attack_name, counter_attr, severity="High"):
-        for pattern in patterns:
-            if pattern.search(text):
-                setattr(self, counter_attr, getattr(self, counter_attr) + 1)
-                logger.info(f"[REGEX-{attack_name.upper()}] Blocked {ip} — {text[:80]}")
-                self.log_to_dashboard(
-                    attack_name, ip,
-                    f"[REGEX] {attack_name} detected: {text[:60]}",
-                    severity,
-                    endpoint=request.path, method=request.method,
-                    snippet=text[:100], detection_type="Signature-based",
-                    blocked=True, request_id=getattr(request, "request_id", ""),
-                )
-                # ── Persist to user_attacks ───────────────────
-                try:
-                    from app.api.persistence import append_user_attack
-                    user_key = getattr(request, "current_username", ip)
-                    append_user_attack(user_key, attack_name, ip, request.path, request.method, severity)
-                except Exception:
-                    pass
-                return True
-        return False
+    # ── DB Rule Detector ──────────────────────────────────────
+    def _apply_db_rules(self, text: str, ip: str) -> bool:
+        """
+        Scan *text* against all active rules loaded from the DB.
+        Returns True if a rule matched → request should be BLOCKED.
+        Prints debug info on every triggered match.
 
+        Field names match DB columns:
+          rule["type"]     → attack category  (e.g. "sql_injection")
+          rule["severity"] → threat level     (e.g. "high")
+          rule["pattern"]  → compiled regex
+          rule["name"]     → human-readable name
+          rule["action"]   → "block" | "monitor"
+        """
+        for rtype, rule_entries in self._compiled_db_rules.items():
+            for compiled_pattern, rule in rule_entries:
+                if compiled_pattern.search(text):
+                    display_name = self._type_display_map.get(
+                        rtype, rtype.replace("_", " ").title()
+                    )
+                    severity_raw = rule.get("severity", "high").lower()
+                    severity     = self._severity_map.get(severity_raw, "High")
+                    counter_attr = self._type_counter_map.get(rtype)
+                    rule_name    = rule.get("name", "Unknown Rule")
+                    action       = rule.get("action", "block").lower()
+
+                    print(
+                        f"[DEBUG] Rule TRIGGERED: '{rule_name}' | type={rtype} | "
+                        f"severity={severity} | action={action} | ip={ip} | "
+                        f"snippet={text[:60]!r}"
+                    )
+
+                    if counter_attr and hasattr(self, counter_attr):
+                        setattr(self, counter_attr, getattr(self, counter_attr) + 1)
+
+                    logger.info(
+                        f"[RULE-{rtype.upper()}] Blocked {ip} — "
+                        f"rule='{rule_name}' — {text[:80]}"
+                    )
+
+                    self.log_to_dashboard(
+                        display_name, ip,
+                        f"[RULE] {rule_name}: {text[:60]}",
+                        severity,
+                        endpoint=request.path, method=request.method,
+                        snippet=text[:100], detection_type="Signature-based",
+                        blocked=(action == "block"),
+                        request_id=getattr(request, "request_id", ""),
+                    )
+
+                    # Persist to threat_logs / user_attacks
+                    try:
+                        from app.api.persistence import append_user_attack
+                        user_key = getattr(request, "current_username", ip)
+                        append_user_attack(
+                            user_key, display_name, ip,
+                            request.path, request.method, severity
+                        )
+                    except Exception:
+                        pass
+
+                    # Only block if action is "block"
+                    return action == "block"
+
+        return False  # no rule matched
+
+    # ── Backwards-compat shims ────────────────────────────────
     def detect_sql_injection(self, text, ip):
-        return self._regex_detect(self.compiled_sql_patterns, text, ip,
-                                  "SQL Injection", "sql_injection_count", "High")
+        rules = {k: v for k, v in self._compiled_db_rules.items() if k == "sql_injection"}
+        tmp, self._compiled_db_rules = self._compiled_db_rules, rules
+        result = self._apply_db_rules(text, ip)
+        self._compiled_db_rules = tmp
+        return result
 
     def detect_xss(self, text, ip):
-        return self._regex_detect(self.compiled_xss_patterns, text, ip,
-                                  "XSS", "xss_count", "High")
+        rules = {k: v for k, v in self._compiled_db_rules.items() if k == "xss"}
+        tmp, self._compiled_db_rules = self._compiled_db_rules, rules
+        result = self._apply_db_rules(text, ip)
+        self._compiled_db_rules = tmp
+        return result
 
     def detect_command_injection(self, text, ip):
-        return self._regex_detect(self.compiled_cmd_patterns, text, ip,
-                                  "Command Injection", "cmd_injection_count", "Critical")
+        rules = {k: v for k, v in self._compiled_db_rules.items() if k == "command_injection"}
+        tmp, self._compiled_db_rules = self._compiled_db_rules, rules
+        result = self._apply_db_rules(text, ip)
+        self._compiled_db_rules = tmp
+        return result
 
     def detect_path_traversal(self, text, ip):
-        return self._regex_detect(self.compiled_path_patterns, text, ip,
-                                  "Path Traversal", "path_traversal_count", "High")
+        rules = {k: v for k, v in self._compiled_db_rules.items() if k == "path_traversal"}
+        tmp, self._compiled_db_rules = self._compiled_db_rules, rules
+        result = self._apply_db_rules(text, ip)
+        self._compiled_db_rules = tmp
+        return result
 
     # ── Rate Limit ────────────────────────────────────────────
     def check_rate_limit(self, ip):
@@ -171,6 +255,11 @@ class SimpleSecurityManager:
 
     # ── Main Security Check ───────────────────────────────────
     def check_request_security(self, data, ip):
+        """
+        Two-layer check:
+          Layer 1 — DB Rules  (regex patterns from the 'rules' table)
+          Layer 2 — ML Model  (risk score from the trained model)
+        """
         def scan(value):
             if isinstance(value, dict):
                 return all(scan(v) for v in value.values())
@@ -181,18 +270,20 @@ class SimpleSecurityManager:
 
             text = str(value)
 
-            # Layer 1: Rules
-            if self.detect_sql_injection(text, ip):    return False
-            if self.detect_xss(text, ip):              return False
-            if self.detect_command_injection(text, ip): return False
-            if self.detect_path_traversal(text, ip):   return False
+            # ── Layer 1: DB Rules ─────────────────────────────
+            print(f"[DEBUG] Scanning value (len={len(text)}): {text[:80]!r}")
+            if self._apply_db_rules(text, ip):
+                return False
 
-            # Layer 2: ML
+            # ── Layer 2: ML ───────────────────────────────────
             decision: MLDecision = ml_analyze(text)
 
             if decision.should_block:
                 self.ml_detections += 1
-                logger.info(f"[ML-BLOCK] {decision.attack_type} ip={ip} score={decision.risk_score:.2%}")
+                logger.info(
+                    f"[ML-BLOCK] {decision.attack_type} ip={ip} "
+                    f"score={decision.risk_score:.2%}"
+                )
                 self.log_to_dashboard(
                     decision.attack_type, ip,
                     f"[ML] Blocked score={decision.risk_score:.0%}: {text[:60]}",
@@ -204,17 +295,24 @@ class SimpleSecurityManager:
                 try:
                     from app.api.persistence import append_user_attack, log_ml_detection
                     user_key = getattr(request, "current_username", ip)
-                    append_user_attack(user_key, decision.attack_type, ip,
-                                       request.path, request.method, "High")
-                    log_ml_detection(text[:120], decision.risk_score, "block",
-                                     decision.attack_type, ip, request.path)
+                    append_user_attack(
+                        user_key, decision.attack_type, ip,
+                        request.path, request.method, "High"
+                    )
+                    log_ml_detection(
+                        text[:120], decision.risk_score, "block",
+                        decision.attack_type, ip, request.path
+                    )
                 except Exception:
                     pass
                 return False
 
             elif decision.should_monitor:
                 self.ml_monitor_count += 1
-                logger.info(f"[ML-MONITOR] {decision.attack_type} ip={ip} score={decision.risk_score:.2%}")
+                logger.info(
+                    f"[ML-MONITOR] {decision.attack_type} ip={ip} "
+                    f"score={decision.risk_score:.2%}"
+                )
                 self.log_to_dashboard(
                     decision.attack_type, ip,
                     f"[ML-MONITOR] score={decision.risk_score:.0%}: {text[:60]}",
@@ -225,8 +323,10 @@ class SimpleSecurityManager:
                 )
                 try:
                     from app.api.persistence import log_ml_detection
-                    log_ml_detection(text[:120], decision.risk_score, "monitor",
-                                     decision.attack_type, ip, request.path)
+                    log_ml_detection(
+                        text[:120], decision.risk_score, "monitor",
+                        decision.attack_type, ip, request.path
+                    )
                 except Exception:
                     pass
 

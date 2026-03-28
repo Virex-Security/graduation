@@ -20,38 +20,14 @@ load_dotenv()
 
 class SecurityDashboard:
     def __init__(self):
-        self.threat_log = deque(maxlen=100)
-        self.blocked_events_queue = deque(maxlen=100) # For real-time blocked events
-        self.stats = {
-            'total_requests': 0,
-            'blocked_requests': 0,
-            'ml_detections': 0,
-            'sql_injection_attempts': 0,
-            'xss_attempts': 0,
-            'brute_force_attempts': 0,
-            'scanner_attempts': 0,
-            'rate_limit_hits': 0
-        }
-        self.recent_threats = []
+        from app import database as db
+        self.db = db
         self.timeline_data = deque(maxlen=50)
         self.ip_tracker = defaultdict(int)
         self.incidents = {}
-        # Use data/ directory for audit log
-        project_root = Path(__file__).parent.parent.parent
-        self.audit_log_path = str(project_root / "data" / "siem_audit.json")
-        # lock to protect file operations on the audit log; the Flask
-        # development server is multi-threaded by default and without a
-        # lock two requests can read/write the json file at the same time,
-        # causing parsing failures and an empty file. when the dashboard
-        # later recalculates stats from the log (get_accurate_stats) an
-        # empty audit file results in all counters dropping to zero – the
-        # "mysterious reset" the user reported.
-        self.audit_lock = threading.Lock()
-        # prepare cache for ML metrics
         self.ml_metrics_lock = threading.Lock()
         self.last_ml_metrics = None
         self.last_log_count = 0
-        # prepare cache for attack indicators
         self.attack_indicator_lock = threading.Lock()
         self.last_attack_indicators = None
         self.last_indicator_log_count = 0
@@ -59,7 +35,11 @@ class SecurityDashboard:
         self.had_connection = False
         self.api_url = "http://127.0.0.1:5000/api/health"
         
-        # Ensure data directory exists
+        self.audit_log_path = "logs/audit.log"
+
+        self.audit_log_lock = threading.Lock()
+        self.audit_lock = threading.Lock()
+
         os.makedirs(os.path.dirname(self.audit_log_path), exist_ok=True)
         if not os.path.exists(self.audit_log_path):
             with open(self.audit_log_path, "w") as f:
@@ -69,195 +49,86 @@ class SecurityDashboard:
         # Restore stats from disk on startup
         self.load_stats_from_audit()
     def log_clean_request(self, ip, endpoint="", method="GET"):
-        """Log a normal (non-attack) request."""
-        entry = {
-            'timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            'type': 'Clean',
-            'attack_type': 'Clean',
-            'ip': ip,
-            'description': 'Normal request',
-            'severity': 'Clean',
-            'endpoint': endpoint,
-            'method': method,
-            'snippet': '',
-            'payload': '',
-            'detection_type': 'None',
-            'blocked': False,
-            'ml_detected': False,
-            'confidence': 0.0,
-        }
-        # always keep a full audit history, but only surface non‑clean
-        # events in the "recent threats" list shown on the dashboard.
-        self.threat_log.append(entry)
-        self.recent_threats = [t for t in self.threat_log if t.get('attack_type') != 'Clean'][-10:]
-        # clean requests contribute to the total request count only; we do
-        # *not* increment the attacker tracker so they won't pollute the
-        # Top Threat Actors widget.
-        self.stats['total_requests'] += 1
-        # write new entry in a thread-safe fashion; we always grab the
-        # audit_lock before touching the file to avoid races that would
-        # otherwise leave a truncated/empty file and make the dashboard
-        # appear to reset itself later when stats are rebuilt.
-        with self.audit_lock:
-            try:
-                with open(self.audit_log_path, 'r') as f:
-                    audit_logs = json.load(f)
-            except Exception:
-                audit_logs = []
-            audit_logs.append(entry)
-            try:
-                with open(self.audit_log_path, 'w') as f:
-                    json.dump(audit_logs, f, indent=2)
-            except Exception:
-                pass
+        """Log a normal (non-attack) request — memory only, no DB write per request."""
+        self.stats["total_requests"] = self.stats.get("total_requests", 0) + 1
     def load_stats_from_audit(self):
-        """Called at startup to restore stats from siem_audit.json."""
-        logs = self.load_audit_log()
-        req_logs = [
-            l for l in logs
-            if ('attack_type' in l or 'type' in l) and 'action' not in l
-        ]
-        stat_map = {
-            'SQL Injection': 'sql_injection_attempts',
-            'XSS': 'xss_attempts',
-            'Brute Force': 'brute_force_attempts',
-            'Scanner': 'scanner_attempts',
-            'Rate Limit': 'rate_limit_hits',
-            'ML Detection': 'ml_detections',
+        """Load stats from DB (threat_logs table)."""
+        stats = self.db.load_stats()
+        self.stats = {
+            'total_requests': stats.get('total_requests', 0),
+            'blocked_requests': stats.get('blocked_requests', 0),
+            'ml_detections': stats.get('ml_detections', 0),
+            'sql_injection_attempts': stats.get('sql_injection_attempts', 0),
+            'xss_attempts': stats.get('xss_attempts', 0),
+            'brute_force_attempts': stats.get('brute_force_attempts', 0),
+            'scanner_attempts': stats.get('scanner_attempts', 0),
+            'rate_limit_hits': stats.get('rate_limit_hits', 0)
         }
-        counts = {v: 0 for v in stat_map.values()}
-        for l in req_logs:
-            t = l.get('attack_type') or l.get('type', '')
-            if t in stat_map:
-                counts[stat_map[t]] += 1
-        self.stats['total_requests'] = len(req_logs)
-        self.stats['blocked_requests'] = sum(1 for l in req_logs if l.get('blocked') is True)
-        self.stats['ml_detections'] = counts['ml_detections']
-        self.stats['sql_injection_attempts'] = counts['sql_injection_attempts']
-        self.stats['xss_attempts'] = counts['xss_attempts']
-        self.stats['brute_force_attempts'] = counts['brute_force_attempts']
-        self.stats['scanner_attempts'] = counts['scanner_attempts']
-        self.stats['rate_limit_hits'] = counts['rate_limit_hits']
-        threat_entries = [l for l in req_logs if l.get('attack_type', 'Clean') != 'Clean']
-        self.recent_threats = threat_entries[-10:]
-        # build ip tracker only from non-clean events so Top Attackers
-        # ignores benign traffic. total_requests already counts all logs.
-        for l in req_logs:
-            if l.get('attack_type') == 'Clean' or l.get('type') == 'Clean':
+        # recent threats
+        self.recent_threats = [t for t in self.db.get_threat_logs(limit=20) if t.get('attack_type') != 'Clean'][:10]
+        # build ip tracker
+        self.ip_tracker.clear()
+        for t in self.db.get_threat_logs(limit=1000):
+            if t.get('attack_type') == 'Clean':
                 continue
-            ip = l.get('ip', '')
+            ip = t.get('ip_address', '')
             if ip and ip not in ('Unknown', 'XXX.XXX.XXX.XXX'):
                 self.ip_tracker[ip] += 1
     def get_accurate_stats(self):
-        """Recalculate all stats from the persistent audit log."""
-        logs = self.load_audit_log()
-        # Filter out Clean entries - only calculate stats for actual attacks
-        req_logs = [
-            l for l in logs
-            if ('attack_type' in l or 'type' in l) and 'action' not in l
-            and l.get('attack_type') != 'Clean' and l.get('type') != 'Clean'
-        ]
-        # map non-ML attack types to their stat keys; ML is counted separately
-        stat_map = {
-            'SQL Injection': 'sql_injection_attempts',
-            'XSS': 'xss_attempts',
-            'Brute Force': 'brute_force_attempts',
-            'Scanner': 'scanner_attempts',
-            'Rate Limit': 'rate_limit_hits',
-        }
-        counts = {v: 0 for v in stat_map.values()}
-        ml_count = 0
-        for l in req_logs:
-            t = l.get('attack_type') or l.get('type', '')
-            if t in stat_map:
-                counts[stat_map[t]] += 1
-            det = l.get('detection_type', '')
-            if isinstance(det, str) and det.lower().startswith('ml'):
-                ml_count += 1
-        counts['ml_detections'] = ml_count
+        """Recalculate all stats from DB."""
+        stats = self.db.load_stats()
         return {
-            'total_requests': len(req_logs),
-            'blocked_requests': sum(1 for l in req_logs if l.get('blocked') is True),
-            'ml_detections': counts['ml_detections'],
-            'sql_injection_attempts': counts['sql_injection_attempts'],
-            'xss_attempts': counts['xss_attempts'],
-            'brute_force_attempts': counts['brute_force_attempts'],
-            'scanner_attempts': counts['scanner_attempts'],
-            'rate_limit_hits': counts['rate_limit_hits'],
+            'total_requests': stats.get('total_requests', 0),
+            'blocked_requests': stats.get('blocked_requests', 0),
+            'ml_detections': stats.get('ml_detections', 0),
+            'sql_injection_attempts': stats.get('sql_injection_attempts', 0),
+            'xss_attempts': stats.get('xss_attempts', 0),
+            'brute_force_attempts': stats.get('brute_force_attempts', 0),
+            'scanner_attempts': stats.get('scanner_attempts', 0),
+            'rate_limit_hits': stats.get('rate_limit_hits', 0)
         }
     def log_threat(self, threat_type, ip, description, severity="Medium", endpoint="", method="", snippet="", detection_type="Other", blocked=False):
-        threat = {
-            'timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            'type': threat_type,
-            'ip': ip,
-            'description': description,
-            'severity': severity,
-            'endpoint': endpoint,
-            'method': method,
-            'snippet': snippet,
-            'detection_type': detection_type,
-            'blocked': blocked,
-            # mark ml_detected when detection_type indicates ML (prefix match)
-            'ml_detected': isinstance(detection_type, str) and detection_type.lower().startswith("ml"),
-            'attack_type': threat_type,
-            'payload': snippet,
-            'confidence': 0.95 if isinstance(detection_type, str) and detection_type.lower().startswith("ml") else 0.0
-        }
-        self.threat_log.append(threat)
-        # refresh recent_threats but ignore any clean entries that may have
-        # been logged previously
-        self.recent_threats = [t for t in self.threat_log if t.get('attack_type') != 'Clean' and t.get('type') != 'Clean'][-10:]
-        # only track IPs for non-clean threats
-        if threat_type != 'Clean':
-            self.ip_tracker[ip] += 1
-        # Update stats
-        self.stats['total_requests'] += 1
-        if blocked:
-            self.stats['blocked_requests'] += 1
-            # Add to real-time blocked events queue
-            self.blocked_events_queue.append(threat)
-        stat_map = {
-            'SQL Injection': 'sql_injection_attempts',
-            'XSS': 'xss_attempts',
-            'Brute Force': 'brute_force_attempts',
-            'Scanner': 'scanner_attempts',
-            'Rate Limit': 'rate_limit_hits',
-            'ML Detection': 'ml_detections'
-        }
-        if threat_type in stat_map:
-            self.stats[stat_map[threat_type]] += 1
-        # Save to audit log
-        # same locking logic for threats
-        with self.audit_lock:
-            try:
-                with open(self.audit_log_path, 'r') as f:
-                    audit_logs = json.load(f)
-            except Exception:
-                audit_logs = []
-            audit_logs.append(threat)
-            try:
-                with open(self.audit_log_path, 'w') as f:
-                    json.dump(audit_logs, f, indent=2)
-            except Exception:
-                pass
-        # Group into Incidents
+        # سجل التهديد في قاعدة البيانات
+        confidence = 0.95 if isinstance(detection_type, str) and detection_type.lower().startswith("ml") else 0.0
+        ml_detected = isinstance(detection_type, str) and detection_type.lower().startswith("ml")
+        self.db.log_threat(
+            attack_type=threat_type,
+            ip_address=ip,
+            endpoint=endpoint,
+            method=method,
+            payload=snippet,
+            severity=severity,
+            description=description,
+            blocked=blocked,
+            ml_detected=ml_detected,
+            confidence=confidence,
+            detection_type=detection_type
+        )
+        # تحديث recent_threats و ip_tracker
+        self.recent_threats = [t for t in self.db.get_threat_logs(limit=20) if t.get('attack_type') != 'Clean'][:10]
+        self.ip_tracker.clear()
+        for t in self.db.get_threat_logs(limit=1000):
+            if t.get('attack_type') == 'Clean':
+                continue
+            ip_db = t.get('ip_address', '')
+            if ip_db and ip_db not in ('Unknown', 'XXX.XXX.XXX.XXX'):
+                self.ip_tracker[ip_db] += 1
+        # Group into Incidents (in-memory, can be improved to DB)
         incident_key = f"{ip}_{threat_type}"
         if incident_key not in self.incidents:
-            new_incident = Incident(threat_type, ip, threat, detection_type)
+            new_incident = Incident(threat_type, ip, dict(), detection_type)
             self.incidents[new_incident.id] = new_incident
-            # Use a dummy mapping for quick lookup if needed, but for now ID is enough
         else:
-            # Find existing incident for this IP and Type that is not Closed
             found = False
             for inc in self.incidents.values():
                 if inc.source_ip == ip and inc.category == threat_type and inc.status != "Closed":
-                    inc.events.append(threat)
-                    inc.last_seen = threat['timestamp']
-                    inc.severity = severity # Update to latest severity
+                    inc.events.append({})
+                    inc.last_seen = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    inc.severity = severity
                     found = True
                     break
             if not found:
-                new_incident = Incident(threat_type, ip, threat, detection_type)
+                new_incident = Incident(threat_type, ip, dict(), detection_type)
                 self.incidents[new_incident.id] = new_incident
     def perform_action(self, incident_id, action, actor, comment=""):
         if incident_id not in self.incidents:

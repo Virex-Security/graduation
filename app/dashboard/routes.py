@@ -166,6 +166,76 @@ def create_dashboard_app():
             except Exception:
                 pass
         return logout_user()
+    # ── Forgot Password / OTP ─────────────────────────────────
+    import random, smtplib
+    from email.mime.text import MIMEText
+    from app import database as _db
+
+    SMTP_EMAIL    = 'smartwebdef@gmail.com'
+    SMTP_PASSWORD = 'ynem bgvt jxpl jnto'
+
+    @app.route('/api/request-reset-otp', methods=['POST'])
+    def request_reset_otp():
+        data       = request.get_json(silent=True) or {}
+        identifier = (data.get('identifier') or data.get('username') or '').strip()
+        if not identifier:
+            return jsonify({'error': 'Username or email required'}), 400
+        # دور بالـ username أو الـ email
+        user = user_manager.get_user(identifier)
+        if not user:
+            all_users = user_manager.get_all_users()
+            user = next((u for u in all_users if u.get('email','').lower() == identifier.lower()), None)
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+        user_id = user.get('user_id') or user.get('id')
+        email   = user.get('email')
+        if not email:
+            return jsonify({'error': 'No email associated with this account'}), 400
+        otp    = str(random.randint(100000, 999999))
+        expiry = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time() + 300))
+        with _db.db_cursor() as cur:
+            cur.execute('DELETE FROM password_resets WHERE user_id = ?', (user_id,))
+            cur.execute('INSERT INTO password_resets (user_id, otp, otp_expiry, used) VALUES (?,?,?,0)',
+                        (user_id, otp, expiry))
+        try:
+            msg = MIMEText(f'Your Virex password reset OTP is: {otp} Valid for 5 minutes.')
+            msg['Subject'] = 'Virex - Password Reset OTP'
+            msg['From']    = SMTP_EMAIL
+            msg['To']      = email
+            with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
+                server.login(SMTP_EMAIL, SMTP_PASSWORD)
+                server.send_message(msg)
+        except Exception as e:
+            return jsonify({'error': f'Failed to send email: {str(e)}'}), 500
+        return jsonify({'user_id': user_id, 'otp': otp, 'expiry': expiry}), 200
+
+    @app.route('/api/verify-reset-otp', methods=['POST'])
+    def verify_reset_otp():
+        data     = request.get_json(silent=True) or {}
+        user_id  = data.get('user_id')
+        otp      = data.get('otp', '').strip()
+        new_pass = data.get('new_password', '').strip()
+        if not user_id or not otp or not new_pass:
+            return jsonify({'error': 'user_id, otp and new_password required'}), 400
+        with _db.db_cursor() as cur:
+            cur.execute('SELECT * FROM password_resets WHERE user_id = ? AND used = 0', (user_id,))
+            record = cur.fetchone()
+        if not record:
+            return jsonify({'error': 'No OTP requested for this user'}), 400
+        if record['otp'] != otp:
+            return jsonify({'error': 'Invalid OTP'}), 400
+        if time.strftime('%Y-%m-%d %H:%M:%S') > record['otp_expiry']:
+            return jsonify({'error': 'OTP expired'}), 400
+        user = _db.get_user_by_id(user_id)
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+        ok, msg = user_manager.change_password(user['username'], new_pass)
+        if not ok:
+            return jsonify({'error': msg}), 400
+        with _db.db_cursor() as cur:
+            cur.execute('UPDATE password_resets SET used = 1 WHERE user_id = ?', (user_id,))
+        return jsonify({'message': 'Password reset successfully'}), 200
+
     @app.route('/')
     def index_page():
         token = request.cookies.get('auth_token')
@@ -207,6 +277,11 @@ def create_dashboard_app():
             except Exception:
                 pass
         return render_template('login.html')
+
+    @app.route('/forgot-password')
+    def forgot_password_page():
+        # Always show forgot password page, even if user has a token
+        return render_template('forgot_password.html')
     @app.route('/signup')
     def signup_page():
         token = request.cookies.get('auth_token')
@@ -1119,8 +1194,14 @@ def create_dashboard_app():
     def get_blacklist(current_user):
         """Get all blacklist entries"""
         try:
-            from app.database_blacklist import get_all_blacklist
-            blacklist = get_all_blacklist()
+            project_root = Path(__file__).parent.parent.parent
+            blacklist_file = project_root / 'data' / 'blacklist.json'
+            if blacklist_file.exists():
+                with open(blacklist_file, 'r') as f:
+                    blacklist = json.load(f)
+            else:
+                blacklist = []
+            
             return jsonify({'blacklist': blacklist})
         except Exception as e:
             print(f"Error loading blacklist: {e}")
@@ -1136,10 +1217,25 @@ def create_dashboard_app():
             value = data.get('value')
             reason = data.get('reason')
             status = data.get('status', 'active')
+            
             if not blacklist_type or not value or not reason:
                 return jsonify({'error': 'Type, value, and reason are required'}), 400
-            from app.database_blacklist import insert_blacklist_entry
+            
+            # Load existing blacklist
+            project_root = Path(__file__).parent.parent.parent
+            blacklist_file = project_root / 'data' / 'blacklist.json'
+            if blacklist_file.exists():
+                with open(blacklist_file, 'r') as f:
+                    blacklist = json.load(f)
+            else:
+                blacklist = []
+            
+            # Generate new ID
+            new_id = max([item.get('id', 0) for item in blacklist], default=0) + 1
+            
+            # Create new entry
             new_entry = {
+                'id': new_id,
                 'type': blacklist_type,
                 'value': value,
                 'reason': reason,
@@ -1147,9 +1243,16 @@ def create_dashboard_app():
                 'added_by': current_user.get('username'),
                 'date_added': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             }
-            entry_id = insert_blacklist_entry(new_entry)
-            new_entry['id'] = entry_id
+            
+            blacklist.append(new_entry)
+            
+            # Save blacklist
+            blacklist_file.parent.mkdir(parents=True, exist_ok=True)
+            with open(blacklist_file, 'w') as f:
+                json.dump(blacklist, f, indent=2)
+            
             log_action(current_user, "Blacklist Entry Added", f"Added {blacklist_type}: {value}")
+            
             return jsonify({'status': 'success', 'message': 'Added to blacklist successfully', 'entry': new_entry})
         except Exception as e:
             print(f"Error adding to blacklist: {e}")
@@ -1161,19 +1264,36 @@ def create_dashboard_app():
         """Update blacklist entry"""
         try:
             data = request.get_json()
-            from app.database_blacklist import update_blacklist_entry, get_blacklist_entry
-            entry = get_blacklist_entry(entry_id)
+            
+            # Load existing blacklist
+            project_root = Path(__file__).parent.parent.parent
+            blacklist_file = project_root / 'data' / 'blacklist.json'
+            if not blacklist_file.exists():
+                return jsonify({'error': 'Blacklist not found'}), 404
+            
+            with open(blacklist_file, 'r') as f:
+                blacklist = json.load(f)
+            
+            # Find and update entry
+            entry = next((item for item in blacklist if item.get('id') == entry_id), None)
             if not entry:
                 return jsonify({'error': 'Entry not found'}), 404
-            update_data = {}
+            
+            # Update fields
             if 'reason' in data:
-                update_data['reason'] = data['reason']
+                entry['reason'] = data['reason']
             if 'status' in data:
-                update_data['status'] = data['status']
-            update_data['updated_by'] = current_user.get('username')
-            update_data['date_updated'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            update_blacklist_entry(entry_id, update_data)
+                entry['status'] = data['status']
+            
+            entry['updated_by'] = current_user.get('username')
+            entry['date_updated'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            
+            # Save blacklist
+            with open(blacklist_file, 'w') as f:
+                json.dump(blacklist, f, indent=2)
+            
             log_action(current_user, "Blacklist Entry Updated", f"Updated entry ID: {entry_id}")
+            
             return jsonify({'status': 'success', 'message': 'Blacklist entry updated successfully'})
         except Exception as e:
             print(f"Error updating blacklist: {e}")
@@ -1184,12 +1304,28 @@ def create_dashboard_app():
     def delete_blacklist(current_user, entry_id):
         """Delete blacklist entry"""
         try:
-            from app.database_blacklist import delete_blacklist_entry, get_blacklist_entry
-            entry = get_blacklist_entry(entry_id)
+            # Load existing blacklist
+            project_root = Path(__file__).parent.parent.parent
+            blacklist_file = project_root / 'data' / 'blacklist.json'
+            if not blacklist_file.exists():
+                return jsonify({'error': 'Blacklist not found'}), 404
+            
+            with open(blacklist_file, 'r') as f:
+                blacklist = json.load(f)
+            
+            # Find and remove entry
+            entry = next((item for item in blacklist if item.get('id') == entry_id), None)
             if not entry:
                 return jsonify({'error': 'Entry not found'}), 404
-            delete_blacklist_entry(entry_id)
+            
+            blacklist = [item for item in blacklist if item.get('id') != entry_id]
+            
+            # Save blacklist
+            with open(blacklist_file, 'w') as f:
+                json.dump(blacklist, f, indent=2)
+            
             log_action(current_user, "Blacklist Entry Deleted", f"Deleted {entry.get('type')}: {entry.get('value')}")
+            
             return jsonify({'status': 'success', 'message': 'Blacklist entry deleted successfully'})
         except Exception as e:
             print(f"Error deleting blacklist: {e}")

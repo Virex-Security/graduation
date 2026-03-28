@@ -35,6 +35,69 @@ def _get_real_ip():
 
 
 def create_api_app():
+    from app import database as db
+
+    @app.route("/api/request-reset-otp", methods=["POST"])
+    def request_reset_otp():
+        data = request.get_json() or {}
+        identifier = data.get("identifier")
+        if not identifier:
+            return jsonify({"error": "Username or email is required"}), 400
+        user = db.get_user_by_username_or_email(identifier)
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+        otp, expiry = db.create_password_reset_otp(user["id"])
+        # Display OTP directly (no email)
+        return jsonify({"otp": otp, "expiry": expiry, "user_id": user["id"]})
+
+    @app.route("/api/verify-reset-otp", methods=["POST"])
+    def verify_reset_otp():
+        data = request.get_json() or {}
+        user_id = data.get("user_id")
+        otp = data.get("otp")
+        new_password = data.get("new_password")
+        if not user_id or not otp or not new_password:
+            return jsonify({"error": "All fields are required"}), 400
+        valid, row = db.verify_password_reset_otp(user_id, otp)
+        if not valid:
+            return jsonify({"error": row}), 400
+        db.update_user_password(user_id, new_password)
+        db.mark_otp_used(row["id"])
+        return jsonify({"message": "Password reset successful"})
+    from app.auth import reset_password as reset_pw
+    import logging
+    logger = logging.getLogger(__name__)
+
+    @app.route("/api/forgot-password", methods=["POST"])
+    def forgot_password():
+        data = request.get_json() or {}
+        email = data.get("email")
+        if not email:
+            return jsonify({"error": "Email is required"}), 400
+        token, err = reset_pw.set_reset_token(email)
+        if err:
+            logger.debug(f"[RESET] {err}")
+            return jsonify({"error": err}), 404
+        # Simulate sending email (print to log)
+        reset_link = f"https://yourdomain.com/reset-password?token={token}"
+        logger.info(f"[RESET] Sent reset link to {email}: {reset_link}")
+        print(f"[RESET] Sent reset link to {email}: {reset_link}")
+        return jsonify({"message": "Reset link sent to your email (debug mode)", "reset_link": reset_link})
+
+    @app.route("/api/reset-password", methods=["POST"])
+    def reset_password():
+        data = request.get_json() or {}
+        token = data.get("token")
+        new_password = data.get("new_password")
+        if not token or not new_password:
+            return jsonify({"error": "Token and new password are required"}), 400
+        ok, err = reset_pw.reset_password(token, new_password)
+        if ok:
+            logger.info(f"[RESET] Password reset successful for token: {token}")
+            return jsonify({"message": "Password reset successful"})
+        else:
+            logger.debug(f"[RESET] Password reset failed: {err}")
+            return jsonify({"error": err}), 400
     app = Flask(__name__)
 
     # ── Config ────────────────────────────────────────────────

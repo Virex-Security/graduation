@@ -17,6 +17,7 @@ const Auth = {
       !this.isAuthenticated() &&
       !window.location.pathname.includes("login") &&
       !window.location.pathname.includes("signup") &&
+      !window.location.pathname.includes("forgot-password") &&
       window.location.pathname !== "/"
     ) {
       window.location.href = "/login";
