@@ -54,7 +54,7 @@ def create_dashboard_app():
             "details": details
         }
         print(f"[AUDIT] {log_entry}")
-        dashboard.write_audit_log(log_entry)
+        # Audit log now handled by DB only
     # ----------------------------------------------------------
     # TRAFFIC LOGGER - intercepts every request automatically
     # ----------------------------------------------------------
@@ -71,7 +71,7 @@ def create_dashboard_app():
     }
     @app.before_request
     def load_global_context():
-        logs = dashboard.load_audit_log()
+        logs = dashboard.db.get_threat_logs(limit=2000)
         g.logs = logs
         g.global_stats = compute_global_stats(logs)
 
@@ -504,7 +504,7 @@ def create_dashboard_app():
     @app.route('/requests')
     @token_required
     def requests_page(current_user):
-        logs = dashboard.load_audit_log()
+        logs = dashboard.db.get_threat_logs(limit=2000)
         logs.sort(key=lambda x: x.get('timestamp', ''), reverse=True)
         return render_template('requests.html', logs=logs, title="Total Requests", user=current_user)
     @app.route('/api/blocked-events')
@@ -563,7 +563,7 @@ def create_dashboard_app():
     @app.route('/threats/<category>')
     @token_required
     def threats_page(current_user, category):
-        logs = getattr(g, "logs", dashboard.load_audit_log())
+        logs = getattr(g, "logs", dashboard.db.get_threat_logs(limit=2000))
         stats = getattr(g, "global_stats", compute_global_stats(logs))
 
         category_map = {
@@ -595,7 +595,7 @@ def create_dashboard_app():
 
         filtered_logs.sort(key=lambda x: x.get('timestamp', ''), reverse=True)
 
-        if current_user['role'] != Role.ADMIN:
+        if current_user.get('role', 'viewer') != Role.ADMIN:
             masked_logs = []
             for log in filtered_logs:
                 masked_log = log.copy()
@@ -639,18 +639,18 @@ def create_dashboard_app():
     @app.route('/threats-overview')
     @token_required
     def threats_overview_page(current_user):
-        logs = getattr(g, "logs", dashboard.load_audit_log())
+        logs = getattr(g, "logs", dashboard.db.get_threat_logs(limit=2000))
         stats = dashboard.get_dashboard_data().get('stats', {})
 
         # احسب عدد CSRF و SSRF من سجل التهديدات مباشرةً
-        all_threats = dashboard.threat_log
+        all_threats = dashboard.db.get_threat_logs(limit=2000)
         stats['csrf_attempts'] = sum(
             1 for t in all_threats
-            if str(t.get('type', '')).upper() == 'CSRF'
+            if str(t.get('attack_type', t.get('type', ''))).upper() == 'CSRF'
         )
         stats['ssrf_attempts'] = sum(
             1 for t in all_threats
-            if str(t.get('type', '')).upper() == 'SSRF'
+            if str(t.get('attack_type', t.get('type', ''))).upper() == 'SSRF'
         )
 
         return render_template(
@@ -698,7 +698,7 @@ def create_dashboard_app():
     @app.route('/blocked')
     @token_required
     def blocked_page(current_user):
-        logs = getattr(g, "logs", dashboard.load_audit_log())
+        logs = getattr(g, "logs", dashboard.db.get_threat_logs(limit=2000))
         stats = getattr(g, "global_stats", compute_global_stats(logs))
 
         blocked_logs = [l for l in logs if l.get('blocked') is True]
@@ -956,9 +956,8 @@ def create_dashboard_app():
         users = user_manager.get_all_users()
         
         # Get user activities from audit log
-        audit_logs = dashboard.load_audit_log()
+        audit_logs = dashboard.db.get_threat_logs(limit=2000)
         user_activities = {}
-        
         for log in audit_logs:
             username = log.get('username')
             if username and username not in user_activities:
@@ -967,7 +966,6 @@ def create_dashboard_app():
                     'last_action': None,
                     'actions_list': []
                 }
-            
             if username:
                 user_activities[username]['actions'] += 1
                 user_activities[username]['actions_list'].append({
@@ -1006,7 +1004,7 @@ def create_dashboard_app():
             return jsonify({'error': 'User not found'}), 404
         
         # Get all actions by this user
-        audit_logs = dashboard.load_audit_log()
+        audit_logs = dashboard.db.get_threat_logs(limit=2000)
         user_actions = [log for log in audit_logs if log.get('username') == user.get('username')]
         
         return jsonify({
@@ -1114,7 +1112,7 @@ def create_dashboard_app():
     def get_critical_threats(current_user):
         """Get critical level threats with dynamic scoring"""
         grouped_threats = {}
-        logs = dashboard.load_audit_log()
+        logs = dashboard.db.get_threat_logs(limit=2000)
         
         for threat in logs:
             if threat.get('type', 'Clean') == 'Clean' and threat.get('attack_type', 'Clean') == 'Clean':
@@ -1152,7 +1150,7 @@ def create_dashboard_app():
         # Sort by threat score descending
         critical_threats.sort(key=lambda x: x.get('threat_score', 0), reverse=True)
         # Data masking for non-admin users
-        if current_user['role'] != Role.ADMIN:
+        if current_user.get('role', 'viewer') != Role.ADMIN:
             for threat in critical_threats:
                 threat['ip'] = "XXX.XXX.XXX.XXX"
                 threat['snippet'] = "[HIDDEN]"
@@ -1173,8 +1171,8 @@ def create_dashboard_app():
         history = data.get('history', [])
         if not message:
             return jsonify({'error': 'Message required'}), 400
-        print(f"[NLP] Chat request from {current_user['username']} ({current_user['role']}): {message}")
-        response_text = security_bot.generate_response(message, incident_id, page_context, history, role=current_user['role'])
+        print(f"[NLP] Chat request from {current_user.get('username', 'unknown')} ({current_user.get('role', 'viewer')}): {message}")
+        response_text = security_bot.generate_response(message, incident_id, page_context, history, role=current_user.get('role', 'viewer'))
         return jsonify({
             'response': response_text,
             'timestamp': datetime.now().strftime("%H:%M")

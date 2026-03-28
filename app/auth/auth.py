@@ -9,13 +9,13 @@ def login_user(username, password):
     if user:
         token = jwt.encode({
             'user': username,
-            'role': user['role'],
+            'role': user.get('role', 'viewer'),
             'exp': datetime.utcnow() + timedelta(hours=24)
         }, current_app.config['SECRET_KEY'], algorithm="HS256")
         
         resp = make_response(jsonify({
             'message': 'Logged in successfully',
-            'role': user['role'],
+            'role': user.get('role', 'viewer'),
             'username': username
         }))
         resp.set_cookie('auth_token', token, httponly=True)

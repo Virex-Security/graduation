@@ -47,7 +47,7 @@ def require_role(role):
         @wraps(f)
         @token_required
         def decorated(current_user, *args, **kwargs):
-            if current_user['role'] != role and current_user['role'] != Role.ADMIN:
+            if current_user.get('role', 'viewer') != role and current_user.get('role', 'viewer') != Role.ADMIN:
                 if request.path.startswith('/api/'):
                     return jsonify({'message': f'{role.capitalize()} access required!'}), 403
                 return "Access Denied: Unprivileged access attempt.", 403

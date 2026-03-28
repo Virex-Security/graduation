@@ -34,19 +34,12 @@ class SecurityDashboard:
         self.connection_state = WAITING
         self.had_connection = False
         self.api_url = "http://127.0.0.1:5000/api/health"
-        
-        self.audit_log_path = "logs/audit.log"
-
-        self.audit_log_lock = threading.Lock()
-        self.audit_lock = threading.Lock()
-
-        os.makedirs(os.path.dirname(self.audit_log_path), exist_ok=True)
-        if not os.path.exists(self.audit_log_path):
-            with open(self.audit_log_path, "w") as f:
-                json.dump([], f)
-        
-        self.secret_key = os.getenv("SECRET_KEY", "fallback-dev-key-change-in-production")
-        # Restore stats from disk on startup
+        self.threat_log = deque(maxlen=2000)
+        self.blocked_events_queue = deque(maxlen=100)
+        self.secret_key = os.getenv("SECRET_KEY")
+        self.jwt_secret_key = os.getenv("JWT_SECRET_KEY")
+        self.mail_password = os.getenv("MAIL_PASSWORD")
+        # Restore stats from DB on startup
         self.load_stats_from_audit()
     def log_clean_request(self, ip, endpoint="", method="GET"):
         """Log a normal (non-attack) request — memory only, no DB write per request."""
@@ -104,6 +97,23 @@ class SecurityDashboard:
             confidence=confidence,
             detection_type=detection_type
         )
+        
+        # Add to memory deques for real-time frontend
+        event = {
+            'timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            'type': threat_type,
+            'ip': ip,
+            'description': description,
+            'severity': severity,
+            'endpoint': endpoint,
+            'method': method,
+            'blocked': blocked,
+            'detection_type': detection_type
+        }
+        self.threat_log.append(event)
+        if blocked:
+            self.blocked_events_queue.append(event)
+            
         # تحديث recent_threats و ip_tracker
         self.recent_threats = [t for t in self.db.get_threat_logs(limit=20) if t.get('attack_type') != 'Clean'][:10]
         self.ip_tracker.clear()
@@ -156,32 +166,10 @@ class SecurityDashboard:
             "comment": comment
         }
         incident.actions.append(audit_entry)
-        # SIEM Audit Logging
-        self.write_audit_log({
-            "incident_id": incident_id,
-            "ip": incident.source_ip,
-            "category": incident.category,
-            **audit_entry
-        })
+        # SIEM Audit Logging: now handled by DB only (no file)
+        # Optionally: self.db.log_audit_action(...) if DB supports it
         return True, "Action performed successfully"
-    def write_audit_log(self, log_entry):
-        # central helper used by role actions etc. ensure thread safety
-        with self.audit_lock:
-            try:
-                # use r+ to preserve existing content; if the file is
-                # malformed we fall back to recreating it with only the new
-                # entry rather than blowing it away entirely.
-                with open(self.audit_log_path, 'r+') as f:
-                    try:
-                        logs = json.load(f)
-                    except Exception:
-                        logs = []
-                    logs.append(log_entry)
-                    f.seek(0)
-                    json.dump(logs, f, indent=4)
-                    f.truncate()
-            except Exception as e:
-                print(f"Error writing audit log: {e}")
+    # write_audit_log removed: all logging should go to DB
     def update_timeline(self):
         self.check_api_connection()
         if self.connection_state == CONNECTED:
@@ -196,23 +184,17 @@ class SecurityDashboard:
         sorted_ips = sorted(self.ip_tracker.items(), key=lambda x: x[1], reverse=True)
         return sorted_ips[:limit]
     def compute_attack_indicators(self):
-        """Return normalized scores for each predefined indicator based on the
-        audit log. Values are 0–1 and represent the fraction of logged events
-        that exhibit the given pattern. The list of indicators is fixed by the
-        spec so downstream code can rely on the names staying the same.
-        Caches results and only recomputes when the audit log length changes.
-        """
+        """Return normalized scores for each predefined indicator based on DB logs only."""
         print(f"[ATTACK-INDICATORS] === Starting compute_attack_indicators ===")
-        # Load logs fresh from disk
-        print(f"[ATTACK-INDICATORS] Loading audit log from disk...")
-        logs = self.load_audit_log()
+        # Load logs from DB only
+        logs = self.db.get_threat_logs(limit=2000)
         # Filter out Clean entries - only process attack logs
         attack_logs = [
             l for l in logs
             if l.get('attack_type') != 'Clean' and l.get('type') != 'Clean'
         ]
         current_log_count = len(attack_logs)
-        print(f"[ATTACK-INDICATORS] Loaded {current_log_count} attack logs from audit (filtered out Clean entries)")
+        print(f"[ATTACK-INDICATORS] Loaded {current_log_count} attack logs from DB (filtered out Clean entries)")
         # Check if we can use cached indicators
         with self.attack_indicator_lock:
             if self.last_attack_indicators is not None and self.last_indicator_log_count == current_log_count:
@@ -259,23 +241,18 @@ class SecurityDashboard:
         print(f"[ATTACK-INDICATORS] === Finished compute_attack_indicators ===")
         return result
     def compute_ml_metrics(self):
-        """Helper that returns the dictionary of ML performance metrics.
-        Caches results within the same session and only recomputes
-        when the audit log length changes AND accuracy would change.
-        This prevents wild fluctuations on every UI refresh.
-        """
+        """Helper that returns the dictionary of ML performance metrics using DB logs only."""
         import numpy as np
         from sklearn.metrics import (
             roc_auc_score, confusion_matrix
         )
         print(f"[ML-METRICS] === Starting compute_ml_metrics ===")
-        # derive live statistics from audit log - always load fresh from disk
-        print(f"[ML-METRICS] Loading audit log from disk...")
-        logs = self.load_audit_log()
+        # derive live statistics from DB logs only
+        logs = self.db.get_threat_logs(limit=2000)
         # Filter out Clean and dashboard entries for ML calculation
         real_logs = self._get_ml_relevant_logs(logs)
         current_log_count = len(real_logs)
-        print(f"[ML-METRICS] Loaded {current_log_count} real logs from audit (filtered out Clean and dashboard entries)")
+        print(f"[ML-METRICS] Loaded {current_log_count} real logs from DB (filtered out Clean and dashboard entries)")
         # check if we can use cached metrics
         with self.ml_metrics_lock:
             if self.last_ml_metrics is not None and self.last_log_count == current_log_count:
@@ -439,7 +416,7 @@ class SecurityDashboard:
             ml_perf = None
         # حساب الهجمات فقط
         attack_logs = [
-            l for l in self.load_audit_log() if l.get('attack_type') and l.get('attack_type') != 'Clean'
+            l for l in self.db.get_threat_logs(limit=2000) if l.get('attack_type') and l.get('attack_type') != 'Clean'
         ]
         recent = [t for t in self.recent_threats if t.get('attack_type') != 'Clean' and t.get('type') != 'Clean']
         detected = len(self.incidents)
@@ -471,17 +448,7 @@ class SecurityDashboard:
             'attack_indicators': self.compute_attack_indicators(),
             'connection_state': self.connection_state
         }
-    def load_audit_log(self):
-        # reading the audit log should also be serialized to avoid
-        # grabbing a partially-written file.
-        with self.audit_lock:
-            try:
-                if os.path.exists(self.audit_log_path):
-                    with open(self.audit_log_path, 'r') as f:
-                        return json.load(f)
-            except Exception:
-                pass
-        return []
+    # load_audit_log removed: all logs should be read from DB
     def _get_ml_relevant_logs(self, logs):
         """Filter logs for ML metrics calculation.
         Excludes:

@@ -300,7 +300,7 @@ def create_api_app():
         verified_user = user_manager.verify_password(username, password) if username and password else None
         if verified_user:
             brute_force_tracker[ip] = []
-            return jsonify({"message": "Login successful", "role": verified_user["role"]})
+            return jsonify({"message": "Login successful", "role": verified_user.get("role", "viewer")})
         else:
             attempts = [t for t in brute_force_tracker[ip] if now - t < BRUTE_FORCE_WINDOW]
             attempts.append(now)
