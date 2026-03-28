@@ -2,19 +2,20 @@
 Dashboard Routes - Flask application and route handlers for SIEM Dashboard
 """
 from flask import Flask, render_template, jsonify, request, redirect, url_for, g
-import json
 import time
+import logging
 from datetime import datetime, timedelta
 import threading
-import os
 from pathlib import Path
 from collections import defaultdict
 import jwt
-
+import os
+import secrets
 from app.dashboard.services import SecurityDashboard
 from app.dashboard.metrics import calculate_threat_score, is_recent, determine_threat_status, run_timeline_updates
 from app.chatbot import SecurityChatbot
 from app.auth import login_user, logout_user, user_manager, Role, token_required, admin_required, require_role
+logger = logging.getLogger(__name__)
 
 # Dashboard services and chatbot initialization
 dashboard = SecurityDashboard()
@@ -42,7 +43,11 @@ def create_dashboard_app():
     app = Flask(__name__, 
                 template_folder=template_folder,
                 static_folder=static_folder)
-    app.config['SECRET_KEY'] = dashboard.secret_key
+    from flask_limiter import Limiter
+    from flask_limiter.util import get_remote_address
+
+    limiter = Limiter(get_remote_address, app=app)
+    app.config['SECRET_KEY'] = os.getenv("SECRET_KEY")
     def log_action(current_user, action, details=""):
         """Centralized logging for role-based actions"""
         log_entry = {
@@ -82,8 +87,7 @@ def create_dashboard_app():
             return
         if path in SKIP_EXACT:
             return
-        ip = request.headers.get('X-Forwarded-For', request.remote_addr) or 'Unknown'
-        ip = ip.split(',')[0].strip()
+        ip = request.remote_addr or 'Unknown'
         dashboard.log_clean_request(ip=ip, endpoint=path, method=request.method)
     @app.route('/api/auth/login', methods=['POST'])
     def login():
@@ -170,46 +174,65 @@ def create_dashboard_app():
     import random, smtplib
     from email.mime.text import MIMEText
     from app import database as _db
+    ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp"}
 
-    SMTP_EMAIL    = 'smartwebdef@gmail.com'
-    SMTP_PASSWORD = 'ynem bgvt jxpl jnto'
+    def allowed_file(filename):
+        return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
+    SMTP_EMAIL = os.getenv("MAIL_EMAIL")
+    SMTP_PASSWORD = os.getenv("MAIL_PASSWORD")
     @app.route('/api/request-reset-otp', methods=['POST'])
+    @limiter.limit("5 per minute")
     def request_reset_otp():
-        data       = request.get_json(silent=True) or {}
+        data = request.get_json(silent=True) or {}
         identifier = (data.get('identifier') or data.get('username') or '').strip()
+
         if not identifier:
             return jsonify({'error': 'Username or email required'}), 400
-        # دور بالـ username أو الـ email
+
         user = user_manager.get_user(identifier)
+
         if not user:
             all_users = user_manager.get_all_users()
             user = next((u for u in all_users if u.get('email','').lower() == identifier.lower()), None)
+
         if not user:
             return jsonify({'error': 'User not found'}), 404
+
         user_id = user.get('user_id') or user.get('id')
-        email   = user.get('email')
+        email = user.get('email')
+
         if not email:
-            return jsonify({'error': 'No email associated with this account'}), 400
-        otp    = str(random.randint(100000, 999999))
+            return jsonify({'error': 'No email associated'}), 400
+
+      
+        otp = str(secrets.randbelow(1000000)).zfill(6)
+
         expiry = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time() + 300))
+
         with _db.db_cursor() as cur:
             cur.execute('DELETE FROM password_resets WHERE user_id = ?', (user_id,))
-            cur.execute('INSERT INTO password_resets (user_id, otp, otp_expiry, used) VALUES (?,?,?,0)',
-                        (user_id, otp, expiry))
+            cur.execute(
+                'INSERT INTO password_resets (user_id, otp, otp_expiry, used) VALUES (?,?,?,0)',
+                (user_id, otp, expiry)
+            )
+
         try:
-            msg = MIMEText(f'Your Virex password reset OTP is: {otp} Valid for 5 minutes.')
-            msg['Subject'] = 'Virex - Password Reset OTP'
-            msg['From']    = SMTP_EMAIL
-            msg['To']      = email
+            msg = MIMEText(f'Your OTP is: {otp} (valid 5 minutes)')
+            msg['Subject'] = 'Password Reset OTP'
+            msg['From'] = SMTP_EMAIL
+            msg['To'] = email
+
             with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
                 server.login(SMTP_EMAIL, SMTP_PASSWORD)
                 server.send_message(msg)
-        except Exception as e:
-            return jsonify({'error': f'Failed to send email: {str(e)}'}), 500
-        return jsonify({'user_id': user_id, 'otp': otp, 'expiry': expiry}), 200
 
+        except Exception as e:
+            return jsonify({'error': 'Email failed'}), 500
+
+        return jsonify({'message': 'OTP sent to email'}), 200
     @app.route('/api/verify-reset-otp', methods=['POST'])
+    @limiter.limit("5 per minute")
     def verify_reset_otp():
         data     = request.get_json(silent=True) or {}
         user_id  = data.get('user_id')
@@ -345,12 +368,14 @@ def create_dashboard_app():
             dashboard.stats['blocked_requests'] = data['blocked_requests']
         if 'rate_limit_hits' in data:
             dashboard.stats['rate_limit_hits'] = data['rate_limit_hits']
-        return jsonify({'status': 'updated'})
+        return jsonify({'status': 'updated', 'data': dashboard.stats})
     @app.route('/api/dashboard/reset', methods=['POST'])
     @admin_required
     def reset_stats(current_user):
         global dashboard
-        log_action(current_user, "Reset Stats", "Cleared all memory stats and audit logs")
+        log_action(current_user, "Reset Stats", "Cleared all memory stats and database logs")
+        
+        # Clear memory stats
         for key in dashboard.stats:
             dashboard.stats[key] = 0
         dashboard.ip_tracker.clear()
@@ -359,16 +384,14 @@ def create_dashboard_app():
         dashboard.recent_threats = []
         dashboard.timeline_data.clear()
         dashboard.incidents.clear()
+        
+        # Clear database logs
         try:
-            from app.models.database import audit_logger
-            # Clear audit logs from database
-            with audit_logger.get_db_connection() as conn:
-                cursor = conn.cursor()
-                cursor.execute("DELETE FROM audit_logs")
-                cursor.execute("DELETE FROM security_events")
-                conn.commit()
+            dashboard.db.clear_all_attacks()
+            logger.info("Database logs cleared successfully")
         except Exception as e:
-            print(f"[-] Error clearing audit log: {e}")
+            logger.error(f"Error clearing database logs: {e}")
+            
         return jsonify({'status': 'stats_reset', 'message': 'All stats and logs cleared'})
     @app.route('/api/user')
     @token_required
@@ -383,8 +406,8 @@ def create_dashboard_app():
     @admin_required
     def ml_stats(current_user):
         """
-        ML performance metrics built DIRECTLY from siem_audit.json (live traffic).
-        How the confusion matrix is derived from the audit log:
+        ML performance metrics built DIRECTLY from database threat logs (live traffic).
+        How the confusion matrix is derived from the database logs:
           TP = ML flagged (detection_type==ML) AND it was a real attack (attack_type != Clean)
           FP = ML flagged AND the request was actually Clean (false alarm)
           TN = Not ML flagged AND request was Clean (correct pass)
@@ -521,7 +544,20 @@ def create_dashboard_app():
                 blocked_events = dashboard.get_blocked_events()
                 if len(blocked_events) > last_count:
                     for event in blocked_events[last_count:]:
-                        yield f"data: {json.dumps(event)}\n\n"
+                        # Convert event to JSON-serializable format
+                        event_data = {
+                            'timestamp': event.get('timestamp', ''),
+                            'type': event.get('type', ''),
+                            'ip': event.get('ip', ''),
+                            'description': event.get('description', ''),
+                            'severity': event.get('severity', ''),
+                            'endpoint': event.get('endpoint', ''),
+                            'method': event.get('method', ''),
+                            'blocked': event.get('blocked', False),
+                            'detection_type': event.get('detection_type', '')
+                        }
+                        import json
+                        yield f"data: {json.dumps(event_data)}\n\n"
                     last_count = len(blocked_events)
                 time.sleep(0.5)
         return app.response_class(
@@ -872,7 +908,7 @@ def create_dashboard_app():
         if file.filename == '':
             return jsonify({'error': 'No selected file'}), 400
             
-        if file:
+        if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
             ext = os.path.splitext(filename)[1]
             if not ext:
@@ -1345,4 +1381,4 @@ if __name__ == '__main__':
     # Start timeline update thread
     threading.Thread(target=run_timeline_updates, daemon=True).start()
     app = create_dashboard_app()
-    app.run(host='0.0.0.0', port=8070, debug=True, use_reloader=False)
+    app.run(host='0.0.0.0', port=8070, debug=False)

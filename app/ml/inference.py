@@ -8,7 +8,7 @@ Decision Engine:
 import os
 import re
 import time
-import json
+from app.database import db_cursor
 import hashlib
 import logging
 import threading
@@ -31,7 +31,7 @@ DATA_DIR           = PROJECT_ROOT / "data"
 MODEL_PATH         = DATA_DIR / "model.pkl"
 VECTORIZER_PATH    = DATA_DIR / "vectorizer.pkl"
 TRAINING_DATA_PATH = DATA_DIR / "ml_training_data.csv"
-FEEDBACK_LOG_PATH  = DATA_DIR / "ml_feedback.json"
+
 
 # ── Config (from .env with defaults) ─────────────────────────
 RETRAIN_INTERVAL  = 3600
@@ -111,26 +111,28 @@ def _append_feedback(text, risk_score, decision, attack_type):
         "risk_score":       risk_score,
         "decision":         decision,
         "attack_type":      attack_type,
-        "reviewed":         False,
-        "promoted_to_rule": False,
+        "reviewed":         0,
+        "promoted_to_rule": 0,
     }
     try:
         with _feedback_lock:
-            existing = []
-            if FEEDBACK_LOG_PATH.exists():
-                try:
-                    with open(FEEDBACK_LOG_PATH, "r", encoding="utf-8") as f:
-                        existing = json.load(f)
-                except Exception:
-                    existing = []
-            existing.append(entry)
-            if len(existing) > 5000:
-                existing = existing[-5000:]
-            DATA_DIR.mkdir(parents=True, exist_ok=True)
-            with open(FEEDBACK_LOG_PATH, "w", encoding="utf-8") as f:
-                json.dump(existing, f, indent=2, ensure_ascii=False)
+            with db_cursor() as cur:
+                cur.execute("""
+                    INSERT INTO ml_feedback
+                    (timestamp, text_hash, text_snippet, risk_score, decision, attack_type, reviewed, promoted_to_rule)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """, (
+                    entry["timestamp"],
+                    entry["text_hash"],
+                    entry["text_snippet"],
+                    entry["risk_score"],
+                    entry["decision"],
+                    entry["attack_type"],
+                    entry["reviewed"],
+                    entry["promoted_to_rule"],
+                ))
     except Exception as e:
-        logger.error(f"[ML-FEEDBACK] write failed: {e}")
+        logger.error(f"[ML-FEEDBACK] DB write failed: {e}")
 
 
 # ── Model Training ────────────────────────────────────────────
@@ -283,7 +285,6 @@ def get_ml_stats():
         "model_loaded": MODEL_LOADED,
         "cache":        _cache.stats,
         "thresholds":   {"block": THRESHOLD_BLOCK, "monitor": THRESHOLD_MONITOR},
-        "feedback_log": str(FEEDBACK_LOG_PATH),
     }
 
 

@@ -18,11 +18,6 @@ PROJECT_ROOT      = Path(__file__).parent.parent.parent
 DATA_DIR          = PROJECT_ROOT / "data"
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 
-STATS_FILE        = DATA_DIR / "stats.json"
-BLOCKED_IPS_FILE  = DATA_DIR / "blocked_ips.json"
-USER_ATTACKS_FILE = DATA_DIR / "user_attacks.json"
-ML_LOG_FILE       = DATA_DIR / "ml_detections.jsonl"
-
 _lock    = threading.Lock()
 _ml_lock = threading.Lock()
 

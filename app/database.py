@@ -65,37 +65,80 @@ def _seed_roles():
 
 
 def _seed_users():
-    """يهجّر الـ users من users.json للـ DB لو مش موجودين."""
-    import json
-    users_file = PROJECT_ROOT / "data" / "users.json"
-    if not users_file.exists():
-        return
-
-    with open(users_file, encoding="utf-8") as f:
-        users_json = json.load(f)
-
+    """Create default admin users if they don't exist."""
     with db_cursor() as cur:
-        for username, u in users_json.items():
-            cur.execute("SELECT user_id FROM users WHERE username = ?", (username,))
-            if cur.fetchone():
-                continue  # موجود بالفعل
+        # First, check if we need to add missing columns
+        cur.execute("PRAGMA table_info(users)")
+        columns = [col[1] for col in cur.fetchall()]
+        
+        # Add missing columns if they don't exist
+        missing_columns = [
+            ("full_name", "TEXT"),
+            ("phone", "TEXT"), 
+            ("subscription", "TEXT DEFAULT 'ENTERPRISE'"),
+            ("department", "TEXT")
+        ]
+        
+        for col_name, col_def in missing_columns:
+            if col_name not in columns:
+                try:
+                    cur.execute(f"ALTER TABLE users ADD COLUMN {col_name} {col_def}")
+                    print(f"Added column {col_name} to users table")
+                except Exception as e:
+                    print(f"Could not add column {col_name}: {e}")
+        
+        # Check if admin users already exist
+        cur.execute("SELECT COUNT(*) FROM users WHERE username IN ('admin', 'admin2')")
+        if cur.fetchone()[0] > 0:
+            return  # Admin users already exist
 
-            # جيب الـ role_id
-            role_name = u.get("role", "user")
-            cur.execute("SELECT role_id FROM roles WHERE name = ?", (role_name,))
-            row = cur.fetchone()
-            role_id = row[0] if row else 2  # default: user
+        # Get admin role_id
+        cur.execute("SELECT role_id FROM roles WHERE name = ?", ("admin",))
+        row = cur.fetchone()
+        admin_role_id = row[0] if row else 1  # default: admin
 
-            now = time.strftime("%Y-%m-%d %H:%M:%S")
+        now = time.strftime("%Y-%m-%d %H:%M:%S")
+        
+        # Create default admin users with proper password hashes
+        from werkzeug.security import generate_password_hash
+        
+        default_users = [
+            {
+                "username": "admin",
+                "password": "Admin@123",
+                "email": "admin@virex.com",
+                "full_name": "Administrator",
+                "department": "IT Security",
+                "phone": "+1234567890",
+                "subscription": "ENTERPRISE"
+            },
+            {
+                "username": "admin2", 
+                "password": "admin123",
+                "email": "admin2@virex.com",
+                "full_name": "admin2",
+                "department": "IT Security", 
+                "phone": "+1234567891",
+                "subscription": "ENTERPRISE"
+            }
+        ]
+        
+        for user_data in default_users:
+            password_hash = generate_password_hash(user_data["password"])
             cur.execute(
                 """INSERT INTO users
-                   (username, password_hash, email, role_id, is_active, created_at, updated_at)
-                   VALUES (?,?,?,?,?,?,?)""",
+                   (username, password_hash, email, full_name, department, phone, 
+                    subscription, role_id, is_active, created_at, updated_at)
+                   VALUES (?,?,?,?,?,?,?,?,?,?,?)""",
                 (
-                    username,
-                    u.get("password_hash", ""),
-                    u.get("email", f"{username}@example.com"),
-                    role_id,
+                    user_data["username"],
+                    password_hash,
+                    user_data["email"],
+                    user_data["full_name"],
+                    user_data["department"],
+                    user_data["phone"],
+                    user_data["subscription"],
+                    admin_role_id,
                     1,
                     now, now,
                 )
@@ -162,7 +205,8 @@ def insert_user(username, password_hash, email=None,
 
 def update_user(username: str, **kwargs) -> bool:
     allowed = {"email", "password_hash", "role_id", "department_id",
-               "is_active", "last_login", "updated_at"}
+               "is_active", "last_login", "updated_at", "full_name", 
+               "phone", "subscription", "department"}
     fields = {k: v for k, v in kwargs.items() if k in allowed}
     if not fields:
         return False
@@ -679,8 +723,105 @@ def create_department(name: str, slug: str, description: str = "") -> int:
 
 
 # ══════════════════════════════════════════════════════════════
-# STATS helpers (للتوافق مع persistence.py القديم)
+# BLACKLIST MANAGEMENT
 # ══════════════════════════════════════════════════════════════
+
+def create_blacklist_table():
+    """Create blacklist table if it doesn't exist."""
+    with db_cursor() as cur:
+        # Check if table exists and has the correct schema
+        cur.execute("PRAGMA table_info(blacklist)")
+        columns = [row[1] for row in cur.fetchall()]
+        
+        if not columns:
+            # Table doesn't exist, create it
+            cur.execute("""
+                CREATE TABLE blacklist (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    type TEXT NOT NULL,
+                    value TEXT NOT NULL,
+                    reason TEXT,
+                    created_by TEXT,
+                    status TEXT DEFAULT 'active',
+                    created_at TEXT,
+                    updated_at TEXT
+                )
+            """)
+        else:
+            # Table exists, check if it has the required columns
+            required_columns = ['created_at', 'updated_at']
+            for col in required_columns:
+                if col not in columns:
+                    cur.execute(f"ALTER TABLE blacklist ADD COLUMN {col} TEXT")
+            
+            # Ensure created_by column exists
+            if 'created_by' not in columns:
+                cur.execute("ALTER TABLE blacklist ADD COLUMN created_by TEXT")
+
+def get_all_blacklist_entries():
+    """Get all blacklist entries."""
+    create_blacklist_table()
+    with db_cursor() as cur:
+        cur.execute("SELECT * FROM blacklist ORDER BY created_at DESC")
+        return [dict(r) for r in cur.fetchall()]
+
+def add_blacklist_entry(entry_type, value, reason="", created_by="", status="active"):
+    """Add new blacklist entry."""
+    create_blacklist_table()
+    now = time.strftime("%Y-%m-%d %H:%M:%S")
+    with db_cursor() as cur:
+        cur.execute(
+            """INSERT INTO blacklist (type, value, reason, created_by, status, created_at, updated_at)
+               VALUES (?, ?, ?, ?, ?, ?, ?)""",
+            (entry_type, value, reason, created_by, status, now, now)
+        )
+        return cur.lastrowid
+
+def update_blacklist_entry(entry_id, created_by="", **kwargs):
+    """Update blacklist entry."""
+    allowed = {"type", "value", "reason", "status"}
+    fields = {k: v for k, v in kwargs.items() if k in allowed}
+    if not fields:
+        return False
+    fields["updated_at"] = time.strftime("%Y-%m-%d %H:%M:%S")
+    set_clause = ", ".join(f"{k} = ?" for k in fields)
+    values = list(fields.values()) + [entry_id]
+    with db_cursor() as cur:
+        cur.execute(f"UPDATE blacklist SET {set_clause} WHERE id = ?", values)
+        return cur.rowcount > 0
+
+def delete_blacklist_entry(entry_id):
+    """Delete blacklist entry."""
+    with db_cursor() as cur:
+        cur.execute("SELECT * FROM blacklist WHERE id = ?", (entry_id,))
+        entry = cur.fetchone()
+        if entry:
+            cur.execute("DELETE FROM blacklist WHERE id = ?", (entry_id,))
+            return dict(entry)
+        return None
+
+def get_blacklist_stats():
+    """Get blacklist statistics."""
+    create_blacklist_table()
+    with db_cursor() as cur:
+        cur.execute("SELECT COUNT(*) as total FROM blacklist")
+        total = cur.fetchone()[0]
+        
+        cur.execute("SELECT COUNT(*) as ips FROM blacklist WHERE type = 'ip'")
+        ips = cur.fetchone()[0]
+        
+        cur.execute("SELECT COUNT(*) as domains FROM blacklist WHERE type = 'domain'")
+        domains = cur.fetchone()[0]
+        
+        cur.execute("SELECT COUNT(*) as user_agents FROM blacklist WHERE type = 'user_agent'")
+        user_agents = cur.fetchone()[0]
+        
+        return {
+            "total": total,
+            "blocked_ips": ips,
+            "blocked_domains": domains,
+            "blocked_user_agents": user_agents
+        }
 
 def load_stats() -> dict:
     with db_cursor() as cur:

@@ -130,7 +130,7 @@ pytest tests/
 
 **Import errors:** Ensure virtual environment is activated and run from project root.
 
-**Dashboard shows zeros:** Check API is running and `data/siem_audit.json` exists.
+**Dashboard shows zeros:** Check API is running and database is initialized (SQLite database at `db/virex.db`).
 
 **Templates not found:** Use `run_dashboard.py` (not `dashboard.py` directly).
 

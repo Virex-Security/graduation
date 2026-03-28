@@ -1,7 +1,6 @@
 """
 Dashboard Services - Security Dashboard and threat management
 """
-import json
 import time
 import os
 import threading

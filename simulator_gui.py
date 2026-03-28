@@ -7,7 +7,7 @@ import threading
 class AttackSimulatorGUI:
     def __init__(self, root):
         self.root = root
-        self.root.title("CyberShield Pro - Attack Simulator")
+        self.root.title("virex - Attack Simulator")
         self.root.geometry("600x500")
         self.root.configure(bg="#0f172a")
 
@@ -26,12 +26,12 @@ class AttackSimulatorGUI:
     def setup_ui(self):
         # Header
         header = tk.Label(self.root, text="🛡️ ATTACK SIMULATOR", font=("Inter", 18, "bold"), 
-                         bg=self.bg_dark, fg=self.primary, pady=20)
+                        bg=self.bg_dark, fg=self.primary, pady=20)
         header.pack()
 
         # Target Frame
         target_frame = tk.LabelFrame(self.root, text=" Configuration ", bg=self.bg_dark, fg=self.primary, 
-                                   font=("Inter", 10, "bold"), padx=10, pady=10)
+                                  font=("Inter", 10, "bold"), padx=10, pady=10)
         target_frame.pack(fill="x", padx=20, pady=10)
 
         tk.Label(target_frame, text="Target API URL:", bg=self.bg_dark, fg=self.text_light).grid(row=0, column=0, sticky="w")
@@ -67,8 +67,8 @@ class AttackSimulatorGUI:
 
         # Action Button
         self.fire_btn = tk.Button(self.root, text="🚀 FIRE ATTACK", command=self.fire_attack, 
-                                 bg=self.primary, fg="black", font=("Inter", 12, "bold"), 
-                                 padx=20, pady=10, relief="flat")
+                                bg=self.primary, fg="black", font=("Inter", 12, "bold"), 
+                                padx=20, pady=10, relief="flat")
         self.fire_btn.pack(pady=20)
 
     def on_type_change(self, event):
