@@ -1119,14 +1119,8 @@ def create_dashboard_app():
     def get_blacklist(current_user):
         """Get all blacklist entries"""
         try:
-            project_root = Path(__file__).parent.parent.parent
-            blacklist_file = project_root / 'data' / 'blacklist.json'
-            if blacklist_file.exists():
-                with open(blacklist_file, 'r') as f:
-                    blacklist = json.load(f)
-            else:
-                blacklist = []
-            
+            from app.database_blacklist import get_all_blacklist
+            blacklist = get_all_blacklist()
             return jsonify({'blacklist': blacklist})
         except Exception as e:
             print(f"Error loading blacklist: {e}")
@@ -1142,25 +1136,10 @@ def create_dashboard_app():
             value = data.get('value')
             reason = data.get('reason')
             status = data.get('status', 'active')
-            
             if not blacklist_type or not value or not reason:
                 return jsonify({'error': 'Type, value, and reason are required'}), 400
-            
-            # Load existing blacklist
-            project_root = Path(__file__).parent.parent.parent
-            blacklist_file = project_root / 'data' / 'blacklist.json'
-            if blacklist_file.exists():
-                with open(blacklist_file, 'r') as f:
-                    blacklist = json.load(f)
-            else:
-                blacklist = []
-            
-            # Generate new ID
-            new_id = max([item.get('id', 0) for item in blacklist], default=0) + 1
-            
-            # Create new entry
+            from app.database_blacklist import insert_blacklist_entry
             new_entry = {
-                'id': new_id,
                 'type': blacklist_type,
                 'value': value,
                 'reason': reason,
@@ -1168,16 +1147,9 @@ def create_dashboard_app():
                 'added_by': current_user.get('username'),
                 'date_added': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             }
-            
-            blacklist.append(new_entry)
-            
-            # Save blacklist
-            blacklist_file.parent.mkdir(parents=True, exist_ok=True)
-            with open(blacklist_file, 'w') as f:
-                json.dump(blacklist, f, indent=2)
-            
+            entry_id = insert_blacklist_entry(new_entry)
+            new_entry['id'] = entry_id
             log_action(current_user, "Blacklist Entry Added", f"Added {blacklist_type}: {value}")
-            
             return jsonify({'status': 'success', 'message': 'Added to blacklist successfully', 'entry': new_entry})
         except Exception as e:
             print(f"Error adding to blacklist: {e}")
@@ -1189,36 +1161,19 @@ def create_dashboard_app():
         """Update blacklist entry"""
         try:
             data = request.get_json()
-            
-            # Load existing blacklist
-            project_root = Path(__file__).parent.parent.parent
-            blacklist_file = project_root / 'data' / 'blacklist.json'
-            if not blacklist_file.exists():
-                return jsonify({'error': 'Blacklist not found'}), 404
-            
-            with open(blacklist_file, 'r') as f:
-                blacklist = json.load(f)
-            
-            # Find and update entry
-            entry = next((item for item in blacklist if item.get('id') == entry_id), None)
+            from app.database_blacklist import update_blacklist_entry, get_blacklist_entry
+            entry = get_blacklist_entry(entry_id)
             if not entry:
                 return jsonify({'error': 'Entry not found'}), 404
-            
-            # Update fields
+            update_data = {}
             if 'reason' in data:
-                entry['reason'] = data['reason']
+                update_data['reason'] = data['reason']
             if 'status' in data:
-                entry['status'] = data['status']
-            
-            entry['updated_by'] = current_user.get('username')
-            entry['date_updated'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            
-            # Save blacklist
-            with open(blacklist_file, 'w') as f:
-                json.dump(blacklist, f, indent=2)
-            
+                update_data['status'] = data['status']
+            update_data['updated_by'] = current_user.get('username')
+            update_data['date_updated'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            update_blacklist_entry(entry_id, update_data)
             log_action(current_user, "Blacklist Entry Updated", f"Updated entry ID: {entry_id}")
-            
             return jsonify({'status': 'success', 'message': 'Blacklist entry updated successfully'})
         except Exception as e:
             print(f"Error updating blacklist: {e}")
@@ -1229,28 +1184,12 @@ def create_dashboard_app():
     def delete_blacklist(current_user, entry_id):
         """Delete blacklist entry"""
         try:
-            # Load existing blacklist
-            project_root = Path(__file__).parent.parent.parent
-            blacklist_file = project_root / 'data' / 'blacklist.json'
-            if not blacklist_file.exists():
-                return jsonify({'error': 'Blacklist not found'}), 404
-            
-            with open(blacklist_file, 'r') as f:
-                blacklist = json.load(f)
-            
-            # Find and remove entry
-            entry = next((item for item in blacklist if item.get('id') == entry_id), None)
+            from app.database_blacklist import delete_blacklist_entry, get_blacklist_entry
+            entry = get_blacklist_entry(entry_id)
             if not entry:
                 return jsonify({'error': 'Entry not found'}), 404
-            
-            blacklist = [item for item in blacklist if item.get('id') != entry_id]
-            
-            # Save blacklist
-            with open(blacklist_file, 'w') as f:
-                json.dump(blacklist, f, indent=2)
-            
+            delete_blacklist_entry(entry_id)
             log_action(current_user, "Blacklist Entry Deleted", f"Deleted {entry.get('type')}: {entry.get('value')}")
-            
             return jsonify({'status': 'success', 'message': 'Blacklist entry deleted successfully'})
         except Exception as e:
             print(f"Error deleting blacklist: {e}")
