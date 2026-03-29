@@ -1233,7 +1233,7 @@ def create_dashboard_app():
     def get_blacklist(current_user):
         """Get all blacklist entries"""
         try:
-            from app.models.database import blacklist_manager
+            from database import blacklist_manager
             blacklist = blacklist_manager.get_all()
             return jsonify({'blacklist': blacklist})
         except Exception as e:
@@ -1245,7 +1245,7 @@ def create_dashboard_app():
     def add_blacklist(current_user):
         """Add new entry to blacklist"""
         try:
-            from app.models.database import blacklist_manager
+            from database import blacklist_manager
             
             data = request.get_json()
             blacklist_type = data.get('type')
@@ -1283,7 +1283,7 @@ def create_dashboard_app():
     def update_blacklist(current_user, entry_id):
         """Update blacklist entry"""
         try:
-            from app.models.database import blacklist_manager
+            from database import blacklist_manager
             
             data = request.get_json()
             
@@ -1310,7 +1310,7 @@ def create_dashboard_app():
     def delete_blacklist(current_user, entry_id):
         """Delete blacklist entry"""
         try:
-            from app.models.database import blacklist_manager
+            from database import blacklist_manager
             
             # Delete entry and get the deleted entry info
             entry = blacklist_manager.delete_entry(entry_id)

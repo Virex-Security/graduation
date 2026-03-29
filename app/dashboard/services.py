@@ -242,7 +242,7 @@ class SecurityDashboard:
     def compute_ml_metrics(self):
         """Helper that returns the dictionary of ML performance metrics using DB logs only."""
         import numpy as np
-        from sklearn.metrics import (
+        from metrics import (
             roc_auc_score, confusion_matrix
         )
         print(f"[ML-METRICS] === Starting compute_ml_metrics ===")
