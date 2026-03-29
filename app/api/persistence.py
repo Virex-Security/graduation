@@ -1,3 +1,13 @@
+# ── WAF Rules ───────────────────────────────────────────────
+def get_rules(active_only=True):
+    """Get WAF rules from the database. If active_only=True, return only active rules."""
+    db._ensure_rules_table()
+    with db.db_cursor() as cur:
+        query = "SELECT * FROM rules"
+        if active_only:
+            query += " WHERE active = 1"
+        cur.execute(query)
+        return [dict(row) for row in cur.fetchall()]
 """
 Persistence Manager (DB-backed)
 ================================

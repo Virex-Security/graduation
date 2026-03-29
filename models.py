@@ -1,9 +1,10 @@
 import re
 from werkzeug.security import generate_password_hash, check_password_hash
 from roles import Role
-from app.database import (
+from app.db_helpers import (
     get_user_by_username, insert_user, update_user, delete_user
 )
+
 
 class UserManager:
 
@@ -32,7 +33,15 @@ class UserManager:
         return True, "User added successfully"
 
     def get_user(self, username):
-        return get_user_by_username(username)
+        """
+        بيجيب المستخدم من الـ database وبيضيف مفتاح 'role'
+        من role_name عشان باقي الكود يشتغل بدون تغيير.
+        """
+        user = get_user_by_username(username)
+        if user and 'role' not in user:
+            # role_name بييجي من الـ JOIN مع جدول roles
+            user['role'] = user.get('role_name', Role.USER)
+        return user
 
     def verify_password(self, username, password):
         user = self.get_user(username)

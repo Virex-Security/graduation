@@ -1,731 +1,437 @@
+# ── WAF Rules Table ─────────────────────────────────────────
+def _ensure_rules_table():
+    """Ensure the 'rules' table exists in the database."""
+    with db_cursor() as cur:
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS rules (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                type TEXT NOT NULL,
+                pattern TEXT NOT NULL,
+                severity TEXT DEFAULT 'High',
+                action TEXT DEFAULT 'block',
+                description TEXT,
+                active INTEGER DEFAULT 1,
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
 """
-Database Manager - virex.db  (SQLite)
-======================================
-يتعامل مع الـ 19 table الموجودة في db/virex.db
+Database operations for VIREX Security System
+SQLite-based data persistence layer
 """
-
 import sqlite3
-import threading
 import time
-import logging
-from pathlib import Path
+import os
 from contextlib import contextmanager
+from datetime import datetime
 
-logger = logging.getLogger(__name__)
-
-PROJECT_ROOT = Path(__file__).parent.parent
-DB_PATH      = PROJECT_ROOT / "db" / "virex.db"
+# Database path
+DB_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'db', 'virex.db')
 
 @contextmanager
 def db_cursor():
-    """كل عملية بتفتح connection جديدة وبتقفلها — يمنع database is locked."""
-    conn = sqlite3.connect(str(DB_PATH), timeout=10, check_same_thread=False)
+    """Context manager for database operations."""
+    conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA journal_mode=WAL")
-    conn.execute("PRAGMA foreign_keys=ON")
-    conn.execute("PRAGMA busy_timeout=5000")
-    cur = conn.cursor()
     try:
-        yield cur
+        yield conn.cursor()
         conn.commit()
-    except Exception as e:
+    except Exception:
         conn.rollback()
-        logger.error(f"[DB] Error: {e}")
         raise
     finally:
         conn.close()
 
-
 def init_db():
-    """يتأكد إن الـ DB موجودة ويعمل seed للـ roles والـ users."""
+    """Initialize database with all required tables."""
+    with db_cursor() as cur:
+        # Users table
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                user_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT UNIQUE NOT NULL,
+                password_hash TEXT NOT NULL,
+                email TEXT,
+                role_id INTEGER DEFAULT 2,
+                department_id INTEGER,
+                is_active INTEGER DEFAULT 1,
+                last_login TEXT,
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                reset_token TEXT,
+                reset_token_expiry TEXT,
+                full_name TEXT,
+                phone TEXT,
+                subscription TEXT DEFAULT 'FREE',
+                department TEXT
+            )
+        """)
+        
+        # Roles table
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS roles (
+                role_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                role_name TEXT UNIQUE NOT NULL,
+                description TEXT
+            )
+        """)
+        
+        # Threat logs table
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS threat_logs (
+                log_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                attack_type TEXT NOT NULL,
+                ip_address TEXT NOT NULL,
+                endpoint TEXT,
+                method TEXT,
+                payload TEXT,
+                severity TEXT DEFAULT 'Medium',
+                description TEXT,
+                blocked INTEGER DEFAULT 0,
+                ml_detected INTEGER DEFAULT 0,
+                confidence REAL DEFAULT 0.0,
+                detection_type TEXT DEFAULT 'rule',
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        
+        # Blocked events table
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS blocked_events (
+                event_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                ip_address TEXT NOT NULL,
+                attack_type TEXT NOT NULL,
+                severity TEXT DEFAULT 'Medium',
+                ml_detected INTEGER DEFAULT 0,
+                confidence REAL DEFAULT 0.0,
+                threat_log_id INTEGER,
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (threat_log_id) REFERENCES threat_logs (log_id)
+            )
+        """)
+        
+        # Incidents table
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS incidents (
+                incident_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                incident_code TEXT UNIQUE NOT NULL,
+                category TEXT NOT NULL,
+                source_ip TEXT NOT NULL,
+                detection_type TEXT DEFAULT 'rule',
+                status TEXT DEFAULT 'open',
+                severity TEXT DEFAULT 'Medium',
+                first_seen TEXT DEFAULT CURRENT_TIMESTAMP,
+                last_seen TEXT DEFAULT CURRENT_TIMESTAMP,
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                actor_id INTEGER,
+                comment TEXT,
+                FOREIGN KEY (actor_id) REFERENCES users (user_id)
+            )
+        """)
+        
+        # ML detections table
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS ml_detections (
+                detection_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                text_snippet TEXT NOT NULL,
+                risk_score REAL NOT NULL,
+                prediction TEXT NOT NULL,
+                severity TEXT DEFAULT 'Medium',
+                ip_address TEXT,
+                endpoint TEXT,
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        
+        # Audit logs table
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS audit_logs (
+                audit_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER,
+                action TEXT NOT NULL,
+                resource TEXT NOT NULL,
+                resource_id TEXT,
+                details TEXT,
+                ip_address TEXT,
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users (user_id)
+            )
+        """)
+        
+        # Blacklist table
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS blacklist (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                type TEXT NOT NULL,
+                value TEXT NOT NULL,
+                reason TEXT,
+                created_by TEXT,
+                status TEXT DEFAULT 'active',
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        
+        # Stats table
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS stats (
+                id INTEGER PRIMARY KEY,
+                total_requests INTEGER DEFAULT 0,
+                blocked_requests INTEGER DEFAULT 0,
+                updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        
+        # User attacks table
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS user_attacks (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_key TEXT NOT NULL,
+                attack_type TEXT NOT NULL,
+                ip_address TEXT NOT NULL,
+                endpoint TEXT,
+                timestamp TEXT DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+    
     _seed_roles()
     _seed_users()
-    logger.info("[DB] Ready — %s", DB_PATH)
-
-
-# ══════════════════════════════════════════════════════════════
-# SEED helpers
-# ══════════════════════════════════════════════════════════════
 
 def _seed_roles():
+    """Seed initial roles."""
     with db_cursor() as cur:
         cur.execute("SELECT COUNT(*) FROM roles")
         if cur.fetchone()[0] == 0:
-            now = time.strftime("%Y-%m-%d %H:%M:%S")
-            roles = [
-                ("admin",    "Full system access"),
-                ("user",     "Standard access"),
-                ("analyst",  "Read-only + reports"),
-                ("manager",  "Team management"),
-            ]
-            cur.executemany(
-                "INSERT INTO roles (name, description, created_at) VALUES (?,?,?)",
-                [(r[0], r[1], now) for r in roles]
-            )
-
+            cur.execute("INSERT INTO roles (role_id, name, description) VALUES (1, 'admin', 'Administrator')")
+            cur.execute("INSERT INTO roles (role_id, name, description) VALUES (2, 'user', 'Regular User')")
 
 def _seed_users():
-    """Create default admin users if they don't exist."""
+    """Seed initial admin user."""
     with db_cursor() as cur:
-        # First, check if we need to add missing columns
-        cur.execute("PRAGMA table_info(users)")
-        columns = [col[1] for col in cur.fetchall()]
-        
-        # Add missing columns if they don't exist
-        missing_columns = [
-            ("full_name", "TEXT"),
-            ("phone", "TEXT"), 
-            ("subscription", "TEXT DEFAULT 'ENTERPRISE'"),
-            ("department", "TEXT")
-        ]
-        
-        for col_name, col_def in missing_columns:
-            if col_name not in columns:
-                try:
-                    cur.execute(f"ALTER TABLE users ADD COLUMN {col_name} {col_def}")
-                    print(f"Added column {col_name} to users table")
-                except Exception as e:
-                    print(f"Could not add column {col_name}: {e}")
-        
-        # Check if admin users already exist
-        cur.execute("SELECT COUNT(*) FROM users WHERE username IN ('admin', 'admin2')")
-        if cur.fetchone()[0] > 0:
-            return  # Admin users already exist
+        cur.execute("SELECT COUNT(*) FROM users WHERE username = 'admin'")
+        if cur.fetchone()[0] == 0:
+            from werkzeug.security import generate_password_hash
+            admin_hash = generate_password_hash('admin123')
+            cur.execute("""
+                INSERT INTO users (username, password_hash, email, role_id, subscription)
+                VALUES ('admin', ?, 'admin@example.com', 1, 'ENTERPRISE')
+            """, (admin_hash,))
 
-        # Get admin role_id
-        cur.execute("SELECT role_id FROM roles WHERE name = ?", ("admin",))
-        row = cur.fetchone()
-        admin_role_id = row[0] if row else 1  # default: admin
-
-        now = time.strftime("%Y-%m-%d %H:%M:%S")
-        
-        # Create default admin users with proper password hashes
-        from werkzeug.security import generate_password_hash
-        
-        default_users = [
-            {
-                "username": "admin",
-                "password": "Admin@123",
-                "email": "admin@virex.com",
-                "full_name": "Administrator",
-                "department": "IT Security",
-                "phone": "+1234567890",
-                "subscription": "ENTERPRISE"
-            },
-            {
-                "username": "admin2", 
-                "password": "admin123",
-                "email": "admin2@virex.com",
-                "full_name": "admin2",
-                "department": "IT Security", 
-                "phone": "+1234567891",
-                "subscription": "ENTERPRISE"
-            }
-        ]
-        
-        for user_data in default_users:
-            password_hash = generate_password_hash(user_data["password"])
-            cur.execute(
-                """INSERT INTO users
-                   (username, password_hash, email, full_name, department, phone, 
-                    subscription, role_id, is_active, created_at, updated_at)
-                   VALUES (?,?,?,?,?,?,?,?,?,?,?)""",
-                (
-                    user_data["username"],
-                    password_hash,
-                    user_data["email"],
-                    user_data["full_name"],
-                    user_data["department"],
-                    user_data["phone"],
-                    user_data["subscription"],
-                    admin_role_id,
-                    1,
-                    now, now,
-                )
-            )
-
-
-# ══════════════════════════════════════════════════════════════
-# USERS
-# ══════════════════════════════════════════════════════════════
-
-def get_all_users() -> list:
+# User operations
+def get_all_users():
+    """Get all users with role information."""
     with db_cursor() as cur:
         cur.execute("""
-            SELECT u.*, r.name as role_name
-            FROM users u
+            SELECT u.*, r.name as role_name 
+            FROM users u 
             LEFT JOIN roles r ON u.role_id = r.role_id
-            ORDER BY u.user_id
+            ORDER BY u.created_at DESC
         """)
-        return [dict(r) for r in cur.fetchall()]
+        return [dict(row) for row in cur.fetchall()]
 
-
-def get_user_by_username(username: str) -> dict | None:
+def get_user_by_username(username):
+    """Get user by username."""
     with db_cursor() as cur:
         cur.execute("""
-            SELECT u.*, r.name as role_name
-            FROM users u
+            SELECT u.*, r.name as role_name 
+            FROM users u 
             LEFT JOIN roles r ON u.role_id = r.role_id
             WHERE u.username = ?
         """, (username,))
         row = cur.fetchone()
         return dict(row) if row else None
 
-
-def get_user_by_id(user_id) -> dict | None:
+def get_user_by_id(user_id):
+    """Get user by ID."""
     with db_cursor() as cur:
         cur.execute("""
-            SELECT u.*, r.name as role_name
-            FROM users u
+            SELECT u.*, r.name as role_name 
+            FROM users u 
             LEFT JOIN roles r ON u.role_id = r.role_id
             WHERE u.user_id = ?
         """, (user_id,))
         row = cur.fetchone()
         return dict(row) if row else None
 
-
-def insert_user(username, password_hash, email=None,
-                role="user", department_id=None) -> int:
-    now = time.strftime("%Y-%m-%d %H:%M:%S")
+def insert_user(username, password_hash, email=None, role='user'):
+    """Insert new user."""
+    role_id = 1 if role == 'admin' else 2
+    now = datetime.now().isoformat()
     with db_cursor() as cur:
-        cur.execute("SELECT role_id FROM roles WHERE name = ?", (role,))
-        row = cur.fetchone()
-        role_id = row[0] if row else 2
-        cur.execute(
-            """INSERT INTO users
-               (username, password_hash, email, role_id, department_id,
-                is_active, created_at, updated_at)
-               VALUES (?,?,?,?,?,1,?,?)""",
-            (username, password_hash,
-             email or f"{username}@example.com",
-             role_id, department_id, now, now)
-        )
+        cur.execute("""
+            INSERT INTO users (username, password_hash, email, role_id, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?)
+        """, (username, password_hash, email, role_id, now, now))
         return cur.lastrowid
 
-
-def update_user(username: str, **kwargs) -> bool:
-    allowed = {"email", "password_hash", "role_id", "department_id",
-               "is_active", "last_login", "updated_at", "full_name", 
-               "phone", "subscription", "department"}
-    fields = {k: v for k, v in kwargs.items() if k in allowed}
-    if not fields:
+def update_user(username, **kwargs):
+    """Update user information."""
+    if not kwargs:
         return False
-    fields["updated_at"] = time.strftime("%Y-%m-%d %H:%M:%S")
-    set_clause = ", ".join(f"{k} = ?" for k in fields)
-    values = list(fields.values()) + [username]
+    
+    kwargs['updated_at'] = datetime.now().isoformat()
+    fields = ', '.join(f"{k} = ?" for k in kwargs.keys())
+    values = list(kwargs.values()) + [username]
+    
     with db_cursor() as cur:
-        cur.execute(f"UPDATE users SET {set_clause} WHERE username = ?", values)
+        cur.execute(f"UPDATE users SET {fields} WHERE username = ?", values)
         return cur.rowcount > 0
 
-
-def delete_user(username: str) -> bool:
+def delete_user(username):
+    """Delete user."""
     with db_cursor() as cur:
         cur.execute("DELETE FROM users WHERE username = ?", (username,))
         return cur.rowcount > 0
 
-
-# ══════════════════════════════════════════════════════════════
-# ROLES
-# ══════════════════════════════════════════════════════════════
-
-def get_all_roles() -> list:
-    with db_cursor() as cur:
-        cur.execute("SELECT * FROM roles ORDER BY role_id")
-        return [dict(r) for r in cur.fetchall()]
-
-
-# ══════════════════════════════════════════════════════════════
-# RULES
-# ══════════════════════════════════════════════════════════════
-
-def _ensure_rules_table():
-    """Create the rules table if it doesn't already exist."""
+# Threat logging
+def log_threat(attack_type, ip_address, endpoint='', method='GET', payload='', 
+               severity='Medium', description='', blocked=False, ml_detected=False,
+               confidence=0.0, detection_type='rule'):
+    """Log a threat event."""
+    now = time.strftime("%Y-%m-%d %H:%M:%S")
     with db_cursor() as cur:
         cur.execute("""
-            CREATE TABLE IF NOT EXISTS rules (
-                rule_id      INTEGER PRIMARY KEY AUTOINCREMENT,
-                name         TEXT NOT NULL,
-                type         TEXT NOT NULL,
-                pattern      TEXT,
-                severity     TEXT NOT NULL DEFAULT 'medium',
-                action       TEXT NOT NULL DEFAULT 'block',
-                is_active    INTEGER NOT NULL DEFAULT 1,
-                description  TEXT,
-                created_at   TEXT
-            )
-        """)
-
-
-def _seed_rules_table():
-    """Insert default WAF detection rules if the table is empty."""
-    _ensure_rules_table()
-    with db_cursor() as cur:
-        cur.execute("SELECT COUNT(*) FROM rules")
-        if cur.fetchone()[0] > 0:
-            return  # already seeded
-
-        now = time.strftime("%Y-%m-%d %H:%M:%S")
-        default_rules = [
-            ("SQL Injection - UNION",         "sql_injection",    "UNION\\s+SELECT",                               "high",     "block", "Detects UNION-based SQL injection"),
-            ("SQL Injection - Keywords",      "sql_injection",    "(SELECT|INSERT|UPDATE|DELETE|DROP|ALTER)",       "high",     "block", "Detects SQL keyword abuse"),
-            ("SQL Injection - Comment",       "sql_injection",    "(--|#|/\\*|;|@@)",                              "high",     "block", "Detects SQL comment/terminator injection"),
-            ("SQL Injection - OR/AND",        "sql_injection",    "(\\bOR\\b|\\bAND\\b).+(=|LIKE|IN)",             "high",     "block", "Detects boolean-based SQL injection"),
-            ("XSS - Script Tag",              "xss",              "<script.*?>.*?</script>",                       "high",     "block", "Detects XSS script injection"),
-            ("XSS - JavaScript Protocol",    "xss",              "javascript:",                                    "high",     "block", "Detects javascript: URI XSS"),
-            ("XSS - Event Handler",          "xss",              "(onerror|onload|onclick)\\s*=",                 "high",     "block", "Detects HTML event handler XSS"),
-            ("XSS - Alert",                  "xss",              "alert\\(.*\\)",                                 "medium",   "block", "Detects alert()-based XSS probing"),
-            ("Command Injection - Pipe",     "command_injection", "(;|\\|{1,2}|&&|`)\\s*(cat|ls|rm|wget|curl|nc|bash|sh)", "critical","block", "Detects shell command injection"),
-            ("Command Injection - Subshell", "command_injection", "\\$\\(.*\\)",                                  "critical", "block", "Detects $() subshell injection"),
-            ("Path Traversal - Dotdot",      "path_traversal",   "\\.\\.[/\\\\]",                                "high",     "block", "Detects ../ or ..\\ path traversal"),
-            ("Path Traversal - Encoded",     "path_traversal",   "%2e%2e[%2f%5c]",                               "high",     "block", "Detects URL-encoded path traversal"),
-            ("Path Traversal - Sensitive",   "path_traversal",   "(etc/passwd|etc/shadow|windows/system32)",     "critical", "block", "Detects access to sensitive system paths"),
-        ]
-        cur.executemany(
-            """INSERT INTO rules (name, type, pattern, severity, action, description, is_active, created_at)
-               VALUES (?,?,?,?,?,?,1,?)""",
-            [(r[0], r[1], r[2], r[3], r[4], r[5], now) for r in default_rules]
-        )
-        logger.info("[DB] Seeded %d default rules", len(default_rules))
-
-
-def get_rules(active_only: bool = True) -> list:
-    """
-    Return WAF rules from the database as a list of dictionaries.
-    Each dict has keys: rule_id, name, type, pattern, severity, action,
-                        is_active, description, created_at.
-    Example: {"type": "sql_injection", "severity": "high", ...}
-    """
-    _ensure_rules_table()
-    with db_cursor() as cur:
-        if active_only:
-            cur.execute("SELECT * FROM rules WHERE is_active = 1 ORDER BY rule_id")
-        else:
-            cur.execute("SELECT * FROM rules ORDER BY rule_id")
-        rules = [dict(r) for r in cur.fetchall()]
-    print(f"[DEBUG] get_rules() loaded {len(rules)} rule(s) from DB")
-    return rules
-
-
-# ══════════════════════════════════════════════════════════════
-# THREAT LOGS
-# ══════════════════════════════════════════════════════════════
-
-def log_threat(attack_type: str, ip_address: str, endpoint: str,
-               method: str, payload: str = "", severity: str = "Medium",
-               description: str = "", blocked: bool = False,
-               ml_detected: bool = False, confidence: float = 0.0,
-               detection_type: str = "rule") -> int:
-    now = time.strftime("%Y-%m-%d %H:%M:%S")
-    with db_cursor() as cur:
-        cur.execute(
-            """INSERT INTO threat_logs
-               (attack_type, ip_address, description, severity,
-                endpoint, method, payload, detection_type,
-                blocked, ml_detected, confidence, created_at)
-               VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""",
-            (attack_type, ip_address, description, severity,
-             endpoint, method, payload[:500] if payload else "",
-             detection_type, int(blocked), int(ml_detected),
-             round(confidence, 4), now)
-        )
+            INSERT INTO threat_logs 
+            (attack_type, ip_address, endpoint, method, payload, severity, 
+             description, blocked, ml_detected, confidence, detection_type, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (attack_type, ip_address, endpoint, method, payload, severity,
+              description, int(blocked), int(ml_detected), confidence, detection_type, now))
         return cur.lastrowid
 
-
-def get_threat_logs(limit: int = 100, attack_type: str = None,
-                    severity: str = None) -> list:
-    sql = "SELECT * FROM threat_logs WHERE 1=1"
+def get_threat_logs(limit=100, attack_type=None, severity=None):
+    """Get threat logs with optional filtering."""
+    query = "SELECT * FROM threat_logs"
     params = []
+    conditions = []
+    
     if attack_type:
-        sql += " AND attack_type = ?"
+        conditions.append("attack_type = ?")
         params.append(attack_type)
     if severity:
-        sql += " AND severity = ?"
+        conditions.append("severity = ?")
         params.append(severity)
-    sql += " ORDER BY threat_log_id DESC LIMIT ?"
+    
+    if conditions:
+        query += " WHERE " + " AND ".join(conditions)
+    
+    query += " ORDER BY created_at DESC LIMIT ?"
     params.append(limit)
+    
     with db_cursor() as cur:
-        cur.execute(sql, params)
-        return [dict(r) for r in cur.fetchall()]
+        cur.execute(query, params)
+        return [dict(row) for row in cur.fetchall()]
 
-
-# ══════════════════════════════════════════════════════════════
-# BLOCKED IPs
-# ══════════════════════════════════════════════════════════════
-
-def load_blocked_ips() -> dict:
+# Blocked events
+def log_blocked_event(ip_address, attack_type, severity='Medium', 
+                     ml_detected=False, confidence=0.0, threat_log_id=None):
+    """Log a blocked event."""
     now = time.strftime("%Y-%m-%d %H:%M:%S")
     with db_cursor() as cur:
-        # حذف المنتهية
-        cur.execute("DELETE FROM blocked_ips WHERE is_permanent = 0 AND unblock_at <= ?", (now,))
-        cur.execute("SELECT ip_address, unblock_at FROM blocked_ips")
-        result = {}
-        for r in cur.fetchall():
-            try:
-                ts = time.mktime(time.strptime(r["unblock_at"], "%Y-%m-%d %H:%M:%S"))
-            except Exception:
-                ts = float("inf")
-            result[r["ip_address"]] = ts
-        return result
+        cur.execute("""
+            INSERT INTO blocked_events 
+            (ip_address, attack_type, severity, ml_detected, confidence, threat_log_id, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        """, (ip_address, attack_type, severity, int(ml_detected), confidence, threat_log_id, now))
+        return cur.lastrowid
 
-
-def save_blocked_ips(blocked: dict):
-    now_ts  = time.time()
-    now_str = time.strftime("%Y-%m-%d %H:%M:%S")
+def get_blocked_events(limit=100):
+    """Get blocked events."""
     with db_cursor() as cur:
-        cur.execute("DELETE FROM blocked_ips WHERE is_permanent = 0")
-        for ip, unblock_ts in blocked.items():
-            if unblock_ts > now_ts:
-                unblock_str = time.strftime("%Y-%m-%d %H:%M:%S",
-                                             time.localtime(unblock_ts))
-                cur.execute(
-                    """INSERT OR REPLACE INTO blocked_ips
-                       (ip_address, reason, is_permanent, blocked_at, unblock_at)
-                       VALUES (?,?,0,?,?)""",
-                    (ip, "auto-block", now_str, unblock_str)
-                )
+        cur.execute("SELECT * FROM blocked_events ORDER BY created_at DESC LIMIT ?", (limit,))
+        return [dict(row) for row in cur.fetchall()]
 
-
-def block_ip(ip: str, unblock_at_ts: float, reason: str = "auto-block",
-             blocked_by: int = None, is_permanent: bool = False):
-    now_str    = time.strftime("%Y-%m-%d %H:%M:%S")
-    unblk_str  = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(unblock_at_ts))
-    with db_cursor() as cur:
-        cur.execute(
-            """INSERT OR REPLACE INTO blocked_ips
-               (ip_address, reason, blocked_by, is_permanent, blocked_at, unblock_at)
-               VALUES (?,?,?,?,?,?)""",
-            (ip, reason, blocked_by, int(is_permanent), now_str, unblk_str)
-        )
-
-
-def unblock_ip(ip: str):
-    with db_cursor() as cur:
-        cur.execute("DELETE FROM blocked_ips WHERE ip_address = ?", (ip,))
-
-
-# ══════════════════════════════════════════════════════════════
-# BLOCKED EVENTS
-# ══════════════════════════════════════════════════════════════
-
-def log_blocked_event(ip_address: str, attack_type: str, severity: str,
-                      ml_detected: bool = False, confidence: float = 0.0,
-                      threat_log_id: int = None):
-    now = time.strftime("%Y-%m-%d %H:%M:%S")
-    with db_cursor() as cur:
-        cur.execute(
-            """INSERT INTO blocked_events
-               (threat_log_id, ip_address, attack_type, severity,
-                ml_detected, confidence, blocked_at)
-               VALUES (?,?,?,?,?,?,?)""",
-            (threat_log_id, ip_address, attack_type, severity,
-             int(ml_detected), round(confidence, 4), now)
-        )
-
-
-def get_blocked_events(limit: int = 100) -> list:
-    with db_cursor() as cur:
-        cur.execute(
-            "SELECT * FROM blocked_events ORDER BY blocked_event_id DESC LIMIT ?",
-            (limit,)
-        )
-        return [dict(r) for r in cur.fetchall()]
-
-
-# ══════════════════════════════════════════════════════════════
-# INCIDENTS
-# ══════════════════════════════════════════════════════════════
-
-def create_incident(category: str, source_ip: str, severity: str,
-                    detection_type: str = "rule") -> int:
+# Incidents
+def create_incident(category, source_ip, severity, detection_type='rule'):
+    """Create a new incident."""
     now = time.strftime("%Y-%m-%d %H:%M:%S")
     import random, string
     code = "INC-" + "".join(random.choices(string.digits, k=6))
+    
     with db_cursor() as cur:
-        cur.execute(
-            """INSERT INTO incidents
-               (incident_code, category, source_ip, detection_type,
-                status, severity, first_seen, last_seen, created_at)
-               VALUES (?,?,?,?,?,?,?,?,?)""",
-            (code, category, source_ip, detection_type,
-             "open", severity, now, now, now)
-        )
+        cur.execute("""
+            INSERT INTO incidents
+            (incident_code, category, source_ip, detection_type, status, severity, 
+             first_seen, last_seen, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (code, category, source_ip, detection_type, 'open', severity, now, now, now))
         return cur.lastrowid
 
-
-def get_incidents(status: str = None, limit: int = 100) -> list:
-    sql = "SELECT * FROM incidents WHERE 1=1"
+def get_incidents(status=None, limit=100):
+    """Get incidents with optional status filtering."""
+    query = "SELECT * FROM incidents"
     params = []
+    
     if status:
-        sql += " AND status = ?"
+        query += " WHERE status = ?"
         params.append(status)
-    sql += " ORDER BY incident_id DESC LIMIT ?"
+    
+    query += " ORDER BY created_at DESC LIMIT ?"
     params.append(limit)
+    
     with db_cursor() as cur:
-        cur.execute(sql, params)
-        return [dict(r) for r in cur.fetchall()]
+        cur.execute(query, params)
+        return [dict(row) for row in cur.fetchall()]
 
-
-def update_incident_status(incident_id: int, new_status: str,
-                            actor_id: int = None, comment: str = ""):
-    with db_cursor() as cur:
-        cur.execute("SELECT status FROM incidents WHERE incident_id = ?", (incident_id,))
-        row = cur.fetchone()
-        if not row:
-            return False
-        old_status = row[0]
-        now = time.strftime("%Y-%m-%d %H:%M:%S")
-        cur.execute("UPDATE incidents SET status = ?, last_seen = ? WHERE incident_id = ?",
-                    (new_status, now, incident_id))
-        cur.execute(
-            """INSERT INTO incident_actions
-               (incident_id, actor_id, action, comment,
-                previous_status, new_status, created_at)
-               VALUES (?,?,?,?,?,?,?)""",
-            (incident_id, actor_id, "status_change", comment,
-             old_status, new_status, now)
-        )
-        return True
-
-
-# ══════════════════════════════════════════════════════════════
-# LOGIN ATTEMPTS
-# ══════════════════════════════════════════════════════════════
-
-def log_login_attempt(user_id: int, ip_address: str,
-                      success: bool, failure_reason: str = None):
+def update_incident_status(incident_id, new_status, actor_id=None, comment=''):
+    """Update incident status."""
     now = time.strftime("%Y-%m-%d %H:%M:%S")
     with db_cursor() as cur:
-        cur.execute(
-            """INSERT INTO login_attempts
-               (user_id, ip_address, success, failure_reason, attempted_at)
-               VALUES (?,?,?,?,?)""",
-            (user_id, ip_address, int(success), failure_reason, now)
-        )
+        cur.execute("""
+            UPDATE incidents 
+            SET status = ?, last_seen = ?, actor_id = ?, comment = ?
+            WHERE incident_id = ?
+        """, (new_status, now, actor_id, comment, incident_id))
+        return cur.rowcount > 0
 
+# ML detections
+def log_ml_detection(text_snippet, risk_score, prediction, severity='Medium', 
+                    ip_address='', endpoint=''):
+    """Log ML detection."""
+    now = time.strftime("%Y-%m-%d %H:%M:%S")
+    with db_cursor() as cur:
+        cur.execute("""
+            INSERT INTO ml_detections 
+            (text_snippet, risk_score, prediction, severity, ip_address, endpoint, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        """, (text_snippet, risk_score, prediction, severity, ip_address, endpoint, now))
+        return cur.lastrowid
 
-def get_login_attempts(user_id: int = None, limit: int = 50) -> list:
-    sql = "SELECT * FROM login_attempts WHERE 1=1"
+def get_ml_detections(limit=100):
+    """Get ML detections."""
+    with db_cursor() as cur:
+        cur.execute("SELECT * FROM ml_detections ORDER BY created_at DESC LIMIT ?", (limit,))
+        return [dict(row) for row in cur.fetchall()]
+
+# Audit logs
+def log_audit(user_id, action, resource, resource_id='', details='', ip_address=''):
+    """Log audit event."""
+    now = time.strftime("%Y-%m-%d %H:%M:%S")
+    with db_cursor() as cur:
+        cur.execute("""
+            INSERT INTO audit_logs 
+            (user_id, action, resource, resource_id, details, ip_address, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        """, (user_id, action, resource, resource_id, details, ip_address, now))
+        return cur.lastrowid
+
+def get_audit_logs(user_id=None, limit=100):
+    """Get audit logs."""
+    query = "SELECT * FROM audit_logs"
     params = []
+    
     if user_id:
-        sql += " AND user_id = ?"
+        query += " WHERE user_id = ?"
         params.append(user_id)
-    sql += " ORDER BY login_attempt_id DESC LIMIT ?"
+    
+    query += " ORDER BY created_at DESC LIMIT ?"
     params.append(limit)
+    
     with db_cursor() as cur:
-        cur.execute(sql, params)
-        return [dict(r) for r in cur.fetchall()]
+        cur.execute(query, params)
+        return [dict(row) for row in cur.fetchall()]
 
-
-# ══════════════════════════════════════════════════════════════
-# USER SESSIONS
-# ══════════════════════════════════════════════════════════════
-
-def create_session(user_id: int, jwt_hash: str, ip_address: str,
-                   user_agent: str, expires_at: str) -> int:
-    now = time.strftime("%Y-%m-%d %H:%M:%S")
-    with db_cursor() as cur:
-        cur.execute(
-            """INSERT INTO user_sessions
-               (user_id, jwt_token_hash, ip_address, user_agent,
-                is_active, expires_at, created_at)
-               VALUES (?,?,?,?,1,?,?)""",
-            (user_id, jwt_hash, ip_address, user_agent, expires_at, now)
-        )
-        return cur.lastrowid
-
-
-def invalidate_session(jwt_hash: str):
-    with db_cursor() as cur:
-        cur.execute(
-            "UPDATE user_sessions SET is_active = 0 WHERE jwt_token_hash = ?",
-            (jwt_hash,)
-        )
-
-
-# ══════════════════════════════════════════════════════════════
-# NOTIFICATIONS
-# ══════════════════════════════════════════════════════════════
-
-def create_notification(user_id: int, message: str,
-                        notif_type: str = "info",
-                        threat_log_id: int = None):
-    now = time.strftime("%Y-%m-%d %H:%M:%S")
-    with db_cursor() as cur:
-        cur.execute(
-            """INSERT INTO notifications
-               (user_id, threat_log_id, type, message, is_read, created_at)
-               VALUES (?,?,?,?,0,?)""",
-            (user_id, threat_log_id, notif_type, message, now)
-        )
-
-
-def get_notifications(user_id: int, unread_only: bool = False) -> list:
-    sql = "SELECT * FROM notifications WHERE user_id = ?"
-    params = [user_id]
-    if unread_only:
-        sql += " AND is_read = 0"
-    sql += " ORDER BY notification_id DESC"
-    with db_cursor() as cur:
-        cur.execute(sql, params)
-        return [dict(r) for r in cur.fetchall()]
-
-
-def mark_notification_read(notification_id: int):
-    with db_cursor() as cur:
-        cur.execute(
-            "UPDATE notifications SET is_read = 1 WHERE notification_id = ?",
-            (notification_id,)
-        )
-
-
-# ══════════════════════════════════════════════════════════════
-# AUDIT LOGS
-# ══════════════════════════════════════════════════════════════
-
-def log_audit(user_id: int, action: str, resource: str,
-              resource_id: str = None, details: str = None,
-              ip_address: str = None, user_agent: str = None):
-    now = time.strftime("%Y-%m-%d %H:%M:%S")
-    with db_cursor() as cur:
-        cur.execute(
-            """INSERT INTO audit_logs
-               (user_id, action, resource, resource_id,
-                details, ip_address, user_agent, created_at)
-               VALUES (?,?,?,?,?,?,?,?)""",
-            (user_id, action, resource, resource_id,
-             details, ip_address, user_agent, now)
-        )
-
-
-def get_audit_logs(user_id: int = None, limit: int = 100) -> list:
-    sql = "SELECT * FROM audit_logs WHERE 1=1"
-    params = []
-    if user_id:
-        sql += " AND user_id = ?"
-        params.append(user_id)
-    sql += " ORDER BY audit_log_id DESC LIMIT ?"
-    params.append(limit)
-    with db_cursor() as cur:
-        cur.execute(sql, params)
-        return [dict(r) for r in cur.fetchall()]
-
-
-# ══════════════════════════════════════════════════════════════
-# ML
-# ══════════════════════════════════════════════════════════════
-
-def log_ml_detection(text_snippet: str, risk_score: float,
-                     action: str, attack_type: str,
-                     ip: str, endpoint: str):
-    """للتوافق مع persistence.py القديم — يسجّل في threat_logs."""
-    blocked    = action in ("block", "blocked")
-    threat_id  = log_threat(
-        attack_type=attack_type,
-        ip_address=ip,
-        endpoint=endpoint,
-        method="",
-        payload=text_snippet,
-        severity="High" if risk_score >= 0.9 else "Medium",
-        description=f"ML detection — score {risk_score:.2f}",
-        blocked=blocked,
-        ml_detected=True,
-        confidence=risk_score,
-        detection_type="ml",
-    )
-    if blocked:
-        log_blocked_event(ip, attack_type, "High",
-                          ml_detected=True, confidence=risk_score,
-                          threat_log_id=threat_id)
-
-
-def get_ml_detections(limit: int = 100) -> list:
-    with db_cursor() as cur:
-        cur.execute(
-            """SELECT * FROM threat_logs
-               WHERE ml_detected = 1
-               ORDER BY threat_log_id DESC LIMIT ?""",
-            (limit,)
-        )
-        return [dict(r) for r in cur.fetchall()]
-
-
-def log_ml_model_run(model_version: str, algorithm: str,
-                     dataset_size: int, accuracy: float,
-                     precision: float, recall: float,
-                     f1: float, roc_auc: float):
-    now = time.strftime("%Y-%m-%d %H:%M:%S")
-    with db_cursor() as cur:
-        cur.execute(
-            """INSERT INTO ml_model_runs
-               (model_version, algorithm, dataset_size,
-                accuracy, precision_score, recall, f1_score,
-                roc_auc, trained_at)
-               VALUES (?,?,?,?,?,?,?,?,?)""",
-            (model_version, algorithm, dataset_size,
-             accuracy, precision, recall, f1, roc_auc, now)
-        )
-
-
-# ══════════════════════════════════════════════════════════════
-# CHATBOT
-# ══════════════════════════════════════════════════════════════
-
-def create_chatbot_session(user_id: int, page_context: str = "") -> int:
-    now = time.strftime("%Y-%m-%d %H:%M:%S")
-    with db_cursor() as cur:
-        cur.execute(
-            """INSERT INTO chatbot_sessions (user_id, page_context, started_at)
-               VALUES (?,?,?)""",
-            (user_id, page_context, now)
-        )
-        return cur.lastrowid
-
-
-def save_chatbot_message(session_id: int, role: str, content: str,
-                         intent: str = None):
-    now = time.strftime("%Y-%m-%d %H:%M:%S")
-    with db_cursor() as cur:
-        cur.execute(
-            """INSERT INTO chatbot_messages
-               (session_id, role, content, intent_detected, created_at)
-               VALUES (?,?,?,?,?)""",
-            (session_id, role, content, intent, now)
-        )
-
-
-def get_chatbot_history(session_id: int) -> list:
-    with db_cursor() as cur:
-        cur.execute(
-            "SELECT * FROM chatbot_messages WHERE session_id = ? ORDER BY chatbot_message_id",
-            (session_id,)
-        )
-        return [dict(r) for r in cur.fetchall()]
-
-
-# ══════════════════════════════════════════════════════════════
-# DEPARTMENTS
-# ══════════════════════════════════════════════════════════════
-
-def get_all_departments() -> list:
-    with db_cursor() as cur:
-        cur.execute("SELECT * FROM departments ORDER BY department_id")
-        return [dict(r) for r in cur.fetchall()]
-
-
-def create_department(name: str, slug: str, description: str = "") -> int:
-    now = time.strftime("%Y-%m-%d %H:%M:%S")
-    with db_cursor() as cur:
-        cur.execute(
-            "INSERT INTO departments (name, slug, description, created_at) VALUES (?,?,?,?)",
-            (name, slug, description, now)
-        )
-        return cur.lastrowid
-
-
-# ══════════════════════════════════════════════════════════════
-# BLACKLIST MANAGEMENT
-# ══════════════════════════════════════════════════════════════
-
+# Blacklist operations
 def create_blacklist_table():
     """Create blacklist table if it doesn't exist."""
     with db_cursor() as cur:
@@ -743,8 +449,8 @@ def create_blacklist_table():
                     reason TEXT,
                     created_by TEXT,
                     status TEXT DEFAULT 'active',
-                    created_at TEXT,
-                    updated_at TEXT
+                    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TEXT DEFAULT CURRENT_TIMESTAMP
                 )
             """)
         else:
@@ -752,7 +458,7 @@ def create_blacklist_table():
             required_columns = ['created_at', 'updated_at']
             for col in required_columns:
                 if col not in columns:
-                    cur.execute(f"ALTER TABLE blacklist ADD COLUMN {col} TEXT")
+                    cur.execute(f"ALTER TABLE blacklist ADD COLUMN {col} TEXT DEFAULT CURRENT_TIMESTAMP")
             
             # Ensure created_by column exists
             if 'created_by' not in columns:
@@ -817,72 +523,94 @@ def get_blacklist_stats():
         user_agents = cur.fetchone()[0]
         
         return {
-            "total": total,
-            "blocked_ips": ips,
-            "blocked_domains": domains,
-            "blocked_user_agents": user_agents
+            'total': total,
+            'blocked_ips': ips,
+            'blocked_domains': domains,
+            'blocked_user_agents': user_agents
         }
 
-def load_stats() -> dict:
+# Stats operations
+def load_stats():
+    """Load statistics."""
     with db_cursor() as cur:
-        cur.execute("SELECT COUNT(*) as total FROM threat_logs")
-        total = cur.fetchone()[0]
-        cur.execute("SELECT COUNT(*) as blocked FROM threat_logs WHERE blocked = 1")
-        blocked = cur.fetchone()[0]
-        return {"total_requests": total, "blocked_requests": blocked}
+        cur.execute("SELECT * FROM stats WHERE id = 1")
+        row = cur.fetchone()
+        if row:
+            return {'total_requests': row['total_requests'], 'blocked_requests': row['blocked_requests']}
+        return {'total_requests': 0, 'blocked_requests': 0}
 
-
-def save_stats(total: int, blocked: int):
-    pass  # الـ stats بتتحسب live من threat_logs
-
-
-# ══════════════════════════════════════════════════════════════
-# ATTACK HISTORY (للتوافق مع persistence.py القديم)
-# ══════════════════════════════════════════════════════════════
-
-def append_user_attack(user_key: str, attack_type: str, ip: str,
-                       endpoint: str, method: str = "", severity: str = "High"):
-    # احفظ في threat_logs بدل ملف JSON
-    log_threat(
-        attack_type=attack_type,
-        ip_address=ip,
-        endpoint=endpoint,
-        method=method,
-        severity=severity,
-        description=f"user_key={user_key}",
-        detection_type="rule",
-    )
-
-
-def get_user_attacks(user_key: str) -> list:
+def save_stats(total, blocked):
+    """Save statistics."""
+    now = time.strftime("%Y-%m-%d %H:%M:%S")
     with db_cursor() as cur:
-        cur.execute(
-            "SELECT * FROM threat_logs WHERE description LIKE ? ORDER BY threat_log_id DESC LIMIT 500",
-            (f"%user_key={user_key}%",)
-        )
-        return [dict(r) for r in cur.fetchall()]
+        cur.execute("""
+            INSERT OR REPLACE INTO stats (id, total_requests, blocked_requests, updated_at)
+            VALUES (1, ?, ?, ?)
+        """, (total, blocked, now))
 
-
-def load_user_attacks() -> dict:
-    rows = get_threat_logs(limit=1000)
-    result = {}
-    for r in rows:
-        desc = r.get("description", "")
-        if "user_key=" in desc:
-            key = desc.split("user_key=")[-1].strip()
-            result.setdefault(key, []).append(r)
-    return result
-
-
-def clear_user_attacks(user_key: str):
+# User attacks operations
+def append_user_attack(user_key, attack_type, ip, endpoint=''):
+    """Append user attack."""
+    now = time.strftime("%Y-%m-%d %H:%M:%S")
     with db_cursor() as cur:
-        cur.execute(
-            "DELETE FROM threat_logs WHERE description LIKE ?",
-            (f"%user_key={user_key}%",)
-        )
+        cur.execute("""
+            INSERT INTO user_attacks (user_key, attack_type, ip_address, endpoint, timestamp)
+            VALUES (?, ?, ?, ?, ?)
+        """, (user_key, attack_type, ip, endpoint, now))
+        return cur.lastrowid
 
+def get_user_attacks(user_key):
+    """Get user attacks."""
+    with db_cursor() as cur:
+        cur.execute("SELECT * FROM user_attacks WHERE user_key = ? ORDER BY timestamp DESC", (user_key,))
+        return [dict(row) for row in cur.fetchall()]
+
+def load_user_attacks():
+    """Load all user attacks."""
+    with db_cursor() as cur:
+        cur.execute("SELECT * FROM user_attacks ORDER BY timestamp DESC")
+        attacks = {}
+        for row in cur.fetchall():
+            user_key = row['user_key']
+            if user_key not in attacks:
+                attacks[user_key] = []
+            attacks[user_key].append(dict(row))
+        return attacks
+
+def clear_user_attacks(user_key):
+    """Clear attacks for specific user."""
+    with db_cursor() as cur:
+        cur.execute("DELETE FROM user_attacks WHERE user_key = ?", (user_key,))
+        return cur.rowcount
 
 def clear_all_attacks():
+    """Clear all attacks."""
     with db_cursor() as cur:
         cur.execute("DELETE FROM threat_logs")
         cur.execute("DELETE FROM blocked_events")
+        cur.execute("DELETE FROM user_attacks")
+        cur.execute("DELETE FROM ml_detections")
+        return True
+
+# Blocked IPs operations (for compatibility)
+def load_blocked_ips():
+    """Load blocked IPs (compatibility function)."""
+    return {}
+
+def save_blocked_ips(blocked):
+    """Save blocked IPs (compatibility function)."""
+    pass
+
+def block_ip(ip, unblock_at_ts, reason="auto-block", blocked_by="system"):
+    """Block IP (logs as threat)."""
+    log_threat('IP Block', ip, '', 'POST', '', 'High', reason, True, False, 0.0, 'rule')
+
+def unblock_ip(ip):
+    """Unblock IP (compatibility function)."""
+    pass
+
+def get_all_roles():
+    """Get all roles."""
+    with db_cursor() as cur:
+        cur.execute("SELECT * FROM roles ORDER BY role_name")
+        return [dict(row) for row in cur.fetchall()]
