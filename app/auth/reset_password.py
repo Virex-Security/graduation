@@ -3,6 +3,7 @@ import string
 import logging
 from datetime import datetime, timedelta
 from app import database as db
+from models import UserManager
 
 # Ensure get_user_by_email is available in db
 db.get_user_by_email = getattr(db, 'get_user_by_email', None) or __import__('app.database', fromlist=['get_user_by_email']).get_user_by_email
@@ -51,6 +52,9 @@ def reset_password(token, new_password):
     user, err = verify_reset_token(token)
     if err:
         return False, err
+    valid, msg = UserManager.validate_password_policy(new_password)
+    if not valid:
+        return False, msg
     password_hash = generate_password_hash(new_password)
     with db.db_cursor() as cur:
         cur.execute("UPDATE users SET password_hash = ?, reset_token = NULL, reset_token_expiry = NULL WHERE user_id = ?", (password_hash, user["user_id"]))

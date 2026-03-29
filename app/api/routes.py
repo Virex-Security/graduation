@@ -44,6 +44,7 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1)
 
 
 def create_api_app():
+    app = Flask(__name__)
     from app import database as db
 
     @app.route("/api/request-reset-otp", methods=["POST"])
@@ -84,7 +85,7 @@ def create_api_app():
         token, err = reset_pw.set_reset_token(email)
         if err:
             logger.debug(f"[RESET] {err}")
-            return jsonify({"error": err}), 404
+            return jsonify({"message": "If that email is registered, a reset link was sent."}), 200
         # Simulate sending email (print to log)
         reset_link = f"https://yourdomain.com/reset-password?token={token}"
         logger.info(f"[RESET] Sent reset link to {email}: {reset_link}")
@@ -104,8 +105,7 @@ def create_api_app():
             return jsonify({"message": "Password reset successful"})
         else:
             logger.debug(f"[RESET] Password reset failed: {err}")
-            return jsonify({"error": err}), 400
-    app = Flask(__name__)
+            return jsonify({"error": err}), 400 
 
     # ── Config ────────────────────────────────────────────────
     app.config["MAX_CONTENT_LENGTH"] = int(os.getenv("MAX_CONTENT_LENGTH", str(1 * 1024 * 1024)))
@@ -254,11 +254,10 @@ def create_api_app():
     @app.route("/api/users", methods=["GET"])
     @token_required
     @admin_required
-    def get_users_route():
-        q = request.args.get("search", "")
-        results = services.get_users(q if q else None)
-        services.log_request("/api/users", "GET", _get_real_ip(), 200, q)
-        return jsonify({"users": results, "total": len(results)})
+    def get_users_route(current_user):
+      q = request.args.get("search", "")
+      results = services.get_users(q if q else None)
+      return jsonify({"users": results})
 
     @app.route("/api/orders", methods=["GET"])
     @token_required
@@ -270,7 +269,7 @@ def create_api_app():
 
     @app.route("/api/products", methods=["GET"])
     @token_required
-    def get_products_route():
+    def get_products_route(current_user):
         cat = request.args.get("category", "")
         q   = request.args.get("search", "")
         results = services.get_products(cat if cat else None, q if q else None)
@@ -328,14 +327,10 @@ def create_api_app():
     # ── Attack History Endpoints ──────────────────────────────
     @app.route("/api/my-attacks", methods=["GET"])
     @token_required
-    def get_my_attacks():
-        from app.api.persistence import get_user_attacks
-        # Assuming token_required sets request.user or similar
-        user_key = getattr(request, "user", {}).get("username") or request.args.get("user")
-        if not user_key:
-            return jsonify({"error": "User not identified"}), 400
-        attacks = get_user_attacks(user_key)
-        return jsonify({"attacks": attacks})
+    def get_my_attacks(current_user):   # ← accept injected user from decorator
+      user_key = current_user["username"]  # always from verified token
+      attacks = get_user_attacks(user_key)
+      return jsonify({"user": user_key, "attacks": attacks})
 
     @app.route("/api/clear-attacks", methods=["DELETE"])
     @token_required
@@ -355,7 +350,7 @@ def create_api_app():
     @app.route("/api/security/stats", methods=["GET"])
     @token_required
     @admin_required
-    def get_security_stats():
+    def get_security_stats(current_user):
         from app.ml.inference import get_ml_stats
         return jsonify({
             "total_requests":       security.total_requests,
@@ -375,7 +370,7 @@ def create_api_app():
     @app.route("/api/security/ml/feedback", methods=["GET"])
     @token_required
     @admin_required
-    def get_ml_feedback():
+    def get_ml_feedback(current_user):
         from app.api.persistence import get_ml_detections
         data = get_ml_detections(limit=100)
         return jsonify({"feedback": data, "total": len(data)})

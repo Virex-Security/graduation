@@ -192,7 +192,7 @@ def create_dashboard_app():
             all_users = user_manager.get_all_users()
             user = next((u for u in all_users if u.get('email','').lower() == identifier.lower()), None)
         if not user:
-            return jsonify({'error': 'User not found'}), 404
+            return jsonify({"message": "If that email is registered, a reset link was sent."}), 200
         user_id = user.get('user_id') or user.get('id')
         email   = user.get('email')
         if not email:
@@ -880,55 +880,35 @@ def create_dashboard_app():
         log_action(current_user, "Session Revoked", f"Revoked session: {session_id}")
         return jsonify({'status': 'success', 'message': 'Session revoked successfully'})
 
-    @app.route('/api/profile/avatar', methods=['POST'])
+    app.route('/api/profile/avatar', methods=['POST'])
     @token_required
     def upload_avatar(current_user):
-        """Upload user profile picture"""
-        from werkzeug.utils import secure_filename
-        import time
         import imghdr
-
-        # Allowed file extensions for avatar uploads
-        ALLOWED_EXTS = {'.png', '.jpg', '.jpeg', '.gif', '.bmp'}
+        ALLOWED_EXTS  = {'.png', '.jpg', '.jpeg', '.gif', '.bmp'}
         ALLOWED_MAGIC = {'png', 'jpeg', 'gif', 'bmp'}
 
-        if 'avatar' not in request.files:
-            return jsonify({'error': 'No file part'}), 400
-        
-        file = request.files['avatar']
-        if file.filename == '':
-            return jsonify({'error': 'No selected file'}), 400
-            
-        if file:
-            filename = secure_filename(file.filename)
-            def upload_avatar(current_user):
-              file = request.files.get('avatar')
-              if not file or file.filename == '':
-                  return jsonify({'error': 'No file'}), 400
+        file = request.files.get('avatar')
+        if not file or file.filename == '':
+            return jsonify({'error': 'No file'}), 400
 
-              ext = os.path.splitext(secure_filename(file.filename))[1].lower()
-              if ext not in ALLOWED_EXTS:
-                  return jsonify({'error': 'Invalid file type'}), 400
+        filename = secure_filename(file.filename)
+        ext = os.path.splitext(filename)[1].lower()
+        if ext not in ALLOWED_EXTS:
+            return jsonify({'error': 'Invalid file type'}), 400
 
-              header = file.read(512); file.seek(0)
-              img_type = imghdr.what(None, h=header)
-              if img_type not in ALLOWED_MAGIC:
-                  return jsonify({'error': 'Invalid image content'}), 400
+        header = file.read(512); file.seek(0)
+        if imghdr.what(None, h=header) not in ALLOWED_MAGIC:
+            return jsonify({'error': 'Invalid image content'}), 400
 
-              # Store OUTSIDE web root, serve via send_file
-            upload_dir = Path(current_app.root_path) / 'private_uploads' / 'avatars'
-            # Generate a unique filename for the uploaded avatar
-            timestamp = int(time.time())
-            ext = os.path.splitext(filename)[1].lower()
-            new_filename = f"{current_user.get('username', 'user')}_{timestamp}{ext}"
-            # Save the file to the upload directory
-            upload_dir.mkdir(parents=True, exist_ok=True)
-            file.save(str(upload_dir / new_filename))
-            avatar_url = url_for('static', filename=f'uploads/avatars/{new_filename}')
-            user_manager.update_user(current_user.get('username'), avatar_url=avatar_url)
-            log_action(current_user, "Avatar Upload", "User uploaded a new profile picture")
-            
-            return jsonify({'status': 'success', 'avatar_url': avatar_url})
+        upload_dir = Path(current_app.root_path) / 'private_uploads' / 'avatars'
+        upload_dir.mkdir(parents=True, exist_ok=True)
+        new_filename = f"{current_user['username']}_{int(time.time())}{ext}"
+        file.save(str(upload_dir / new_filename))
+        avatar_url = url_for('static', filename=f'uploads/avatars/{new_filename}')
+        user_manager.update_user(current_user.get('username'), avatar_url=avatar_url)
+        log_action(current_user, "Avatar Upload", "User uploaded a new profile picture")
+                
+        return jsonify({'status': 'success', 'avatar_url': avatar_url})
 
     # ============================================================
     # SETTINGS PAGE
