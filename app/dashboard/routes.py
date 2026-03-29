@@ -171,8 +171,9 @@ def create_dashboard_app():
     from email.mime.text import MIMEText
     from app import database as _db
 
-    SMTP_EMAIL    = 'smartwebdef@gmail.com'
-    SMTP_PASSWORD = 'ptga crhz gocf cxsg'
+    SMTP_PASSWORD = os.environ['SMTP_PASSWORD']   # fail loudly if missing
+    SECRET_KEY    = os.environ['SECRET_KEY']
+    SMTP_EMAIL    = os.environ['SMTP_EMAIL']
 
     @app.route('/api/request-reset-otp', methods=['POST'])
     def request_reset_otp():
