@@ -7,7 +7,7 @@
 }
 
 :root {
-  --font-main: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-main: "Inter", system-ui, -apple-system, sans-serif;
 }
 
 html {
@@ -33,15 +33,26 @@ body {
   z-index: 0;
   opacity: 0.03;
   background-image:
-    linear-gradient(color-mix(in srgb, var(--brand-primary) 8%, transparent) 1px, transparent 1px),
-    linear-gradient(90deg, color-mix(in srgb, var(--brand-primary) 8%, transparent) 1px, transparent 1px);
+    linear-gradient(
+      color-mix(in srgb, var(--brand-primary) 8%, transparent) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--brand-primary) 8%, transparent) 1px,
+      transparent 1px
+    );
   background-size: 60px 60px;
   animation: patternMove 30s linear infinite;
 }
 
 @keyframes patternMove {
-  0% { transform: translate(0, 0); }
-  100% { transform: translate(60px, 60px); }
+  0% {
+    transform: translate(0, 0);
+  }
+  100% {
+    transform: translate(60px, 60px);
+  }
 }
 
 /* ==================== NAVBAR ==================== */
@@ -150,8 +161,9 @@ body {
   border: 1px solid var(--border-dim);
   border-radius: 20px;
   padding: 2.5rem;
-  box-shadow: 
-    0 15px 50px color-mix(in srgb, var(--brand-primary) 12%, rgba(0, 0, 0, 0.25)),
+  box-shadow:
+    0 15px 50px
+      color-mix(in srgb, var(--brand-primary) 12%, rgba(0, 0, 0, 0.25)),
     0 0 0 1px color-mix(in srgb, var(--brand-primary) 8%, transparent);
   backdrop-filter: blur(10px);
   transition: all 0.3s ease;
@@ -159,7 +171,7 @@ body {
 
 .form-container:hover {
   border-color: color-mix(in srgb, var(--brand-primary) 30%, transparent);
-  box-shadow: 
+  box-shadow:
     0 20px 60px color-mix(in srgb, var(--brand-primary) 18%, rgba(0, 0, 0, 0.3)),
     0 0 0 1px color-mix(in srgb, var(--brand-primary) 15%, transparent);
 }
@@ -183,7 +195,9 @@ body {
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 3px 6px color-mix(in srgb, var(--brand-primary) 25%, transparent));
+  filter: drop-shadow(
+    0 3px 6px color-mix(in srgb, var(--brand-primary) 25%, transparent)
+  );
 }
 
 .brand-logo h1 {
@@ -260,7 +274,8 @@ body {
   outline: none;
   border-color: var(--brand-primary);
   background: color-mix(in srgb, var(--brand-primary) 3%, var(--bg-main));
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-primary) 12%, transparent);
+  box-shadow: 0 0 0 3px
+    color-mix(in srgb, var(--brand-primary) 12%, transparent);
 }
 
 .input-wrapper input:focus + i,
@@ -312,12 +327,14 @@ body {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  box-shadow: 0 6px 20px color-mix(in srgb, var(--brand-primary) 35%, transparent);
+  box-shadow: 0 6px 20px
+    color-mix(in srgb, var(--brand-primary) 35%, transparent);
   font-family: var(--font-main);
 }
 
 .btn-primary:hover {
-  box-shadow: 0 8px 25px color-mix(in srgb, var(--brand-primary) 50%, transparent);
+  box-shadow: 0 8px 25px
+    color-mix(in srgb, var(--brand-primary) 50%, transparent);
   transform: translateY(-1px);
 }
 
@@ -384,14 +401,16 @@ body {
   margin: 0;
 }
 
-.form-footer a {
+.form-footer a,
+.footer-link {
   color: var(--brand-primary);
   text-decoration: none;
   font-weight: 600;
   transition: all 0.3s ease;
 }
 
-.form-footer a:hover {
+.form-footer a:hover,
+.footer-link:hover {
   color: var(--brand-secondary);
   text-decoration: underline;
 }
@@ -450,7 +469,8 @@ body {
   font-size: 1.5rem;
   color: white;
   flex-shrink: 0;
-  box-shadow: 0 8px 20px color-mix(in srgb, var(--brand-primary) 35%, transparent);
+  box-shadow: 0 8px 20px
+    color-mix(in srgb, var(--brand-primary) 35%, transparent);
 }
 
 .feature-text h3 {
@@ -473,11 +493,11 @@ body {
     gap: 3rem;
     text-align: center;
   }
-  
+
   .info-header h2 {
     font-size: 2rem;
   }
-  
+
   .features-list {
     max-width: 600px;
     margin: 0 auto;
@@ -489,46 +509,46 @@ body {
     padding: 1.5rem;
     padding-top: 5rem;
   }
-  
+
   .auth-wrapper {
     gap: 2rem;
   }
-  
+
   .form-container {
     padding: 2rem;
     max-width: 100%;
   }
-  
+
   .brand-logo h1 {
     font-size: 1.5rem;
   }
-  
+
   .brand-logo i {
     font-size: 2rem;
   }
-  
+
   .info-header h2 {
     font-size: 1.75rem;
   }
-  
+
   .info-header p {
     font-size: 1rem;
   }
-  
+
   .feature-item {
     gap: 1rem;
   }
-  
+
   .feature-icon {
     width: 50px;
     height: 50px;
     font-size: 1.25rem;
   }
-  
+
   .navbar-container {
     padding: 1rem 1.5rem;
   }
-  
+
   .footer {
     padding: 2rem 1.5rem;
   }
@@ -549,28 +569,28 @@ body {
     padding: 1rem;
     padding-top: 4.5rem;
   }
-  
+
   .form-container {
     padding: 1.5rem;
   }
-  
+
   .brand-logo h1 {
     font-size: 1.25rem;
   }
-  
+
   .form-subtitle {
     font-size: 0.85rem;
   }
-  
+
   .btn-primary {
     padding: 0.9rem;
     font-size: 0.95rem;
   }
-  
+
   .info-header h2 {
     font-size: 1.5rem;
   }
-  
+
   .features-list {
     gap: 1.5rem;
   }

@@ -230,7 +230,7 @@ def create_dashboard_app():
         except Exception as e:
             return jsonify({'error': 'Email failed'}), 500
 
-        return jsonify({'message': 'OTP sent to email'}), 200
+        return jsonify({'message': 'OTP sent to email', 'user_id': user_id}), 200
     @app.route('/api/verify-reset-otp', methods=['POST'])
     @limiter.limit("5 per minute")
     def verify_reset_otp():
