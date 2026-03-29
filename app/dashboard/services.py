@@ -19,6 +19,11 @@ from app.dashboard.metrics import (
 load_dotenv()
 
 class SecurityDashboard:
+    @property
+    def threat_log(self):
+        """قائمة كل التهديدات (آخر 1000) من قاعدة البيانات."""
+        return self.db.get_threat_logs(limit=1000)
+
     def __init__(self):
         from app import database as db
         self.db = db

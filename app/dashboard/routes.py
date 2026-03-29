@@ -1,7 +1,9 @@
 """
 Dashboard Routes - Flask application and route handlers for SIEM Dashboard
 """
-from flask import Flask, render_template, jsonify, request, redirect, url_for, g
+from venv import logger
+
+from flask import Flask, current_app, render_template, jsonify, request, redirect, url_for, g
 import json
 import time
 from datetime import datetime, timedelta
@@ -10,7 +12,7 @@ import os
 from pathlib import Path
 from collections import defaultdict
 import jwt
-
+import secrets
 from app.dashboard.services import SecurityDashboard
 from app.dashboard.metrics import calculate_threat_score, is_recent, determine_threat_status, run_timeline_updates
 from app.chatbot import SecurityChatbot
@@ -49,7 +51,7 @@ def create_dashboard_app():
             "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "user_id": current_user.get('id'),
             "username": current_user.get('username'),
-            "role": current_user.get('role', 'user'),
+            "role": current_user.get('role'),
             "action": action,
             "details": details
         }
@@ -143,10 +145,10 @@ def create_dashboard_app():
         if success:
             # Update user with additional information
             user_manager.update_user(username, 
-                                   full_name=full_name,
-                                   email=email,
-                                   department=department,
-                                   phone=phone)
+                                  full_name=full_name,
+                                  email=email,
+                                  department=department,
+                                  phone=phone)
             
             # Log the new user creation
             new_user = user_manager.get_user(username)
@@ -171,9 +173,9 @@ def create_dashboard_app():
     from email.mime.text import MIMEText
     from app import database as _db
 
+    SMTP_EMAIL    = os.getenv('SMTP_EMAIL')
     SMTP_PASSWORD = os.environ['SMTP_PASSWORD']   # fail loudly if missing
     SECRET_KEY    = os.environ['SECRET_KEY']
-    SMTP_EMAIL    = os.environ['SMTP_EMAIL']
 
     @app.route('/api/request-reset-otp', methods=['POST'])
     def request_reset_otp():
@@ -192,23 +194,32 @@ def create_dashboard_app():
         email   = user.get('email')
         if not email:
             return jsonify({'error': 'No email associated with this account'}), 400
-        otp    = str(random.randint(100000, 999999))
+        otp = str(secrets.randbelow(900000) + 100000) 
         expiry = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time() + 300))
         with _db.db_cursor() as cur:
             cur.execute('DELETE FROM password_resets WHERE user_id = ?', (user_id,))
             cur.execute('INSERT INTO password_resets (user_id, otp, otp_expiry, used) VALUES (?,?,?,0)',
                         (user_id, otp, expiry))
         try:
-            msg = MIMEText(f'Your Virex password reset OTP is: {otp} Valid for 5 minutes.')
-            msg['Subject'] = 'Virex - Password Reset OTP'
-            msg['From']    = SMTP_EMAIL
-            msg['To']      = email
-            with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
-                server.login(SMTP_EMAIL, SMTP_PASSWORD)
-                server.send_message(msg)
+            # Simple OTP email sender using smtplib
+            def send_otp_email(to_email, otp):
+                subject = "Your Password Reset OTP"
+                body = f"Your OTP for password reset is: {otp}\nThis code will expire in 5 minutes."
+                msg = MIMEText(body)
+                msg['Subject'] = subject
+                msg['From'] = SMTP_EMAIL
+                msg['To'] = to_email
+
+                with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
+                    server.login(SMTP_EMAIL, SMTP_PASSWORD)
+                    server.sendmail(SMTP_EMAIL, [to_email], msg.as_string())
+
+            send_otp_email(email, otp)
         except Exception as e:
-            return jsonify({'error': f'Failed to send email: {str(e)}'}), 500
-        return jsonify({'user_id': user_id, 'otp': otp, 'expiry': expiry}), 200
+            logger.error(f"OTP email failed: {e}")
+            return jsonify({'error': 'Failed to deliver OTP'}), 500
+
+        return jsonify({'message': 'OTP sent to registered email'}), 200
 
     @app.route('/api/verify-reset-otp', methods=['POST'])
     def verify_reset_otp():
@@ -372,7 +383,7 @@ def create_dashboard_app():
         """Return current user information for permission checks"""
         return jsonify({
             'username': current_user.get('username'),
-            'role': current_user.get('role', 'user'),
+            'role': current_user.get('role'),
             'email': current_user.get('email', '')
         })
     @app.route('/api/ml/stats')
@@ -596,7 +607,7 @@ def create_dashboard_app():
 
         filtered_logs.sort(key=lambda x: x.get('timestamp', ''), reverse=True)
 
-        if current_user.get('role', 'user') != Role.ADMIN:
+        if current_user['role'] != Role.ADMIN:
             masked_logs = []
             for log in filtered_logs:
                 masked_log = log.copy()
@@ -644,7 +655,7 @@ def create_dashboard_app():
         stats = dashboard.get_dashboard_data().get('stats', {})
 
         # احسب عدد CSRF و SSRF من سجل التهديدات مباشرةً
-        all_threats = dashboard.db.get_threat_logs(limit=2000)
+        all_threats = dashboard.threat_log
         stats['csrf_attempts'] = sum(
             1 for t in all_threats
             if str(t.get('type', '')).upper() == 'CSRF'
@@ -742,7 +753,7 @@ def create_dashboard_app():
             'user': {
                 'username': current_user.get('username'),
                 'email': current_user.get('email', ''),
-                'role': current_user.get('role', 'user'),
+                'role': current_user.get('role'),
                 'id': current_user.get('id', ''),
                 'full_name': current_user.get('full_name', current_user.get('username')),
                 'department': current_user.get('department', 'Security Analyst'),
@@ -861,6 +872,12 @@ def create_dashboard_app():
         """Upload user profile picture"""
         from werkzeug.utils import secure_filename
         import time
+        import imghdr
+
+        # Allowed file extensions for avatar uploads
+        ALLOWED_EXTS = {'.png', '.jpg', '.jpeg', '.gif', '.bmp'}
+        ALLOWED_MAGIC = {'png', 'jpeg', 'gif', 'bmp'}
+
         if 'avatar' not in request.files:
             return jsonify({'error': 'No file part'}), 400
         
@@ -870,17 +887,29 @@ def create_dashboard_app():
             
         if file:
             filename = secure_filename(file.filename)
-            ext = os.path.splitext(filename)[1]
-            if not ext:
-                ext = '.png'
-            
-            new_filename = f"avatar_{current_user.get('username')}_{int(time.time())}{ext}"
-            upload_folder = os.path.join(app.static_folder, 'uploads', 'avatars')
-            os.makedirs(upload_folder, exist_ok=True)
-            
-            filepath = os.path.join(upload_folder, new_filename)
-            file.save(filepath)
-            
+            def upload_avatar(current_user):
+              file = request.files.get('avatar')
+              if not file or file.filename == '':
+                  return jsonify({'error': 'No file'}), 400
+
+              ext = os.path.splitext(secure_filename(file.filename))[1].lower()
+              if ext not in ALLOWED_EXTS:
+                  return jsonify({'error': 'Invalid file type'}), 400
+
+              header = file.read(512); file.seek(0)
+              img_type = imghdr.what(None, h=header)
+              if img_type not in ALLOWED_MAGIC:
+                  return jsonify({'error': 'Invalid image content'}), 400
+
+              # Store OUTSIDE web root, serve via send_file
+            upload_dir = Path(current_app.root_path) / 'private_uploads' / 'avatars'
+            # Generate a unique filename for the uploaded avatar
+            timestamp = int(time.time())
+            ext = os.path.splitext(filename)[1].lower()
+            new_filename = f"{current_user.get('username', 'user')}_{timestamp}{ext}"
+            # Save the file to the upload directory
+            upload_dir.mkdir(parents=True, exist_ok=True)
+            file.save(str(upload_dir / new_filename))
             avatar_url = url_for('static', filename=f'uploads/avatars/{new_filename}')
             user_manager.update_user(current_user.get('username'), avatar_url=avatar_url)
             log_action(current_user, "Avatar Upload", "User uploaded a new profile picture")
@@ -1153,7 +1182,7 @@ def create_dashboard_app():
         # Sort by threat score descending
         critical_threats.sort(key=lambda x: x.get('threat_score', 0), reverse=True)
         # Data masking for non-admin users
-        if current_user.get('role', 'user') != Role.ADMIN:
+        if current_user['role'] != Role.ADMIN:
             for threat in critical_threats:
                 threat['ip'] = "XXX.XXX.XXX.XXX"
                 threat['snippet'] = "[HIDDEN]"
@@ -1174,8 +1203,8 @@ def create_dashboard_app():
         history = data.get('history', [])
         if not message:
             return jsonify({'error': 'Message required'}), 400
-        print(f"[NLP] Chat request from {current_user.get('username')} ({current_user.get('role', 'user')}): {message}")
-        response_text = security_bot.generate_response(message, incident_id, page_context, history, role=current_user.get('role', 'user'))
+        print(f"[NLP] Chat request from {current_user['username']} ({current_user['role']}): {message}")
+        response_text = security_bot.generate_response(message, incident_id, page_context, history, role=current_user['role'])
         return jsonify({
             'response': response_text,
             'timestamp': datetime.now().strftime("%H:%M")

@@ -12,6 +12,7 @@ from dotenv import load_dotenv
 from app.api.security import SimpleSecurityManager
 from app.api import services
 from app.auth import user_manager
+from app.auth.decorators import admin_required, token_required
 from app.security import new_request_id, is_trivial, is_business_relevant
 
 try:
@@ -245,6 +246,8 @@ def create_api_app():
 
     # ── Data Routes ───────────────────────────────────────────
     @app.route("/api/users", methods=["GET"])
+    @token_required
+    @admin_required
     def get_users_route():
         q = request.args.get("search", "")
         results = services.get_users(q if q else None)
@@ -274,6 +277,7 @@ def create_api_app():
         return jsonify({"message": "Order created", "order": new_order}), 201
 
     @app.route("/api/logs", methods=["GET"])
+    @token_required
     def get_logs_route():
         logs = services.get_request_logs()
         return jsonify({"logs": logs, "total": len(logs)})
@@ -325,21 +329,18 @@ def create_api_app():
 
     # ── Attack History Endpoints ──────────────────────────────
     @app.route("/api/my-attacks", methods=["GET"])
+    @token_required
     def get_my_attacks():
-        """
-        GET /api/my-attacks?user=<username>
-        لو مفيش user param → يرجع بناءً على الـ IP
-        """
         from app.api.persistence import get_user_attacks
-        user_key = request.args.get("user") or _get_real_ip()
-        attacks  = get_user_attacks(user_key)
-        return jsonify({
-            "user":    user_key,
-            "attacks": attacks,
-            "total":   len(attacks),
-        })
+        # Assuming token_required sets request.user or similar
+        user_key = getattr(request, "user", {}).get("username") or request.args.get("user")
+        if not user_key:
+            return jsonify({"error": "User not identified"}), 400
+        attacks = get_user_attacks(user_key)
+        return jsonify({"attacks": attacks})
 
     @app.route("/api/clear-attacks", methods=["DELETE"])
+    @token_required
     def clear_attacks():
         """DELETE /api/clear-attacks?user=<username>  (أو all=true لمسح الكل)"""
         from app.api.persistence import clear_user_attacks, clear_all_attacks

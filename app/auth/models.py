@@ -32,10 +32,16 @@ class UserManager:
 
     # ── Read ──────────────────────────────────────────────────
     def get_user(self, username: str) -> dict | None:
-        return db.get_user_by_username(username)
+        user = db.get_user_by_username(username)
+        if user:
+            user["role"] = user.get("role_name") or user.get("role", "user")
+        return user
 
     def get_user_by_id(self, user_id) -> dict | None:
-        return db.get_user_by_id(user_id)
+        user = db.get_user_by_id(user_id)
+        if user:
+            user["role"] = user.get("role_name") or user.get("role", "user")
+        return user
 
     def get_all_users(self) -> list[dict]:
         return db.get_all_users()
