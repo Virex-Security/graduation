@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 
 from app.api.security import SimpleSecurityManager
 from app.api import services
-from app.auth import user_manager
+from app.auth import user_manager, token_required, admin_required, Role
 from app.security import new_request_id, is_trivial, is_business_relevant
 
 try:
@@ -36,6 +36,7 @@ def _get_real_ip():
 
 def create_api_app():
     from app import database as db
+    app = Flask(__name__)
 
     @app.route("/api/request-reset-otp", methods=["POST"])
     def request_reset_otp():
@@ -46,9 +47,11 @@ def create_api_app():
         user = db.get_user_by_username_or_email(identifier)
         if not user:
             return jsonify({"error": "User not found"}), 404
-        otp, expiry = db.create_password_reset_otp(user["id"])
-        # Display OTP directly (no email)
-        return jsonify({"otp": otp, "expiry": expiry, "user_id": user["id"]})
+        otp, expiry = db.create_password_reset_otp(user["user_id"])
+        # Simulation: In a real app, send OTP via email/SMS here.
+        # DO NOT return the OTP in the JSON response in production!
+        logger.info(f"[RESET] Created OTP for user {user['user_id']}: {otp}")
+        return jsonify({"message": "OTP sent to your registered device", "user_id": user["user_id"]})
 
     @app.route("/api/verify-reset-otp", methods=["POST"])
     def verify_reset_otp():
@@ -81,8 +84,8 @@ def create_api_app():
         # Simulate sending email (print to log)
         reset_link = f"https://yourdomain.com/reset-password?token={token}"
         logger.info(f"[RESET] Sent reset link to {email}: {reset_link}")
-        print(f"[RESET] Sent reset link to {email}: {reset_link}")
-        return jsonify({"message": "Reset link sent to your email (debug mode)", "reset_link": reset_link})
+        # print(f"[RESET] Sent reset link to {email}: {reset_link}")
+        return jsonify({"message": "Reset link sent to your email"})
 
     @app.route("/api/reset-password", methods=["POST"])
     def reset_password():
@@ -98,7 +101,6 @@ def create_api_app():
         else:
             logger.debug(f"[RESET] Password reset failed: {err}")
             return jsonify({"error": err}), 400
-    app = Flask(__name__)
 
     # ── Config ────────────────────────────────────────────────
     app.config["MAX_CONTENT_LENGTH"] = int(os.getenv("MAX_CONTENT_LENGTH", str(1 * 1024 * 1024)))
@@ -245,21 +247,28 @@ def create_api_app():
 
     # ── Data Routes ───────────────────────────────────────────
     @app.route("/api/users", methods=["GET"])
-    def get_users_route():
+    @admin_required
+    def get_users_route(current_user):
         q = request.args.get("search", "")
         results = services.get_users(q if q else None)
         services.log_request("/api/users", "GET", _get_real_ip(), 200, q)
         return jsonify({"users": results, "total": len(results)})
 
     @app.route("/api/orders", methods=["GET"])
-    def get_orders_route():
+    @token_required
+    def get_orders_route(current_user):
         user_filter = request.args.get("user", "")
+        # Non-admins can only see their own orders
+        if current_user.get("role") != Role.ADMIN:
+            user_filter = current_user.get("username")
+
         results = services.get_orders(user_filter if user_filter else None)
         services.log_request("/api/orders", "GET", _get_real_ip(), 200, user_filter)
         return jsonify({"orders": results, "total": len(results)})
 
     @app.route("/api/products", methods=["GET"])
-    def get_products_route():
+    @token_required
+    def get_products_route(current_user):
         cat = request.args.get("category", "")
         q   = request.args.get("search", "")
         results = services.get_products(cat if cat else None, q if q else None)
@@ -267,14 +276,21 @@ def create_api_app():
         return jsonify({"products": results, "total": len(results)})
 
     @app.route("/api/orders", methods=["POST"])
-    def create_order_route():
+    @token_required
+    def create_order_route(current_user):
         data = request.get_json() or {}
-        new_order = services.create_order(data.get("user"), data.get("product"), data.get("price"))
+        user = data.get("user")
+        # Non-admins can only create orders for themselves
+        if current_user.get("role") != Role.ADMIN:
+            user = current_user.get("username")
+
+        new_order = services.create_order(user, data.get("product"), data.get("price"))
         services.log_request("/api/orders", "POST", _get_real_ip(), 201, new_order["product"])
         return jsonify({"message": "Order created", "order": new_order}), 201
 
     @app.route("/api/logs", methods=["GET"])
-    def get_logs_route():
+    @admin_required
+    def get_logs_route(current_user):
         logs = services.get_request_logs()
         return jsonify({"logs": logs, "total": len(logs)})
 
@@ -325,13 +341,18 @@ def create_api_app():
 
     # ── Attack History Endpoints ──────────────────────────────
     @app.route("/api/my-attacks", methods=["GET"])
-    def get_my_attacks():
+    @token_required
+    def get_my_attacks(current_user):
         """
         GET /api/my-attacks?user=<username>
-        لو مفيش user param → يرجع بناءً على الـ IP
         """
         from app.api.persistence import get_user_attacks
-        user_key = request.args.get("user") or _get_real_ip()
+        user_key = request.args.get("user") or current_user.get("username")
+
+        # IDOR prevention: only admins can see other people's attacks
+        if current_user.get("role") != Role.ADMIN and user_key != current_user.get("username"):
+            return jsonify({"error": "Unauthorized"}), 403
+
         attacks  = get_user_attacks(user_key)
         return jsonify({
             "user":    user_key,
@@ -340,19 +361,30 @@ def create_api_app():
         })
 
     @app.route("/api/clear-attacks", methods=["DELETE"])
-    def clear_attacks():
+    @token_required
+    def clear_attacks(current_user):
         """DELETE /api/clear-attacks?user=<username>  (أو all=true لمسح الكل)"""
         from app.api.persistence import clear_user_attacks, clear_all_attacks
-        if request.args.get("all") == "true":
+
+        is_all = request.args.get("all") == "true"
+        user_key = request.args.get("user") or current_user.get("username")
+
+        # Authorization checks
+        if is_all or (user_key != current_user.get("username")):
+            if current_user.get("role") != Role.ADMIN:
+                return jsonify({"error": "Admin access required"}), 403
+
+        if is_all:
             clear_all_attacks()
             return jsonify({"message": "All attack history cleared"})
-        user_key = request.args.get("user") or _get_real_ip()
+
         clear_user_attacks(user_key)
         return jsonify({"message": f"Attack history cleared for {user_key}"})
 
     # ── Security Stats ────────────────────────────────────────
     @app.route("/api/security/stats", methods=["GET"])
-    def get_security_stats():
+    @admin_required
+    def get_security_stats(current_user):
         from app.ml.inference import get_ml_stats
         return jsonify({
             "total_requests":       security.total_requests,
@@ -370,7 +402,8 @@ def create_api_app():
         })
 
     @app.route("/api/security/ml/feedback", methods=["GET"])
-    def get_ml_feedback():
+    @admin_required
+    def get_ml_feedback(current_user):
         from app.api.persistence import get_ml_detections
         data = get_ml_detections(limit=100)
         return jsonify({"feedback": data, "total": len(data)})

@@ -15,6 +15,23 @@ def _ensure_rules_table():
                 created_at TEXT DEFAULT CURRENT_TIMESTAMP
             )
         """)
+
+def _seed_rules_table():
+    """Seed the 'rules' table with default security rules."""
+    _ensure_rules_table()
+    with db_cursor() as cur:
+        cur.execute("SELECT COUNT(*) FROM rules")
+        if cur.fetchone()[0] == 0:
+            rules = [
+                ('SQL Injection - Basic', 'sql_injection', r"(\%27)|(\')|(\-\-)|(\%23)|(#)", 'High', 'block', 'Basic SQL injection patterns'),
+                ('XSS - Script Tag', 'xss', r"<script.*?>.*?</script>", 'High', 'block', 'Detection of script tags'),
+                ('Path Traversal', 'path_traversal', r"\.\./", 'Medium', 'block', 'Detection of path traversal attempts'),
+                ('Command Injection', 'command_injection', r"(;|\||&|`|\$)", 'High', 'block', 'Detection of shell command injection characters')
+            ]
+            cur.executemany("""
+                INSERT INTO rules (name, type, pattern, severity, action, description)
+                VALUES (?, ?, ?, ?, ?, ?)
+            """, rules)
 """
 Database operations for VIREX Security System
 SQLite-based data persistence layer
@@ -23,7 +40,7 @@ import sqlite3
 import time
 import os
 from contextlib import contextmanager
-from datetime import datetime
+from datetime import datetime, timedelta
 
 # Database path
 DB_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'db', 'virex.db')
@@ -193,17 +210,31 @@ def init_db():
                 timestamp TEXT DEFAULT CURRENT_TIMESTAMP
             )
         """)
+
+        # Password resets table
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS password_resets (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                otp TEXT NOT NULL,
+                otp_expiry TEXT NOT NULL,
+                used INTEGER DEFAULT 0,
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users (user_id)
+            )
+        """)
     
     _seed_roles()
     _seed_users()
+    _seed_rules_table()
 
 def _seed_roles():
     """Seed initial roles."""
     with db_cursor() as cur:
         cur.execute("SELECT COUNT(*) FROM roles")
         if cur.fetchone()[0] == 0:
-            cur.execute("INSERT INTO roles (role_id, name, description) VALUES (1, 'admin', 'Administrator')")
-            cur.execute("INSERT INTO roles (role_id, name, description) VALUES (2, 'user', 'Regular User')")
+            cur.execute("INSERT INTO roles (role_id, role_name, description) VALUES (1, 'admin', 'Administrator')")
+            cur.execute("INSERT INTO roles (role_id, role_name, description) VALUES (2, 'user', 'Regular User')")
 
 def _seed_users():
     """Seed initial admin user."""
@@ -222,7 +253,7 @@ def get_all_users():
     """Get all users with role information."""
     with db_cursor() as cur:
         cur.execute("""
-            SELECT u.*, r.name as role_name 
+            SELECT u.*, r.role_name
             FROM users u 
             LEFT JOIN roles r ON u.role_id = r.role_id
             ORDER BY u.created_at DESC
@@ -233,7 +264,7 @@ def get_user_by_username(username):
     """Get user by username."""
     with db_cursor() as cur:
         cur.execute("""
-            SELECT u.*, r.name as role_name 
+            SELECT u.*, r.role_name
             FROM users u 
             LEFT JOIN roles r ON u.role_id = r.role_id
             WHERE u.username = ?
@@ -245,13 +276,85 @@ def get_user_by_id(user_id):
     """Get user by ID."""
     with db_cursor() as cur:
         cur.execute("""
-            SELECT u.*, r.name as role_name 
+            SELECT u.*, r.role_name
             FROM users u 
             LEFT JOIN roles r ON u.role_id = r.role_id
             WHERE u.user_id = ?
         """, (user_id,))
         row = cur.fetchone()
         return dict(row) if row else None
+
+def get_user_by_email(email):
+    """Get user by email."""
+    with db_cursor() as cur:
+        cur.execute("""
+            SELECT u.*, r.role_name
+            FROM users u
+            LEFT JOIN roles r ON u.role_id = r.role_id
+            WHERE u.email = ?
+        """, (email,))
+        row = cur.fetchone()
+        return dict(row) if row else None
+
+def get_user_by_username_or_email(identifier):
+    """Get user by username or email."""
+    with db_cursor() as cur:
+        cur.execute("""
+            SELECT u.*, r.role_name
+            FROM users u
+            LEFT JOIN roles r ON u.role_id = r.role_id
+            WHERE u.username = ? OR u.email = ?
+        """, (identifier, identifier))
+        row = cur.fetchone()
+        return dict(row) if row else None
+
+def create_password_reset_otp(user_id):
+    """Create password reset OTP."""
+    import secrets
+    otp = str(secrets.randbelow(1000000)).zfill(6)
+    expiry = (datetime.now() + timedelta(minutes=15)).strftime("%Y-%m-%d %H:%M:%S")
+    with db_cursor() as cur:
+        cur.execute("""
+            INSERT INTO password_resets (user_id, otp, otp_expiry, used)
+            VALUES (?, ?, ?, 0)
+        """, (user_id, otp, expiry))
+    return otp, expiry
+
+def verify_password_reset_otp(user_id, otp):
+    """Verify password reset OTP."""
+    with db_cursor() as cur:
+        cur.execute("""
+            SELECT * FROM password_resets
+            WHERE user_id = ? AND otp = ? AND used = 0
+            ORDER BY created_at DESC LIMIT 1
+        """, (user_id, otp))
+        row = cur.fetchone()
+        if not row:
+            return False, "Invalid OTP"
+
+        expiry = datetime.strptime(row["otp_expiry"], "%Y-%m-%d %H:%M:%S")
+        if datetime.now() > expiry:
+            return False, "OTP expired"
+
+        return True, dict(row)
+
+def update_user_password(user_id, new_password):
+    """Update user password."""
+    from werkzeug.security import generate_password_hash
+    password_hash = generate_password_hash(new_password)
+    with db_cursor() as cur:
+        cur.execute("""
+            UPDATE users SET password_hash = ? WHERE user_id = ?
+        """, (password_hash, user_id))
+        return cur.rowcount > 0
+
+def mark_otp_used(reset_id):
+    """Mark OTP as used."""
+    with db_cursor() as cur:
+        cur.execute("""
+            UPDATE password_resets SET used = 1 WHERE id = ?
+        """, (reset_id,))
+        return cur.rowcount > 0
 
 def insert_user(username, password_hash, email=None, role='user'):
     """Insert new user."""
@@ -269,9 +372,20 @@ def update_user(username, **kwargs):
     if not kwargs:
         return False
     
-    kwargs['updated_at'] = datetime.now().isoformat()
-    fields = ', '.join(f"{k} = ?" for k in kwargs.keys())
-    values = list(kwargs.values()) + [username]
+    # Whitelist allowed fields to prevent SQL injection in keys
+    allowed_fields = {
+        'password_hash', 'email', 'role_id', 'department_id', 'is_active',
+        'last_login', 'full_name', 'phone', 'subscription', 'department',
+        'reset_token', 'reset_token_expiry', 'avatar_url', 'status'
+    }
+
+    update_kwargs = {k: v for k, v in kwargs.items() if k in allowed_fields}
+    if not update_kwargs:
+        return False
+
+    update_kwargs['updated_at'] = datetime.now().isoformat()
+    fields = ', '.join(f"{k} = ?" for k in update_kwargs.keys())
+    values = list(update_kwargs.values()) + [username]
     
     with db_cursor() as cur:
         cur.execute(f"UPDATE users SET {fields} WHERE username = ?", values)
@@ -485,6 +599,7 @@ def add_blacklist_entry(entry_type, value, reason="", created_by="", status="act
 
 def update_blacklist_entry(entry_id, created_by="", **kwargs):
     """Update blacklist entry."""
+    # Whitelist allowed fields to prevent SQL injection in keys
     allowed = {"type", "value", "reason", "status"}
     fields = {k: v for k, v in kwargs.items() if k in allowed}
     if not fields:

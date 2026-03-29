@@ -8,9 +8,10 @@ def login_user(username, password):
     user = user_manager.verify_password(username, password)
     if user:
         token = jwt.encode({
-            'user': username,
-            'role': user.get('role', 'viewer'),
-            'exp': datetime.utcnow() + timedelta(hours=24)
+            'username': username,
+            'user_id': user.get('user_id'),
+            'role': user.get('role_name', 'user'),
+            'exp': datetime.utcnow() + timedelta(hours=1)
         }, current_app.config['SECRET_KEY'], algorithm="HS256")
         
         resp = make_response(jsonify({

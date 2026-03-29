@@ -26,12 +26,18 @@ def insert_user(username, password_hash, role=Role.USER):
     conn.close()
 
 def update_user(username, **kwargs):
-    # kwargs: password, email, department, etc.
+    # Whitelist allowed fields to prevent SQL injection in keys
+    allowed_fields = {'password', 'email', 'department', 'full_name', 'phone', 'role'}
+
+    update_kwargs = {k: v for k, v in kwargs.items() if k in allowed_fields}
+    if not update_kwargs:
+        return
+
     conn = sqlite3.connect('db/virex.db')
     cur = conn.cursor()
     fields = []
     values = []
-    for k, v in kwargs.items():
+    for k, v in update_kwargs.items():
         fields.append(f'{k} = ?')
         values.append(v)
     values.append(username)

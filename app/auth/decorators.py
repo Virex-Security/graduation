@@ -16,14 +16,15 @@ def token_required(f):
 
         try:
             data = jwt.decode(token, current_app.config['SECRET_KEY'], algorithms=["HS256"])
-            user = user_manager.get_user(data['user'])
+            user = user_manager.get_user(data['username'])
             if not user:
                 if request.path.startswith('/api/'):
                     return jsonify({'message': 'User not found!'}), 401
                 return redirect(url_for('login_page'))
             current_user = user.copy()
-            # Ensure 'role' is always set for downstream checks
-            current_user["role"] = user.get("role_name") or user.get("role") or "user"
+            # Ensure 'role' and 'username' are always set for downstream checks
+            current_user["role"] = user.get("role_name") or "user"
+            current_user["username"] = user.get("username")
 
         except jwt.ExpiredSignatureError:
             # ✅ FIX: فحص صريح للـ token المنتهي

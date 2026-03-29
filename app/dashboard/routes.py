@@ -343,7 +343,8 @@ def create_dashboard_app():
         # as-is. snippet/payload may still be hidden by the frontend if desired.
         return jsonify(data)
     @app.route('/api/dashboard/threat', methods=['POST'])
-    def log_threat_api():
+    @token_required
+    def log_threat_api(current_user):
         global dashboard
         data = request.get_json()
         dashboard.log_threat(
@@ -359,7 +360,8 @@ def create_dashboard_app():
         )
         return jsonify({'status': 'logged'})
     @app.route('/api/dashboard/stats', methods=['POST'])
-    def update_stats():
+    @admin_required
+    def update_stats(current_user):
         global dashboard
         data = request.get_json()
         if 'total_requests' in data:
