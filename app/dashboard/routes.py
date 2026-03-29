@@ -1,6 +1,8 @@
 """
 Dashboard Routes - Flask application and route handlers for SIEM Dashboard
 """
+from functools import wraps
+import os
 from venv import logger
 
 from flask import Flask, current_app, render_template, jsonify, request, redirect, url_for, g
@@ -8,11 +10,12 @@ import json
 import time
 from datetime import datetime, timedelta
 import threading
-import os
 from pathlib import Path
 from collections import defaultdict
+from functools import wraps
 import jwt
 import secrets
+from app.dashboard.services import SecurityDashboard
 from app.dashboard.services import SecurityDashboard
 from app.dashboard.metrics import calculate_threat_score, is_recent, determine_threat_status, run_timeline_updates
 from app.chatbot import SecurityChatbot
@@ -331,7 +334,18 @@ def create_dashboard_app():
         # now is to display the source IP in full, so we simply return the data
         # as-is. snippet/payload may still be hidden by the frontend if desired.
         return jsonify(data)
+    INTERNAL_SECRET = os.environ['INTERNAL_API_SECRET']
+
+    def require_internal_secret(f):
+        @wraps(f)
+        def decorated(*args, **kwargs):
+            token = request.headers.get('X-Internal-Token', '')
+            if not secrets.compare_digest(token, INTERNAL_SECRET):
+                return jsonify({'error': 'Forbidden'}), 403
+            return f(*args, **kwargs)
+        return decorated
     @app.route('/api/dashboard/threat', methods=['POST'])
+    @require_internal_secret
     def log_threat_api():
         global dashboard
         data = request.get_json()
