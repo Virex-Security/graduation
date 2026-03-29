@@ -49,7 +49,7 @@ def create_dashboard_app():
             "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "user_id": current_user.get('id'),
             "username": current_user.get('username'),
-            "role": current_user.get('role'),
+            "role": current_user.get('role', 'user'),
             "action": action,
             "details": details
         }
@@ -172,7 +172,7 @@ def create_dashboard_app():
     from app import database as _db
 
     SMTP_EMAIL    = 'smartwebdef@gmail.com'
-    SMTP_PASSWORD = 'ynem bgvt jxpl jnto'
+    SMTP_PASSWORD = 'ptga crhz gocf cxsg'
 
     @app.route('/api/request-reset-otp', methods=['POST'])
     def request_reset_otp():
@@ -371,7 +371,7 @@ def create_dashboard_app():
         """Return current user information for permission checks"""
         return jsonify({
             'username': current_user.get('username'),
-            'role': current_user.get('role'),
+            'role': current_user.get('role', 'user'),
             'email': current_user.get('email', '')
         })
     @app.route('/api/ml/stats')
@@ -595,7 +595,7 @@ def create_dashboard_app():
 
         filtered_logs.sort(key=lambda x: x.get('timestamp', ''), reverse=True)
 
-        if current_user['role'] != Role.ADMIN:
+        if current_user.get('role', 'user') != Role.ADMIN:
             masked_logs = []
             for log in filtered_logs:
                 masked_log = log.copy()
@@ -643,7 +643,7 @@ def create_dashboard_app():
         stats = dashboard.get_dashboard_data().get('stats', {})
 
         # احسب عدد CSRF و SSRF من سجل التهديدات مباشرةً
-        all_threats = dashboard.threat_log
+        all_threats = dashboard.db.get_threat_logs(limit=2000)
         stats['csrf_attempts'] = sum(
             1 for t in all_threats
             if str(t.get('type', '')).upper() == 'CSRF'
@@ -741,7 +741,7 @@ def create_dashboard_app():
             'user': {
                 'username': current_user.get('username'),
                 'email': current_user.get('email', ''),
-                'role': current_user.get('role'),
+                'role': current_user.get('role', 'user'),
                 'id': current_user.get('id', ''),
                 'full_name': current_user.get('full_name', current_user.get('username')),
                 'department': current_user.get('department', 'Security Analyst'),
@@ -1152,7 +1152,7 @@ def create_dashboard_app():
         # Sort by threat score descending
         critical_threats.sort(key=lambda x: x.get('threat_score', 0), reverse=True)
         # Data masking for non-admin users
-        if current_user['role'] != Role.ADMIN:
+        if current_user.get('role', 'user') != Role.ADMIN:
             for threat in critical_threats:
                 threat['ip'] = "XXX.XXX.XXX.XXX"
                 threat['snippet'] = "[HIDDEN]"
@@ -1173,8 +1173,8 @@ def create_dashboard_app():
         history = data.get('history', [])
         if not message:
             return jsonify({'error': 'Message required'}), 400
-        print(f"[NLP] Chat request from {current_user['username']} ({current_user['role']}): {message}")
-        response_text = security_bot.generate_response(message, incident_id, page_context, history, role=current_user['role'])
+        print(f"[NLP] Chat request from {current_user.get('username')} ({current_user.get('role', 'user')}): {message}")
+        response_text = security_bot.generate_response(message, incident_id, page_context, history, role=current_user.get('role', 'user'))
         return jsonify({
             'response': response_text,
             'timestamp': datetime.now().strftime("%H:%M")

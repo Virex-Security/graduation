@@ -22,6 +22,8 @@ def token_required(f):
                     return jsonify({'message': 'User not found!'}), 401
                 return redirect(url_for('login_page'))
             current_user = user.copy()
+            # Always set 'role' for downstream checks
+            current_user["role"] = user.get("role_name") or user.get("role") or "user"
 
         except jwt.ExpiredSignatureError:
             # ✅ FIX: فحص صريح للـ token المنتهي
