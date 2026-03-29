@@ -1,14 +1,16 @@
 """
 API Routes - Flask application and route handlers
 """
+from datetime import datetime, timedelta
 import time
 import os
 import logging
 from collections import defaultdict
-from flask import Flask, request, jsonify
+from flask import Flask, app, current_app, make_response, request, jsonify
 from flask_cors import CORS
 from dotenv import load_dotenv
-
+import jwt
+import secrets
 from app.api.security import SimpleSecurityManager
 from app.api import services
 from app.auth import user_manager
@@ -27,12 +29,18 @@ load_dotenv()
 logger = logging.getLogger(__name__)
 
 
+TRUSTED_PROXIES = {"127.0.0.1", "10.0.0.1"}   # add your proxy IPs
+
 def _get_real_ip():
-    """Real client IP — handles X-Forwarded-For from Reverse Proxy."""
-    xff = request.headers.get("X-Forwarded-For", "")
-    if xff:
-        return xff.split(",")[0].strip()
+    if request.remote_addr in TRUSTED_PROXIES:
+        xff = request.headers.get("X-Forwarded-For", "")
+        if xff:
+            return xff.split(",")[0].strip()
     return request.remote_addr
+
+# Or use Werkzeug's ProxyFix middleware:
+from werkzeug.middleware.proxy_fix import ProxyFix
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1)
 
 
 def create_api_app():
@@ -41,15 +49,13 @@ def create_api_app():
     @app.route("/api/request-reset-otp", methods=["POST"])
     def request_reset_otp():
         data = request.get_json() or {}
-        identifier = data.get("identifier")
-        if not identifier:
-            return jsonify({"error": "Username or email is required"}), 400
-        user = db.get_user_by_username_or_email(identifier)
+        user = db.get_user_by_username_or_email(data.get("identifier"))
         if not user:
-            return jsonify({"error": "User not found"}), 404
-        otp, expiry = db.create_password_reset_otp(user["id"])
-        # Display OTP directly (no email)
-        return jsonify({"otp": otp, "expiry": expiry, "user_id": user["id"]})
+            # Always return 200 to prevent user enumeration
+            return jsonify({"message": "If account exists, OTP was sent"}), 200
+        otp, _ = db.create_password_reset_otp(user["id"])
+        send_otp_email(user["email"], otp)   # send via email only
+        return jsonify({"message": "If account exists, OTP was sent"}), 200
 
     @app.route("/api/verify-reset-otp", methods=["POST"])
     def verify_reset_otp():
@@ -255,13 +261,15 @@ def create_api_app():
         return jsonify({"users": results, "total": len(results)})
 
     @app.route("/api/orders", methods=["GET"])
-    def get_orders_route():
+    @token_required
+    def get_orders_route(current_user):
         user_filter = request.args.get("user", "")
-        results = services.get_orders(user_filter if user_filter else None)
+        results = services.get_orders(current_user["username"])
         services.log_request("/api/orders", "GET", _get_real_ip(), 200, user_filter)
         return jsonify({"orders": results, "total": len(results)})
 
     @app.route("/api/products", methods=["GET"])
+    @token_required
     def get_products_route():
         cat = request.args.get("category", "")
         q   = request.args.get("search", "")
@@ -303,30 +311,20 @@ def create_api_app():
 
         verified_user = user_manager.verify_password(username, password) if username and password else None
         if verified_user:
-            brute_force_tracker[ip] = []
-            return jsonify({"message": "Login successful", "role": verified_user["role"]})
-        else:
-            attempts = [t for t in brute_force_tracker[ip] if now - t < BRUTE_FORCE_WINDOW]
-            attempts.append(now)
-            brute_force_tracker[ip] = attempts
-            security.brute_force_count += 1
-
-            if len(attempts) >= BRUTE_FORCE_LIMIT:
-                blocked_ips[ip] = now + BRUTE_FORCE_BLOCK_TIME
-                save_blocked_ips(blocked_ips)   # ← persist!
-                security.log_to_dashboard(
-                    "Brute Force", ip,
-                    f"Multiple failed logins ({len(attempts)}): {username}",
-                    "Critical", endpoint=request.path, method=request.method,
-                    snippet=f"user:{username} attempts:{len(attempts)}",
-                    detection_type="Brute Force", blocked=True,
-                    request_id=getattr(request, "request_id", ""),
-                )
-                return jsonify({"error": f"Too many attempts. Blocked {BRUTE_FORCE_BLOCK_TIME}s"}), 429
-
-            return jsonify({"error": "Invalid credentials",
-                            "attempts_remaining": BRUTE_FORCE_LIMIT - len(attempts)}), 401
-
+          brute_force_tracker[ip] = []
+          # Mint and return JWT — same as dashboard's login_user()
+          token = jwt.encode({
+              "user": username,
+              "role": verified_user["role"],
+              "exp": datetime.utcnow() + timedelta(hours=8),
+              "iat": datetime.utcnow(),
+              "jti": secrets.token_hex(16),   # for revocation
+          }, current_app.config["SECRET_KEY"], algorithm="HS256")
+          resp = make_response(jsonify({"message": "Login successful"}))
+          resp.set_cookie("auth_token", token, httponly=True,
+                          secure=True, samesite="Strict",
+                          max_age=8*3600)
+          return resp, 200
     # ── Attack History Endpoints ──────────────────────────────
     @app.route("/api/my-attacks", methods=["GET"])
     @token_required
@@ -341,18 +339,22 @@ def create_api_app():
 
     @app.route("/api/clear-attacks", methods=["DELETE"])
     @token_required
-    def clear_attacks():
-        """DELETE /api/clear-attacks?user=<username>  (أو all=true لمسح الكل)"""
-        from app.api.persistence import clear_user_attacks, clear_all_attacks
+    @admin_required
+    def clear_attacks(current_user):
+        from app.api.persistence import clear_all_attacks, clear_user_attacks
         if request.args.get("all") == "true":
+            if current_user["role"] != "admin":
+                return jsonify({"error": "Admin only"}), 403
             clear_all_attacks()
-            return jsonify({"message": "All attack history cleared"})
-        user_key = request.args.get("user") or _get_real_ip()
-        clear_user_attacks(user_key)
-        return jsonify({"message": f"Attack history cleared for {user_key}"})
+            return jsonify({"message": "All cleared"})
+        # Always use the identity from the verified token
+        clear_user_attacks(current_user["username"])
+        return jsonify({"message": "Cleared"})
 
     # ── Security Stats ────────────────────────────────────────
     @app.route("/api/security/stats", methods=["GET"])
+    @token_required
+    @admin_required
     def get_security_stats():
         from app.ml.inference import get_ml_stats
         return jsonify({
@@ -371,6 +373,8 @@ def create_api_app():
         })
 
     @app.route("/api/security/ml/feedback", methods=["GET"])
+    @token_required
+    @admin_required
     def get_ml_feedback():
         from app.api.persistence import get_ml_detections
         data = get_ml_detections(limit=100)

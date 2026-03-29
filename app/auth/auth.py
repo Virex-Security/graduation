@@ -18,8 +18,14 @@ def login_user(username, password):
             'role': user['role'],
             'username': username
         }))
-        resp.set_cookie('auth_token', token, httponly=True)
-        return resp, 200
+    resp.set_cookie(
+    'auth_token', token,
+    httponly=True,
+    secure=True,          # HTTPS only
+    samesite='Strict',    # blocks CSRF
+    max_age=8 * 3600,     # explicit expiry
+    path='/',
+)
     
     return jsonify({'message': 'Invalid credentials'}), 401
 
