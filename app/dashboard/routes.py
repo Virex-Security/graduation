@@ -362,6 +362,7 @@ def create_dashboard_app():
         )
         return jsonify({'status': 'logged'})
     @app.route('/api/dashboard/stats', methods=['POST'])
+    @require_internal_secret 
     def update_stats():
         global dashboard
         data = request.get_json()
@@ -880,7 +881,7 @@ def create_dashboard_app():
         log_action(current_user, "Session Revoked", f"Revoked session: {session_id}")
         return jsonify({'status': 'success', 'message': 'Session revoked successfully'})
 
-    app.route('/api/profile/avatar', methods=['POST'])
+    @app.route('/api/profile/avatar', methods=['POST'])
     @token_required
     def upload_avatar(current_user):
         import imghdr

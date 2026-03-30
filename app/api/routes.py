@@ -6,7 +6,7 @@ import time
 import os
 import logging
 from collections import defaultdict
-from flask import Flask, app, current_app, make_response, request, jsonify
+from flask import Flask, current_app, make_response, request, jsonify
 from flask_cors import CORS
 from dotenv import load_dotenv
 import jwt
@@ -39,12 +39,12 @@ def _get_real_ip():
     return request.remote_addr
 
 # Or use Werkzeug's ProxyFix middleware:
-from werkzeug.middleware.proxy_fix import ProxyFix
-app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1)
 
 
 def create_api_app():
+    from werkzeug.middleware.proxy_fix import ProxyFix
     app = Flask(__name__)
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1)
     from app import database as db
 
     @app.route("/api/request-reset-otp", methods=["POST"])
@@ -277,11 +277,15 @@ def create_api_app():
         return jsonify({"products": results, "total": len(results)})
 
     @app.route("/api/orders", methods=["POST"])
-    def create_order_route():
+    @token_required
+    def create_order_route(current_user):
         data = request.get_json() or {}
-        new_order = services.create_order(data.get("user"), data.get("product"), data.get("price"))
-        services.log_request("/api/orders", "POST", _get_real_ip(), 201, new_order["product"])
-        return jsonify({"message": "Order created", "order": new_order}), 201
+        new_order = services.create_order(
+        current_user["username"],
+        data.get("product"),
+        data.get("price")
+    )
+        return jsonify({"order": new_order}), 201
 
     @app.route("/api/logs", methods=["GET"])
     @token_required
@@ -321,9 +325,22 @@ def create_api_app():
           }, current_app.config["SECRET_KEY"], algorithm="HS256")
           resp = make_response(jsonify({"message": "Login successful"}))
           resp.set_cookie("auth_token", token, httponly=True,
-                          secure=True, samesite="Strict",
-                          max_age=8*3600)
+                        secure=True, samesite="Strict", max_age=8*3600)
           return resp, 200
+        else:
+              # Brute force tracking
+              attempts = [t for t in brute_force_tracker[ip]
+              if now - t < BRUTE_FORCE_WINDOW]
+              attempts.append(now)
+              brute_force_tracker[ip] = attempts
+              security.brute_force_count += 1
+
+              if len(attempts) >= BRUTE_FORCE_LIMIT:
+                  blocked_ips[ip] = now + BRUTE_FORCE_BLOCK_TIME
+                  save_blocked_ips(blocked_ips)
+                  return jsonify({"error": "Too many attempts. Try later."}), 429
+
+              return jsonify({"error": "Invalid credentials"}), 401
     # ── Attack History Endpoints ──────────────────────────────
     @app.route("/api/my-attacks", methods=["GET"])
     @token_required

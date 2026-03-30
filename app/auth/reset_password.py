@@ -3,7 +3,7 @@ import string
 import logging
 from datetime import datetime, timedelta
 from app import database as db
-from models import UserManager
+from app.auth.models import UserManager
 
 # Ensure get_user_by_email is available in db
 db.get_user_by_email = getattr(db, 'get_user_by_email', None) or __import__('app.database', fromlist=['get_user_by_email']).get_user_by_email
@@ -17,7 +17,7 @@ RESET_TOKEN_EXPIRY_MINUTES = 15
 
 def generate_reset_token(length=RESET_TOKEN_LENGTH):
     token = secrets.token_urlsafe(length)
-    logger.debug(f"[RESET] Generated token: {token}")
+    logger.debug("[RESET] Token generated for user")
     return token
 
 
