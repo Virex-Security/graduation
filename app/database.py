@@ -139,6 +139,17 @@ def get_user_by_id(user_id) -> dict | None:
         """, (user_id,))
         row = cur.fetchone()
         return dict(row) if row else None
+def get_user_by_email(email: str) -> dict | None:
+    with db_cursor() as cur:
+        cur.execute("""
+            SELECT u.*, r.name as role_name
+            FROM users u
+            LEFT JOIN roles r ON u.role_id = r.role_id
+            WHERE u.email = ?
+        """, (email,))
+        row = cur.fetchone()
+        return dict(row) if row else None
+
 
 
 def insert_user(username, password_hash, email=None,

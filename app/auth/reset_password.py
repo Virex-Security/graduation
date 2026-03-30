@@ -4,9 +4,6 @@ import logging
 from datetime import datetime, timedelta
 from app import database as db
 from app.auth.models import UserManager
-
-# Ensure get_user_by_email is available in db
-db.get_user_by_email = getattr(db, 'get_user_by_email', None) or __import__('app.database', fromlist=['get_user_by_email']).get_user_by_email
 from werkzeug.security import generate_password_hash
 
 logger = logging.getLogger(__name__)
@@ -60,10 +57,3 @@ def reset_password(token, new_password):
         cur.execute("UPDATE users SET password_hash = ?, reset_token = NULL, reset_token_expiry = NULL WHERE user_id = ?", (password_hash, user["user_id"]))
     logger.info(f"[RESET] Password reset for user {user['email']}")
     return True, None
-
-
-def get_user_by_email(email):
-    with db.db_cursor() as cur:
-        cur.execute("SELECT * FROM users WHERE email = ?", (email,))
-        row = cur.fetchone()
-        return dict(row) if row else None

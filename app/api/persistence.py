@@ -78,3 +78,8 @@ def log_ml_detection(text_snippet: str, risk_score: float,
 
 def get_ml_detections(limit: int = 100) -> list:
     return db.get_ml_detections(limit)
+
+
+# ── Rules ─────────────────────────────────────────────────────
+def get_rules(active_only: bool = True) -> list:
+    return db.get_rules(active_only)
