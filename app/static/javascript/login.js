@@ -1,6 +1,73 @@
 /* ==================== LOGIN PAGE JAVASCRIPT ==================== */
 
 /**
+ * Returns true only when debug logging is explicitly enabled by the server.
+ * Keep this false in production by not defining window.__APP_DEBUG__.
+ */
+function isClientDebugEnabled() {
+  return (
+    typeof window !== "undefined" &&
+    window.__APP_DEBUG__ === true
+  );
+}
+
+/**
+ * Redact potentially sensitive fields before logging.
+ * Never allow OTP/password/token/user identifiers to be printed raw.
+ * @param {unknown} value
+ * @returns {unknown}
+ */
+function sanitizeDebugValue(value) {
+  if (value == null) return value;
+
+  if (typeof value === "string") {
+    return value.length <= 4 ? "***" : `${value.slice(0, 2)}***${value.slice(-2)}`;
+  }
+
+  if (typeof value === "number" || typeof value === "boolean") {
+    return value;
+  }
+
+  if (Array.isArray(value)) {
+    return value.map((item) => sanitizeDebugValue(item));
+  }
+
+  if (typeof value === "object") {
+    const masked = {};
+    for (const [key, rawVal] of Object.entries(value)) {
+      const normalized = key.toLowerCase();
+      if (
+        /otp|password|token|secret|user.?id|identifier|email|username/.test(
+          normalized,
+        )
+      ) {
+        masked[key] = "[REDACTED]";
+      } else {
+        masked[key] = sanitizeDebugValue(rawVal);
+      }
+    }
+    return masked;
+  }
+
+  return "[REDACTED]";
+}
+
+/**
+ * Safe debug logger that is disabled by default and redacts sensitive fields.
+ * @param {string} eventName
+ * @param {Record<string, unknown>} [metadata]
+ */
+function safeDebugLog(eventName, metadata = {}) {
+  if (!isClientDebugEnabled()) return;
+  const cleanMetadata = sanitizeDebugValue(metadata);
+  if (Object.keys(cleanMetadata).length) {
+    console.debug(`[LoginDebug] ${eventName}`, cleanMetadata);
+  } else {
+    console.debug(`[LoginDebug] ${eventName}`);
+  }
+}
+
+/**
  * Toggle password visibility
  * @param {string} inputId - The ID of the password input
  */
@@ -83,8 +150,10 @@ async function handleLogin(event) {
  * Initialize login form on DOMContentLoaded
  */
 document.addEventListener("DOMContentLoaded", () => {
-  // Make forgot password functions available globally for all pages
+  // Scoped variable to store user_id for password reset
   let otpResetUserId = null;
+
+  // Make forgot password functions available globally for all pages
   window.submitForgotPassword = async function () {
     const identifier = document
       .getElementById("forgot-identifier")
@@ -106,8 +175,12 @@ document.addEventListener("DOMContentLoaded", () => {
       const data = await res.json();
       if (res.ok) {
         otpResetUserId = data.user_id;
+        safeDebugLog("reset_otp_requested_successfully", {
+          hasResetUserId: Boolean(otpResetUserId),
+          hasExpiry: Boolean(data.expiry),
+        });
         if (typeof window.showOtpResetModal === "function") {
-          window.showOtpResetModal(data.otp, data.expiry);
+          window.showOtpResetModal(data.expiry);
         } else if (document.getElementById("otp-reset-form")) {
           // Fallback for forgot_password.html
           document.getElementById("forgot-password-form").style.display =
@@ -115,7 +188,19 @@ document.addEventListener("DOMContentLoaded", () => {
           document.getElementById("otp-reset-form").style.display = "block";
           const msgBox2 = document.getElementById("otp-reset-message");
           msgBox2.className = "success";
-          msgBox2.innerHTML = `<i class='fas fa-check-circle'></i> An OTP has been sent to your email address.<br><span style='font-size:0.9em'>(expires at ${expiry})</span>`;
+          msgBox2.replaceChildren();
+          {
+            const icon = document.createElement("i");
+            icon.className = "fas fa-check-circle";
+            msgBox2.appendChild(icon);
+            msgBox2.append(" An OTP has been sent to your email address.");
+            msgBox2.appendChild(document.createElement("br"));
+
+            const span = document.createElement("span");
+            span.style.fontSize = "0.9em";
+            span.textContent = `(expires at ${String(data.expiry ?? "")})`;
+            msgBox2.appendChild(span);
+          }
           msgBox2.classList.remove("hidden");
         }
       } else {
@@ -136,6 +221,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     msgBox.className = "";
     msgBox.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
+    safeDebugLog("submitting_reset_otp_verification", {
+      hasResetUserId: Boolean(otpResetUserId),
+      otpLength: otp.length,
+    });
     try {
       const res = await fetch("/api/verify-reset-otp", {
         method: "POST",
@@ -169,7 +258,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
-  window.showOtpResetModal = function (otp, expiry) {
+  window.showOtpResetModal = function (expiry) {
     if (document.getElementById("otp-reset-modal")) {
       document.getElementById("otp-reset-modal").style.display = "block";
       document.getElementById("otp-reset-message").className = "hidden";

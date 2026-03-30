@@ -11,6 +11,7 @@ env
 # ⚠️ User Data — بيانات حساسة لا ترفعها
 users.json
 users.db
+db/virex.db
 
 # Python
 __pycache__/
