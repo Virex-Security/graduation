@@ -222,7 +222,10 @@ def create_dashboard_app():
             logger.error(f"OTP email failed: {e}")
             return jsonify({'error': 'Failed to deliver OTP'}), 500
 
-        return jsonify({'message': 'OTP sent to registered email'}), 200
+        return jsonify({
+            'message': 'OTP sent to registered email',
+            'user_id': user_id
+        }), 200
 
     @app.route('/api/verify-reset-otp', methods=['POST'])
     def verify_reset_otp():

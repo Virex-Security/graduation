@@ -1,24 +1,4 @@
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family:
-    "Inter",
-    system-ui,
-    -apple-system,
-    sans-serif;
-}
-
-/* Body & Background */
-body {
-  background: var(--bg-main);
-  color: var(--text-primary);
-  min-height: 100vh;
-  line-height: 1.6;
-  -webkit-font-smoothing: antialiased;
-  position: relative;
-  overflow-x: hidden;
-}
+/* Dashboard-specific CSS - Base styles extracted to base.css */
 
 /* Animated Background Gradient */
 body::before {

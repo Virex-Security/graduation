@@ -511,16 +511,20 @@ const SecurityAlerts = {
       alert.style.background = "var(--bg-main)";
     });
 
-    // Color indicator dot
+    // Icon indicator
     const indicator = document.createElement("div");
     indicator.style.cssText = `
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: ${colors.indicator};
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: ${colors.indicator};
       flex-shrink: 0;
-      margin-top: 4px;
+      margin-top: 2px;
+      font-size: 14px;
     `;
+    indicator.innerHTML = `<i class="fas ${this.getIconForAttackType(event.attack_type)}"></i>`;
 
     // Content
     const content = document.createElement("div");
@@ -612,18 +616,18 @@ const SecurityAlerts = {
   },
 
   /**
-   * Get emoji icon based on attack type
+   * Get font awesome icon based on attack type
    */
   getIconForAttackType(type) {
     const icons = {
-      "SQL Injection": "🔓",
-      XSS: "🐍",
-      "ML Detection": "🧠",
-      "Brute Force": "⚔️",
-      "Rate Limit": "🚫",
-      "Access Violation": "🔒",
-      Scanner: "🔍",
-      default: "⚠️",
+      "SQL Injection": "fa-database",
+      XSS: "fa-code",
+      "ML Detection": "fa-brain",
+      "Brute Force": "fa-key",
+      "Rate Limit": "fa-bolt",
+      "Access Violation": "fa-lock",
+      Scanner: "fa-eye",
+      default: "fa-exclamation-triangle",
     };
     return icons[type] || icons.default;
   },

@@ -3,12 +3,7 @@
  * Handles real-time updates, charts, and UI interactions
  */
 
-// Sanitize user data before inserting into DOM to prevent XSS
-function escapeHTML(str) {
-  const d = document.createElement("div");
-  d.appendChild(document.createTextNode(String(str ?? "")));
-  return d.innerHTML;
-}
+// Using global Formatters.escapeHTML instead of local string escape.
 
 const Dashboard = {
   updateInterval: 1000,
@@ -324,11 +319,11 @@ const Dashboard = {
         const confirmed = await this.showConfirmation(
           "هل أنت متأكد من إعادة تعيين جميع الإحصائيات الأمنية؟",
           async () => {
-            const resp = await fetch("/api/dashboard/reset", {
-              method: "POST",
-            });
-            if (resp.ok) {
+            try {
+              await API.post("/api/dashboard/reset");
               this.updateData();
+            } catch(e) {
+              console.error("Failed to reset", e);
             }
           },
           null,
@@ -385,24 +380,7 @@ const Dashboard = {
     }
     try {
       console.log("[Dashboard] Fetching /api/dashboard/data");
-      const response = await fetch("/api/dashboard/data");
-      console.log(
-        "[Dashboard] Response received:",
-        response.status,
-        response.ok,
-      );
-
-      if (response.status === 401) {
-        console.log("[Dashboard] 401 Unauthorized - logging out");
-        Auth.logout();
-        return;
-      }
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
+      const data = await API.get("/api/dashboard/data");
       console.log("[Dashboard] Data received successfully");
 
       this.updateStats(data.stats);
@@ -691,7 +669,7 @@ const Dashboard = {
         const badge = this.getThreatTypeBadge(t.type);
         const rawTs = t.timestamp ?? t.time ?? t.detected_at ?? "";
         const safeTimestamp = rawTs
-          ? escapeHTML(
+          ? Formatters.escapeHTML(
               typeof rawTs === "number"
                 ? new Date(rawTs * 1000).toLocaleString()
                 : new Date(rawTs).toLocaleString(),
@@ -701,9 +679,9 @@ const Dashboard = {
         const rawPath =
           t.request_path || t.path || t.url || t.request_url || "";
         const cleanPath = rawPath ? rawPath.split("?")[0] : "-";
-        const safePath = escapeHTML(cleanPath);
+        const safePath = Formatters.escapeHTML(cleanPath);
 
-        const method = escapeHTML((t.method || "").toUpperCase());
+        const method = Formatters.escapeHTML((t.method || "").toUpperCase());
 
         const confRaw = t.confidence ?? t.score ?? t.probability ?? null;
         const confidence =
@@ -716,8 +694,8 @@ const Dashboard = {
         const rawIp = t.ip || t.source_ip || t.src || "";
         const maskedIp = rawIp; // show full address
 
-        const safeLabel = escapeHTML(badge.label);
-        const safeSeverity = escapeHTML(t.severity || "Unknown");
+        const safeLabel = Formatters.escapeHTML(badge.label);
+        const safeSeverity = Formatters.escapeHTML(t.severity || "Unknown");
 
         // simplified admin-friendly details: type and location only
         const getSimpleDetail = (threat) => {
@@ -752,10 +730,10 @@ const Dashboard = {
                         <i class="fas ${badge.icon}"></i> ${safeLabel}
                     </span>
                 </td>
-                <td class="attacker-ip">${escapeHTML(maskedIp)}</td>
+                <td class="attacker-ip">${Formatters.escapeHTML(maskedIp)}</td>
                 <td><span class="severity-badge severity-${safeSeverity.toLowerCase()}">${safeSeverity}</span></td>
                 <td style="display:flex; justify-content:space-between; align-items:center">
-                    <span>${escapeHTML(simpleDetail)}</span>
+                    <span>${Formatters.escapeHTML(simpleDetail)}</span>
                     <button onclick="viewThreatDetails('${safeCategory}', '${safeIPParam}')" class="btn-view-more" title="View More Details" style="margin-left: 8px; padding: 4px 8px; font-size: 0.8rem; background: var(--brand-primary); color: white; border: none; border-radius: 4px; cursor: pointer;">
                         View More
                     </button>
@@ -782,8 +760,8 @@ const Dashboard = {
       .map(
         ([ip, count]) => `
             <div class="attacker-item">
-                <div class="attacker-ip">${escapeHTML(ip)}</div>
-                <div class="attack-count">${escapeHTML(count)} attacks</div>
+                <div class="attacker-ip">${Formatters.escapeHTML(ip)}</div>
+                <div class="attack-count">${Formatters.escapeHTML(count)} attacks</div>
             </div>
         `,
       )
@@ -803,7 +781,7 @@ const Dashboard = {
     const badge = this.getThreatTypeBadge(threat.type);
     const rawTs = threat.timestamp ?? threat.time ?? threat.detected_at ?? "";
     const safeTimestamp = rawTs
-      ? escapeHTML(
+      ? Formatters.escapeHTML(
           typeof rawTs === "number"
             ? new Date(rawTs * 1000).toLocaleString()
             : new Date(rawTs).toLocaleString(),
@@ -817,13 +795,13 @@ const Dashboard = {
       threat.request_url ||
       "";
     const cleanPath = rawPath ? rawPath.split("?")[0] : "-";
-    const safePath = escapeHTML(cleanPath);
+    const safePath = Formatters.escapeHTML(cleanPath);
 
     const rawIp = threat.ip || threat.source_ip || threat.src || "";
     const maskedIp = rawIp;
 
-    const safeLabel = escapeHTML(badge.label);
-    const safeSeverity = escapeHTML(threat.severity || "Unknown");
+    const safeLabel = Formatters.escapeHTML(badge.label);
+    const safeSeverity = Formatters.escapeHTML(threat.severity || "Unknown");
 
     const isBlocked =
       threat.blocked === true ||
@@ -851,10 +829,10 @@ const Dashboard = {
                         <i class="fas ${badge.icon}"></i> ${safeLabel}
                     </span>
                 </td>
-                <td class="attacker-ip">${escapeHTML(maskedIp)}</td>
+                <td class="attacker-ip">${Formatters.escapeHTML(maskedIp)}</td>
                 <td><span class="severity-badge severity-${safeSeverity.toLowerCase()}">${safeSeverity}</span></td>
                 <td style="display:flex; justify-content:space-between; align-items:center">
-                    <span>${escapeHTML(simpleDetail)}</span>
+                    <span>${Formatters.escapeHTML(simpleDetail)}</span>
                     <button onclick="viewThreatDetails('${encodeURIComponent(threat.type ?? "")}', '${encodeURIComponent(rawIp ?? "")}')" class="btn-view-more" title="View More Details" style="margin-left: 8px; padding: 4px 8px; font-size: 0.8rem; background: var(--brand-primary); color: white; border: none; border-radius: 4px; cursor: pointer;">
                         View More
                     </button>

@@ -38,50 +38,7 @@ function showMessage(element, message, type) {
   }
 }
 
-/**
- * Validate email format
- * @param {string} email - Email to validate
- * @returns {boolean} - True if valid email format
- */
-function validateEmail(email) {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
-}
 
-/**
- * Validate phone number format
- * @param {string} phone - Phone number to validate
- * @returns {boolean} - True if valid phone format
- */
-function validatePhone(phone) {
-  const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
-  return phoneRegex.test(phone.replace(/[\s\-\(\)]/g, ''));
-}
-
-/**
- * Validate password strength
- * @param {string} password - Password to validate
- * @returns {object} - Validation result with isValid and message
- */
-function validatePassword(password) {
-  if (password.length < 8) {
-    return { isValid: false, message: "Password must be at least 8 characters" };
-  }
-  
-  const hasUpperCase = /[A-Z]/.test(password);
-  const hasLowerCase = /[a-z]/.test(password);
-  const hasNumbers = /\d/.test(password);
-  const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
-  
-  if (!hasUpperCase || !hasLowerCase || !hasNumbers) {
-    return { 
-      isValid: false, 
-      message: "Password must contain uppercase, lowercase, and numbers" 
-    };
-  }
-  
-  return { isValid: true, message: "Strong password" };
-}
 
 /**
  * Validate signup form and submit to backend
@@ -100,57 +57,17 @@ async function handleSignup(event) {
   const messageBox = document.getElementById("message-box");
   const submitButton = document.querySelector(".btn-primary");
 
-  // Validation
-  if (!fullName) {
-    showMessage(messageBox, "Full name is required", "error");
-    return;
-  }
+  const isValid = FormValidator.validate("signupForm", {
+    fullName: { required: true, minLength: 2 },
+    username: { required: true, minLength: 3 },
+    email: { required: true, email: true },
+    phone: { required: true },
+    department: { required: true },
+    password: { required: true, strong: true },
+    confirmPassword: { required: true, match: "password" }
+  });
 
-  if (!username) {
-    showMessage(messageBox, "Username is required", "error");
-    return;
-  }
-
-  if (username.length < 3) {
-    showMessage(messageBox, "Username must be at least 3 characters", "error");
-    return;
-  }
-
-  if (!email) {
-    showMessage(messageBox, "Email is required", "error");
-    return;
-  }
-
-  if (!validateEmail(email)) {
-    showMessage(messageBox, "Please enter a valid email address", "error");
-    return;
-  }
-
-  if (!phone) {
-    showMessage(messageBox, "Phone number is required", "error");
-    return;
-  }
-
-  if (!validatePhone(phone)) {
-    showMessage(messageBox, "Please enter a valid phone number", "error");
-    return;
-  }
-
-  if (!department) {
-    showMessage(messageBox, "Please select your department", "error");
-    return;
-  }
-
-  const passwordValidation = validatePassword(password);
-  if (!passwordValidation.isValid) {
-    showMessage(messageBox, passwordValidation.message, "error");
-    return;
-  }
-
-  if (password !== confirmPassword) {
-    showMessage(messageBox, "Passwords do not match", "error");
-    return;
-  }
+  if (!isValid) return;
 
   // Check terms and conditions
   const termsCheckbox = document.getElementById("terms");
@@ -164,51 +81,34 @@ async function handleSignup(event) {
   submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating Account...';
 
   try {
-    const response = await fetch("/api/auth/signup", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
+    const data = await API.post("/api/auth/signup", {
         fullName: fullName,
         username: username,
         email: email,
         phone: phone,
         department: department,
         password: password,
-      }),
     });
 
-    const data = await response.json();
+    showMessage(
+      messageBox,
+      "✓ Account created successfully! Redirecting to login...",
+      "success",
+    );
+    // Clear form
+    document.getElementById("signupForm").reset();
+    // Redirect to login after 2 seconds
+    setTimeout(() => {
+      window.location.href = "/login";
+    }, 2000);
 
-    if (response.status === 201) {
-      showMessage(
-        messageBox,
-        "✓ Account created successfully! Redirecting to login...",
-        "success",
-      );
-      // Clear form
-      document.getElementById("signupForm").reset();
-      // Redirect to login after 2 seconds
-      setTimeout(() => {
-        window.location.href = "/login";
-      }, 2000);
-    } else if (response.status === 409) {
-      showMessage(
-        messageBox,
-        data.message || "Username or email already exists",
-        "error",
-      );
-      submitButton.disabled = false;
-      submitButton.innerHTML = '<span>Create Account</span><i class="fas fa-arrow-right"></i>';
-    } else {
-      showMessage(messageBox, data.message || "Sign up failed", "error");
-      submitButton.disabled = false;
-      submitButton.innerHTML = '<span>Create Account</span><i class="fas fa-arrow-right"></i>';
-    }
   } catch (error) {
-    showMessage(messageBox, "Connection error. Please try again.", "error");
-    console.error("Signup error:", error);
+    if (error.message.includes("exists") || error.message.includes("409")) {
+      showMessage(messageBox, error.message || "Username or email already exists", "error");
+    } else {
+      showMessage(messageBox, error.message || "Sign up failed", "error");
+      console.error("Signup error:", error);
+    }
     submitButton.disabled = false;
     submitButton.innerHTML = '<span>Create Account</span><i class="fas fa-arrow-right"></i>';
   }

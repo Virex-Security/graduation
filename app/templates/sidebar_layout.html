@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{% block title %}VIREX Security{% endblock %}</title>
     <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap"
       rel="stylesheet"
@@ -20,6 +22,10 @@
     <link
       rel="stylesheet"
       href="{{ url_for('static', filename='css/theme.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/base.css') }}"
     />
     <link
       rel="stylesheet"
@@ -135,6 +141,9 @@
     {% include 'chatbot.html' %}
 
     <!-- Common JavaScript -->
+    <script src="{{ url_for('static', filename='javascript/api.js') }}"></script>
+    <script src="{{ url_for('static', filename='javascript/formatters.js') }}"></script>
+    <script src="{{ url_for('static', filename='javascript/table-utils.js') }}"></script>
     <script src="{{ url_for('static', filename='javascript/auth.js') }}"></script>
     <script src="{{ url_for('static', filename='javascript/sidebar_component.js') }}"></script>
     <script src="{{ url_for('static', filename='javascript/layout.js') }}"></script>
