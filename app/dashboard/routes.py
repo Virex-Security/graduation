@@ -1163,7 +1163,8 @@ def create_dashboard_app():
             
             threat_score = calculate_threat_score(threat)
             # Include if Critical severity or high score or escalated
-            if threat.get('severity') == 'Critical' or threat_score >= 80:
+            # Updated threshold from 80 to 60 to show high-confidence ML detections
+            if str(threat.get('severity', '')).title() == 'Critical' or threat_score >= 60:
                 ip = threat.get('ip', 'Unknown')
                 attack_type = threat.get('attack_type', 'Unknown')
                 endpoint = threat.get('endpoint', 'Unknown')
@@ -1382,10 +1383,10 @@ def create_dashboard_app():
 def calculate_threat_score(threat):
     """Calculate threat score based on multiple factors (0-100)"""
     score = 50 # Base score
-    # Severity multiplier
+    # Severity multiplier (handle case-insensitive like 'MEDIUM' or 'Medium')
     severity_map = {'Low': 0.5, 'Medium': 0.7, 'High': 0.85, 'Critical': 1.0}
-    severity = threat.get('severity', 'Medium')
-    score *= severity_map.get(severity, 0.7)
+    raw_severity = str(threat.get('severity', 'Medium')).title()
+    score *= severity_map.get(raw_severity, 0.7)
     # ML detection boost
     if threat.get('ml_detected'):
         score += 20
