@@ -477,16 +477,44 @@ class SecurityDashboard:
             'connection_state': self.connection_state
         }
     def load_audit_log(self):
-        # reading the audit log should also be serialized to avoid
-        # grabbing a partially-written file.
+        """Load and merge audit actions from JSON and live threats from SQLite."""
+        all_logs = []
+        
+        # 1. Fetch JSON audit actions (administrative actions)
         with self.audit_lock:
             try:
                 if os.path.exists(self.audit_log_path):
                     with open(self.audit_log_path, 'r') as f:
-                        return json.load(f)
-            except Exception:
-                pass
-        return []
+                        json_logs = json.load(f)
+                        if isinstance(json_logs, list):
+                            all_logs.extend(json_logs)
+            except Exception as e:
+                print(f"[-] Error loading JSON audit log: {e}")
+
+        # 2. Fetch SQLite threats (live traffic detections)
+        try:
+            db_threats = self.db.get_threat_logs(limit=2000)
+            for t in db_threats:
+                # Normalize SQLite fields to match template expectations
+                # (e.g., ip_address -> ip, created_at -> timestamp)
+                normalized = dict(t)
+                normalized['id'] = t.get('threat_log_id')
+                normalized['ip'] = t.get('ip_address')
+                normalized['timestamp'] = t.get('created_at')
+                # Template expects boolean for blocked
+                normalized['blocked'] = bool(t.get('blocked'))
+                # Ensure type is set for the table badge logic
+                if 'type' not in normalized:
+                   normalized['type'] = t.get('attack_type')
+                
+                all_logs.append(normalized)
+        except Exception as e:
+            print(f"[-] Error loading SQLite threat logs: {e}")
+
+        # 3. Sort by timestamp descending
+        all_logs.sort(key=lambda x: str(x.get('timestamp', '')), reverse=True)
+        return all_logs
+
     def _get_ml_relevant_logs(self, logs):
         """Filter logs for ML metrics calculation.
         Excludes:

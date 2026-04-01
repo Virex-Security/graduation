@@ -88,5 +88,75 @@
     "attack_type": "Anomaly",
     "reviewed": false,
     "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T22:21:49Z",
+    "text_hash": "16fd27a5d643d3c8ed1948e8c6ee402d",
+    "text_snippet": "omar.khalid",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T22:21:51Z",
+    "text_hash": "ec3d6a63d1cc762a7b279a91839ca58a",
+    "text_snippet": "nour.ibrahim",
+    "risk_score": 0.7047369830125618,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T22:21:55Z",
+    "text_hash": "c5560ce057f529d9b4f4c9f45a99fa91",
+    "text_snippet": "Victim User",
+    "risk_score": 0.7089012058864622,
+    "decision": "monitor",
+    "attack_type": "Brute Force",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T22:21:55Z",
+    "text_hash": "245b3ffcf15c0e9e8d6c2a6018d7cc27",
+    "text_snippet": "victim240@mail.com",
+    "risk_score": 0.7499010778397333,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T22:21:58Z",
+    "text_hash": "1de1064bdeb8e7d305e72c98bf3cbe70",
+    "text_snippet": "victim734@mail.com",
+    "risk_score": 0.7499010778397331,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T22:22:00Z",
+    "text_hash": "1ea0376381dc406c8e2fa2b4f7c0a3bd",
+    "text_snippet": "victim922@mail.com",
+    "risk_score": 0.7499010778397333,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T22:22:15Z",
+    "text_hash": "9ec5c609fdac8ba47d6f1b2d951d95f5",
+    "text_snippet": "client140@mail.com",
+    "risk_score": 0.7499010778397331,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
   }
 ]
