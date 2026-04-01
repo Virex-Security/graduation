@@ -197,75 +197,7 @@
             <!-- Error/Success Messages -->
             <div id="message-box" class="hidden"></div>
 
-            <!-- Forgot Password Modal -->
-            <!-- Forgot Password Step 1 Modal -->
-            <div id="forgot-password-modal" class="modal" style="display: none">
-              <div class="modal-content" style="max-width: 400px">
-                <span class="close" onclick="closeForgotPasswordModal()"
-                  >&times;</span
-                >
-                <h3 style="margin-bottom: 1rem">Forgot Password</h3>
-                <div class="form-group">
-                  <label for="forgot-identifier"
-                    >Enter your username or email</label
-                  >
-                  <input
-                    type="text"
-                    id="forgot-identifier"
-                    class="form-input"
-                    placeholder="Username or Email"
-                    required
-                  />
-                </div>
-                <div id="forgot-message" class="hidden"></div>
-                <button
-                  class="btn-primary"
-                  style="width: 100%; margin-top: 1rem"
-                  onclick="submitForgotPassword()"
-                >
-                  Get OTP
-                </button>
-              </div>
-            </div>
 
-            <!-- Forgot Password Step 2 Modal -->
-            <div id="otp-reset-modal" class="modal" style="display: none">
-              <div class="modal-content" style="max-width: 400px">
-                <span class="close" onclick="closeOtpResetModal()"
-                  >&times;</span
-                >
-                <h3 style="margin-bottom: 1rem">Reset Password</h3>
-                <div class="form-group">
-                  <label for="otp-code">Enter the OTP sent to you</label>
-                  <input
-                    type="text"
-                    id="otp-code"
-                    class="form-input"
-                    maxlength="6"
-                    placeholder="6-digit OTP"
-                    required
-                  />
-                </div>
-                <div class="form-group">
-                  <label for="otp-new-password">New Password</label>
-                  <input
-                    type="password"
-                    id="otp-new-password"
-                    class="form-input"
-                    placeholder="New Password"
-                    required
-                  />
-                </div>
-                <div id="otp-reset-message" class="hidden"></div>
-                <button
-                  class="btn-primary"
-                  style="width: 100%; margin-top: 1rem"
-                  onclick="submitOtpReset()"
-                >
-                  Reset Password
-                </button>
-              </div>
-            </div>
 
             <div class="form-footer">
               <p>Don't have an account? <a href="/signup">Create account</a></p>

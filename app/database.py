@@ -221,6 +221,15 @@ def _ensure_rules_table():
                 created_at   TEXT
             )
         """)
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS password_resets (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                otp TEXT NOT NULL,
+                otp_expiry TEXT NOT NULL,
+                used INTEGER DEFAULT 0
+            )
+        """)
 
 
 def _seed_rules_table():
