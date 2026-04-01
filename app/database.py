@@ -230,6 +230,51 @@ def _ensure_rules_table():
                 used INTEGER DEFAULT 0
             )
         """)
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS audit_logs (
+                audit_log_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id      INTEGER,
+                action       TEXT NOT NULL,
+                resource     TEXT,
+                resource_id  TEXT,
+                details      TEXT,
+                ip_address   TEXT,
+                user_agent   TEXT,
+                created_at   TEXT
+            )
+        """)
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS threat_logs (
+                threat_log_id  INTEGER PRIMARY KEY AUTOINCREMENT,
+                attack_type    TEXT NOT NULL,
+                ip_address     TEXT,
+                endpoint       TEXT,
+                method         TEXT,
+                payload        TEXT,
+                severity       TEXT    DEFAULT 'Medium',
+                description    TEXT,
+                blocked        INTEGER DEFAULT 0,
+                ml_detected    INTEGER DEFAULT 0,
+                confidence     REAL    DEFAULT 0.0,
+                detection_type TEXT,
+                created_at     TEXT
+            )
+        """)
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                user_id       INTEGER PRIMARY KEY AUTOINCREMENT,
+                username      TEXT NOT NULL UNIQUE,
+                password_hash TEXT NOT NULL,
+                email         TEXT,
+                role_name     TEXT DEFAULT 'user',
+                status        TEXT DEFAULT 'active',
+                full_name     TEXT,
+                phone         TEXT,
+                department    TEXT,
+                last_login    TEXT,
+                created_at    TEXT
+            )
+        """)
 
 
 def _seed_rules_table():
@@ -703,12 +748,78 @@ def create_department(name: str, slug: str, description: str = "") -> int:
 # ══════════════════════════════════════════════════════════════
 
 def load_stats() -> dict:
+    _ensure_rules_table()
     with db_cursor() as cur:
-        cur.execute("SELECT COUNT(*) as total FROM threat_logs")
+        cur.execute("SELECT COUNT(*) FROM threat_logs")
         total = cur.fetchone()[0]
-        cur.execute("SELECT COUNT(*) as blocked FROM threat_logs WHERE blocked = 1")
+        cur.execute("SELECT COUNT(*) FROM threat_logs WHERE blocked = 1")
         blocked = cur.fetchone()[0]
-        return {"total_requests": total, "blocked_requests": blocked}
+        cur.execute("SELECT COUNT(*) FROM threat_logs WHERE ml_detected = 1")
+        ml = cur.fetchone()[0]
+        cur.execute("SELECT COUNT(*) FROM threat_logs WHERE attack_type LIKE '%SQL%'")
+        sql_inj = cur.fetchone()[0]
+        cur.execute("SELECT COUNT(*) FROM threat_logs WHERE attack_type LIKE '%XSS%'")
+        xss = cur.fetchone()[0]
+        cur.execute("SELECT COUNT(*) FROM threat_logs WHERE attack_type LIKE '%Brute%'")
+        brute = cur.fetchone()[0]
+        cur.execute("SELECT COUNT(*) FROM threat_logs WHERE attack_type LIKE '%Scan%'")
+        scanner = cur.fetchone()[0]
+        cur.execute("SELECT COUNT(*) FROM threat_logs WHERE attack_type LIKE '%Rate%'")
+        rate = cur.fetchone()[0]
+        return {
+            "total_requests": total,
+            "blocked_requests": blocked,
+            "ml_detections": ml,
+            "sql_injection_attempts": sql_inj,
+            "xss_attempts": xss,
+            "brute_force_attempts": brute,
+            "scanner_attempts": scanner,
+            "rate_limit_hits": rate,
+        }
+
+
+def log_threat(attack_type: str, ip_address: str = None, endpoint: str = None,
+               method: str = None, payload: str = None, severity: str = 'Medium',
+               description: str = None, blocked: bool = False,
+               ml_detected: bool = False, confidence: float = 0.0,
+               detection_type: str = None):
+    """Insert a threat event into threat_logs."""
+    _ensure_rules_table()
+    now = time.strftime("%Y-%m-%d %H:%M:%S")
+    with db_cursor() as cur:
+        cur.execute("""
+            INSERT INTO threat_logs
+              (attack_type, ip_address, endpoint, method, payload,
+               severity, description, blocked, ml_detected, confidence,
+               detection_type, created_at)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?)
+        """, (attack_type, ip_address, endpoint, method, payload,
+               severity, description, 1 if blocked else 0,
+               1 if ml_detected else 0, confidence, detection_type, now))
+
+
+def get_threat_logs(limit: int = 100, attack_type: str = None) -> list:
+    """Fetch threat log entries, newest first."""
+    _ensure_rules_table()
+    with db_cursor() as cur:
+        if attack_type:
+            cur.execute(
+                "SELECT * FROM threat_logs WHERE attack_type = ? ORDER BY threat_log_id DESC LIMIT ?",
+                (attack_type, limit)
+            )
+        else:
+            cur.execute(
+                "SELECT * FROM threat_logs ORDER BY threat_log_id DESC LIMIT ?",
+                (limit,)
+            )
+        return [dict(r) for r in cur.fetchall()]
+
+
+def clear_threat_logs():
+    """Delete all rows from threat_logs (used by the dashboard reset action)."""
+    _ensure_rules_table()
+    with db_cursor() as cur:
+        cur.execute("DELETE FROM threat_logs")
 
 
 def save_stats(total: int, blocked: int):

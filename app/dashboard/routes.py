@@ -98,7 +98,12 @@ def create_dashboard_app():
         resp, status = login_user(auth.get('username'), auth.get('password'))
         if status == 200:
             user = user_manager.get_user(auth.get('username'))
-            log_action(user, "Login")
+            from app.database import log_audit
+            user_id = user.get('id') if user else None
+            ip = request.headers.get('X-Forwarded-For', request.remote_addr) or 'Unknown'
+            ip = ip.split(',')[0].strip()
+            if user_id:
+                log_audit(user_id, "Login", ip)
         return resp, status
     @app.route('/api/auth/signup', methods=['POST'])
     def signup():
@@ -380,21 +385,29 @@ def create_dashboard_app():
     @admin_required
     def reset_stats(current_user):
         global dashboard
-        log_action(current_user, "Reset Stats", "Cleared all memory stats and audit logs")
-        for key in dashboard.stats:
-            dashboard.stats[key] = 0
-        dashboard.ip_tracker.clear()
-        dashboard.threat_log.clear()
-        dashboard.blocked_events_queue.clear()
-        dashboard.recent_threats = []
-        dashboard.timeline_data.clear()
-        dashboard.incidents.clear()
         try:
-            with open(dashboard.audit_log_path, 'w') as f:
-                json.dump([], f)
+            log_action(current_user, "Reset Stats", "Cleared all memory stats and audit logs")
+            # Reset in-memory stats
+            for key in dashboard.stats:
+                dashboard.stats[key] = 0
+            dashboard.ip_tracker.clear()
+            dashboard.recent_threats = []
+            dashboard.timeline_data.clear()
+            dashboard.incidents.clear()
+            # Clear the DB threat logs
+            from app import database as _db
+            _db.clear_threat_logs()
+            # Clear the JSON audit log
+            try:
+                with open(dashboard.audit_log_path, 'w') as f:
+                    json.dump([], f)
+            except Exception as e:
+                print(f"[-] Error clearing audit log: {e}")
+            return jsonify({'status': 'stats_reset', 'message': 'All stats and logs cleared'})
         except Exception as e:
-            print(f"[-] Error clearing audit log: {e}")
-        return jsonify({'status': 'stats_reset', 'message': 'All stats and logs cleared'})
+            print(f"[-] Reset error: {e}")
+            return jsonify({'status': 'error', 'message': str(e)}), 500
+
     @app.route('/api/user')
     @token_required
     def get_current_user(current_user):

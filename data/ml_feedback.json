@@ -1,0 +1,92 @@
+[
+  {
+    "timestamp": "2026-04-01T22:20:36Z",
+    "text_hash": "37d007a56d816107ce5b52c10342db37",
+    "text_snippet": "http://localhost:8080",
+    "risk_score": 0.7659106500116534,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T22:20:41Z",
+    "text_hash": "0f76c067be36622169aecdb6491de924",
+    "text_snippet": "client796@mail.com",
+    "risk_score": 0.7499010778397335,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T22:20:47Z",
+    "text_hash": "0d2b694403baf5ec9330cfbfebb7a7f4",
+    "text_snippet": "client542@mail.com",
+    "risk_score": 0.7499010778397333,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T22:20:52Z",
+    "text_hash": "f3183d5979332246788027dcfafd18d4",
+    "text_snippet": "ahmed.hassan",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T22:21:08Z",
+    "text_hash": "00ae62442946445c7efb200ead23d894",
+    "text_snippet": "client207@mail.com",
+    "risk_score": 0.7499010778397333,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T22:21:14Z",
+    "text_hash": "af70cc7d1bd4462202656608f7a65711",
+    "text_snippet": "client63@mail.com",
+    "risk_score": 0.7499010778397331,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T22:21:17Z",
+    "text_hash": "d4374afc9b6954eb4667557c4f1c7b11",
+    "text_snippet": "client210@mail.com",
+    "risk_score": 0.7499010778397333,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T22:21:20Z",
+    "text_hash": "ee97e8b72b70df185a8b0e5267495aad",
+    "text_snippet": "sara.ali",
+    "risk_score": 0.7047369830125618,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T22:21:22Z",
+    "text_hash": "12115c02b0433d177ecf61f86571e030",
+    "text_snippet": "client870@mail.com",
+    "risk_score": 0.7499010778397333,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  }
+]

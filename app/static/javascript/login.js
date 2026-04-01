@@ -25,6 +25,7 @@ function togglePassword(inputId) {
  * @param {string} type - Message type: 'success' or 'error'
  */
 function showMessage(element, message, type) {
+  if (!element) return;
   const iconClass =
     type === "error" ? "fa-exclamation-circle" : "fa-check-circle";
   element.className = `${type}`;

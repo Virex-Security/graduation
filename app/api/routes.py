@@ -267,7 +267,7 @@ def create_api_app():
           }, current_app.config["SECRET_KEY"], algorithm="HS256")
           resp = make_response(jsonify({"message": "Login successful"}))
           resp.set_cookie("auth_token", token, httponly=True,
-                        secure=True, samesite="Strict", max_age=8*3600)
+                        secure=False, samesite="Lax", max_age=8*3600)
           return resp, 200
         else:
               # Brute force tracking
