@@ -584,7 +584,8 @@ def create_dashboard_app():
 
         grouped_criticals = set()
         for l in attack_logs:
-            if l.get("severity") in ("High", "Critical") or calculate_threat_score(l) >= 80:
+            # Strictly use the 85+ score threshold for high alerts (matches /api/high-threats)
+            if calculate_threat_score(l) >= 85:
                 grouped_criticals.add((l.get("ip"), l.get("attack_type"), l.get("endpoint")))
 
         critical_count = len(grouped_criticals)
@@ -1150,10 +1151,10 @@ def create_dashboard_app():
     @token_required
     def critical_page(current_user):
         return render_template('critical.html', user=current_user)
-    @app.route('/api/critical-threats')
+    @app.route('/api/high-threats')
     @token_required
-    def get_critical_threats(current_user):
-        """Get critical level threats with dynamic scoring"""
+    def get_high_threats(current_user):
+        """Get high level threats with dynamic scoring (threshold >= 85)"""
         grouped_threats = {}
         logs = dashboard.load_audit_log()
         
@@ -1162,9 +1163,8 @@ def create_dashboard_app():
                 continue
             
             threat_score = calculate_threat_score(threat)
-            # Include if Critical severity or high score or escalated
-            # Updated threshold from 80 to 60 to show high-confidence ML detections
-            if str(threat.get('severity', '')).title() == 'Critical' or threat_score >= 60:
+            # Only include threats that meet the strict 85+ score threshold
+            if threat_score >= 85:
                 ip = threat.get('ip', 'Unknown')
                 attack_type = threat.get('attack_type', 'Unknown')
                 endpoint = threat.get('endpoint', 'Unknown')
@@ -1382,20 +1382,20 @@ def create_dashboard_app():
     return app
 def calculate_threat_score(threat):
     """Calculate threat score based on multiple factors (0-100)"""
-    score = 50 # Base score
-    # Severity multiplier (handle case-insensitive like 'MEDIUM' or 'Medium')
+    score = 100 # Base score increased to 100 to allow High-severity threats (85) to reach 85+
+    # Severity multiplier
     severity_map = {'Low': 0.5, 'Medium': 0.7, 'High': 0.85, 'Critical': 1.0}
-    raw_severity = str(threat.get('severity', 'Medium')).title()
-    score *= severity_map.get(raw_severity, 0.7)
+    raw_severity = str(threat.get('severity', 'High')).title()
+    score *= severity_map.get(raw_severity, 0.85)
     # ML detection boost
     if threat.get('ml_detected'):
-        score += 20
+        score += 25
     # Confidence boost
     confidence = threat.get('confidence', 0)
     score += confidence * 10
-    # Blocked incident boost
+    # Blocked incident boost (increased to 35 to ensure High-severity blocked threats hit 85+)
     if threat.get('blocked'):
-        score += 15
+        score += 35
     return min(int(score), 100) # Cap at 100
 def is_recent(timestamp_str):
     """Check if timestamp is within last 24 hours"""

@@ -92,7 +92,7 @@ class SecurityDashboard:
             'scanner_attempts': stats.get('scanner_attempts', 0),
             'rate_limit_hits': stats.get('rate_limit_hits', 0)
         }
-    def log_threat(self, threat_type, ip, description, severity="Medium", endpoint="", method="", snippet="", detection_type="Other", blocked=False):
+    def log_threat(self, threat_type, ip, description, severity="High", endpoint="", method="", snippet="", detection_type="Other", blocked=False):
         # سجل التهديد في قاعدة البيانات
         confidence = 0.95 if isinstance(detection_type, str) and detection_type.lower().startswith("ml") else 0.0
         ml_detected = isinstance(detection_type, str) and detection_type.lower().startswith("ml")

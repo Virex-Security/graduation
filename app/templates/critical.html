@@ -1,7 +1,7 @@
 {% extends "sidebar_layout.html" %}
 {% set active_page = 'critical' %}
 
-{% block title %}Critical Threats - Virex{% endblock %}
+{% block title %}High Alert Intelligence - Virex{% endblock %}
 
 {% block stylesheets %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/critical.css') }}" />
@@ -11,18 +11,18 @@
 <main class="main-content critical-page">
   <header class="section-title">
     <h1>
-      <i class="fas fa-exclamation-triangle"></i> Critical Threat
+      <i class="fas fa-shield-exclamation"></i> High Alert
       Intelligence
     </h1>
     <p>
-      Real-time monitoring and analysis of critical severity threats
+      Real-time monitoring and analysis of high severity threats
       detected by VIREX AI/ML Engine
     </p>
   </header>
 
   <div class="overview-panel">
     <div class="overview-card">
-      <div class="card-label">Active Critical Threats</div>
+      <div class="card-label">Active High Alerts</div>
       <div class="card-value critical" id="totalCritical">--</div>
       <div class="card-indicator">
         <i class="fas fa-circle" style="color: var(--text-secondary)"></i> Live Alert
@@ -60,7 +60,7 @@
 
   <div class="threat-feed-section">
     <div class="section-header">
-      <h2>Live Critical Threat Feed</h2>
+      <h2>Live High Alert Feed</h2>
       <div class="feed-controls">
         <input
           type="text"
@@ -171,7 +171,7 @@
     </div>
 
     <div class="indicator-card">
-      <div class="indicator-title">Critical Threat Trend</div>
+      <div class="indicator-title">High Alert Trend</div>
       <div id="trendIndicator">Loading...</div>
     </div>
 

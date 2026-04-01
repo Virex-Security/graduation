@@ -14,7 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function loadCriticalThreats() {
-  fetch("/api/critical-threats")
+  fetch("/api/high-threats")
     .then((response) => {
       if (!response.ok) {
         if (response.status === 401) {
@@ -68,7 +68,7 @@ function populateThreatTable(threats) {
 
   if (threats.length === 0) {
     tbody.innerHTML =
-      '<tr style="text-align: center; padding: 2rem;"><td colspan="9">No critical threats found</td></tr>';
+      '<tr style="text-align: center; padding: 2rem;"><td colspan="9">No high alert threats found</td></tr>';
     return;
   }
 

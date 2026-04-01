@@ -779,7 +779,7 @@ def load_stats() -> dict:
 
 
 def log_threat(attack_type: str, ip_address: str = None, endpoint: str = None,
-               method: str = None, payload: str = None, severity: str = 'Medium',
+               method: str = None, payload: str = None, severity: str = 'High',
                description: str = None, blocked: bool = False,
                ml_detected: bool = False, confidence: float = 0.0,
                detection_type: str = None):
