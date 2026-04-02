@@ -217,19 +217,19 @@ export default memo(function MLPerformancePage() {
         <InfoCard title="Model Metadata">
           <div className="space-y-4">
             <div className="p-3 rounded-lg bg-bg-secondary/50 border border-border-dim/50 space-y-1">
-              <div className="text-[10px] text-text-muted uppercase font-bold tracking-widest">Model Type</div>
+              <div className="ds-overline">Model Type</div>
               <div className="text-xs text-text-primary font-mono">{data?.model_type || 'Random Forest Classifier'}</div>
             </div>
             <div className="p-3 rounded-lg bg-bg-secondary/50 border border-border-dim/50 space-y-1">
-              <div className="text-[10px] text-text-muted uppercase font-bold tracking-widest">Dataset Size</div>
+              <div className="ds-overline">Dataset Size</div>
               <div className="text-xs text-text-primary font-mono">{data?.dataset_size?.toLocaleString() || '5,000 samples'}</div>
             </div>
             <div className="p-3 rounded-lg bg-bg-secondary/50 border border-border-dim/50 space-y-1">
-              <div className="text-[10px] text-text-muted uppercase font-bold tracking-widest">Test Samples</div>
+              <div className="ds-overline">Test Samples</div>
               <div className="text-xs text-text-primary font-mono">{data?.test_samples || '1,000 samples'}</div>
             </div>
             <div className="p-3 rounded-lg bg-bg-secondary/50 border border-border-dim/50 space-y-1">
-              <div className="text-[10px] text-text-muted uppercase font-bold tracking-widest">AU-ROC Score</div>
+              <div className="ds-overline">AU-ROC Score</div>
               <div className="text-xs text-brand-primary font-mono font-bold tracking-widest">{data?.roc_auc?.toFixed(4) || '0.9756'}</div>
             </div>
           </div>

@@ -1,10 +1,11 @@
 import React, { lazy } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './utils/AuthContext';
+import { AuthProvider } from './utils/AuthContext.jsx';
 import { useAuth } from './utils/useAuth';
-import { ToastProvider } from './utils/ToastContext';
+import { ToastProvider } from './utils/ToastContext.jsx';
 import ErrorBoundary from './components/ErrorBoundary';
-import DashboardLayout from './layouts/DashboardLayout';
+import Layout from './layout/Layout';
+import Chatbot from './components/Chatbot';
 import { SecondaryButton } from './components/Buttons';
 
 // Lazy-load all pages for code splitting
@@ -36,6 +37,13 @@ function ProtectedRoute({ children }) {
   return children;
 }
 
+/** Chatbot only when authenticated (same scope as dashboard shell). */
+function AuthenticatedChatbot() {
+  const { user, loading } = useAuth();
+  if (loading || !user) return null;
+  return <Chatbot />;
+}
+
 export default function App() {
   return (
     <AuthProvider>
@@ -52,7 +60,7 @@ export default function App() {
                 path="/"
                 element={
                   <ProtectedRoute>
-                    <DashboardLayout />
+                    <Layout />
                   </ProtectedRoute>
                 }
               >
@@ -87,6 +95,7 @@ export default function App() {
 
               <Route path="*" element={<Navigate to="/login" replace />} />
             </Routes>
+            <AuthenticatedChatbot />
           </ErrorBoundary>
         </BrowserRouter>
       </ToastProvider>

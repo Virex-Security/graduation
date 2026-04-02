@@ -194,7 +194,7 @@ export default memo(function ForgotPasswordPage() {
           </div>
         </div>
 
-        <p className="text-center text-[10px] text-text-muted/40 mt-8 uppercase tracking-[0.2em]">
+        <p className="text-center text-ds-micro text-text-muted/40 mt-ds-8 uppercase tracking-ds-widest">
           Protected by VIREX AI/ML Engine
         </p>
       </div>

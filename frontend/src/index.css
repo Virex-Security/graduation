@@ -10,36 +10,45 @@
   }
   
   body {
-    @apply font-main bg-bg-main text-text-primary antialiased min-h-screen relative;
-    line-height: 1.65;
+    @apply font-main text-ds-body bg-bg-main text-text-primary antialiased min-h-screen relative;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply text-text-primary leading-tight;
+    @apply text-text-primary;
   }
 
   h1 {
-    @apply text-[clamp(2rem,4vw,2.5rem)] font-extrabold tracking-tight;
+    @apply text-ds-display font-extrabold tracking-ds-snug;
   }
 
   h2 {
-    @apply text-[clamp(1.5rem,3vw,1.8rem)] font-bold tracking-tight;
+    @apply text-ds-title font-bold tracking-ds-snug;
   }
 
   h3 {
-    @apply text-[1.1rem] font-semibold tracking-widest uppercase;
+    @apply text-ds-heading font-semibold uppercase tracking-ds-wider;
   }
 }
 
 @layer components {
   /* Brand text classes */
   .brand-text {
-    @apply font-black bg-brand-gradient bg-clip-text text-transparent leading-none font-main tracking-tight uppercase text-2xl;
+    @apply font-black bg-brand-gradient bg-clip-text text-transparent leading-none font-main tracking-ds-snug uppercase text-ds-title;
+  }
+
+  /** Uppercase micro labels (tables, metadata) */
+  .ds-overline {
+    @apply text-ds-micro text-text-muted uppercase font-bold tracking-ds-widest;
+  }
+
+  /** Section headings in modals / panels */
+  .ds-section-label {
+    @apply text-ds-caption font-bold text-text-muted uppercase tracking-ds-wider border-b border-border-dim/50 pb-ds-2;
   }
 
   /* Base buttons */
   .btn {
-    @apply inline-flex items-center justify-center gap-3 px-6 py-3 rounded-xl font-main text-base font-semibold cursor-pointer border-none transition-all duration-300 no-underline;
+    @apply inline-flex items-center justify-center gap-ds-3 px-ds-6 py-ds-3 rounded-ds-xl font-main text-ds-body font-semibold cursor-pointer border-none transition-all duration-300 no-underline;
   }
 
   .btn:active {
@@ -55,11 +64,11 @@
   }
 
   .btn-primary {
-    @apply bg-brand-gradient text-white shadow-[0_4px_15px_rgba(154,39,125,0.3)];
+    @apply bg-brand-gradient text-white shadow-ds-btn-primary;
   }
 
   .btn-primary:hover {
-    @apply shadow-[0_8px_25px_rgba(154,39,125,0.5)] -translate-y-[2px];
+    @apply shadow-ds-btn-primary-hover -translate-y-0.5;
   }
 
   .btn-secondary {
@@ -75,7 +84,7 @@
   }
 
   .btn-danger:hover {
-    @apply bg-danger/25 border-danger shadow-[0_4px_15px_rgba(239,68,68,0.3)] -translate-y-[2px];
+    @apply bg-danger/25 border-danger shadow-ds-btn-danger-hover -translate-y-0.5;
   }
 
   .btn-ghost {
@@ -87,29 +96,29 @@
   }
   
   .btn-icon {
-    @apply w-10 h-10 p-0 rounded-full flex items-center justify-center;
+    @apply w-ds-10 h-ds-10 p-0 rounded-full flex items-center justify-center;
   }
 
   /* Cards */
   .card {
-    @apply bg-[linear-gradient(160deg,rgba(154,39,125,0.05)_0%,rgba(33,37,56,0.92)_45%,rgba(121,43,157,0.05)_100%)] border border-brand-primary/20 rounded-[22px] p-7 shadow-[0_10px_30px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-md transition-all duration-300;
+    @apply bg-ds-card-sheen border border-brand-primary/20 rounded-ds-xl p-ds-7 shadow-ds-card backdrop-blur-md transition-all duration-300;
   }
 
   /* Inputs */
   .form-group {
-    @apply mb-5 flex flex-col;
+    @apply mb-ds-5 flex flex-col;
   }
 
   .form-label {
-    @apply text-[0.9rem] font-medium mb-2 text-text-primary;
+    @apply text-ds-label font-medium mb-ds-2 text-text-primary;
   }
 
   .form-input {
-    @apply bg-bg-secondary border border-border-dim text-text-primary px-4 py-3 rounded-xl font-main transition-all duration-200 outline-none;
+    @apply bg-bg-secondary border border-border-dim text-text-primary px-ds-4 py-ds-3 rounded-ds-xl font-main transition-all duration-200 outline-none;
   }
 
   .form-input:focus {
-    @apply border-brand-primary shadow-[0_0_0_3px_rgba(154,39,125,0.2)];
+    @apply border-brand-primary shadow-ds-focus-ring;
   }
 
   .form-input::placeholder {

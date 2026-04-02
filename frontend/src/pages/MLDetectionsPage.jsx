@@ -19,23 +19,23 @@ const columns = [
   { key: 'detection_type', label: 'Method', render: (v) => <Badge label={v || 'ML Engine'} className="bg-bg-secondary text-brand-primary border-brand-primary/20" /> },
   { key: 'confidence', label: 'Confidence', render: (v) => {
     const val = (v * 100).toFixed(0);
-    let cls = 'text-danger bg-danger/10 border-danger/30';
+    let cls = 'text-severity-critical bg-severity-critical/10 border-severity-critical/30';
     if (v >= 0.9) cls = 'text-success bg-success/10 border-success/30';
-    else if (v >= 0.7) cls = 'text-warning bg-warning/10 border-warning/30';
+    else if (v >= 0.7) cls = 'text-severity-medium bg-severity-medium/10 border-severity-medium/30';
     return <Badge label={`${val}%`} className={cls} />;
   }},
   { key: 'snippet', label: 'Payload Analysis', render: (v) => (
-    <code className="text-[10px] text-text-muted truncate max-w-[250px] block font-mono bg-bg-secondary p-1 rounded" title={v}>
+    <code className="text-ds-micro text-text-muted truncate max-w-[250px] block font-mono bg-bg-secondary p-ds-1 rounded-ds-sm" title={v}>
       {v || 'N/A'}
     </code>
   )},
   { key: 'blocked', label: 'Status', render: (v) => (
     v ? (
-      <span className="inline-flex items-center gap-1 text-xs text-danger font-bold">
+      <span className="inline-flex items-center gap-ds-1 text-ds-caption text-severity-critical font-bold">
         <ShieldCheckIcon className="w-3.5 h-3.5" /> Auto-Blocked
       </span>
     ) : (
-      <span className="inline-flex items-center gap-1 text-xs text-warning">
+      <span className="inline-flex items-center gap-ds-1 text-ds-caption text-severity-medium">
         <InformationCircleIcon className="w-3.5 h-3.5" /> Flags Only
       </span>
     )

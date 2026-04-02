@@ -13,7 +13,7 @@ function PriceCard({ name, price, features, mostPopular, current, onUpgrade, hig
     }`}>
       {mostPopular && (
         <div className="absolute top-0 right-0 overflow-hidden rounded-tr-3xl w-24 h-24 pointer-events-none">
-          <div className="absolute top-4 right-[-24px] rotate-45 bg-brand-primary text-white text-[10px] font-black py-1 px-8 uppercase tracking-widest">
+          <div className="absolute top-ds-4 right-[-24px] rotate-45 bg-brand-primary text-white text-ds-micro font-black py-ds-1 px-ds-8 uppercase tracking-ds-wider">
             Best Value
           </div>
         </div>
