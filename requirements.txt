@@ -7,6 +7,10 @@
 flask==2.2.5
 flask-cors==4.0.0
 flask-limiter==3.5.0
+<<<<<<< HEAD
+=======
+flask-wtf==1.2.1
+>>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
 
 # --- Authentication ---
 PyJWT==2.8.0
@@ -30,6 +34,11 @@ requests==2.31.0
 # --- Utilities ---
 python-dotenv==1.0.0
 psutil==5.9.5
+<<<<<<< HEAD
+=======
+python-magic==0.4.27; sys_platform != 'win32'
+python-magic-bin==0.4.14; sys_platform == 'win32'
+>>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
 
 # --- Testing ---
 pytest==7.4.0

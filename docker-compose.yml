@@ -27,7 +27,11 @@ services:
     command: >
       gunicorn
         --bind 0.0.0.0:5000
+<<<<<<< HEAD
         --workers 2
+=======
+        --workers 1
+>>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
         --timeout 60
         --access-logfile -
         --error-logfile -
@@ -62,7 +66,11 @@ services:
     command: >
       gunicorn
         --bind 0.0.0.0:8070
+<<<<<<< HEAD
         --workers 2
+=======
+        --workers 1
+>>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
         --timeout 60
         --access-logfile -
         --error-logfile -

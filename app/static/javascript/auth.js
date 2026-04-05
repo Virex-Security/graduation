@@ -44,6 +44,7 @@ const Auth = {
    */
   async login(username, password) {
     try {
+<<<<<<< HEAD
       const response = await fetch("/api/auth/login", {
         method: "POST",
         credentials: "same-origin",
@@ -67,6 +68,22 @@ const Auth = {
         return true;
       }
       return false;
+=======
+      const data = await API.post("/api/auth/login", { username, password });
+      
+      const userData = {
+        username: username,
+        role: data.role,
+        loginTime: new Date().toISOString(),
+      };
+
+      localStorage.setItem(this.SESSION_KEY, "active");
+      localStorage.setItem(this.USER_KEY, JSON.stringify(userData));
+
+      // Redirect to the protected dashboard route; server will verify the cookie
+      window.location.href = "/dashboard";
+      return true;
+>>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
     } catch (error) {
       console.error("Login error:", error);
       return false;
@@ -78,7 +95,11 @@ const Auth = {
    */
   async logout() {
     try {
+<<<<<<< HEAD
       await fetch("/api/auth/logout");
+=======
+      await API.get("/api/auth/logout");
+>>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
     } catch (e) {}
     localStorage.removeItem(this.SESSION_KEY);
     localStorage.removeItem(this.USER_KEY);

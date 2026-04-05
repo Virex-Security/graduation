@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 {% extends "sidebar_layout.html" %}
 {% set active_page = 'critical' %}
 
@@ -17,6 +18,21 @@
     <p>
       Real-time monitoring and analysis of high severity threats
       detected by VIREX AI/ML Engine
+=======
+{% extends "sidebar_layout.html" %} {% set active_page = 'critical' %} {% block
+title %}Critical Intelligence - Virex{% endblock %} {% block stylesheets %}
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/critical.css') }}"
+/>
+{% endblock %} {% block content %}
+<main class="main-content critical-page">
+  <header class="section-title">
+    <h1><i class="fas fa-shield-exclamation"></i> Critical Intelligence</h1>
+    <p>
+      Real-time monitoring and analysis of high severity threats detected by
+      VIREX AI/ML Engine
+>>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
     </p>
   </header>
 
@@ -25,7 +41,12 @@
       <div class="card-label">Active High Alerts</div>
       <div class="card-value critical" id="totalCritical">--</div>
       <div class="card-indicator">
+<<<<<<< HEAD
         <i class="fas fa-circle" style="color: var(--text-secondary)"></i> Live Alert
+=======
+        <i class="fas fa-circle" style="color: var(--text-secondary)"></i> Live
+        Alert
+>>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
       </div>
     </div>
     <div class="overview-card">
@@ -60,7 +81,11 @@
 
   <div class="threat-feed-section">
     <div class="section-header">
+<<<<<<< HEAD
       <h2>Live High Alert Feed</h2>
+=======
+      <h2>Live Critical Feed</h2>
+>>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
       <div class="feed-controls">
         <input
           type="text"
@@ -149,8 +174,13 @@
     <h2>AI Threat Intelligence Analysis</h2>
     <div class="intelligence-panel" id="intelligencePanel">
       <div class="intelligence-placeholder">
+<<<<<<< HEAD
         <i class="fas fa-arrow-left"></i> Select a threat from the feed to
         view detailed intelligence
+=======
+        <i class="fas fa-arrow-left"></i> Select a threat from the feed to view
+        detailed intelligence
+>>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
       </div>
     </div>
   </div>
@@ -171,7 +201,11 @@
     </div>
 
     <div class="indicator-card">
+<<<<<<< HEAD
       <div class="indicator-title">High Alert Trend</div>
+=======
+      <div class="indicator-title">Critical Trend</div>
+>>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
       <div id="trendIndicator">Loading...</div>
     </div>
 
@@ -229,6 +263,7 @@
     onclick="closeTechnicalDetails()"
   ></div>
 </main>
+<<<<<<< HEAD
 {% endblock %}
 
 {% block scripts %}
@@ -238,3 +273,11 @@
 <script src="{{ url_for('static', filename='javascript/critical.js') }}"></script>
 {% endblock %}
 
+=======
+{% endblock %} {% block scripts %}
+<script>
+  // Only page-specific JavaScript here
+</script>
+<script src="{{ url_for('static', filename='javascript/critical.js') }}"></script>
+{% endblock %}
+>>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa

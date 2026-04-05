@@ -3,6 +3,11 @@ Auth decorators — token_required, require_role, admin_required.
 Now validates jti against the session store to support logout revocation.
 """
 import hashlib
+<<<<<<< HEAD
+=======
+import sqlite3
+import logging
+>>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
 from functools import wraps
 
 import jwt
@@ -37,6 +42,7 @@ def _is_jti_valid(jti: str) -> bool:
             return False
             
         return bool(row["is_active"])
+<<<<<<< HEAD
     except Exception as e:
         # If DB check fails (e.g., table missing/locked, operational error), default to True.
         # Trade-off: This is an acceptable availability-over-security risk 
@@ -44,6 +50,17 @@ def _is_jti_valid(jti: str) -> bool:
         import logging
         logging.getLogger(__name__).error(f"[AUTH] DB error verifying JTI: {e}. Allowing token by default.")
         return True
+=======
+    except sqlite3.OperationalError:
+        # Transient DB error (locked, busy timeout) — Fail-Open for availability
+        logging.getLogger(__name__).warning("[AUTH] Transient DB error on JTI check — allowing token.")
+        return True
+    except Exception:
+        # Unexpected error (schema issue, attribute error, etc.) — Fail-Closed for security.
+        # Use exc_info=False to prevent leaking sensitive file paths or stack traces in logs.
+        logging.getLogger(__name__).error("[AUTH] Unexpected JTI verification error — denying access.", exc_info=False)
+        return False
+>>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
 
 
 def token_required(f):

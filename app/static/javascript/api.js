@@ -16,6 +16,18 @@ const API = {
         ...options.headers
       };
 
+<<<<<<< HEAD
+=======
+      // Auto-add CSRF token for state-changing requests
+      const method = (options.method || 'GET').toUpperCase();
+      if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(method)) {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        if (csrfToken) {
+          headers['X-CSRFToken'] = csrfToken;
+        }
+      }
+
+>>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
       if (options.body && !(options.body instanceof FormData)) {
         headers['Content-Type'] = 'application/json';
         options.body = JSON.stringify(options.body);
@@ -33,13 +45,24 @@ const API = {
       clearTimeout(timeoutId);
 
       // Handle auth failures
+<<<<<<< HEAD
       if (response.status === 401 || response.status === 403) {
+=======
+      if (response.status === 401) {
+>>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
         window.location.href = '/login?msg=Session+expired';
         throw new Error('Authentication required');
       }
 
       const data = await response.json().catch(() => null);
 
+<<<<<<< HEAD
+=======
+      if (response.status === 403) {
+        throw new Error(data?.message || data?.error || 'You do not have permission to perform this action.');
+      }
+
+>>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
       if (!response.ok) {
         const errorMsg = data?.error || data?.message || `HTTP ${response.status} failed`;
         throw new Error(errorMsg);

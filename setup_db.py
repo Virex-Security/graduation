@@ -244,7 +244,12 @@ CREATE TABLE IF NOT EXISTS password_resets (
     user_id    INTEGER NOT NULL,
     otp        TEXT NOT NULL,
     otp_expiry TEXT NOT NULL,
+<<<<<<< HEAD
     used       INTEGER DEFAULT 0
+=======
+    used       INTEGER DEFAULT 0,
+    otp_attempts INTEGER DEFAULT 0
+>>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
 );
 
 -- Indexes for performance

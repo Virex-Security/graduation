@@ -28,6 +28,10 @@ _DEFAULTS = {
     "MAX_CONTENT_LENGTH":    "1048576",
     "SMTP_EMAIL":            "",
     "SMTP_PASSWORD":         "",
+<<<<<<< HEAD
+=======
+    "TRUSTED_PROXIES":      "127.0.0.1",
+>>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
 }
 
 # ── Insecure default values that must be changed in production ──
@@ -37,7 +41,26 @@ _INSECURE_VALUES = {
         "change-me-in-production",
         "fallback-dev-key-change-in-production",
         "dev-secret",
+<<<<<<< HEAD
     ]
+=======
+        "dev-secret-key",
+        "secret",
+        "password",
+        "test-secret-key-for-ci-minimum-32-chars!!",
+        "9e2f4a7d1c8b3e6f0a5d2c9b4e7f1a8d3c6b9e2f5a0d7c4b1e8f3a6d9c2b5e8f1a4d7c0b3e6f9a2d5c8b1e4f7a0d3c6",
+    ],
+    "INTERNAL_API_SECRET": [
+        "supersecrettoken",
+        "secret",
+        "changeme",
+        "internal-secret",
+        "test-internal-secret-for-ci-only-32chars",
+        "password",
+        "admin",
+        "Vx7kR2mNpL9qT4wY8sJ3hB6dE1fC5nQ0aZuWHgKoPiXrDtMs",
+    ],
+>>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
 }
 
 
@@ -78,10 +101,27 @@ def validate_config(strict: bool = False) -> bool:
     if not cookie_secure():
         warnings.append("  ⚠️  COOKIE_SECURE is disabled — auth cookies will be sent over HTTP (insecure in production)")
 
+<<<<<<< HEAD
     # Check SECRET_KEY minimum length
     secret = os.getenv("SECRET_KEY", "")
     if secret and len(secret) < 32:
         errors.append(f"  ❌ SECRET_KEY is too short ({len(secret)} chars, minimum 32)")
+=======
+    # Check SECRET_KEY minimum length and entropy
+    secret = os.getenv("SECRET_KEY", "")
+    if secret and len(secret) < 64:
+        errors.append(f"  ❌ SECRET_KEY is too short ({len(secret)} chars, minimum 64)")
+    # Detect sequential/low-entropy patterns like a1b2c3d4...
+    if secret and len(secret) >= 8:
+        unique_chars = len(set(secret))
+        if unique_chars < 16:
+            errors.append("  ❌ SECRET_KEY appears low-entropy (too few unique characters) — regenerate with secrets.token_hex(64)")
+
+    # Check INTERNAL_API_SECRET minimum length
+    internal = os.getenv("INTERNAL_API_SECRET", "")
+    if internal and len(internal) < 32:
+        errors.append(f"  ❌ INTERNAL_API_SECRET is too short ({len(internal)} chars, minimum 32)")
+>>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
 
     # Report
     if warnings:
@@ -138,3 +178,12 @@ def smtp_email() -> str:
 
 def smtp_password() -> str:
     return os.getenv("SMTP_PASSWORD", "")
+<<<<<<< HEAD
+=======
+
+
+def trusted_proxies() -> frozenset:
+    """Returns a frozenset of trusted proxy IPs from configuration."""
+    raw = get("TRUSTED_PROXIES")
+    return frozenset(ip.strip() for ip in raw.split(",") if ip.strip())
+>>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa

@@ -1,6 +1,13 @@
 <aside class="sidebar modern-sidebar" id="sidebar" aria-expanded="true">
   <div class="modern-sidebar__brand-row">
+<<<<<<< HEAD
     <div class="sidebar-brand modern-sidebar__brand" style="display: flex; align-items: center; gap: 4px;">
+=======
+    <div
+      class="sidebar-brand modern-sidebar__brand"
+      style="display: flex; align-items: center; gap: 4px"
+    >
+>>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
       <span class="brand-v-icon">VIREX</span>
     </div>
 
@@ -31,6 +38,7 @@
             border-radius: 13px;
           "
         />
+<<<<<<< HEAD
         {% else %}
           {% if user and user.full_name %}
             {{ user.full_name[:2]|upper }}
@@ -51,6 +59,33 @@
             color: white;
             font-weight: 800;
           ">{{ user.subscription|upper }}</span>
+=======
+        {% else %} {% if user and user.full_name %} {{ user.full_name[:2]|upper
+        }} {% else %} {{ (user.username[:2] if user and user.username else
+        'US')|upper }} {% endif %} {% endif %}
+      </div>
+      <div class="modern-sidebar__profile-copy">
+        <div
+          class="modern-sidebar__username"
+          id="sidebar-username"
+          style="display: flex; align-items: center; gap: 8px"
+        >
+          {{ user.full_name if user and user.full_name else (user.username if
+          user else 'User') }} {% if user and user.subscription and
+          user.subscription != 'Free' %}
+          <span
+            class="subscription-badge"
+            style="
+              font-size: 0.65rem;
+              padding: 2px 6px;
+              border-radius: 4px;
+              background: var(--brand-primary);
+              color: white;
+              font-weight: 800;
+            "
+            >{{ user.subscription|upper }}</span
+          >
+>>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
           {% endif %}
         </div>
         <div class="modern-sidebar__role">
@@ -90,7 +125,13 @@
       href="/attack-history"
       class="modern-sidebar__item {% if active_page == 'attack-history' %}active{% endif %}"
     >
+<<<<<<< HEAD
       <span class="modern-sidebar__icon"><i class="fas fa-shield-virus"></i></span>
+=======
+      <span class="modern-sidebar__icon"
+        ><i class="fas fa-shield-virus"></i
+      ></span>
+>>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
       <span class="modern-sidebar__label">Attack History</span>
     </a>
 
@@ -117,7 +158,11 @@
       <span class="modern-sidebar__icon"
         ><i class="fas fa-shield-exclamation"></i
       ></span>
+<<<<<<< HEAD
       <span class="modern-sidebar__label">High Alert</span>
+=======
+      <span class="modern-sidebar__label">Critical</span>
+>>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
     </a>
 
     <a

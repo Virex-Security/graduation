@@ -63,3 +63,10 @@ htmlcov/
 # Logs
 *.log
 siem_audit.json
+<<<<<<< HEAD
+=======
+
+# Dependencies
+node_modules/
+frontend/node_modules/
+>>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
