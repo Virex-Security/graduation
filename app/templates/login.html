@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login - VIREX Security</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
+    <link rel="stylesheet" href="/static/css/theme.css" />
+    <link rel="stylesheet" href="/static/css/base.css" />
+    <link rel="stylesheet" href="/static/css/login.css" />
+    <script src="/static/javascript/theme.js"></script>
+  </head>
+
+  <body>
+    <!-- Background Pattern -->
+    <div class="bg-pattern"></div>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+      <div class="navbar-container">
+        <div
+          class="logo"
+          onclick="window.location.href = '/'"
+          style="cursor: pointer"
+        >
+          <svg
+            class="brand-v-nav"
+            viewBox="0 0 100 100"
+            style="width: 40px; height: 40px"
+          >
+            <defs>
+              <linearGradient
+                id="v-nav-left-login"
+                x1="0%"
+                y1="0%"
+                x2="0%"
+                y2="100%"
+              >
+                <stop offset="0%" style="stop-color: #9a277d" />
+                <stop offset="100%" style="stop-color: #792b9d" />
+              </linearGradient>
+              <linearGradient
+                id="v-nav-right-login"
+                x1="0%"
+                y1="0%"
+                x2="0%"
+                y2="100%"
+              >
+                <stop offset="0%" style="stop-color: #e046ba" />
+                <stop offset="100%" style="stop-color: #b347e6" />
+              </linearGradient>
+            </defs>
+            <path
+              d="M25,25 L50,80"
+              stroke="url(#v-nav-left-login)"
+              stroke-width="20"
+              stroke-linecap="round"
+              fill="none"
+            />
+            <path
+              d="M50,80 L75,25"
+              stroke="url(#v-nav-right-login)"
+              stroke-width="20"
+              stroke-linecap="round"
+              fill="none"
+            />
+          </svg>
+          <span class="brand-v-icon">VIREX</span>
+        </div>
+        <div class="nav-actions">
+          <button class="btn-theme" id="theme-toggle" title="Toggle Theme">
+            <i class="fas fa-sun"></i>
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="auth-container">
+      <div class="auth-wrapper">
+        <!-- Left Side - Form -->
+        <div class="auth-form-section">
+          <div class="form-container">
+            <div class="form-header">
+              <div class="brand-logo">
+                <svg
+                  viewBox="0 0 100 100"
+                  style="
+                    width: 60px;
+                    height: 60px;
+                    filter: drop-shadow(0 0 20px rgba(224, 70, 186, 0.4));
+                  "
+                >
+                  <defs>
+                    <linearGradient
+                      id="v-form-left-login"
+                      x1="0%"
+                      y1="0%"
+                      x2="0%"
+                      y2="100%"
+                    >
+                      <stop offset="0%" style="stop-color: #9a277d" />
+                      <stop offset="100%" style="stop-color: #792b9d" />
+                    </linearGradient>
+                    <linearGradient
+                      id="v-form-right-login"
+                      x1="0%"
+                      y1="0%"
+                      x2="0%"
+                      y2="100%"
+                    >
+                      <stop offset="0%" style="stop-color: #e046ba" />
+                      <stop offset="100%" style="stop-color: #b347e6" />
+                    </linearGradient>
+                  </defs>
+                  <path
+                    d="M25,25 L50,80"
+                    stroke="url(#v-form-left-login)"
+                    stroke-width="18"
+                    stroke-linecap="round"
+                    fill="none"
+                  />
+                  <path
+                    d="M50,80 L75,25"
+                    stroke="url(#v-form-right-login)"
+                    stroke-width="18"
+                    stroke-linecap="round"
+                    fill="none"
+                  />
+                </svg>
+                <h1>Welcome Back</h1>
+              </div>
+              <p class="form-subtitle">
+                Sign in to your VIREX Security account
+              </p>
+            </div>
+
+            <form id="login-form" class="auth-form">
+              <div class="form-group">
+                <label for="username">Username</label>
+                <div class="input-wrapper">
+                  <i class="fas fa-user"></i>
+                  <input
+                    type="text"
+                    id="username"
+                    name="username"
+                    placeholder="Enter your username"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="password">Password</label>
+                <div class="input-wrapper">
+                  <i class="fas fa-lock"></i>
+                  <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    placeholder="Enter your password"
+                    required
+                  />
+                  <button
+                    type="button"
+                    class="password-toggle"
+                    onclick="togglePassword('password')"
+                  >
+                    <i class="fas fa-eye"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div style="text-align: right; margin-bottom: 1rem">
+                <a
+                  href="/forgot-password"
+                  id="forgot-password-link"
+                  style="font-size: 0.95em; color: #007bff"
+                  >Forgot Password?</a
+                >
+              </div>
+              <button type="submit" class="btn-primary">
+                <span>Sign In</span>
+                <i class="fas fa-arrow-right"></i>
+              </button>
+            </form>
+            <div class="form-footer">
+              <!-- Error/Success Messages -->
+              <div id="message-box" class="hidden"></div>
+              <p>Don't have an account? <a href="/signup">Create account</a></p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Side - Info -->
+        <div class="auth-info-section">
+          <div class="info-content">
+            <div class="info-header">
+              <h2>Secure Your Digital Assets</h2>
+              <p>
+                Advanced AI-powered security monitoring for modern applications
+              </p>
+            </div>
+
+            <div class="features-list">
+              <div class="feature-item">
+                <div class="feature-icon">
+                  <i class="fas fa-brain"></i>
+                </div>
+                <div class="feature-text">
+                  <h3>AI-Powered Detection</h3>
+                  <p>Machine learning algorithms detect threats in real-time</p>
+                </div>
+              </div>
+
+              <div class="feature-item">
+                <div class="feature-icon">
+                  <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="feature-text">
+                  <h3>Real-Time Analytics</h3>
+                  <p>Comprehensive dashboards with live security metrics</p>
+                </div>
+              </div>
+
+              <div class="feature-item">
+                <div class="feature-icon">
+                  <i class="fas fa-shield-virus"></i>
+                </div>
+                <div class="feature-text">
+                  <h3>Advanced Protection</h3>
+                  <p>Multi-layered security against sophisticated attacks</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="footer-content">
+        <div class="footer-text">
+          © 2026 VIREX Security. All rights reserved.
+        </div>
+        <div class="footer-links">
+          <a href="/privacy" class="footer-link">Privacy Policy</a>
+          <a href="/terms" class="footer-link">Terms of Service</a>
+          <a href="/docs" class="footer-link">Documentation</a>
+          <a href="/support" class="footer-link">Support</a>
+        </div>
+      </div>
+    </footer>
+
+    <script src="/static/javascript/api.js"></script>
+    <script src="/static/javascript/formatters.js"></script>
+    <script src="/static/javascript/form-validation.js"></script>
+    <script src="/static/javascript/auth.js"></script>
+    <script src="/static/javascript/login.js"></script>
+  </body>
+</html>

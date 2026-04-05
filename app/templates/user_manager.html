@@ -1,0 +1,220 @@
+{% extends "sidebar_layout.html" %}
+{% set active_page = 'user-manager' %}
+{% block title %}User Manager - Virex{% endblock %}
+
+{% block stylesheets %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/user_manager.css') }}">
+{% endblock %}
+
+{% block content %}
+<main class="main-content">
+  <div class="page-header">
+    <div class="page-header-inner">
+      <div class="page-title-group">
+        <h1 class="page-title"><i class="fas fa-users-gear"></i> User Manager</h1>
+        <p class="page-subtitle">Manage users, roles, and permissions</p>
+      </div>
+      <button class="btn btn-primary" onclick="openAddUserModal()">
+        <i class="fas fa-user-plus"></i> Add User
+      </button>
+    </div>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon purple">
+        <i class="fas fa-users"></i>
+      </div>
+      <div class="stat-content">
+        <div class="stat-value" id="total-users">0</div>
+        <div class="stat-label">Total Users</div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon green">
+        <i class="fas fa-user-check"></i>
+      </div>
+      <div class="stat-content">
+        <div class="stat-value" id="active-users">0</div>
+        <div class="stat-label">Active Users</div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon blue">
+        <i class="fas fa-user-shield"></i>
+      </div>
+      <div class="stat-content">
+        <div class="stat-value" id="admin-users">0</div>
+        <div class="stat-label">Administrators</div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon orange">
+        <i class="fas fa-clock"></i>
+      </div>
+      <div class="stat-content">
+        <div class="stat-value" id="online-users">0</div>
+        <div class="stat-label">Online Now</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-bar">
+    <div class="search-box">
+      <i class="fas fa-search"></i>
+      <input type="text" id="search-users" placeholder="Search users..." onkeyup="filterUsers()">
+    </div>
+
+    <select class="filter-select" id="role-filter" onchange="filterUsers()">
+      <option value="">All Roles</option>
+      <option value="admin">Admin</option>
+      <option value="analyst">Analyst</option>
+      <option value="viewer">Viewer</option>
+    </select>
+
+    <select class="filter-select" id="status-filter" onchange="filterUsers()">
+      <option value="">All Status</option>
+      <option value="active">Active</option>
+      <option value="inactive">Inactive</option>
+    </select>
+  </div>
+
+  <!-- Users Table -->
+  <div class="table-card">
+    <table class="users-table">
+      <thead>
+        <tr>
+          <th>User</th>
+          <th>Email</th>
+          <th>Role</th>
+          <th>Status</th>
+          <th>Actions</th>
+          <th>Last Action</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="users-tbody">
+        <tr>
+          <td colspan="7" class="loading-cell">
+            <div class="loader-ring"></div>
+            <span>Loading users...</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- User Details Modal -->
+  <div id="user-details-modal" class="modal-overlay">
+    <div class="modal modal-large">
+      <div class="modal-header">
+        <h3 class="modal-title">
+          <i class="fas fa-user-circle"></i>
+          <span id="modal-user-name">User Details</span>
+        </h3>
+        <button class="modal-close" onclick="closeModal('user-details-modal')">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="user-details-grid">
+          <!-- User Info -->
+          <div class="detail-section">
+            <h4 class="detail-section-title">
+              <i class="fas fa-info-circle"></i> User Information
+            </h4>
+            <div class="detail-item">
+              <span class="detail-label">Username:</span>
+              <span class="detail-value" id="detail-username">-</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Email:</span>
+              <span class="detail-value" id="detail-email">-</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Role:</span>
+              <span class="detail-value" id="detail-role">-</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Status:</span>
+              <span class="detail-value" id="detail-status">-</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Created:</span>
+              <span class="detail-value" id="detail-created">-</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Last Login:</span>
+              <span class="detail-value" id="detail-last-login">-</span>
+            </div>
+          </div>
+
+          <!-- Recent Actions -->
+          <div class="detail-section">
+            <h4 class="detail-section-title">
+              <i class="fas fa-history"></i> Recent Actions
+            </h4>
+            <div class="actions-list" id="user-actions-list">
+              <div class="loading-cell">Loading actions...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal('user-details-modal')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add User Modal -->
+  <div id="add-user-modal" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title">
+          <i class="fas fa-user-plus"></i> Add New User
+        </h3>
+        <button class="modal-close" onclick="closeModal('add-user-modal')">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Username</label>
+          <input type="text" class="form-input" id="new-username" placeholder="Enter username">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input type="email" class="form-input" id="new-email" placeholder="Enter email">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input type="password" class="form-input" id="new-password" placeholder="Enter password">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Role</label>
+          <select class="form-select" id="new-role">
+            <option value="viewer">Viewer</option>
+            <option value="analyst">Analyst</option>
+            <option value="admin">Admin</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal('add-user-modal')">Cancel</button>
+        <button class="btn btn-primary" onclick="addUser()">
+          <i class="fas fa-plus"></i> Create User
+        </button>
+      </div>
+    </div>
+  </div>
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='javascript/user_manager.js') }}"></script>
+{% endblock %}

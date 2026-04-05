@@ -1,0 +1,250 @@
+{% extends "sidebar_layout.html" %} {% set active_page = 'pricing' %} {% block
+title %}Pricing Plans - IREX Security{% endblock %} {% block stylesheets %}
+<link rel="stylesheet" href="/static/css/dashboard.css" />
+<style>
+  .pricing-container {
+    padding: 3rem 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    text-align: center;
+  }
+  .pricing-header {
+    margin-bottom: 4rem;
+  }
+  .pricing-header h1 {
+    font-size: 3rem;
+    font-weight: 800;
+    margin-bottom: 1rem;
+    background: linear-gradient(135deg, #fff 0%, var(--brand-primary) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .pricing-header p {
+    color: var(--text-secondary);
+    font-size: 1.25rem;
+  }
+  .pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+    align-items: stretch;
+  }
+  @media (max-width: 992px) {
+    .pricing-grid {
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    }
+  }
+  @media (max-width: 600px) {
+    .pricing-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  .pricing-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 24px;
+    padding: 3rem 2rem;
+    display: flex;
+    flex-direction: column;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+  }
+  .pricing-card:hover {
+    transform: translateY(-10px);
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  }
+  .pricing-card.popular {
+    background: rgba(var(--brand-primary-rgb), 0.05);
+    border: 1px solid var(--brand-primary);
+  }
+  .popular-badge {
+    position: absolute;
+    top: 1.5rem;
+    right: -2rem;
+    background: var(--brand-primary);
+    color: white;
+    padding: 0.5rem 3rem;
+    transform: rotate(45deg);
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+  .plan-name {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: #fff;
+  }
+  .plan-price {
+    font-size: 3.5rem;
+    font-weight: 800;
+    margin-bottom: 2rem;
+    color: #fff;
+  }
+  .plan-price span {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    font-weight: 400;
+  }
+  .plan-features {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 3rem 0;
+    text-align: left;
+    flex-grow: 1;
+  }
+  .plan-features li {
+    margin-bottom: 1rem;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .plan-features li i {
+    color: var(--brand-primary);
+    font-size: 0.9rem;
+  }
+  .plan-btn {
+    width: 100%;
+    padding: 1rem;
+    border-radius: 12px;
+    border: none;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .btn-outline {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #fff;
+  }
+  .btn-outline:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: #fff;
+  }
+  .btn-primary {
+    background: var(--brand-primary);
+    color: white;
+    box-shadow: 0 4px 15px rgba(var(--brand-primary-rgb), 0.3);
+  }
+  .btn-primary:hover {
+    transform: scale(1.02);
+    box-shadow: 0 6px 20px rgba(var(--brand-primary-rgb), 0.4);
+  }
+  .current-plan-badge {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-secondary);
+    padding: 0.5rem 1rem;
+    border-radius: 99px;
+    font-size: 0.9rem;
+    margin-top: 1rem;
+  }
+</style>
+{% endblock %} {% block content %}
+<div class="pricing-container">
+  <header class="pricing-header">
+    <h1>Supercharge Your Security</h1>
+    <p>Choose the plan that's right for your infrastructure.</p>
+  </header>
+
+  <div class="pricing-grid">
+    <!-- Free Plan -->
+    <div class="pricing-card">
+      <div class="plan-name">Free</div>
+      <div class="plan-price">$0<span>/month</span></div>
+      <ul class="plan-features">
+        <li><i class="fas fa-check"></i> Basic Dashboard</li>
+        <li><i class="fas fa-check"></i> Real-time Alerts</li>
+        <li><i class="fas fa-check"></i> Threats Overview</li>
+        <li><i class="fas fa-check"></i> 24h History</li>
+        <li style="opacity: 0.5"><i class="fas fa-times"></i> ML Insights</li>
+        <li style="opacity: 0.5"><i class="fas fa-times"></i> Custom Reports</li>
+      </ul>
+      {% if user.subscription == 'Free' %}
+      <div class="current-plan-badge">Your Current Plan</div>
+      {% else %}
+      <button class="plan-btn btn-outline" onclick="upgradePlan('Free')">Downgrade</button>
+      {% endif %}
+    </div>
+
+    <!-- Pro Plan -->
+    <div class="pricing-card popular">
+      <div class="popular-badge">Best Value</div>
+      <div class="plan-name">Pro</div>
+      <div class="plan-price">$29<span>/month</span></div>
+      <ul class="plan-features">
+        <li><i class="fas fa-check"></i> Everything in Free</li>
+        <li><i class="fas fa-check"></i> 30-Day History</li>
+        <li><i class="fas fa-check"></i> Advanced ML Analysis</li>
+        <li><i class="fas fa-check"></i> Custom PDF Reports</li>
+        <li><i class="fas fa-check"></i> API Access</li>
+        <li style="opacity: 0.5"><i class="fas fa-times"></i> Priority Support</li>
+      </ul>
+      {% if user.subscription == 'Pro' %}
+      <div class="current-plan-badge">Your Current Plan</div>
+      {% else %}
+      <button class="plan-btn btn-primary" onclick="openCheckout('Pro', 29)">Upgrade to Pro</button>
+      {% endif %}
+    </div>
+
+    <div class="pricing-card">
+      <div class="plan-name">Enterprise</div>
+      <div class="plan-price">$99<span>/month</span></div>
+      <ul class="plan-features">
+        <li><i class="fas fa-check"></i> Everything in Pro</li>
+        <li><i class="fas fa-check"></i> Unlimited History</li>
+        <li><i class="fas fa-check"></i> Priority 24/7 Support</li>
+        <li><i class="fas fa-check"></i> Custom ML Training</li>
+        <li><i class="fas fa-check"></i> Multi-node Monitoring</li>
+        <li><i class="fas fa-check"></i> Dedicated Manager</li>
+      </ul>
+      {% if user.subscription == 'Enterprise' %}
+      <div class="current-plan-badge">Your Current Plan</div>
+      {% else %}
+      <button class="plan-btn btn-outline" onclick="openCheckout('Enterprise', 99)">Upgrade to Ent</button>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<script>
+  function openCheckout(plan, price) {
+    if (plan === 'Free') {
+      executeUpgrade('Free');
+      return;
+    }
+    // Redirect to dedicated payment page
+    window.location.href = `/payment?plan=${plan}&price=${price}`;
+  }
+
+  async function executeUpgrade(plan) {
+    if (!confirm(`Are you sure you want to switch to the ${plan} plan?`)) return;
+    
+    try {
+      const response = await fetch('/api/subscription/upgrade', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ plan: plan })
+      });
+      
+      const data = await response.json();
+      if (data.success) {
+        alert('Subscription updated successfully!');
+        window.location.reload();
+      } else {
+        alert('Error: ' + data.message);
+      }
+    } catch (error) {
+      alert('Failed to update subscription');
+    }
+  }
+</script>
+{% endblock %}

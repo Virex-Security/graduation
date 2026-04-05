@@ -1,0 +1,298 @@
+{% extends "sidebar_layout.html" %} {% set active_page = 'pricing' %} {% block
+title %}Secure Checkout - IRE Security{% endblock %} {% block stylesheets %}
+<link rel="stylesheet" href="/static/css/dashboard.css" />
+<style>
+  .payment-container {
+    padding: 3rem 2rem;
+    max-width: 900px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 3rem;
+  }
+  .order-summary {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 24px;
+    padding: 2.5rem;
+    height: fit-content;
+    position: sticky;
+    top: 2rem;
+  }
+  .summary-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 2rem;
+    color: #fff;
+  }
+  .summary-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    color: var(--text-secondary);
+  }
+  .total-row {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #fff;
+  }
+  .payment-methods {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  .method-btn {
+    flex: 1;
+    padding: 1.5rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .method-btn i {
+    font-size: 1.5rem;
+  }
+  .method-btn.active {
+    background: linear-gradient(135deg, rgba(var(--brand-primary-rgb), 0.2) 0%, rgba(var(--brand-primary-rgb), 0.05) 100%);
+    border-color: var(--brand-primary);
+    color: #fff;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    transform: translateY(-2px);
+  }
+  #btn-paypal.active {
+    background: linear-gradient(135deg, rgba(0, 112, 186, 0.2) 0%, rgba(0, 48, 135, 0.1) 100%);
+    border-color: #0070ba;
+  }
+  #btn-paypal.active i {
+    color: #0070ba;
+  }
+  .payment-form {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+    padding: 3rem;
+  }
+  .form-h3 {
+    margin-top: 0;
+    margin-bottom: 2rem;
+    font-size: 1.25rem;
+  }
+  .card-input-group {
+    position: relative;
+    margin-bottom: 1.5rem;
+  }
+  .card-input-group i {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-secondary);
+  }
+  .form-input {
+    width: 100%;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 1rem 1rem 1rem 3rem;
+    color: #fff;
+    font-size: 1rem;
+    transition: all 0.2s;
+  }
+  .form-input:focus {
+    border-color: var(--brand-primary);
+    background: rgba(0, 0, 0, 0.3);
+    outline: none;
+  }
+  .paypal-view {
+    text-align: center;
+    padding: 2rem 0;
+  }
+  .paypal-btn {
+    background: #ffc439;
+    color: #000;
+    padding: 1rem 2rem;
+    border-radius: 50px;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0 auto;
+    font-size: 1.1rem;
+    transition: transform 0.2s;
+  }
+  .paypal-btn:hover {
+    transform: scale(1.05);
+  }
+  .btn-pay {
+    width: 100%;
+    padding: 1.25rem;
+    background: var(--brand-primary);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 2rem;
+    transition: all 0.3s;
+  }
+  .btn-pay:hover {
+    background: var(--brand-primary-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(var(--brand-primary-rgb), 0.3);
+  }
+  .btn-pay:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+</style>
+{% endblock %} {% block content %}
+<div class="payment-container">
+  <!-- Order Summary -->
+  <div class="order-summary">
+    <h2 class="summary-title">Order Summary</h2>
+    <div class="summary-row">
+      <span>Plan Selection</span>
+      <span id="summary-plan" style="color: #fff; font-weight: 600">{{ plan }}</span>
+    </div>
+    <div class="summary-row">
+      <span>Billing Cycle</span>
+      <span>Monthly</span>
+    </div>
+    <div class="summary-row">
+      <span>Duration</span>
+      <span>30 Days</span>
+    </div>
+    <div class="total-row summary-row">
+      <span>Total Amount</span>
+      <span id="summary-total">${{ price }}.00</span>
+    </div>
+
+    <div style="margin-top: 3rem; text-align: center;">
+      <i class="fas fa-shield-halved" style="font-size: 2rem; color: var(--brand-primary); opacity: 0.5;"></i>
+      <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 1rem;">
+        Your payment information is encrypted and never stored on our servers.
+      </p>
+    </div>
+  </div>
+
+  <!-- Payment Form -->
+  <div class="payment-wrapper">
+    <div class="payment-methods">
+      <div class="method-btn active" onclick="switchMethod('card')" id="btn-card">
+        <i class="fas fa-credit-card"></i>
+        <span>Credit Card</span>
+      </div>
+      <div class="method-btn" onclick="switchMethod('paypal')" id="btn-paypal">
+        <i class="fab fa-paypal"></i>
+        <span>PayPal</span>
+      </div>
+    </div>
+
+    <div class="payment-form">
+      <!-- Card View -->
+      <div id="view-card">
+        <h3 class="form-h3">Enter Card Details</h3>
+        <div class="card-input-group">
+          <i class="fas fa-user"></i>
+          <input type="text" class="form-input" placeholder="Cardholder Name">
+        </div>
+        <div class="card-input-group">
+          <i class="fas fa-credit-card"></i>
+          <input type="text" class="form-input" placeholder="0000 0000 0000 0000">
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div class="card-input-group">
+            <i class="fas fa-calendar"></i>
+            <input type="text" class="form-input" placeholder="MM/YY">
+          </div>
+          <div class="card-input-group">
+            <i class="fas fa-lock"></i>
+            <input type="password" class="form-input" placeholder="CVV">
+          </div>
+        </div>
+        <button class="btn-pay" id="pay-primary" onclick="processPayment()">
+          Pay ${{ price }}.00
+        </button>
+      </div>
+
+      <!-- PayPal View -->
+      <div id="view-paypal" style="display: none">
+        <h3 class="form-h3">Pay with PayPal</h3>
+        <div class="paypal-view">
+          <i class="fab fa-paypal" style="font-size: 4rem; color: #003087; margin-bottom: 2rem;"></i>
+          <p style="color: var(--text-secondary); margin-bottom: 2.5rem;">
+            Click the button below to sign in to your PayPal account and authorize the payment.
+          </p>
+          <button class="paypal-btn" onclick="processPayment('PayPal')">
+            <i class="fab fa-paypal"></i> Pay with PayPal
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function switchMethod(method) {
+    document.querySelectorAll('.method-btn').forEach(btn => btn.classList.remove('active'));
+    document.getElementById('btn-' + method).classList.add('active');
+    
+    if (method === 'card') {
+      document.getElementById('view-card').style.display = 'block';
+      document.getElementById('view-paypal').style.display = 'none';
+    } else {
+      document.getElementById('view-card').style.display = 'none';
+      document.getElementById('view-paypal').style.display = 'block';
+    }
+  }
+
+  async function processPayment(method = 'Credit Card') {
+    const btn = event.target || document.getElementById('pay-primary');
+    const originalText = btn.innerHTML;
+    
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+    
+    // Simulate real gateway processing
+    await new Promise(resolve => setTimeout(resolve, 2500));
+    
+    try {
+      const response = await fetch('/api/subscription/upgrade', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          plan: "{{ plan }}",
+          payment_method: method
+        })
+      });
+      
+      const data = await response.json();
+      if (data.success) {
+        alert('Success! Payment completed via ' + method + '. Plan activated.');
+        window.location.href = '/dashboard';
+      } else {
+        alert('Payment Rejected: ' + data.message);
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+      }
+    } catch (error) {
+      alert('Network Error. Please try again.');
+      btn.disabled = false;
+      btn.innerHTML = originalText;
+    }
+  }
+</script>
+{% endblock %}

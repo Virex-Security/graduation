@@ -1,0 +1,201 @@
+{% extends "sidebar_layout.html" %}
+{% set active_page = 'blacklist' %}
+{% block title %}Blacklist - Virex{% endblock %}
+
+{% block stylesheets %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/blacklist.css') }}">
+{% endblock %}
+
+{% block content %}
+<main class="main-content">
+  <div class="page-header">
+    <div class="page-header-inner">
+      <div class="page-title-group">
+        <h1 class="page-title"><i class="fas fa-ban"></i> Blacklist Management</h1>
+        <p class="page-subtitle">Manage blocked IPs, domains, and user agents</p>
+      </div>
+      <button class="btn btn-primary" onclick="openAddBlacklistModal()">
+        <i class="fas fa-plus"></i> Add to Blacklist
+      </button>
+    </div>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon red">
+        <i class="fas fa-ban"></i>
+      </div>
+      <div class="stat-content">
+        <div class="stat-value" id="total-blacklisted">0</div>
+        <div class="stat-label">Total Blacklisted</div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon orange">
+        <i class="fas fa-network-wired"></i>
+      </div>
+      <div class="stat-content">
+        <div class="stat-value" id="blocked-ips">0</div>
+        <div class="stat-label">Blocked IPs</div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon purple">
+        <i class="fas fa-globe"></i>
+      </div>
+      <div class="stat-content">
+        <div class="stat-value" id="blocked-domains">0</div>
+        <div class="stat-label">Blocked Domains</div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon blue">
+        <i class="fas fa-robot"></i>
+      </div>
+      <div class="stat-content">
+        <div class="stat-value" id="blocked-agents">0</div>
+        <div class="stat-label">Blocked User Agents</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-bar">
+    <div class="search-box">
+      <i class="fas fa-search"></i>
+      <input type="text" id="search-blacklist" placeholder="Search blacklist..." onkeyup="filterBlacklist()">
+    </div>
+
+    <select class="filter-select" id="type-filter" onchange="filterBlacklist()">
+      <option value="">All Types</option>
+      <option value="ip">IP Address</option>
+      <option value="domain">Domain</option>
+      <option value="user_agent">User Agent</option>
+    </select>
+
+    <select class="filter-select" id="status-filter" onchange="filterBlacklist()">
+      <option value="">All Status</option>
+      <option value="active">Active</option>
+      <option value="inactive">Inactive</option>
+    </select>
+  </div>
+
+  <!-- Blacklist Table -->
+  <div class="table-card">
+    <table class="blacklist-table">
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Value</th>
+          <th>Reason</th>
+          <th>Added By</th>
+          <th>Date Added</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="blacklist-tbody">
+        <tr>
+          <td colspan="7" class="loading-cell">
+            <div class="loader-ring"></div>
+            <span>Loading blacklist...</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Add to Blacklist Modal -->
+  <div id="add-blacklist-modal" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title">
+          <i class="fas fa-ban"></i> Add to Blacklist
+        </h3>
+        <button class="modal-close" onclick="closeModal('add-blacklist-modal')">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Type</label>
+          <select class="form-select" id="new-type" onchange="updatePlaceholder()">
+            <option value="ip">IP Address</option>
+            <option value="domain">Domain</option>
+            <option value="user_agent">User Agent</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Value</label>
+          <input type="text" class="form-input" id="new-value" placeholder="Enter IP address">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Reason</label>
+          <textarea class="form-textarea" id="new-reason" rows="3" placeholder="Why is this being blacklisted?"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-checkbox">
+            <input type="checkbox" id="new-active" checked>
+            <span>Active (block immediately)</span>
+          </label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal('add-blacklist-modal')">Cancel</button>
+        <button class="btn btn-primary" onclick="addToBlacklist()">
+          <i class="fas fa-plus"></i> Add to Blacklist
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Blacklist Modal -->
+  <div id="edit-blacklist-modal" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title">
+          <i class="fas fa-edit"></i> Edit Blacklist Entry
+        </h3>
+        <button class="modal-close" onclick="closeModal('edit-blacklist-modal')">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="edit-id">
+        <div class="form-group">
+          <label class="form-label">Type</label>
+          <input type="text" class="form-input" id="edit-type" readonly>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Value</label>
+          <input type="text" class="form-input" id="edit-value" readonly>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Reason</label>
+          <textarea class="form-textarea" id="edit-reason" rows="3"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-checkbox">
+            <input type="checkbox" id="edit-active">
+            <span>Active (block immediately)</span>
+          </label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal('edit-blacklist-modal')">Cancel</button>
+        <button class="btn btn-primary" onclick="updateBlacklist()">
+          <i class="fas fa-save"></i> Save Changes
+        </button>
+      </div>
+    </div>
+  </div>
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='javascript/blacklist.js') }}"></script>
+{% endblock %}

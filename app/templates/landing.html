@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>VIREX Security | Real-Time API Security Monitoring</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
+    <link rel="stylesheet" href="/static/css/theme.css" />
+    <link rel="stylesheet" href="/static/css/base.css" />
+    <link rel="stylesheet" href="/static/css/landing.css" />
+    <script src="/static/javascript/theme.js"></script>
+  </head>
+
+  <body>
+    <!-- Navbar -->
+    <nav class="navbar">
+      <div class="navbar-container">
+        <div class="logo" onclick="window.location.href = '/'">
+          <span class="logo-name">
+            <svg class="brand-v-nav" viewBox="0 0 100 100" style="width: 40px; height: 40px;">
+              <defs>
+                <linearGradient id="v-nav-left-main" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" style="stop-color: #9a277d" />
+                  <stop offset="100%" style="stop-color: #792b9d" />
+                </linearGradient>
+                <linearGradient id="v-nav-right-main" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" style="stop-color: #e046ba" />
+                  <stop offset="100%" style="stop-color: #b347e6" />
+                </linearGradient>
+              </defs>
+              <path d="M25,25 L50,80" stroke="url(#v-nav-left-main)" stroke-width="18" stroke-linecap="round" fill="none" />
+              <path d="M50,80 L75,25" stroke="url(#v-nav-right-main)" stroke-width="18" stroke-linecap="round" fill="none" />
+            </svg><span class="brand-v-icon">VIREX</span>
+          </span>
+        </div>
+
+        <ul class="nav-menu">
+          <li><a href="#features">Features</a></li>
+          <li><a href="#how-it-works">How It Works</a></li>
+          <li><a href="#security">Security</a></li>
+          <li><a href="/support">Contact Us</a></li>
+        </ul>
+
+        <div class="nav-buttons">
+          <button
+            class="btn-icon"
+            id="theme-toggle"
+            title="Toggle Light/Dark Mode"
+          >
+            <i class="fas fa-sun"></i>
+          </button>
+          <a href="/login" class="btn-login-nav">Login</a>
+          <button class="btn-signup-nav" onclick="window.location.href = '/signup'">
+            Sign up
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+      <div class="hero-container">
+        <div class="hero-content">
+          <h1 class="hero-title">Real-Time API Security Monitoring</h1>
+          <p class="hero-description">
+            Protect your APIs from threats with real-time monitoring. Our
+            advanced machine learning system detects and blocks suspicious
+            activities before they impact your applications.
+          </p>
+          <div class="hero-buttons">
+            <button
+              class="btn-primary"
+              onclick="window.location.href = '/login'"
+            >
+              <span>View Security Dashboard</span>
+              <i class="fas fa-arrow-right"></i>
+            </button>
+            <button
+              class="btn-secondary"
+              onclick="window.location.href = '/support'"
+            >
+              <span>Contact Us</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="hero-visual">
+          <!-- Central Shield -->
+          <div class="shield-container">
+            <div class="shield-glow"></div>
+            <div class="rotating-ring"></div>
+            <div class="shield-main">
+              <svg class="brand-v-svg" viewBox="0 0 100 100">
+                <defs>
+                  <linearGradient id="v-gradient-left" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" style="stop-color: #9a277d" />
+                    <stop offset="100%" style="stop-color: #792b9d" />
+                  </linearGradient>
+                  <linearGradient id="v-gradient-right" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" style="stop-color: #e046ba" />
+                    <stop offset="100%" style="stop-color: #b347e6" />
+                  </linearGradient>
+                </defs>
+                <path class="v-path-left" d="M25,25 L50,80" />
+                <path class="v-path-right" d="M50,80 L75,25" />
+              </svg>
+            </div>
+          </div>
+
+          <!-- Floating Cards -->
+          <div class="floating-card card-1">
+            <div class="card-icon">
+              <i class="fas fa-chart-line"></i>
+            </div>
+            <div class="card-content">
+              <h4>Real-Time Analytics</h4>
+              <p>Monitor threats instantly</p>
+            </div>
+          </div>
+
+          <div class="floating-card card-2">
+            <div class="card-icon">
+              <i class="fas fa-lock"></i>
+            </div>
+            <div class="card-content">
+              <h4>Advanced Protection</h4>
+              <p>ML-powered security</p>
+            </div>
+          </div>
+
+          <div class="floating-card card-3">
+            <div class="card-icon">
+              <i class="fas fa-bell"></i>
+            </div>
+            <div class="card-content">
+              <h4>Instant Alerts</h4>
+              <p>Get notified immediately</p>
+            </div>
+          </div>
+
+          <div class="floating-card card-4">
+            <div class="card-icon">
+              <i class="fas fa-database"></i>
+            </div>
+            <div class="card-content">
+              <h4>Data Insights</h4>
+              <p>Comprehensive reports</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+      <div class="features-container">
+        <div class="section-header">
+          <div class="section-eyebrow">Our Features</div>
+          <h2 class="section-title">Comprehensive Security Solutions</h2>
+          <p class="section-description">
+            VIREX provides enterprise-grade security monitoring with advanced
+            machine learning capabilities to protect your APIs and applications.
+          </p>
+        </div>
+
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="fas fa-shield-virus"></i>
+            </div>
+            <h3 class="feature-title">Threat Detection</h3>
+            <p class="feature-description">
+              Advanced ML algorithms detect SQL injection, XSS, and other attack
+              patterns in real-time with 99%+ accuracy.
+            </p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="fas fa-chart-line"></i>
+            </div>
+            <h3 class="feature-title">Real-Time Monitoring</h3>
+            <p class="feature-description">
+              Monitor all API requests and responses with live dashboards
+              showing security metrics and threat levels.
+            </p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="fas fa-brain"></i>
+            </div>
+            <h3 class="feature-title">Machine Learning</h3>
+            <p class="feature-description">
+              Self-learning system that adapts to new threats and improves
+              detection accuracy over time.
+            </p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="fas fa-bell"></i>
+            </div>
+            <h3 class="feature-title">Instant Alerts</h3>
+            <p class="feature-description">
+              Get immediate notifications via email, Slack, or webhook when
+              critical threats are detected.
+            </p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="fas fa-file-alt"></i>
+            </div>
+            <h3 class="feature-title">Detailed Reports</h3>
+            <p class="feature-description">
+              Generate comprehensive security reports with incident timelines,
+              attack patterns, and remediation steps.
+            </p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="fas fa-users-cog"></i>
+            </div>
+            <h3 class="feature-title">Team Management</h3>
+            <p class="feature-description">
+              Role-based access control with admin, analyst, and viewer
+              permissions for your security team.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section class="how-it-works" id="how-it-works">
+      <div class="how-it-works-container">
+        <div class="section-header">
+          <div class="section-eyebrow">How It Works</div>
+          <h2 class="section-title">Simple 3-Step Process</h2>
+          <p class="section-description">
+            Get started with VIREX in minutes and protect your APIs immediately.
+          </p>
+        </div>
+
+        <div class="steps-grid">
+          <div class="step-card">
+            <div class="step-number">1</div>
+            <div class="step-icon">
+              <i class="fas fa-plug"></i>
+            </div>
+            <h3 class="step-title">Connect Your APIs</h3>
+            <p class="step-description">
+              Integrate VIREX with your existing APIs using our simple SDK or proxy setup.
+            </p>
+          </div>
+
+          <div class="step-card">
+            <div class="step-number">2</div>
+            <div class="step-icon">
+              <i class="fas fa-cogs"></i>
+            </div>
+            <h3 class="step-title">Configure Rules</h3>
+            <p class="step-description">
+              Set up security rules and thresholds based on your application requirements.
+            </p>
+          </div>
+
+          <div class="step-card">
+            <div class="step-number">3</div>
+            <div class="step-icon">
+              <span class="brand-v-icon" style="font-size: 2.2rem;">V</span>
+            </div>
+            <h3 class="step-title">Monitor & Protect</h3>
+            <p class="step-description">
+              Watch real-time threats being detected and blocked automatically.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Security Section -->
+    <section class="security-section" id="security">
+      <div class="security-container">
+        <div class="section-header">
+          <div class="section-eyebrow">Security First</div>
+          <h2 class="section-title">Enterprise-Grade Protection</h2>
+          <p class="section-description">
+            Built with security best practices and compliance standards in mind.
+          </p>
+        </div>
+
+        <div class="security-grid">
+          <div class="security-card">
+            <div class="security-icon">
+              <i class="fas fa-lock"></i>
+            </div>
+            <h3 class="security-title">End-to-End Encryption</h3>
+            <p class="security-description">
+              All data is encrypted in transit and at rest using AES-256 encryption.
+            </p>
+          </div>
+
+          <div class="security-card">
+            <div class="security-icon">
+              <i class="fas fa-certificate"></i>
+            </div>
+            <h3 class="security-title">SOC 2 Compliant</h3>
+            <p class="security-description">
+              Certified for security, availability, and confidentiality controls.
+            </p>
+          </div>
+
+          <div class="security-card">
+            <div class="security-icon">
+               <span class="brand-v-icon" style="font-size: 2.2rem;">V</span>
+            </div>
+            <h3 class="security-title">Zero Trust Architecture</h3>
+            <p class="security-description">
+              Built on zero trust principles with multi-factor authentication.
+            </p>
+          </div>
+
+          <div class="security-card">
+            <div class="security-icon">
+              <i class="fas fa-eye"></i>
+            </div>
+            <h3 class="security-title">Privacy by Design</h3>
+            <p class="security-description">
+              No sensitive data is stored, only security metadata and patterns.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+      <div class="cta-container">
+        <h2 class="cta-title">Ready to Secure Your APIs?</h2>
+        <p class="cta-description">
+          Join hundreds of companies protecting their applications with VIREX.
+          Start monitoring your API security today with our powerful platform.
+        </p>
+        <button class="btn-cta" onclick="window.location.href = '/login'">
+          <span>Start Free Trial Now</span>
+          <i class="fas fa-arrow-right"></i>
+        </button>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="footer-content">
+        <div class="footer-text">
+          © 2026 VIREX Security. All rights reserved.
+        </div>
+        <div class="footer-links">
+          <a href="/privacy" class="footer-link">Privacy Policy</a>
+          <a href="/terms" class="footer-link">Terms of Service</a>
+          <a href="/docs" class="footer-link">Documentation</a>
+          <a href="/support" class="footer-link">Support</a>
+        </div>
+      </div>
+    </footer>
+
+    <script src="/static/javascript/landing.js"></script>
+  </body>
+</html>

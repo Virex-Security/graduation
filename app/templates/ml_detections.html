@@ -1,0 +1,167 @@
+{% extends "sidebar_layout.html" %} {% set active_page = 'ml-detections' %} {%
+block title %}ML Detections - Virex{% endblock %} {% block stylesheets %}
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/ml_detections.css') }}"
+/>
+{% endblock %} {% block content %}
+<main class="main-content">
+  <header class="section-title">
+    <h1>{{ title }}</h1>
+    <p>
+      {% if user.role == 'user' %}Suspicious Security Activity{% else %}Advanced
+      threats detected by VIREX's AI/ML Engine.{% endif %}
+    </p>
+  </header>
+
+  <div
+    class="info-panel"
+    style="
+      background: var(--bg-layout);
+      padding: 12px 16px;
+      border-left: 4px solid var(--brand-primary);
+      margin-bottom: 16px;
+    "
+  >
+    <strong>Note:</strong> "Attack Type" is the label assigned to the traffic
+    based on the classification engine (SQL Injection, XSS, Brute Force, etc.).
+    "Detection Method" shows how the event was identified (ML Model,
+    Signature-based, Heuristic, etc.). The two values are intentionally
+    different when a machine learning model flags anomalous behaviour.
+  </div>
+
+  <div class="table-card">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Timestamp</th>
+          <th>Source IP</th>
+          <th>Attack Type</th>
+          <th class="admin-only">Detection Method</th>
+          <th class="admin-only">Confidence</th>
+          <th class="admin-only">Payload Analysis</th>
+          <th class="admin-only">Description</th>
+          <th class="admin-only">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if logs|length == 0 %}
+        <tr>
+          <td
+            colspan="8"
+            style="text-align: center; padding: 1rem; color: var(--text-muted)"
+          >
+            Until now , Generate some movement or check ML settings there are no
+            machine learning records.
+          </td>
+        </tr>
+        {% else %} {% for log in logs %}
+        <tr class="row-High">
+          <td
+            style="font-family: &quot;JetBrains Mono&quot;; font-size: 0.9rem"
+          >
+            {{ log.timestamp }}
+          </td>
+          <td>{{ log.ip }}</td>
+          <td>
+            <span style="font-weight: 700; color: var(--text-secondary)"
+              >{{ log.attack_type }}</span
+            >
+          </td>
+          <td class="admin-only">
+            <span>{{ log.detection_type or 'Unknown' }}</span>
+          </td>
+          <td class="admin-only">
+            {% if log.confidence >= 0.9 %}
+            <span class="confidence-high"
+              >{{ (log.confidence * 100)|round }}%</span
+            >
+            {% elif log.confidence >= 0.7 %}
+            <span class="confidence-med"
+              >{{ (log.confidence * 100)|round }}%</span
+            >
+            {% else %}
+            <span class="confidence-low"
+              >{{ (log.confidence * 100)|round }}%</span
+            >
+            {% endif %}
+          </td>
+          <td
+            class="admin-only"
+            style="
+              font-family: &quot;JetBrains Mono&quot;;
+              font-size: 0.85rem;
+              max-width: 350px;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              color: var(--text-primary);
+            "
+          >
+            {{ log.snippet or log.payload or 'N/A' }}
+          </td>
+          <td class="admin-only" style="font-size: 0.9rem">
+            {% set payload = log.snippet or log.payload or '' %} {% if 'SQL' in
+            payload or 'OR' in payload or 'UNION' in payload or '--' in payload
+            %}
+            <span style="display: flex; align-items: center; gap: 0.5rem">
+              <i class="fas fa-database" style="color: var(--warning)"></i>
+              <strong style="color: var(--warning)">SQL Injection:</strong>
+              <span style="color: var(--text-secondary)"
+                >Malicious SQL query pattern detected in request</span
+              >
+            </span>
+            {% elif 'script' in payload.lower() or 'alert' in payload.lower() or
+            'onerror' in payload.lower() %}
+            <span style="display: flex; align-items: center; gap: 0.5rem">
+              <i class="fas fa-code" style="color: var(--info)"></i>
+              <strong style="color: var(--info)">XSS Attack:</strong>
+              <span style="color: var(--text-secondary)"
+                >Malicious JavaScript/script tags detected in payload</span
+              >
+            </span>
+            {% elif log.attack_type == 'Brute Force' %}
+            <span style="display: flex; align-items: center; gap: 0.5rem">
+              <i class="fas fa-key" style="color: var(--danger)"></i>
+              <strong style="color: var(--danger)">Brute Force:</strong>
+              <span style="color: var(--text-secondary)"
+                >Unusual authentication attempt pattern detected</span
+              >
+            </span>
+            {% else %}
+            <span style="display: flex; align-items: center; gap: 0.5rem">
+              <i class="fas fa-brain" style="color: var(--brand-primary)"></i>
+              <strong style="color: var(--brand-primary)">Anomaly:</strong>
+              <span style="color: var(--text-secondary)"
+                >AI model identified suspicious pattern</span
+              >
+            </span>
+            {% endif %}
+          </td>
+          <td class="admin-only">
+            {% if log.blocked %}
+            <span
+              class="badge-blocked"
+              style="
+                background: var(--text-secondary);
+                box-shadow: 0 0 10px rgba(239, 68, 68, 0.4);
+              "
+              ><i class="fas fa-brain"></i> Auto-Blocked</span
+            >
+            {% else %}
+            <span style="color: var(--warning)"
+              ><i class="fas fa-eye"></i> Flags Only</span
+            >
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% endif %}
+  </div>
+</main>
+{% endblock %} {% block scripts %}
+<script>
+  // Only page-specific JavaScript here
+</script>
+{% endblock %}

@@ -1,0 +1,1182 @@
+[
+  {
+    "timestamp": "2026-04-01T22:20:36Z",
+    "text_hash": "37d007a56d816107ce5b52c10342db37",
+    "text_snippet": "http://localhost:8080",
+    "risk_score": 0.7659106500116534,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T22:20:41Z",
+    "text_hash": "0f76c067be36622169aecdb6491de924",
+    "text_snippet": "client796@mail.com",
+    "risk_score": 0.7499010778397335,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T22:20:47Z",
+    "text_hash": "0d2b694403baf5ec9330cfbfebb7a7f4",
+    "text_snippet": "client542@mail.com",
+    "risk_score": 0.7499010778397333,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T22:20:52Z",
+    "text_hash": "f3183d5979332246788027dcfafd18d4",
+    "text_snippet": "ahmed.hassan",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T22:21:08Z",
+    "text_hash": "00ae62442946445c7efb200ead23d894",
+    "text_snippet": "client207@mail.com",
+    "risk_score": 0.7499010778397333,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T22:21:14Z",
+    "text_hash": "af70cc7d1bd4462202656608f7a65711",
+    "text_snippet": "client63@mail.com",
+    "risk_score": 0.7499010778397331,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T22:21:17Z",
+    "text_hash": "d4374afc9b6954eb4667557c4f1c7b11",
+    "text_snippet": "client210@mail.com",
+    "risk_score": 0.7499010778397333,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T22:21:20Z",
+    "text_hash": "ee97e8b72b70df185a8b0e5267495aad",
+    "text_snippet": "sara.ali",
+    "risk_score": 0.7047369830125618,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T22:21:22Z",
+    "text_hash": "12115c02b0433d177ecf61f86571e030",
+    "text_snippet": "client870@mail.com",
+    "risk_score": 0.7499010778397333,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T22:21:49Z",
+    "text_hash": "16fd27a5d643d3c8ed1948e8c6ee402d",
+    "text_snippet": "omar.khalid",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T22:21:51Z",
+    "text_hash": "ec3d6a63d1cc762a7b279a91839ca58a",
+    "text_snippet": "nour.ibrahim",
+    "risk_score": 0.7047369830125618,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T22:21:55Z",
+    "text_hash": "c5560ce057f529d9b4f4c9f45a99fa91",
+    "text_snippet": "Victim User",
+    "risk_score": 0.7089012058864622,
+    "decision": "monitor",
+    "attack_type": "Brute Force",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T22:21:55Z",
+    "text_hash": "245b3ffcf15c0e9e8d6c2a6018d7cc27",
+    "text_snippet": "victim240@mail.com",
+    "risk_score": 0.7499010778397333,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T22:21:58Z",
+    "text_hash": "1de1064bdeb8e7d305e72c98bf3cbe70",
+    "text_snippet": "victim734@mail.com",
+    "risk_score": 0.7499010778397331,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T22:22:00Z",
+    "text_hash": "1ea0376381dc406c8e2fa2b4f7c0a3bd",
+    "text_snippet": "victim922@mail.com",
+    "risk_score": 0.7499010778397333,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T22:22:15Z",
+    "text_hash": "9ec5c609fdac8ba47d6f1b2d951d95f5",
+    "text_snippet": "client140@mail.com",
+    "risk_score": 0.7499010778397331,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:34:28Z",
+    "text_hash": "d475b5a8e863b4e0ce575bf7a8baa280",
+    "text_snippet": "client690@mail.com",
+    "risk_score": 0.7499010778397333,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:34:32Z",
+    "text_hash": "ed7d8fb0a0b875fbda87dda70aa1138e",
+    "text_snippet": "client661@mail.com",
+    "risk_score": 0.7499010778397331,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:34:37Z",
+    "text_hash": "f3183d5979332246788027dcfafd18d4",
+    "text_snippet": "ahmed.hassan",
+    "risk_score": 0.704736983012562,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:34:49Z",
+    "text_hash": "fff57ce593f2abbebb468d32f24c5171",
+    "text_snippet": "http://192.168.1.1",
+    "risk_score": 0.7659106500116534,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:34:52Z",
+    "text_hash": "2de349009e43659d4cbdf0f7d7dc7583",
+    "text_snippet": "http://10.0.0.1",
+    "risk_score": 0.7659106500116534,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:34:58Z",
+    "text_hash": "de67b4942a6349519553316ae9c5bbd8",
+    "text_snippet": "lina.mostafa",
+    "risk_score": 0.7047369830125618,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:35:06Z",
+    "text_hash": "ec3d6a63d1cc762a7b279a91839ca58a",
+    "text_snippet": "nour.ibrahim",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:35:13Z",
+    "text_hash": "32dcb2b8c5c5a47dc9da0182e578fdf3",
+    "text_snippet": "client623@mail.com",
+    "risk_score": 0.7499010778397333,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:35:25Z",
+    "text_hash": "dcbc347481c752f0e9e96571cf9722d9",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:35:25Z",
+    "text_hash": "9455d72072a7ac8dfebcc21579037087",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:35:27Z",
+    "text_hash": "1180846cc7e2e9e9ccefeb070c4aa395",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.7047369830125618,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:35:28Z",
+    "text_hash": "3bc7651be9fbf2861e561fe25ceab3e6",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.704736983012562,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:35:30Z",
+    "text_hash": "3a05aefd257fe67bf27b1bfbd8fcff5f",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.7047369830125618,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:35:30Z",
+    "text_hash": "8e7da287174573f26940cf3def59fc93",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:35:32Z",
+    "text_hash": "b81a7bf9d1467b6d35f0e58c824789e9",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.7047369830125618,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:35:32Z",
+    "text_hash": "a7593df4630aeaa6f439ffe5e0796f3c",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.704736983012562,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:35:34Z",
+    "text_hash": "56e5e0dacf4679de5c3c2cd87011b3fe",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.7047369830125618,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:35:35Z",
+    "text_hash": "240c18a01bee77094ecd21ec01e48866",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:35:37Z",
+    "text_hash": "942afbc9f604daa2953452023f0483cc",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:35:37Z",
+    "text_hash": "c9168d9d9b2eb329d5240b39f91d828d",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.7047369830125618,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:35:39Z",
+    "text_hash": "c49f128aa402dd90b02c1736bebb8e90",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:35:39Z",
+    "text_hash": "c29cd555678e9bdc51a50792770260cb",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:35:41Z",
+    "text_hash": "618753d3c1df0eaa6028f18a2d585452",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:35:41Z",
+    "text_hash": "3f54aafb4bd3cddd7069f2802f12126b",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.7047369830125618,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:35:54Z",
+    "text_hash": "16fd27a5d643d3c8ed1948e8c6ee402d",
+    "text_snippet": "omar.khalid",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:35:58Z",
+    "text_hash": "e6a5232dd6821035245d6459a68c5785",
+    "text_snippet": "client150@mail.com",
+    "risk_score": 0.7499010778397331,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:36:13Z",
+    "text_hash": "c07e940ce521e034f2eaf85264ab7daa",
+    "text_snippet": "client379@mail.com",
+    "risk_score": 0.7499010778397333,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:36:18Z",
+    "text_hash": "bad6b1219b091838199adbb572a62015",
+    "text_snippet": "client106@mail.com",
+    "risk_score": 0.7499010778397333,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:36:26Z",
+    "text_hash": "44187dfe1a7937d4bb1ab83aac80f895",
+    "text_snippet": "client278@mail.com",
+    "risk_score": 0.7499010778397333,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:36:28Z",
+    "text_hash": "3c2eaf02330b51d405be41880c8bb32e",
+    "text_snippet": "client274@mail.com",
+    "risk_score": 0.7499010778397333,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:36:34Z",
+    "text_hash": "97dfebf4098c0f5c16bca61e2b76c373",
+    "text_snippet": "test@mail.com",
+    "risk_score": 0.7536189374644726,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:36:43Z",
+    "text_hash": "78e19fb12f6b26a70b55d74457385905",
+    "text_snippet": "client963@mail.com",
+    "risk_score": 0.7499010778397333,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:37:00Z",
+    "text_hash": "15a1457747a71c49c9518dbea80920d1",
+    "text_snippet": "client622@mail.com",
+    "risk_score": 0.7499010778397333,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:37:24Z",
+    "text_hash": "260febb43a63c7df12af7f2af20294a5",
+    "text_snippet": "client702@mail.com",
+    "risk_score": 0.7499010778397333,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:37:34Z",
+    "text_hash": "c5560ce057f529d9b4f4c9f45a99fa91",
+    "text_snippet": "Victim User",
+    "risk_score": 0.7089012058864621,
+    "decision": "monitor",
+    "attack_type": "Brute Force",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:37:34Z",
+    "text_hash": "b081bebef15520e79ace09aa121c8b0a",
+    "text_snippet": "victim796@mail.com",
+    "risk_score": 0.7499010778397333,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:37:37Z",
+    "text_hash": "5547b75e0c3c1688d441b6685b948dd7",
+    "text_snippet": "victim300@mail.com",
+    "risk_score": 0.7499010778397331,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:37:39Z",
+    "text_hash": "c99041da5d7d1290d118cfa7ee2dc131",
+    "text_snippet": "victim272@mail.com",
+    "risk_score": 0.7499010778397333,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:37:56Z",
+    "text_hash": "ee97e8b72b70df185a8b0e5267495aad",
+    "text_snippet": "sara.ali",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:38:13Z",
+    "text_hash": "5d5da592507954304f299e81934509f4",
+    "text_snippet": "victim186@mail.com",
+    "risk_score": 0.7499010778397333,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:38:15Z",
+    "text_hash": "bfdf722edd68bd440d9cb358aea4cc73",
+    "text_snippet": "victim159@mail.com",
+    "risk_score": 0.7499010778397333,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:38:17Z",
+    "text_hash": "6ea6d023fb180a165cfc2389da8636a6",
+    "text_snippet": "victim219@mail.com",
+    "risk_score": 0.7499010778397331,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:38:23Z",
+    "text_hash": "67a8253b2811d1a960879aadd7fb5f03",
+    "text_snippet": "client305@mail.com",
+    "risk_score": 0.7499010778397333,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:38:31Z",
+    "text_hash": "7a844100a6eed3ea1080e1744496fdd5",
+    "text_snippet": "client625@mail.com",
+    "risk_score": 0.7499010778397333,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:38:52Z",
+    "text_hash": "815ccfc46e093aa14c3a0d300a6d3d80",
+    "text_snippet": "client960@mail.com",
+    "risk_score": 0.7499010778397333,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:39:16Z",
+    "text_hash": "a23d177373a0989dcd6c42bb7f730f29",
+    "text_snippet": "client969@mail.com",
+    "risk_score": 0.7499010778397333,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:39:24Z",
+    "text_hash": "b86ffb38a5b2eb75a1a08c0686defccb",
+    "text_snippet": "client129@mail.com",
+    "risk_score": 0.7499010778397333,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:39:33Z",
+    "text_hash": "f3183d5979332246788027dcfafd18d4",
+    "text_snippet": "ahmed.hassan",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:39:37Z",
+    "text_hash": "3165078f1b9b74a14060f961d0a4478d",
+    "text_snippet": "http://127.0.0.1/admin",
+    "risk_score": 0.8475618162652073,
+    "decision": "monitor",
+    "attack_type": "Brute Force",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:39:40Z",
+    "text_hash": "2de349009e43659d4cbdf0f7d7dc7583",
+    "text_snippet": "http://10.0.0.1",
+    "risk_score": 0.7659106500116534,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:39:51Z",
+    "text_hash": "ec3d6a63d1cc762a7b279a91839ca58a",
+    "text_snippet": "nour.ibrahim",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:40:06Z",
+    "text_hash": "88a89049748ce183dacade470e67836e",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:40:06Z",
+    "text_hash": "56956c1fc489aa340935468ac85544ac",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.7047369830125618,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:40:06Z",
+    "text_hash": "26382a8d1f5cdb7bce4d4a8f01920656",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.7047369830125618,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:40:07Z",
+    "text_hash": "73a8781f589092ac4924df636c6c0c69",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.7047369830125618,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:40:08Z",
+    "text_hash": "04d83fae8b4f304fcb2feb212b95e5fd",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.7047369830125618,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:40:09Z",
+    "text_hash": "30414637c233aeb25198f768efdbef3e",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:40:09Z",
+    "text_hash": "1f5d949701d173a82545354962655add",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.7047369830125618,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:40:09Z",
+    "text_hash": "2f24ea1d12ecdabf6ce2a5051649234c",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.7047369830125616,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:40:11Z",
+    "text_hash": "b3c5c4cf88317a2948af8e013001cb97",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:40:11Z",
+    "text_hash": "55c7d4105efc30adbb04b9c136212145",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:40:11Z",
+    "text_hash": "58391e2f6a3bf79b69a69a81f8af3abc",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:40:11Z",
+    "text_hash": "3d597e2243a15fe99fe3503f08ec45ed",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.7047369830125618,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:40:13Z",
+    "text_hash": "a6ed6b26f6d95f9a6ae20f929dda0972",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:40:13Z",
+    "text_hash": "4458a8d9d64267a489d422b5b1b49359",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.7047369830125618,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:40:14Z",
+    "text_hash": "e06d0dae70c6bd06a92eb2fc25e7c481",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.7047369830125618,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:40:14Z",
+    "text_hash": "7f88313772d5b88b9f58ff33e141aab4",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:40:16Z",
+    "text_hash": "9295ecc282b22466bca8bf6111e74692",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.7047369830125618,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:40:21Z",
+    "text_hash": "36afb2dd3423fc6c68bfced82ffc509a",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.704736983012562,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:40:22Z",
+    "text_hash": "272ea1f38ab8958c08fdb5721bfda3f1",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:40:22Z",
+    "text_hash": "e3c244c24bab858348af33dceb44bb93",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.7047369830125618,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:40:23Z",
+    "text_hash": "cc59236a778a2190b89a4c2427e0dd0c",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:40:23Z",
+    "text_hash": "209d04b0050b551304f1869615be8ed5",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.7047369830125618,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:40:23Z",
+    "text_hash": "75bba02ed73999f06cc8dd5dc6f685c1",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.7047369830125618,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:40:23Z",
+    "text_hash": "68c33c2f64ffe64006f52fc01ea124dd",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.7047369830125618,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:40:25Z",
+    "text_hash": "eba1555dcdc271b326f130c48371447f",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:40:25Z",
+    "text_hash": "5643b2854e950fe94fb92f320e6f6f4c",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:40:25Z",
+    "text_hash": "2fd55f013aac853904ce0189bd918d85",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:40:25Z",
+    "text_hash": "d70999aa02d6479b04bc87c1c60a5073",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.7047369830125618,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:40:28Z",
+    "text_hash": "a3dc7d23cf7ebd1d1add00f104e4d955",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.704736983012562,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:40:28Z",
+    "text_hash": "def41ecb5f06d67dab23af72e040bfec",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:40:34Z",
+    "text_hash": "de67b4942a6349519553316ae9c5bbd8",
+    "text_snippet": "lina.mostafa",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:40:39Z",
+    "text_hash": "cbfd1ece4ca80ed4423cd4ed8ca70d8b",
+    "text_snippet": "client369@mail.com",
+    "risk_score": 0.7499010778397331,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:40:47Z",
+    "text_hash": "b9c17ab7f8ba7284dd29afc38db83c2b",
+    "text_snippet": "client874@mail.com",
+    "risk_score": 0.7499010778397333,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:41:12Z",
+    "text_hash": "caad5d637cb23dae6a8dcc4818b241b7",
+    "text_snippet": "client866@mail.com",
+    "risk_score": 0.7499010778397333,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:41:19Z",
+    "text_hash": "97dfebf4098c0f5c16bca61e2b76c373",
+    "text_snippet": "test@mail.com",
+    "risk_score": 0.7536189374644726,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:41:44Z",
+    "text_hash": "c859b675a6e8b5d64ff7a44dc1c79759",
+    "text_snippet": "client670@mail.com",
+    "risk_score": 0.7499010778397335,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:42:02Z",
+    "text_hash": "308fcaf676d9bbb2a61c057e1ca17b6b",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.7047369830125618,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:42:02Z",
+    "text_hash": "06abb02b394ff327010fd00ae0f07718",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:42:04Z",
+    "text_hash": "9bff3709e471c496e8401120cbf485e6",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.704736983012562,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:42:04Z",
+    "text_hash": "954f994b3bfccffc8b5303426f869471",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.7047369830125618,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:42:06Z",
+    "text_hash": "cdd49894fd516685b0173b0f10da00af",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:42:06Z",
+    "text_hash": "197656079e2fc679fd987632d79dd2b8",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:42:08Z",
+    "text_hash": "820b75b1a932d273327e8b7a17878ef1",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:42:08Z",
+    "text_hash": "f344bb656637df897dba414f42f62f94",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:42:10Z",
+    "text_hash": "d11cc16569e6fa4a5977afcc6974f734",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.704736983012562,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:42:13Z",
+    "text_hash": "1aaa6f88bfff595d31e902c07c30ba6e",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.704736983012562,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:42:13Z",
+    "text_hash": "e699a1f6a5b1478f61f82daa12cda88b",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:42:15Z",
+    "text_hash": "522d943e80d9eca0e6c1c6ef684d2132",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:42:15Z",
+    "text_hash": "0b411c958c3f87906fdde55d8d07d3c6",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.7047369830125619,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:42:17Z",
+    "text_hash": "50a50866830603393071c4c3894ff333",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.7047369830125618,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-01T23:42:17Z",
+    "text_hash": "fd816d6d069dc777e1eff53b954aca85",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.704736983012562,
+    "decision": "monitor",
+    "attack_type": "Anomaly",
+    "reviewed": false,
+    "promoted_to_rule": false
+  }
+]
