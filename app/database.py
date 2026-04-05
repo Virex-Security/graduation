@@ -174,7 +174,8 @@ def insert_user(username, password_hash, email=None,
 
 def update_user(username: str, **kwargs) -> bool:
     allowed = {"email", "password_hash", "role_id", "department_id",
-               "is_active", "last_login", "updated_at"}
+               "is_active", "last_login", "updated_at",
+               "full_name", "phone", "department"}
     fields = {k: v for k, v in kwargs.items() if k in allowed}
     if not fields:
         return False
