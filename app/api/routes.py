@@ -58,11 +58,9 @@ def create_api_app():
 
     security = SimpleSecurityManager()
 
-    # ── Brute force tracker (+ persistent blocked_ips) ────────
-    brute_force_tracker = defaultdict(list)
     BRUTE_FORCE_LIMIT      = 5
-    BRUTE_FORCE_WINDOW     = 60
-    BRUTE_FORCE_BLOCK_TIME = 300
+    BRUTE_FORCE_WINDOW     = 300  # 5 minutes
+    BRUTE_FORCE_BLOCK_TIME = 900  # 15 minutes
 
     # Load persisted blocked IPs on startup
     from app.api.persistence import load_blocked_ips, save_blocked_ips
@@ -261,35 +259,36 @@ def create_api_app():
                 save_blocked_ips(blocked_ips)
 
         verified_user = user_manager.verify_password(username, password) if username and password else None
+        
         if verified_user:
-          brute_force_tracker[ip] = []
-          # Mint and return JWT — same as dashboard's login_user()
-          token = jwt.encode({
-              "user": username,
-              "role": verified_user["role"],
-              "exp": datetime.utcnow() + timedelta(hours=8),
-              "iat": datetime.utcnow(),
-              "jti": secrets.token_hex(16),   # for revocation
-          }, current_app.config["SECRET_KEY"], algorithm="HS256")
-          resp = make_response(jsonify({"message": "Login successful"}))
-          from app import config as _cfg
-          resp.set_cookie("auth_token", token, httponly=True,
-                        secure=_cfg.cookie_secure(), samesite="Strict", max_age=8*3600)
-          return resp, 200
+            db.log_login_attempt(username, ip, True, user_id=verified_user.get("user_id"))
+            # Mint and return JWT — same as dashboard's login_user()
+            token = jwt.encode({
+                "user": username,
+                "role": verified_user["role"],
+                "exp": datetime.utcnow() + timedelta(hours=8),
+                "iat": datetime.utcnow(),
+                "jti": secrets.token_hex(16),   # for revocation
+            }, current_app.config["SECRET_KEY"], algorithm="HS256")
+            resp = make_response(jsonify({"message": "Login successful"}))
+            from app import config as _cfg
+            resp.set_cookie("auth_token", token, httponly=True,
+                          secure=_cfg.cookie_secure(), samesite="Strict", max_age=8*3600)
+            return resp, 200
         else:
-              # Brute force tracking
-              attempts = [t for t in brute_force_tracker[ip]
-              if now - t < BRUTE_FORCE_WINDOW]
-              attempts.append(now)
-              brute_force_tracker[ip] = attempts
-              security.brute_force_count += 1
+            # Brute force tracking using DB
+            db.log_login_attempt(username, ip, False, reason="Invalid credentials")
+            
+            # Count recent failures for this IP OR Username
+            recent_failures = db.get_recent_login_failures(username, BRUTE_FORCE_WINDOW)
+            security.brute_force_count += 1
+            
+            if recent_failures >= BRUTE_FORCE_LIMIT:
+                blocked_ips[ip] = now + BRUTE_FORCE_BLOCK_TIME
+                save_blocked_ips(blocked_ips)
+                return jsonify({"error": "Too many failed attempts. Try again in 15 minutes."}), 429
 
-              if len(attempts) >= BRUTE_FORCE_LIMIT:
-                  blocked_ips[ip] = now + BRUTE_FORCE_BLOCK_TIME
-                  save_blocked_ips(blocked_ips)
-                  return jsonify({"error": "Too many attempts. Try later."}), 429
-
-              return jsonify({"error": "Invalid credentials"}), 401
+            return jsonify({"error": "Invalid credentials"}), 401
     # ── Attack History Endpoints ──────────────────────────────
     @app.route("/api/my-attacks", methods=["GET"])
     @token_required

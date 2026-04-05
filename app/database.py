@@ -254,6 +254,31 @@ def _ensure_rules_table():
             )
         """)
         cur.execute("""
+            CREATE TABLE IF NOT EXISTS otp_requests (
+                id           INTEGER PRIMARY KEY AUTOINCREMENT,
+                identifier   TEXT NOT NULL,
+                requested_at TEXT NOT NULL
+            )
+        """)
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS rate_limits (
+                id           INTEGER PRIMARY KEY AUTOINCREMENT,
+                key          TEXT NOT NULL,
+                requested_at TEXT NOT NULL
+            )
+        """)
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS login_attempts (
+                login_attempt_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id          INTEGER,
+                username         TEXT,
+                ip_address       TEXT,
+                success          INTEGER DEFAULT 0,
+                failure_reason   TEXT,
+                attempted_at     TEXT
+            )
+        """)
+        cur.execute("""
             CREATE TABLE IF NOT EXISTS threat_logs (
                 threat_log_id  INTEGER PRIMARY KEY AUTOINCREMENT,
                 attack_type    TEXT NOT NULL,
@@ -875,3 +900,53 @@ def ensure_indexes():
         for sql in indexes:
             cur.execute(sql)
     logger.info("[DB] Indexes ensured")
+
+
+# ══════════════════════════════════════════════════════════════
+# SECURITY / RATE LIMITING
+# ══════════════════════════════════════════════════════════════
+
+def log_otp_request(identifier: str):
+    """Log a password reset OTP request for rate limiting."""
+    now = time.strftime("%Y-%m-%d %H:%M:%S")
+    with db_cursor() as cur:
+        cur.execute("INSERT INTO otp_requests (identifier, requested_at) VALUES (?,?)", (identifier, now))
+
+def get_otp_request_count(identifier: str, window_sec: int) -> int:
+    """Get count of OTP requests for this identifier within the window."""
+    since = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.time() - window_sec))
+    with db_cursor() as cur:
+        cur.execute("SELECT COUNT(*) FROM otp_requests WHERE identifier = ? AND requested_at > ?", (identifier, since))
+        return cur.fetchone()[0]
+
+def log_api_hit(key: str):
+    """Log an API hit for rate limiting."""
+    now = time.strftime("%Y-%m-%d %H:%M:%S")
+    with db_cursor() as cur:
+        cur.execute("INSERT INTO rate_limits (key, requested_at) VALUES (?,?)", (key, now))
+
+def get_api_hit_count(key: str, window_sec: int) -> int:
+    """Get count of API hits for this key within the window."""
+    since = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.time() - window_sec))
+    with db_cursor() as cur:
+        cur.execute("SELECT COUNT(*) FROM rate_limits WHERE key = ? AND requested_at > ?", (key, since))
+        return cur.fetchone()[0]
+
+def log_login_attempt(username: str, ip: str, success: bool, reason: str = None, user_id: int = None):
+    """Log a login attempt for brute-force tracking."""
+    now = time.strftime("%Y-%m-%d %H:%M:%S")
+    with db_cursor() as cur:
+        cur.execute("""
+            INSERT INTO login_attempts (user_id, username, ip_address, success, failure_reason, attempted_at)
+            VALUES (?,?,?,?,?,?)
+        """, (user_id, username, ip, 1 if success else 0, reason, now))
+
+def get_recent_login_failures(username: str, window_sec: int) -> int:
+    """Count recent failed login attempts for this username."""
+    since = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.time() - window_sec))
+    with db_cursor() as cur:
+        cur.execute("""
+            SELECT COUNT(*) FROM login_attempts 
+            WHERE username = ? AND success = 0 AND attempted_at > ?
+        """, (username, since))
+        return cur.fetchone()[0]

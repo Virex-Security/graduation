@@ -188,7 +188,7 @@ def create_dashboard_app():
     SMTP_PASSWORD = _cfg.smtp_password()
     SECRET_KEY    = _cfg.secret_key()
 
-    otp_request_tracker = {}
+
 
     @app.route('/api/request-reset-otp', methods=['POST'])
     def request_reset_otp():
@@ -197,15 +197,12 @@ def create_dashboard_app():
         if not identifier:
             return jsonify({'error': 'Username or email required'}), 400
             
-        current_time = time.time()
-        requests_history = otp_request_tracker.get(identifier, [])
-        requests_history = [t for t in requests_history if current_time - t < 600]
-        
-        if len(requests_history) >= 3:
+        # Persistent rate limit check (3 requests per 10 minutes)
+        request_count = _db.get_otp_request_count(identifier, 600)
+        if request_count >= 3:
             return jsonify({"error": "Too many requests. Try again later."}), 429
             
-        requests_history.append(current_time)
-        otp_request_tracker[identifier] = requests_history
+        _db.log_otp_request(identifier)
         
         # دور بالـ username أو الـ email
         user = user_manager.get_user(identifier)
