@@ -20,9 +20,11 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+app = create_dashboard_app()
+
 if __name__ == '__main__':
     logger.info("📊 Virex SIEM Dashboard starting...")
-    app = create_dashboard_app()
+
     dashboard_port = int(os.getenv("DASHBOARD_PORT", 8070))
     debug_mode = os.getenv("FLASK_DEBUG", "false").lower() == "true"
 

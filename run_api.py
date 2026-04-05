@@ -21,9 +21,11 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+app = create_api_app()
+
 if __name__ == '__main__':
     logger.info("🛡️  Virex API Security System starting...")
-    app = create_api_app()
+
     api_port = int(os.getenv("API_PORT", 5000))
     debug_mode = os.getenv("FLASK_DEBUG", "false").lower() == "true"
 
