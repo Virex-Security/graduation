@@ -8,6 +8,13 @@ import sqlite3
 import threading
 import time
 import logging
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+import re
+>>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
+>>>>>>> 29c1406ff0d33cca29bb3c738f3c070c695be578
 from pathlib import Path
 from contextlib import contextmanager
 
@@ -19,6 +26,18 @@ DB_PATH      = PROJECT_ROOT / "db" / "virex.db"
 @contextmanager
 def db_cursor():
     """كل عملية بتفتح connection جديدة وبتقفلها — يمنع database is locked."""
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 29c1406ff0d33cca29bb3c738f3c070c695be578
+    conn = sqlite3.connect(str(DB_PATH), timeout=10, check_same_thread=False)
+    conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA journal_mode=WAL")
+    conn.execute("PRAGMA foreign_keys=ON")
+    conn.execute("PRAGMA busy_timeout=5000")
+<<<<<<< HEAD
+=======
+=======
     conn = sqlite3.connect(str(DB_PATH), timeout=30, check_same_thread=False)
     conn.row_factory = sqlite3.Row
     try:
@@ -27,6 +46,8 @@ def db_cursor():
         pass
     conn.execute("PRAGMA foreign_keys=ON")
     conn.execute("PRAGMA busy_timeout=30000")
+>>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
+>>>>>>> 29c1406ff0d33cca29bb3c738f3c070c695be578
     cur = conn.cursor()
     try:
         yield cur
@@ -40,13 +61,37 @@ def db_cursor():
 
 
 def init_db():
+<<<<<<< HEAD
     """Ensure DB is ready: seed roles, users, and create performance indexes."""
+=======
+<<<<<<< HEAD
+    """Ensure DB is ready: seed roles, users, and create performance indexes."""
+=======
+    """Ensure DB is ready: schema, seed roles, users, and create performance indexes."""
+    _ensure_schema()
+>>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
+>>>>>>> 29c1406ff0d33cca29bb3c738f3c070c695be578
     _seed_roles()
     _seed_users()
     ensure_indexes()
     logger.info("[DB] Ready — %s", DB_PATH)
 
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+def _add_column_if_missing(cur, table, column, definition):
+    """Safely adds a column to a table if it doesn't already exist (idempotent)."""
+    cur.execute(f"PRAGMA table_info({table})")
+    cols = [r["name"] for r in cur.fetchall()]
+    if column not in cols:
+        cur.execute(f"ALTER TABLE {table} ADD COLUMN {column} {definition}")
+        logger.info("[DB] Added column %s to table %s", column, table)
+
+
+>>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
+>>>>>>> 29c1406ff0d33cca29bb3c738f3c070c695be578
 # ══════════════════════════════════════════════════════════════
 # SEED helpers
 # ══════════════════════════════════════════════════════════════
@@ -178,11 +223,34 @@ def insert_user(username, password_hash, email=None,
 def update_user(username: str, **kwargs) -> bool:
     allowed = {"email", "password_hash", "role_id", "department_id",
                "is_active", "last_login", "updated_at",
-               "full_name", "phone", "department", "avatar_url"}
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 29c1406ff0d33cca29bb3c738f3c070c695be578
+               "full_name", "phone", "department"}
     fields = {k: v for k, v in kwargs.items() if k in allowed}
     if not fields:
         return False
     fields["updated_at"] = time.strftime("%Y-%m-%d %H:%M:%S")
+<<<<<<< HEAD
+=======
+=======
+               "full_name", "phone", "department", "avatar_url"}
+    # Strict validation: Every key in kwargs MUST be in allowlist and match regex
+    for k in kwargs:
+        if k not in allowed:
+            raise ValueError(f"[SECURITY] Unauthorized column update: {k}")
+        if not re.fullmatch(r"^[a-z0-9_]+$", k):
+            raise ValueError(f"[SECURITY] Invalid column format: {k}")
+
+    if not kwargs:
+        return False
+
+    fields = kwargs.copy()
+    fields["updated_at"] = time.strftime("%Y-%m-%d %H:%M:%S")
+    
+>>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
+>>>>>>> 29c1406ff0d33cca29bb3c738f3c070c695be578
     set_clause = ", ".join(f"{k} = ?" for k in fields)
     values = list(fields.values()) + [username]
     with db_cursor() as cur:
@@ -210,9 +278,22 @@ def get_all_roles() -> list:
 # RULES
 # ══════════════════════════════════════════════════════════════
 
+<<<<<<< HEAD
 def _ensure_rules_table():
     """Create the rules table if it doesn't already exist."""
     with db_cursor() as cur:
+=======
+<<<<<<< HEAD
+def _ensure_rules_table():
+    """Create the rules table if it doesn't already exist."""
+    with db_cursor() as cur:
+=======
+def _ensure_schema():
+    """Create all required tables and handle schema migrations if they don't already exist."""
+    with db_cursor() as cur:
+        # Rules Table
+>>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
+>>>>>>> 29c1406ff0d33cca29bb3c738f3c070c695be578
         cur.execute("""
             CREATE TABLE IF NOT EXISTS rules (
                 rule_id      INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -226,20 +307,37 @@ def _ensure_rules_table():
                 created_at   TEXT
             )
         """)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+        # Password Resets Table
+>>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
+>>>>>>> 29c1406ff0d33cca29bb3c738f3c070c695be578
         cur.execute("""
             CREATE TABLE IF NOT EXISTS password_resets (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 user_id INTEGER NOT NULL,
                 otp TEXT NOT NULL,
                 otp_expiry TEXT NOT NULL,
+<<<<<<< HEAD
+                used INTEGER DEFAULT 0
+            )
+        """)
+=======
+<<<<<<< HEAD
+                used INTEGER DEFAULT 0
+            )
+        """)
+=======
                 used INTEGER DEFAULT 0,
                 otp_attempts INTEGER DEFAULT 0
             )
         """)
-        try:
-            cur.execute("ALTER TABLE password_resets ADD COLUMN otp_attempts INTEGER DEFAULT 0")
-        except Exception:
-            pass
+        # Run specific schema updates safely
+        _add_column_if_missing(cur, "password_resets", "otp_attempts", "INTEGER DEFAULT 0")
+>>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
+>>>>>>> 29c1406ff0d33cca29bb3c738f3c070c695be578
         cur.execute("""
             CREATE TABLE IF NOT EXISTS audit_logs (
                 audit_log_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -254,6 +352,10 @@ def _ensure_rules_table():
             )
         """)
         cur.execute("""
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
             CREATE TABLE IF NOT EXISTS otp_requests (
                 id           INTEGER PRIMARY KEY AUTOINCREMENT,
                 identifier   TEXT NOT NULL,
@@ -279,6 +381,8 @@ def _ensure_rules_table():
             )
         """)
         cur.execute("""
+>>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
+>>>>>>> 29c1406ff0d33cca29bb3c738f3c070c695be578
             CREATE TABLE IF NOT EXISTS threat_logs (
                 threat_log_id  INTEGER PRIMARY KEY AUTOINCREMENT,
                 attack_type    TEXT NOT NULL,
@@ -307,7 +411,13 @@ def _ensure_rules_table():
                 phone         TEXT,
                 department    TEXT,
                 last_login    TEXT,
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
                 avatar_url    TEXT,
+>>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
+>>>>>>> 29c1406ff0d33cca29bb3c738f3c070c695be578
                 created_at    TEXT
             )
         """)
@@ -315,7 +425,14 @@ def _ensure_rules_table():
 
 def _seed_rules_table():
     """Insert default WAF detection rules if the table is empty."""
+<<<<<<< HEAD
     _ensure_rules_table()
+=======
+<<<<<<< HEAD
+    _ensure_rules_table()
+=======
+>>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
+>>>>>>> 29c1406ff0d33cca29bb3c738f3c070c695be578
     with db_cursor() as cur:
         cur.execute("SELECT COUNT(*) FROM rules")
         if cur.fetchone()[0] > 0:
@@ -348,11 +465,21 @@ def _seed_rules_table():
 def get_rules(active_only: bool = True) -> list:
     """
     Return WAF rules from the database as a list of dictionaries.
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 29c1406ff0d33cca29bb3c738f3c070c695be578
     Each dict has keys: rule_id, name, type, pattern, severity, action,
                         is_active, description, created_at.
     Example: {"type": "sql_injection", "severity": "high", ...}
     """
     _ensure_rules_table()
+<<<<<<< HEAD
+=======
+=======
+    """
+>>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
+>>>>>>> 29c1406ff0d33cca29bb3c738f3c070c695be578
     with db_cursor() as cur:
         if active_only:
             cur.execute("SELECT * FROM rules WHERE is_active = 1 ORDER BY rule_id")
@@ -784,7 +911,14 @@ def create_department(name: str, slug: str, description: str = "") -> int:
 # ══════════════════════════════════════════════════════════════
 
 def load_stats() -> dict:
+<<<<<<< HEAD
     _ensure_rules_table()
+=======
+<<<<<<< HEAD
+    _ensure_rules_table()
+=======
+>>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
+>>>>>>> 29c1406ff0d33cca29bb3c738f3c070c695be578
     with db_cursor() as cur:
         cur.execute("SELECT COUNT(*) FROM threat_logs")
         total = cur.fetchone()[0]
@@ -818,7 +952,14 @@ def load_stats() -> dict:
 
 def clear_threat_logs():
     """Delete all rows from threat_logs (used by the dashboard reset action)."""
+<<<<<<< HEAD
     _ensure_rules_table()
+=======
+<<<<<<< HEAD
+    _ensure_rules_table()
+=======
+>>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
+>>>>>>> 29c1406ff0d33cca29bb3c738f3c070c695be578
     with db_cursor() as cur:
         cur.execute("DELETE FROM threat_logs")
 
@@ -901,6 +1042,10 @@ def ensure_indexes():
         for sql in indexes:
             cur.execute(sql)
     logger.info("[DB] Indexes ensured")
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
 
 
 # ══════════════════════════════════════════════════════════════
@@ -951,3 +1096,5 @@ def get_recent_login_failures(username: str, window_sec: int) -> int:
             WHERE username = ? AND success = 0 AND attempted_at > ?
         """, (username, since))
         return cur.fetchone()[0]
+>>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
+>>>>>>> 29c1406ff0d33cca29bb3c738f3c070c695be578

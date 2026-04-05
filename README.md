@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # 🛡️ Virex Security System
 
 A full-stack SIEM (Security Information and Event Management) platform with:
@@ -24,6 +25,22 @@ A full-stack SIEM (Security Information and Event Management) platform with:
 git clone https://github.com/Virex-Security/graduation.git
 cd graduation
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 29c1406ff0d33cca29bb3c738f3c070c695be578
+# Copy and edit the environment file
+cp .env.example .env
+# Edit .env — set SECRET_KEY, INTERNAL_API_SECRET, and optionally SMTP_*
+```
+
+Generate secure keys:
+```bash
+python3 -c "import secrets; print('SECRET_KEY=' + secrets.token_hex(32))"
+python3 -c "import secrets; print('INTERNAL_API_SECRET=' + secrets.token_hex(32))"
+<<<<<<< HEAD
+=======
+=======
 # ⚠️ Setup environment variables
 cp .env.example .env
 # Edit .env — set SECRET_KEY, INTERNAL_API_SECRET, and SMTP_*
@@ -33,6 +50,8 @@ Generate secure keys (DO NOT use defaults!):
 ```bash
 python3 -c "import secrets; print('SECRET_KEY=\"' + secrets.token_hex(64) + '\"')"
 python3 -c "import secrets; print('INTERNAL_API_SECRET=\"' + secrets.token_urlsafe(48) + '\"')"
+>>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
+>>>>>>> 29c1406ff0d33cca29bb3c738f3c070c695be578
 ```
 
 ### 2. Install Python dependencies
@@ -139,6 +158,16 @@ graduation/
 |---------|-----|------------|
 | `FLASK_DEBUG` | true | **false** |
 | `COOKIE_SECURE` | false | **true** (requires HTTPS) |
+<<<<<<< HEAD
+| `SECRET_KEY` | any | **random 32+ byte hex** |
+| HTTPS | optional | **required** |
+
+=======
+<<<<<<< HEAD
+| `SECRET_KEY` | any | **random 32+ byte hex** |
+| HTTPS | optional | **required** |
+
+=======
 | `SECRET_KEY` | any | **random 64+ byte hex** |
 | HTTPS | optional | **required** |
 
@@ -148,6 +177,8 @@ If your `.env` file is accidentally committed or shared, you **MUST** rotate all
 2. Update the `SMTP_PASSWORD`.
 3. Restart all services.
 
+>>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
+>>>>>>> 29c1406ff0d33cca29bb3c738f3c070c695be578
 ---
 
 ## 🧪 Running Tests
@@ -170,6 +201,10 @@ pytest tests/ -v
 
 ---
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
 ## 💾 Database Concurrency
 
 > [!IMPORTANT]
@@ -183,6 +218,11 @@ pytest tests/ -v
 > **Production Recommendation:**
 > For high-concurrency environments or large-scale deployments, we recommend migrating to **PostgreSQL**.
 
+>>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
+>>>>>>> 29c1406ff0d33cca29bb3c738f3c070c695be578
 ## 📜 License
 
 Educational project — Virex Security Team
+=======
+# graduation1
+>>>>>>> 967891135f8e00079cef2ba1d9796462c24daaba

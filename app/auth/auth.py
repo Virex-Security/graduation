@@ -66,7 +66,15 @@ def login_user(username: str, password: str):
         token,
         httponly=True,
         secure=config.cookie_secure(),   # ← env-driven, not hardcoded False
+<<<<<<< HEAD
+        samesite="Lax",
+=======
+<<<<<<< HEAD
+        samesite="Lax",
+=======
         samesite="Strict",
+>>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
+>>>>>>> 29c1406ff0d33cca29bb3c738f3c070c695be578
         max_age=8 * 3600,
     )
     return resp, 200
@@ -93,5 +101,13 @@ def logout_user():
 
     resp = make_response(jsonify({"message": "Logged out successfully"}))
     resp.set_cookie("auth_token", "", expires=0, httponly=True,
+<<<<<<< HEAD
+                    secure=config.cookie_secure(), samesite="Lax")
+=======
+<<<<<<< HEAD
+                    secure=config.cookie_secure(), samesite="Lax")
+=======
                     secure=config.cookie_secure(), samesite="Strict")
+>>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
+>>>>>>> 29c1406ff0d33cca29bb3c738f3c070c695be578
     return resp

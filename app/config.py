@@ -28,7 +28,13 @@ _DEFAULTS = {
     "MAX_CONTENT_LENGTH":    "1048576",
     "SMTP_EMAIL":            "",
     "SMTP_PASSWORD":         "",
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
     "TRUSTED_PROXIES":      "127.0.0.1",
+>>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
+>>>>>>> 29c1406ff0d33cca29bb3c738f3c070c695be578
 }
 
 # ── Insecure default values that must be changed in production ──
@@ -38,6 +44,12 @@ _INSECURE_VALUES = {
         "change-me-in-production",
         "fallback-dev-key-change-in-production",
         "dev-secret",
+<<<<<<< HEAD
+    ]
+=======
+<<<<<<< HEAD
+    ]
+=======
         "dev-secret-key",
         "secret",
         "password",
@@ -54,6 +66,8 @@ _INSECURE_VALUES = {
         "admin",
         "Vx7kR2mNpL9qT4wY8sJ3hB6dE1fC5nQ0aZuWHgKoPiXrDtMs",
     ],
+>>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
+>>>>>>> 29c1406ff0d33cca29bb3c738f3c070c695be578
 }
 
 
@@ -94,6 +108,17 @@ def validate_config(strict: bool = False) -> bool:
     if not cookie_secure():
         warnings.append("  ⚠️  COOKIE_SECURE is disabled — auth cookies will be sent over HTTP (insecure in production)")
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 29c1406ff0d33cca29bb3c738f3c070c695be578
+    # Check SECRET_KEY minimum length
+    secret = os.getenv("SECRET_KEY", "")
+    if secret and len(secret) < 32:
+        errors.append(f"  ❌ SECRET_KEY is too short ({len(secret)} chars, minimum 32)")
+<<<<<<< HEAD
+=======
+=======
     # Check SECRET_KEY minimum length and entropy
     secret = os.getenv("SECRET_KEY", "")
     if secret and len(secret) < 64:
@@ -108,6 +133,8 @@ def validate_config(strict: bool = False) -> bool:
     internal = os.getenv("INTERNAL_API_SECRET", "")
     if internal and len(internal) < 32:
         errors.append(f"  ❌ INTERNAL_API_SECRET is too short ({len(internal)} chars, minimum 32)")
+>>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
+>>>>>>> 29c1406ff0d33cca29bb3c738f3c070c695be578
 
     # Report
     if warnings:
@@ -164,9 +191,15 @@ def smtp_email() -> str:
 
 def smtp_password() -> str:
     return os.getenv("SMTP_PASSWORD", "")
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
 
 
 def trusted_proxies() -> frozenset:
     """Returns a frozenset of trusted proxy IPs from configuration."""
     raw = get("TRUSTED_PROXIES")
     return frozenset(ip.strip() for ip in raw.split(",") if ip.strip())
+>>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
+>>>>>>> 29c1406ff0d33cca29bb3c738f3c070c695be578

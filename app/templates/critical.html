@@ -1,3 +1,29 @@
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 29c1406ff0d33cca29bb3c738f3c070c695be578
+{% extends "sidebar_layout.html" %}
+{% set active_page = 'critical' %}
+
+{% block title %}High Alert Intelligence - Virex{% endblock %}
+
+{% block stylesheets %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/critical.css') }}" />
+{% endblock %}
+
+{% block content %}
+<main class="main-content critical-page">
+  <header class="section-title">
+    <h1>
+      <i class="fas fa-shield-exclamation"></i> High Alert
+      Intelligence
+    </h1>
+    <p>
+      Real-time monitoring and analysis of high severity threats
+      detected by VIREX AI/ML Engine
+<<<<<<< HEAD
+=======
+=======
 {% extends "sidebar_layout.html" %} {% set active_page = 'critical' %} {% block
 title %}Critical Intelligence - Virex{% endblock %} {% block stylesheets %}
 <link
@@ -11,6 +37,8 @@ title %}Critical Intelligence - Virex{% endblock %} {% block stylesheets %}
     <p>
       Real-time monitoring and analysis of high severity threats detected by
       VIREX AI/ML Engine
+>>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
+>>>>>>> 29c1406ff0d33cca29bb3c738f3c070c695be578
     </p>
   </header>
 
@@ -19,8 +47,16 @@ title %}Critical Intelligence - Virex{% endblock %} {% block stylesheets %}
       <div class="card-label">Active High Alerts</div>
       <div class="card-value critical" id="totalCritical">--</div>
       <div class="card-indicator">
+<<<<<<< HEAD
+        <i class="fas fa-circle" style="color: var(--text-secondary)"></i> Live Alert
+=======
+<<<<<<< HEAD
+        <i class="fas fa-circle" style="color: var(--text-secondary)"></i> Live Alert
+=======
         <i class="fas fa-circle" style="color: var(--text-secondary)"></i> Live
         Alert
+>>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
+>>>>>>> 29c1406ff0d33cca29bb3c738f3c070c695be578
       </div>
     </div>
     <div class="overview-card">
@@ -55,7 +91,15 @@ title %}Critical Intelligence - Virex{% endblock %} {% block stylesheets %}
 
   <div class="threat-feed-section">
     <div class="section-header">
+<<<<<<< HEAD
+      <h2>Live High Alert Feed</h2>
+=======
+<<<<<<< HEAD
+      <h2>Live High Alert Feed</h2>
+=======
       <h2>Live Critical Feed</h2>
+>>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
+>>>>>>> 29c1406ff0d33cca29bb3c738f3c070c695be578
       <div class="feed-controls">
         <input
           type="text"
@@ -144,8 +188,18 @@ title %}Critical Intelligence - Virex{% endblock %} {% block stylesheets %}
     <h2>AI Threat Intelligence Analysis</h2>
     <div class="intelligence-panel" id="intelligencePanel">
       <div class="intelligence-placeholder">
+<<<<<<< HEAD
+        <i class="fas fa-arrow-left"></i> Select a threat from the feed to
+        view detailed intelligence
+=======
+<<<<<<< HEAD
+        <i class="fas fa-arrow-left"></i> Select a threat from the feed to
+        view detailed intelligence
+=======
         <i class="fas fa-arrow-left"></i> Select a threat from the feed to view
         detailed intelligence
+>>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
+>>>>>>> 29c1406ff0d33cca29bb3c738f3c070c695be578
       </div>
     </div>
   </div>
@@ -166,7 +220,15 @@ title %}Critical Intelligence - Virex{% endblock %} {% block stylesheets %}
     </div>
 
     <div class="indicator-card">
+<<<<<<< HEAD
+      <div class="indicator-title">High Alert Trend</div>
+=======
+<<<<<<< HEAD
+      <div class="indicator-title">High Alert Trend</div>
+=======
       <div class="indicator-title">Critical Trend</div>
+>>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
+>>>>>>> 29c1406ff0d33cca29bb3c738f3c070c695be578
       <div id="trendIndicator">Loading...</div>
     </div>
 
@@ -224,9 +286,27 @@ title %}Critical Intelligence - Virex{% endblock %} {% block stylesheets %}
     onclick="closeTechnicalDetails()"
   ></div>
 </main>
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 29c1406ff0d33cca29bb3c738f3c070c695be578
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Only page-specific JavaScript here
+</script>
+<script src="{{ url_for('static', filename='javascript/critical.js') }}"></script>
+{% endblock %}
+
+<<<<<<< HEAD
+=======
+=======
 {% endblock %} {% block scripts %}
 <script>
   // Only page-specific JavaScript here
 </script>
 <script src="{{ url_for('static', filename='javascript/critical.js') }}"></script>
 {% endblock %}
+>>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
+>>>>>>> 29c1406ff0d33cca29bb3c738f3c070c695be578

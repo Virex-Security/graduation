@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Critical Threats - Virex</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
+    <link rel="stylesheet" href="/static/css/dashboard.css" />
+    <link rel="stylesheet" href="/static/css/critical.css" />
+    <script src="/static/javascript/theme.js"></script>
+    <script src="/static/javascript/access-control.js"></script>
+  </head>
+
+  <body data-user-role="{{ user.role }}">
+    <div class="dashboard-wrapper">
+      <!-- accessibility-fix: issue-2 - Brand link needs keyboard accessibility -->
+    <nav class="navbar" aria-label="Main navigation">
+        <a href="/" class="brand">
+          <span>Virex</span>
+        </a>
+        <!-- /accessibility-fix -->
+        <div class="nav-actions">
+          <button class="logout-btn" onclick="location.href = '/dashboard'">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+          </button>
+        </div>
+      </nav>
+
+      <main class="main-content critical-page">
+        <header class="section-title">
+          <h1>
+            <i class="fas fa-exclamation-triangle"></i> Critical Threat
+            Intelligence
+          </h1>
+          <p>
+            Real-time monitoring and analysis of critical severity threats
+            detected by Virex AI/ML Engine
+          </p>
+        </header>
+
+        <!-- SECTION 1: Critical Threat Overview -->
+        <div class="overview-panel">
+          <div class="overview-card">
+            <div class="card-label">Active Critical Threats</div>
+            <div class="card-value critical" id="totalCritical">--</div>
+            <div class="card-indicator">
+              <i class="fas fa-circle" style="color: #dc2626"></i> Live Alert
+            </div>
+          </div>
+          <div class="overview-card">
+            <div class="card-label">New (24h)</div>
+            <div class="card-value warning" id="newCritical">--</div>
+            <div class="card-indicator">
+              <i class="fas fa-arrow-up"></i> Escalation detected
+            </div>
+          </div>
+          <div class="overview-card">
+            <div class="card-label">Affected Assets</div>
+            <div class="card-value" id="affectedAssets">--</div>
+            <div class="card-indicator">
+              <i class="fas fa-server"></i> Unique targets
+            </div>
+          </div>
+          <div class="overview-card">
+            <div class="card-label">Top Threat Type</div>
+            <div class="card-value-text" id="topThreatType">--</div>
+            <div class="card-indicator" id="topThreatCount">
+              <i class="fas fa-database"></i> 0 incidents
+            </div>
+          </div>
+          <div class="overview-card">
+            <div class="card-label">Highest Threat Score</div>
+            <div class="card-value critical" id="highestScore">--</div>
+            <div class="card-indicator">
+              <i class="fas fa-brain"></i> AI Classification
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION 2: Live Critical Threat Feed -->
+        <div class="threat-feed-section">
+          <div class="section-header">
+            <h2>Live Critical Threat Feed</h2>
+            <div class="feed-controls">
+              <input
+                type="text"
+                id="threatSearch"
+                placeholder="Search threat ID, IP, asset..."
+                class="search-input"
+              />
+              <select id="threatTypeFilter" class="filter-select">
+                <option value="">All Threat Types</option>
+                <option value="SQL Injection">SQL Injection</option>
+                <option value="XSS">XSS Attack</option>
+                <option value="Brute Force">Brute Force</option>
+                <option value="Anomaly">Anomaly</option>
+                <option value="DDoS">DDoS</option>
+              </select>
+              <select id="timeFilter" class="filter-select">
+                <option value="">All Time</option>
+                <option value="1h">Last 1 Hour</option>
+                <option value="6h">Last 6 Hours</option>
+                <option value="24h">Last 24 Hours</option>
+              </select>
+              <button
+                id="refreshBtn"
+                class="refresh-btn"
+                onclick="refreshCriticalThreats()"
+              >
+                <i class="fas fa-sync-alt"></i> Refresh
+              </button>
+            </div>
+          </div>
+
+          <div class="table-card critical-table">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th class="sortable" onclick="sortTable('id')">
+                    Threat ID <i class="fas fa-sort"></i>
+                  </th>
+                  <th>Source IP</th>
+                  <th>Target Asset</th>
+                  <th>Threat Type</th>
+                  <th class="sortable" onclick="sortTable('score')">
+                    Threat Score <i class="fas fa-sort"></i>
+                  </th>
+                  <th>ML Confidence</th>
+                  <th>Detection Time</th>
+                  <th>Frequency</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="threatTableBody">
+                <tr style="text-align: center; padding: 2rem">
+                  <td colspan="9">Loading threats...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- SECTION 3: Threat Score Distribution -->
+        <div class="analytics-section">
+          <div class="analytics-grid">
+            <div class="analytics-card">
+              <h3>Threats by Type</h3>
+              <div class="chart-placeholder" id="threatTypesChart">
+                Loading chart...
+              </div>
+            </div>
+
+            <div class="analytics-card">
+              <h3>Severity Distribution</h3>
+              <div class="severity-indicator" id="severityDistribution">
+                Loading distribution...
+              </div>
+            </div>
+
+            <div class="analytics-card">
+              <h3>Frequency Spike (24h)</h3>
+              <div class="chart-placeholder" id="frequencySpikeChart">
+                Loading chart...
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION 4: AI Threat Intelligence Panel -->
+        <div class="intelligence-section">
+          <h2>AI Threat Intelligence Analysis</h2>
+          <div class="intelligence-panel" id="intelligencePanel">
+            <div class="intelligence-placeholder">
+              <i class="fas fa-arrow-left"></i> Select a threat from the feed to
+              view detailed intelligence
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION 5: Threat Timeline -->
+        <div class="timeline-section">
+          <h2>Threat Timeline Analysis (Selected Threat)</h2>
+          <div class="timeline-container" id="timelineContainer">
+            <div class="timeline-placeholder">
+              <i class="fas fa-arrow-left"></i> Select a threat to view timeline
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION 6: Global Monitoring Indicators -->
+        <div class="monitoring-indicators">
+          <div class="indicator-card">
+            <div class="indicator-title">Live Traffic Anomaly Level</div>
+            <div id="anomalyIndicator">Loading...</div>
+          </div>
+
+          <div class="indicator-card">
+            <div class="indicator-title">Critical Threat Trend</div>
+            <div id="trendIndicator">Loading...</div>
+          </div>
+
+          <div class="indicator-card">
+            <div class="indicator-title">System-Wide Risk Level</div>
+            <div id="riskLevelIndicator">Loading...</div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- Expandable Technical Details Modal -->
+    <!-- accessibility-fix: issue-9 - Modal needs ARIA attributes and focus management -->
+    <div class="technical-details-modal" id="technicalModal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 id="modal-title">Technical Details - <span id="modalThreatId"></span></h3>
+          <button class="modal-close" onclick="closeTechnicalDetails()" aria-label="Close technical details">
+            <i class="fas fa-times" aria-hidden="true"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="detail-section">
+            <h4>Payload Sample</h4>
+            <div class="payload-box" id="payloadSample"></div>
+          </div>
+
+          <div class="detail-section">
+            <h4>Request Headers</h4>
+            <div class="headers-box" id="requestHeaders"></div>
+          </div>
+
+          <div class="detail-section">
+            <h4>API Endpoint Targeted</h4>
+            <div class="endpoint-box" id="targetEndpoint"></div>
+          </div>
+
+          <div class="detail-section">
+            <h4>Detected Signature</h4>
+            <div class="signature-box" id="signature"></div>
+          </div>
+
+          <div class="detail-section">
+            <h4>AI Reasoning Explanation</h4>
+            <div class="reasoning-box" id="reasoning"></div>
+          </div>
+
+          <div class="detail-section">
+            <h4>Feature Weights (ML Confidence Factors)</h4>
+            <div class="feature-weights" id="featureWeights"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div
+      class="modal-overlay"
+      id="modalOverlay"
+      onclick="closeTechnicalDetails()"
+    ></div>
+    <!-- /accessibility-fix -->
+
+    <script src="/static/javascript/critical.js"></script>
+  </body>
+</html>

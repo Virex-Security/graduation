@@ -49,6 +49,14 @@ class SecurityDashboard:
         if not os.path.exists(self.audit_log_path):
             with open(self.audit_log_path, "w") as f:
                 json.dump([], f)
+<<<<<<< HEAD
+        
+        self.secret_key = os.getenv("SECRET_KEY", "fallback-dev-key-change-in-production")
+=======
+<<<<<<< HEAD
+        
+        self.secret_key = os.getenv("SECRET_KEY", "fallback-dev-key-change-in-production")
+=======
 
         _secret = os.getenv("SECRET_KEY", "")
         if not _secret:
@@ -57,6 +65,8 @@ class SecurityDashboard:
                 "Generate one with: python -c \"import secrets; print(secrets.token_hex(64))\""
             )
         self.secret_key = _secret
+>>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
+>>>>>>> 29c1406ff0d33cca29bb3c738f3c070c695be578
         # Restore stats from disk on startup
         self.load_stats_from_audit()
     def log_clean_request(self, ip, endpoint="", method="GET"):
