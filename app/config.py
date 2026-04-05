@@ -20,7 +20,7 @@ _REQUIRED = [
 _DEFAULTS = {
     "API_PORT":              "5000",
     "DASHBOARD_PORT":        "8070",
-    "COOKIE_SECURE":         "false",
+    "COOKIE_SECURE":         "true",
     "FLASK_DEBUG":           "false",
     "ALLOWED_ORIGINS":       "http://127.0.0.1:3000,http://localhost:3000",
     "DASHBOARD_URL":         "http://127.0.0.1:8070",
@@ -74,6 +74,9 @@ def validate_config(strict: bool = False) -> bool:
     # Check SMTP config (warn if missing — not required to start)
     if not os.getenv("SMTP_EMAIL") or not os.getenv("SMTP_PASSWORD"):
         warnings.append("  ⚠️  SMTP_EMAIL / SMTP_PASSWORD not set — password reset will not work")
+
+    if not cookie_secure():
+        warnings.append("  ⚠️  COOKIE_SECURE is disabled — auth cookies will be sent over HTTP (insecure in production)")
 
     # Check SECRET_KEY minimum length
     secret = os.getenv("SECRET_KEY", "")
