@@ -1,0 +1,90 @@
+﻿
+> frontend@0.0.0 lint
+> eslint .
+
+
+C:\Users\HP\Downloads\Telegram Desktop\Ïº┘åÏº Ïº┘ä┘åÏ│Ï«┘ç Ïº┘äÏºÏ«┘èÏ▒┘ç ┘äÏ¡Ï» Ïº┘äÏº┘å\virex\frontend\src\components\Forms.jsx
+  8:3  warning  'ref' is defined but never used. Allowed unused args must match /^_/u  no-unused-vars
+
+C:\Users\HP\Downloads\Telegram Desktop\Ïº┘åÏº Ïº┘ä┘åÏ│Ï«┘ç Ïº┘äÏºÏ«┘èÏ▒┘ç ┘äÏ¡Ï» Ïº┘äÏº┘å\virex\frontend\src\components\Sidebar.jsx
+  17:3  warning  'Bars3Icon' is defined but never used. Allowed unused vars must match /^React$/u  no-unused-vars
+
+C:\Users\HP\Downloads\Telegram Desktop\Ïº┘åÏº Ïº┘ä┘åÏ│Ï«┘ç Ïº┘äÏºÏ«┘èÏ▒┘ç ┘äÏ¡Ï» Ïº┘äÏº┘å\virex\frontend\src\layouts\DashboardLayout.jsx
+  1:27  warning  'lazy' is defined but never used. Allowed unused vars must match /^React$/u  no-unused-vars
+
+C:\Users\HP\Downloads\Telegram Desktop\Ïº┘åÏº Ïº┘ä┘åÏ│Ï«┘ç Ïº┘äÏºÏ«┘èÏ▒┘ç ┘äÏ¡Ï» Ïº┘äÏº┘å\virex\frontend\src\pages\AttacksPage.jsx
+  34:6  warning  React Hook useEffect has a missing dependency: 'addToast'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\HP\Downloads\Telegram Desktop\Ïº┘åÏº Ïº┘ä┘åÏ│Ï«┘ç Ïº┘äÏºÏ«┘èÏ▒┘ç ┘äÏ¡Ï» Ïº┘äÏº┘å\virex\frontend\src\pages\BlacklistPage.jsx
+  10:3   warning  'MagnifyingGlassIcon' is defined but never used. Allowed unused vars must match /^React$/u                         no-unused-vars
+  18:22  warning  'statusClass' is defined but never used. Allowed unused vars must match /^React$/u                                 no-unused-vars
+  47:6   warning  React Hook useEffect has a missing dependency: 'fetchBlacklist'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\HP\Downloads\Telegram Desktop\Ïº┘åÏº Ïº┘ä┘åÏ│Ï«┘ç Ïº┘äÏºÏ«┘èÏ▒┘ç ┘äÏ¡Ï» Ïº┘äÏº┘å\virex\frontend\src\pages\DashboardPage.jsx
+   5:17  warning  'ArrowTrendingUpIcon' is defined but never used. Allowed unused vars must match /^React$/u                   no-unused-vars
+   5:38  warning  'ClockIcon' is defined but never used. Allowed unused vars must match /^React$/u                             no-unused-vars
+  11:51  warning  'truncate' is defined but never used. Allowed unused vars must match /^React$/u                              no-unused-vars
+  70:6   warning  React Hook useEffect has a missing dependency: 'addToast'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\HP\Downloads\Telegram Desktop\Ïº┘åÏº Ïº┘ä┘åÏ│Ï«┘ç Ïº┘äÏºÏ«┘èÏ▒┘ç ┘äÏ¡Ï» Ïº┘äÏº┘å\virex\frontend\src\pages\IncidentDetailPage.jsx
+    4:3   warning  'ShieldCheckIcon' is defined but never used. Allowed unused vars must match /^React$/u                       no-unused-vars
+   15:10  warning  'PrimaryButton' is defined but never used. Allowed unused vars must match /^React$/u                         no-unused-vars
+   34:9   warning  'navigate' is assigned a value but never used. Allowed unused vars must match /^React$/u                     no-unused-vars
+   40:9   warning  'isAdmin' is assigned a value but never used. Allowed unused vars must match /^React$/u                      no-unused-vars
+   48:6   warning  React Hook useEffect has a missing dependency: 'addToast'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  129:75  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                              react/no-unescaped-entities
+  129:94  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                              react/no-unescaped-entities
+
+C:\Users\HP\Downloads\Telegram Desktop\Ïº┘åÏº Ïº┘ä┘åÏ│Ï«┘ç Ïº┘äÏºÏ«┘èÏ▒┘ç ┘äÏ¡Ï» Ïº┘äÏº┘å\virex\frontend\src\pages\IncidentsPage.jsx
+  10:57  warning  'row' is defined but never used. Allowed unused args must match /^_/u                                        no-unused-vars
+  30:6   warning  React Hook useEffect has a missing dependency: 'addToast'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\HP\Downloads\Telegram Desktop\Ïº┘åÏº Ïº┘ä┘åÏ│Ï«┘ç Ïº┘äÏºÏ«┘èÏ▒┘ç ┘äÏ¡Ï» Ïº┘äÏº┘å\virex\frontend\src\pages\LoginPage.jsx
+    3:10  warning  'ShieldCheckIcon' is defined but never used. Allowed unused vars must match /^React$/u  no-unused-vars
+    8:10  warning  'validateEmail' is defined but never used. Allowed unused vars must match /^React$/u    no-unused-vars
+  113:16  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                         react/no-unescaped-entities
+
+C:\Users\HP\Downloads\Telegram Desktop\Ïº┘åÏº Ïº┘ä┘åÏ│Ï«┘ç Ïº┘äÏºÏ«┘èÏ▒┘ç ┘äÏ¡Ï» Ïº┘äÏº┘å\virex\frontend\src\pages\MLDetectionsPage.jsx
+   6:3    warning  'ExclamationTriangleIcon' is defined but never used. Allowed unused vars must match /^React$/u               no-unused-vars
+   7:3    warning  'MagnifyingGlassIcon' is defined but never used. Allowed unused vars must match /^React$/u                   no-unused-vars
+  50:11   warning  'user' is assigned a value but never used. Allowed unused vars must match /^React$/u                         no-unused-vars
+  60:6    warning  React Hook useEffect has a missing dependency: 'addToast'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  72:82   error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                              react/no-unescaped-entities
+  79:98   error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                              react/no-unescaped-entities
+  79:110  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                              react/no-unescaped-entities
+  80:11   error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                              react/no-unescaped-entities
+  80:28   error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                              react/no-unescaped-entities
+  81:73   error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                              react/no-unescaped-entities
+
+C:\Users\HP\Downloads\Telegram Desktop\Ïº┘åÏº Ïº┘ä┘åÏ│Ï«┘ç Ïº┘äÏºÏ«┘èÏ▒┘ç ┘äÏ¡Ï» Ïº┘äÏº┘å\virex\frontend\src\pages\MLPerformancePage.jsx
+   3:3  warning  'CpuChipIcon' is defined but never used. Allowed unused vars must match /^React$/u                             no-unused-vars
+   5:3  warning  'ChartBarIcon' is defined but never used. Allowed unused vars must match /^React$/u                            no-unused-vars
+   6:3  warning  'ChartPieIcon' is defined but never used. Allowed unused vars must match /^React$/u                            no-unused-vars
+  62:6  warning  React Hook useEffect has a missing dependency: 'fetchStats'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\HP\Downloads\Telegram Desktop\Ïº┘åÏº Ïº┘ä┘åÏ│Ï«┘ç Ïº┘äÏºÏ«┘èÏ▒┘ç ┘äÏ¡Ï» Ïº┘äÏº┘å\virex\frontend\src\pages\PricingPage.jsx
+  2:32  warning  'SparklesIcon' is defined but never used. Allowed unused vars must match /^React$/u   no-unused-vars
+  2:46  warning  'FireIcon' is defined but never used. Allowed unused vars must match /^React$/u       no-unused-vars
+  2:56  warning  'TicketIcon' is defined but never used. Allowed unused vars must match /^React$/u     no-unused-vars
+  3:10  warning  'PrimaryButton' is defined but never used. Allowed unused vars must match /^React$/u  no-unused-vars
+
+C:\Users\HP\Downloads\Telegram Desktop\Ïº┘åÏº Ïº┘ä┘åÏ│Ï«┘ç Ïº┘äÏºÏ«┘èÏ▒┘ç ┘äÏ¡Ï» Ïº┘äÏº┘å\virex\frontend\src\pages\RequestsPage.jsx
+  46:6  warning  React Hook useEffect has a missing dependency: 'addToast'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\HP\Downloads\Telegram Desktop\Ïº┘åÏº Ïº┘ä┘åÏ│Ï«┘ç Ïº┘äÏºÏ«┘èÏ▒┘ç ┘äÏ¡Ï» Ïº┘äÏº┘å\virex\frontend\src\pages\SettingsPage.jsx
+   2:66  warning  'PlugConnectedIcon' is defined but never used. Allowed unused vars must match /^React$/u                       no-unused-vars
+  11:25  warning  'id' is defined but never used. Allowed unused args must match /^_/u                                           no-unused-vars
+  72:15  warning  'setApi' is assigned a value but never used. Allowed unused vars must match /^React$/u                         no-unused-vars
+  86:6   warning  React Hook useCallback has a missing dependency: 'addToast'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\HP\Downloads\Telegram Desktop\Ïº┘åÏº Ïº┘ä┘åÏ│Ï«┘ç Ïº┘äÏºÏ«┘èÏ▒┘ç ┘äÏ¡Ï» Ïº┘äÏº┘å\virex\frontend\src\pages\UserManagerPage.jsx
+  43:6  warning  React Hook useEffect has a missing dependency: 'fetchUsers'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\HP\Downloads\Telegram Desktop\Ïº┘åÏº Ïº┘ä┘åÏ│Ï«┘ç Ïº┘äÏºÏ«┘èÏ▒┘ç ┘äÏ¡Ï» Ïº┘äÏº┘å\virex\frontend\src\utils\AuthContext.jsx
+  42:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Users\HP\Downloads\Telegram Desktop\Ïº┘åÏº Ïº┘ä┘åÏ│Ï«┘ç Ïº┘äÏºÏ«┘èÏ▒┘ç ┘äÏ¡Ï» Ïº┘äÏº┘å\virex\frontend\src\utils\ToastContext.jsx
+  67:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+Ô£û 49 problems (9 errors, 40 warnings)
+

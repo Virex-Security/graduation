@@ -1,0 +1,931 @@
+/* Dashboard-specific CSS - Base styles extracted to base.css */
+
+/* Animated Background Gradient */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background:
+    radial-gradient(
+      circle at 15% 50%,
+      color-mix(in srgb, var(--brand-primary) 8%, transparent),
+      transparent 25%
+    ),
+    radial-gradient(
+      circle at 85% 30%,
+      color-mix(in srgb, var(--brand-secondary) 8%, transparent),
+      transparent 25%
+    );
+  z-index: -1;
+  pointer-events: none;
+  animation: bgPulse 8s ease-in-out infinite;
+}
+
+/* Background Animation Keyframes */
+@keyframes bgPulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* Grid Pattern Overlay */
+body::after {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image:
+    linear-gradient(
+      color-mix(in srgb, var(--brand-primary) 3%, transparent) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--brand-primary) 3%, transparent) 1px,
+      transparent 1px
+    );
+  background-size: 50px 50px;
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* ===========================================
+  LAYOUT - DASHBOARD & SIDEBAR
+   =========================================== */
+
+/* Dashboard Wrapper */
+.dashboard-wrapper {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* Note: Sidebar, Navbar, and Main Wrapper styles are now in layout.css */
+
+/* ===========================================
+  CARDS & CONTAINERS
+   =========================================== */
+.card {
+  background: linear-gradient(
+    160deg,
+    color-mix(in srgb, var(--brand-primary) 5%, transparent) 0%,
+    color-mix(in srgb, var(--bg-card) 92%, black 8%) 45%,
+    color-mix(in srgb, var(--brand-secondary) 5%, transparent) 100%
+  );
+  border: 1px solid color-mix(in srgb, var(--brand-primary) 20%, transparent);
+  border-radius: 22px;
+  padding: 1.75rem;
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  transition: all 0.3s var(--transition);
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(12px);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  border-color: color-mix(in srgb, var(--brand-primary) 42%, transparent);
+  box-shadow:
+    0 16px 34px rgba(0, 0, 0, 0.34),
+    0 0 24px color-mix(in srgb, var(--brand-primary) 18%, transparent);
+}
+
+.stats-section {
+  margin-top: 1.25rem;
+}
+
+/* ===========================================
+   CHART CARDS
+   =========================================== */
+.chart-card {
+  background: linear-gradient(
+    160deg,
+    color-mix(in srgb, var(--brand-primary) 5%, transparent) 0%,
+    color-mix(in srgb, var(--bg-card) 92%, black 8%) 45%,
+    color-mix(in srgb, var(--brand-secondary) 5%, transparent) 100%
+  );
+  border: 1px solid color-mix(in srgb, var(--brand-primary) 20%, transparent);
+  border-radius: 22px;
+  padding: 1.75rem;
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  transition: all 0.3s var(--transition);
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(12px);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.chart-card:hover {
+  transform: translateY(-4px);
+  border-color: color-mix(in srgb, var(--brand-primary) 42%, transparent);
+  box-shadow:
+    0 16px 34px rgba(0, 0, 0, 0.34),
+    0 0 24px color-mix(in srgb, var(--brand-primary) 18%, transparent);
+}
+
+.chart-card .card-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.chart-card .card-title::before {
+  content: "";
+  width: 4px;
+  height: 20px;
+  background: var(--brand-gradient);
+  border-radius: 2px;
+}
+
+.chart-card canvas {
+  max-height: 300px;
+}
+
+/* Chart Grid Layout */
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+@media (max-width: 1100px) {
+  .charts-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Light Theme Chart Cards */
+[data-theme="light"] .chart-card {
+  background: linear-gradient(
+    160deg,
+    color-mix(in srgb, var(--brand-primary) 3%, transparent) 0%,
+    var(--bg-card) 45%,
+    color-mix(in srgb, var(--brand-secondary) 3%, transparent) 100%
+  );
+  border: 1px solid color-mix(in srgb, var(--brand-primary) 12%, transparent);
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+[data-theme="light"] .chart-card:hover {
+  border-color: color-mix(in srgb, var(--brand-primary) 30%, transparent);
+  box-shadow:
+    0 16px 34px rgba(0, 0, 0, 0.12),
+    0 0 24px color-mix(in srgb, var(--brand-primary) 12%, transparent);
+}
+
+/* ===========================================
+   ML MODEL PERFORMANCE CARD
+   =========================================== */
+.mlp-summary-card {
+  cursor: pointer;
+  min-height: 200px;
+}
+
+.mlp-summary-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.mlp-summary-title-group {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.mlp-summary-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-secondary) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.5rem;
+  box-shadow: 0 4px 15px color-mix(in srgb, var(--brand-primary) 40%, transparent);
+}
+
+.mlp-summary-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.mlp-summary-sub {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin: 0.25rem 0 0 0;
+}
+
+.mlp-summary-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: color-mix(in srgb, #22c55e 15%, transparent);
+  border: 1px solid color-mix(in srgb, #22c55e 30%, transparent);
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #22c55e;
+}
+
+.mlp-summary-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 8px #22c55e;
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.1);
+  }
+}
+
+/* Light Theme ML Card */
+[data-theme="light"] .mlp-summary-badge {
+  background: color-mix(in srgb, #22c55e 10%, transparent);
+  border-color: color-mix(in srgb, #22c55e 25%, transparent);
+}
+
+/* ===========================================
+   ML MODEL PERFORMANCE METRICS
+   =========================================== */
+.mlp-summary-metrics {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 1.25rem 0;
+  margin-top: 1rem;
+  background: color-mix(in srgb, var(--bg-secondary) 50%, transparent);
+  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--brand-primary) 10%, transparent);
+}
+
+.mlp-summary-metric {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.mlp-summary-val {
+  font-size: 1.5rem;
+  font-weight: 800;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+.mlp-summary-lbl {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.mlp-summary-sep {
+  width: 1px;
+  height: 40px;
+  background: color-mix(in srgb, var(--brand-primary) 20%, transparent);
+}
+
+/* Metric Value Colors */
+.mlp-col-green {
+  color: #22c55e;
+  text-shadow: 0 0 10px color-mix(in srgb, #22c55e 50%, transparent);
+}
+
+.mlp-col-yellow {
+  color: #eab308;
+  text-shadow: 0 0 10px color-mix(in srgb, #eab308 50%, transparent);
+}
+
+.mlp-col-purple {
+  color: #a855f7;
+  text-shadow: 0 0 10px color-mix(in srgb, #a855f7 50%, transparent);
+}
+
+.mlp-col-blue {
+  color: #3b82f6;
+  text-shadow: 0 0 10px color-mix(in srgb, #3b82f6 50%, transparent);
+}
+
+/* Light Theme Metrics */
+[data-theme="light"] .mlp-summary-metrics {
+  background: color-mix(in srgb, var(--bg-secondary) 70%, transparent);
+  border-color: color-mix(in srgb, var(--brand-primary) 8%, transparent);
+}
+
+[data-theme="light"] .mlp-summary-sep {
+  background: color-mix(in srgb, var(--brand-primary) 15%, transparent);
+}
+
+/* ===========================================
+   ML MODEL PERFORMANCE - VIEW FULL REPORT BUTTON
+   =========================================== */
+.mlp-report-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1.5rem;
+  margin-top: 1.25rem;
+  background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-secondary) 100%);
+  border: none;
+  border-radius: 12px;
+  color: white;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px color-mix(in srgb, var(--brand-primary) 35%, transparent);
+}
+
+.mlp-report-btn:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 8px 25px color-mix(in srgb, var(--brand-primary) 50%, transparent),
+    0 0 30px color-mix(in srgb, var(--brand-primary) 30%, transparent);
+}
+
+.mlp-report-btn:active {
+  transform: translateY(0);
+}
+
+.mlp-report-btn i {
+  font-size: 1rem;
+}
+
+.mlp-report-btn .mlp-arrow {
+  transition: transform 0.3s ease;
+}
+
+.mlp-report-btn:hover .mlp-arrow {
+  transform: translateX(4px);
+}
+
+/* Light Theme Button */
+[data-theme="light"] .mlp-report-btn {
+  box-shadow: 0 4px 15px color-mix(in srgb, var(--brand-primary) 25%, transparent);
+}
+
+[data-theme="light"] .mlp-report-btn:hover {
+  box-shadow:
+    0 8px 25px color-mix(in srgb, var(--brand-primary) 40%, transparent),
+    0 0 30px color-mix(in srgb, var(--brand-primary) 20%, transparent);
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(180px, 1fr));
+  gap: 1.4rem;
+  padding-bottom: 25px;
+}
+
+.stat-card {
+  --card-accent: var(--brand-primary);
+  min-height: 160px;
+  cursor: pointer;
+  justify-content: space-between;
+}
+
+.stat-card::before {
+  content: "";
+  position: absolute;
+  top: 14px;
+  left: 0;
+  bottom: 14px;
+  width: 4px;
+  border-radius: 0 4px 4px 0;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--card-accent) 95%, white 5%),
+    color-mix(in srgb, var(--card-accent) 45%, transparent)
+  );
+  box-shadow: 0 0 16px color-mix(in srgb, var(--card-accent) 40%, transparent);
+  opacity: 0.85;
+}
+
+.stat-card::after {
+  content: "";
+  position: absolute;
+  width: 140px;
+  height: 140px;
+  right: -46px;
+  top: -58px;
+  border-radius: 999px;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--card-accent) 24%, transparent) 0%,
+    transparent 72%
+  );
+  pointer-events: none;
+  opacity: 0.9;
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+  border-color: color-mix(in srgb, var(--card-accent) 40%, transparent);
+  box-shadow:
+    0 18px 36px rgba(0, 0, 0, 0.38),
+    0 0 22px color-mix(in srgb, var(--card-accent) 22%, transparent);
+}
+
+.stat-card.type-total {
+  --card-accent: #f8fafc;
+}
+
+.stat-card.type-blocked {
+  --card-accent: #ef4444;
+}
+
+.stat-card.type-ml {
+  --card-accent: #a78bfa;
+}
+
+.stat-card.type-sqli {
+  --card-accent: #f59e0b;
+}
+
+.stat-card.type-xss {
+  --card-accent: #38bdf8;
+}
+
+.stat-card.type-brute {
+  --card-accent: #f87171;
+}
+
+.stat-card.type-scanner {
+  --card-accent: #22c55e;
+}
+
+.stat-card.type-rate {
+  --card-accent: #fbbf24;
+}
+
+.stat-card.type-top-attack {
+  --card-accent: var(--brand-primary);
+}
+
+/* CSRF — amber/orange يرمز إلى هجوم هوية المستخدم */
+.stat-card.type-csrf {
+  --card-accent: #f59e0b;
+}
+
+/* SSRF — أحمر يرمز إلى خطر حرج على البنية التحتية */
+.stat-card.type-ssrf {
+  --card-accent: #ef4444;
+}
+
+
+.stat-header {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin-bottom: 1rem;
+}
+
+.stat-header i {
+  font-size: 1.3rem;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--card-accent) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--card-accent) 35%, transparent);
+  text-align: center;
+  filter: drop-shadow(
+    0 0 8px color-mix(in srgb, var(--card-accent) 55%, transparent)
+  );
+}
+
+.stat-header h3 {
+  font-size: 0.92rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--text-primary) 88%, var(--card-accent) 12%);
+}
+
+.stat-card.type-top-attack .stat-header h3 {
+  font-size: 0.78rem;
+}
+
+.stat-value {
+  font-size: clamp(2.3rem, 2.5vw, 3rem);
+  font-weight: 800;
+  line-height: 1;
+  color: var(--text-primary);
+  text-shadow: 0 0 5px color-mix(in srgb, var(--card-accent) 35%, transparent);
+}
+
+@media (max-width: 1400px) {
+  .stats-grid {
+    grid-template-columns: repeat(4, minmax(170px, 1fr));
+  }
+}
+
+@media (max-width: 1100px) {
+  .stats-grid {
+    grid-template-columns: repeat(3, minmax(160px, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, minmax(140px, 1fr));
+    gap: 1rem;
+  }
+
+  .stat-card {
+    min-height: 138px;
+    padding: 1.2rem;
+  }
+
+  .stat-header h3 {
+    font-size: 0.93rem;
+  }
+
+  .stat-card.type-top-attack .stat-header h3 {
+    font-size: 0.72rem;
+  }
+
+  .stat-value {
+    font-size: 2rem;
+  }
+}
+
+@media (max-width: 500px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ===========================================
+   DATA SECTION (Recent Alerts & Top Attackers)
+   =========================================== */
+
+/* Info Grid Layout - Side by side cards */
+.info-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+@media (max-width: 1100px) {
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Table Card - Recent Security Alerts */
+.table-card {
+  background: linear-gradient(
+    160deg,
+    color-mix(in srgb, var(--brand-primary) 5%, transparent) 0%,
+    color-mix(in srgb, var(--bg-card) 92%, black 8%) 45%,
+    color-mix(in srgb, var(--brand-secondary) 5%, transparent) 100%
+  );
+  border: 1px solid color-mix(in srgb, var(--brand-primary) 20%, transparent);
+  border-radius: 22px;
+  padding: 1.75rem;
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  transition: all 0.3s var(--transition);
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(12px);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.table-card:hover {
+  transform: translateY(-4px);
+  border-color: color-mix(in srgb, var(--brand-primary) 42%, transparent);
+  box-shadow:
+    0 16px 34px rgba(0, 0, 0, 0.34),
+    0 0 24px color-mix(in srgb, var(--brand-primary) 18%, transparent);
+}
+
+/* Alert Header with accent bar */
+.alert-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.alert-header::before {
+  content: "";
+  width: 4px;
+  height: 20px;
+  background: var(--brand-gradient);
+  border-radius: 2px;
+}
+
+.alert-header h2 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+/* Table Responsive Container */
+.table-responsive {
+  overflow-x: auto;
+  flex: 1;
+}
+
+/* Attacker List Card - Top Attackers */
+.attacker-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.attacker-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  background: color-mix(in srgb, var(--bg-secondary) 60%, transparent);
+  border: 1px solid color-mix(in srgb, var(--brand-primary) 15%, transparent);
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+.attacker-item:hover {
+  background: color-mix(in srgb, var(--brand-primary) 10%, transparent);
+  border-color: color-mix(in srgb, var(--brand-primary) 30%, transparent);
+  transform: translateX(4px);
+}
+
+.attacker-ip {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.attacker-count {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #ef4444;
+}
+
+/* Light Theme */
+[data-theme="light"] .table-card {
+  background: linear-gradient(
+    160deg,
+    color-mix(in srgb, var(--brand-primary) 3%, transparent) 0%,
+    var(--bg-card) 45%,
+    color-mix(in srgb, var(--brand-secondary) 3%, transparent) 100%
+  );
+  border: 1px solid color-mix(in srgb, var(--brand-primary) 12%, transparent);
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+[data-theme="light"] .table-card:hover {
+  border-color: color-mix(in srgb, var(--brand-primary) 30%, transparent);
+  box-shadow:
+    0 16px 34px rgba(0, 0, 0, 0.12),
+    0 0 24px color-mix(in srgb, var(--brand-primary) 12%, transparent);
+}
+
+[data-theme="light"] .attacker-item {
+  background: color-mix(in srgb, var(--bg-secondary) 80%, transparent);
+  border-color: color-mix(in srgb, var(--brand-primary) 10%, transparent);
+}
+
+[data-theme="light"] .attacker-item:hover {
+  background: color-mix(in srgb, var(--brand-primary) 8%, transparent);
+  border-color: color-mix(in srgb, var(--brand-primary) 25%, transparent);
+}
+
+/* ===========================================
+   TABLES
+   =========================================== */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.data-table th {
+  text-align: left;
+  padding: 1rem 1.25rem;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border-dim);
+  background: color-mix(in srgb, var(--brand-primary) 5%, transparent);
+}
+
+.data-table td {
+  padding: 1.25rem;
+  font-size: 0.95rem;
+  border-bottom: 1px solid var(--border-dim);
+  color: var(--text-primary);
+  transition: background 0.2s;
+}
+
+.data-table tr:hover td {
+  background: color-mix(in srgb, var(--brand-primary) 5%, transparent);
+}
+
+/* ===========================================
+   MAIN CONTENT
+   =========================================== */
+
+/* Main Content Container */
+.main-content {
+  padding: 2.5rem;
+  max-width: 1600px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* Section Title */
+.section-title h1 {
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin-bottom: 0.75rem;
+  background: linear-gradient(135deg, #fff 0%, rgba(255, 255, 255, 0.7) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Section Title Content - Flex layout for title and refresh button */
+.section-title-content {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+/* Refresh Header Button */
+.refresh-header-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  background: color-mix(in srgb, var(--brand-primary) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--brand-primary) 30%, transparent);
+  border-radius: 12px;
+  color: var(--brand-primary);
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  flex-shrink: 0;
+}
+
+.refresh-header-btn:hover {
+  background: color-mix(in srgb, var(--brand-primary) 25%, transparent);
+  border-color: color-mix(in srgb, var(--brand-primary) 50%, transparent);
+  color: white;
+  box-shadow: 0 0 20px color-mix(in srgb, var(--brand-primary) 40%, transparent);
+  transform: rotate(180deg);
+}
+
+.refresh-header-btn:active {
+  transform: rotate(180deg) scale(0.95);
+}
+
+.refresh-header-btn i {
+  transition: transform 0.3s ease;
+}
+
+.refresh-header-btn.spinning i {
+  animation: spin-refresh 1s linear infinite;
+}
+
+@keyframes spin-refresh {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Light Theme Refresh Button */
+[data-theme="light"] .refresh-header-btn {
+  background: color-mix(in srgb, var(--brand-primary) 10%, transparent);
+  border-color: color-mix(in srgb, var(--brand-primary) 20%, transparent);
+}
+
+[data-theme="light"] .refresh-header-btn:hover {
+  background: color-mix(in srgb, var(--brand-primary) 20%, transparent);
+  border-color: color-mix(in srgb, var(--brand-primary) 40%, transparent);
+}
+
+/* ===========================================
+  VIEW MORE BUTTON
+   =========================================== */
+
+.btn-view-more {
+  margin-left: 8px;
+  padding: 4px 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  background: var(--brand-primary);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.btn-view-more:hover {
+  transform: translateY(-1px);
+  background: var(--brand-secondary);
+}
+
+.btn-view-more:active {
+  transform: translateY(0);
+}
+
+/* ===========================================
+   LIGHT THEME OVERRIDES
+   =========================================== */
+
+[data-theme="light"] .card {
+  background: linear-gradient(
+    160deg,
+    color-mix(in srgb, var(--brand-primary) 3%, transparent) 0%,
+    var(--bg-card) 45%,
+    color-mix(in srgb, var(--brand-secondary) 3%, transparent) 100%
+  );
+  border: 1px solid color-mix(in srgb, var(--brand-primary) 12%, transparent);
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+[data-theme="light"] .card:hover {
+  border-color: color-mix(in srgb, var(--brand-primary) 30%, transparent);
+  box-shadow:
+    0 16px 34px rgba(0, 0, 0, 0.12),
+    0 0 24px color-mix(in srgb, var(--brand-primary) 12%, transparent);
+}
+
+/* Note: Light theme navbar styles are now in layout.css */
+
+[data-theme="light"] body::before {
+  opacity: 0.5;
+}
+
+[data-theme="light"] .stat-card::before {
+  opacity: 0.7;
+}
+
+[data-theme="light"] .stat-card::after {
+  opacity: 0.6;
+}

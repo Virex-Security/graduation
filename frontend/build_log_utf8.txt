@@ -1,0 +1,43 @@
+﻿
+> frontend@0.0.0 build
+> vite build
+
+[36mvite v5.4.21 [32mbuilding for production...[36m[39m
+transforming...
+[32mÔ£ô[39m 7 modules transformed.
+npm : [31mx[39m Build failed in 773ms
+At line:1 char:1
++ npm run build > build_log.txt 2>&1
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([31mx[39m Build failed in 773ms:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+[31merror during build:
+[31m[vite:css] [postcss] C:/Users/HP/Downloads/Telegram Desktop/Ïº┘åÏº Ïº┘ä┘åÏ│Ï«┘ç Ïº┘äÏºÏ«┘èÏ▒┘ç ┘äÏ¡Ï» 
+Ïº┘äÏº┘å/virex/frontend/src/index.css:106:5: The `font-inherit` class does not exist. If `font-inherit` is a custom 
+class, make sure it is defined within a `@layer` directive.[31m
+file: [36mC:/Users/HP/Downloads/Telegram Desktop/Ïº┘åÏº Ïº┘ä┘åÏ│Ï«┘ç Ïº┘äÏºÏ«┘èÏ▒┘ç ┘äÏ¡Ï» 
+Ïº┘äÏº┘å/virex/frontend/src/index.css:106:4[31m
+    at Input.error (C:\Users\HP\Downloads\Telegram Desktop\Ïº┘åÏº Ïº┘ä┘åÏ│Ï«┘ç Ïº┘äÏºÏ«┘èÏ▒┘ç ┘äÏ¡Ï» 
+Ïº┘äÏº┘å\virex\frontend\node_modules\postcss\lib\input.js:135:16)
+    at AtRule.error (C:\Users\HP\Downloads\Telegram Desktop\Ïº┘åÏº Ïº┘ä┘åÏ│Ï«┘ç Ïº┘äÏºÏ«┘èÏ▒┘ç ┘äÏ¡Ï» 
+Ïº┘äÏº┘å\virex\frontend\node_modules\postcss\lib\node.js:146:32)
+    at processApply (C:\Users\HP\Downloads\Telegram Desktop\Ïº┘åÏº Ïº┘ä┘åÏ│Ï«┘ç Ïº┘äÏºÏ«┘èÏ▒┘ç ┘äÏ¡Ï» 
+Ïº┘äÏº┘å\virex\frontend\node_modules\tailwindcss\lib\lib\expandApplyAtRules.js:380:29)
+    at C:\Users\HP\Downloads\Telegram Desktop\Ïº┘åÏº Ïº┘ä┘åÏ│Ï«┘ç Ïº┘äÏºÏ«┘èÏ▒┘ç ┘äÏ¡Ï» 
+Ïº┘äÏº┘å\virex\frontend\node_modules\tailwindcss\lib\lib\expandApplyAtRules.js:551:9
+    at C:\Users\HP\Downloads\Telegram Desktop\Ïº┘åÏº Ïº┘ä┘åÏ│Ï«┘ç Ïº┘äÏºÏ«┘èÏ▒┘ç ┘äÏ¡Ï» 
+Ïº┘äÏº┘å\virex\frontend\node_modules\tailwindcss\lib\processTailwindFeatures.js:55:50
+    at async plugins (C:\Users\HP\Downloads\Telegram Desktop\Ïº┘åÏº Ïº┘ä┘åÏ│Ï«┘ç Ïº┘äÏºÏ«┘èÏ▒┘ç ┘äÏ¡Ï» 
+Ïº┘äÏº┘å\virex\frontend\node_modules\tailwindcss\lib\plugin.js:38:17)
+    at async LazyResult.runAsync (C:\Users\HP\Downloads\Telegram Desktop\Ïº┘åÏº Ïº┘ä┘åÏ│Ï«┘ç Ïº┘äÏºÏ«┘èÏ▒┘ç ┘äÏ¡Ï» 
+Ïº┘äÏº┘å\virex\frontend\node_modules\postcss\lib\lazy-result.js:293:11)
+    at async compileCSS (file:///C:/Users/HP/Downloads/Telegram%20Desktop/%D8%A7%D9%86%D8%A7%20%D8%A7%D9%84%D9%86%D8%B3
+%D8%AE%D9%87%20%D8%A7%D9%84%D8%A7%D8%AE%D9%8A%D8%B1%D9%87%20%D9%84%D8%AD%D8%AF%20%D8%A7%D9%84%D8%A7%D9%86/virex/fronten
+d/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:36898:21)
+    at async Object.transform (file:///C:/Users/HP/Downloads/Telegram%20Desktop/%D8%A7%D9%86%D8%A7%20%D8%A7%D9%84%D9%86
+%D8%B3%D8%AE%D9%87%20%D8%A7%D9%84%D8%A7%D8%AE%D9%8A%D8%B1%D9%87%20%D9%84%D8%AD%D8%AF%20%D8%A7%D9%84%D8%A7%D9%86/virex/f
+rontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:36171:11)
+    at async transform (file:///C:/Users/HP/Downloads/Telegram%20Desktop/%D8%A7%D9%86%D8%A7%20%D8%A7%D9%84%D9%86%D8%B3%
+D8%AE%D9%87%20%D8%A7%D9%84%D8%A7%D8%AE%D9%8A%D8%B1%D9%87%20%D9%84%D8%AD%D8%AF%20%D8%A7%D9%84%D8%A7%D9%86/virex/frontend
+/node_modules/rollup/dist/es/shared/node-entry.js:21657:16)[39m

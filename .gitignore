@@ -1,0 +1,65 @@
+# ============================================================
+#  Virex Security — .gitignore
+# ============================================================
+
+# ⚠️ Secrets — لا ترفعهم أبداً
+.env
+.env.local
+.env.production
+env
+
+# ⚠️ User Data — بيانات حساسة لا ترفعها
+users.json
+users.db
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+
+# ML Model Files (كبيرة الحجم — استخدم Git LFS لو محتاج)
+model.pkl
+vectorizer.pkl
+
+# Logs & Data
+siem_audit.json
+*.log
+
+# Generated artifacts
+ml_evaluation_report.png
+
+# Virtual environments
+.venv/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# ⚠️ Database files — contain real data, never commit
+*.db
+*.sqlite
+*.sqlite3
+db/virex.db
+
+# Uploaded files
+app/static/uploads/
+
+# Generated ML artifacts
+data/model.pkl
+data/vectorizer.pkl
+
+# Coverage
+.coverage
+htmlcov/
+
+# Logs
+*.log
+siem_audit.json

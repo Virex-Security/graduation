@@ -1,0 +1,103 @@
+:root {
+  --bg-main: #191c2b;
+  --bg-secondary: #212538;
+  --bg-card: #212538;
+  --bg-layout: #191c2b;
+  --brand-primary: #9a277d;
+  --brand-secondary: #792b9d;
+  --brand-accent: #852c6f;
+  --brand-gradient: linear-gradient(135deg, #e046ba 0%, #b347e6 100%);
+  --brand-gradient-hover: linear-gradient(135deg, #f05ad2 0%, #c45df5 100%);
+
+  /* ── Accent Colors ── */
+  --cyan: #4b5563;
+  --cyan-dim: rgba(224, 70, 186, 0.12);
+
+  /* ── Status Colors ── */
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --info: #3b82f6;
+
+  /* ── Text ── */
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.7);
+  --text-muted: rgba(255, 255, 255, 0.45);
+
+  /* ── Borders ── */
+  --border-dim: rgba(224, 70, 186, 0.15);
+  --border-light: rgba(224, 70, 186, 0.3);
+
+  /* ── Glow Shadows ── */
+  --glow-purple: 0 0 24px rgba(224, 70, 186, 0.35);
+  --glow-cyan: 0 0 20px rgba(179, 71, 230, 0.25);
+}
+
+/* ── Global Branding ── */
+.brand-v-icon {
+  display: inline-block;
+  font-weight: 950;
+  background: linear-gradient(135deg, #9a277d 0%, #792b9d 48%, #e046ba 52%, #b347e6 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  line-height: 1;
+  font-family: 'Inter', sans-serif;
+  letter-spacing: -0.05em;
+  font-size: 1.4rem;
+}
+
+/* Make entire VIREX text look like the V icon */
+.brand-text {
+  font-weight: 950;
+  background: linear-gradient(135deg, #9a277d 0%, #792b9d 48%, #e046ba 52%, #b347e6 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  line-height: 1;
+  font-family: 'Inter', sans-serif;
+  letter-spacing: -0.05em;
+  text-transform: uppercase;
+  font-size: 1.4rem;
+}
+
+.brand-v-nav {
+  width: 40px;
+  height: 40px;
+  vertical-align: middle;
+  margin-right: 3px;
+  filter: drop-shadow(0 0 10px rgba(224, 70, 186, 0.3));
+}
+
+
+[data-theme="light"] {
+  /* ── Backgrounds (Light Theme) ── */
+  /* خلفيات فاتحة مع لمسة وردية/بنفسجية خفيفة جداً */
+  --bg-main: #f5eff8;
+  --bg-secondary: #ffffff;
+  --bg-card: #ffffff;
+  --bg-card-hover: #faf5fc;
+  --bg-sidebar: #ffffff;
+  --bg-layout: var(--bg-main);
+
+  --border-dim: #f0e6f2;
+  --border-light: #e3d5e6;
+  --border-glow: #d6bce0;
+
+  /* ── Text ── */
+  --text-primary: #1e1b2e;
+  --text-secondary: #64748b;
+  --text-muted: #000000;
+  --text-inverse: #040404;
+
+  /* ── Shadows ── */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md:
+    0 4px 6px -1px rgba(224, 70, 186, 0.08), 0 2px 4px -1px rgba(224, 70, 186, 0.04);
+  --shadow-lg:
+    0 10px 15px -3px rgba(224, 70, 186, 0.1), 0 4px 6px -2px rgba(224, 70, 186, 0.05);
+  --shadow-glow: 0 0 15px rgba(224, 70, 186, 0.15);
+  
+  --bg-hover: #fcf8fd;
+  --bg-hover-light: #f5eff8;
+}

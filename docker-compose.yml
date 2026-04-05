@@ -1,0 +1,78 @@
+# ============================================================
+#  Virex Security System — Docker Compose
+#  Usage:
+#    1. cp .env.example .env   (fill in all values)
+#    2. docker-compose up -d
+# ============================================================
+
+version: '3.9'
+
+services:
+
+  # ── API / WAF Server ──────────────────────────────────────
+  api:
+    build: .
+    container_name: virex-api
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - API_PORT=5000
+      - FLASK_DEBUG=false
+    ports:
+      - "5000:5000"
+    volumes:
+      - virex-db:/app/db
+      - virex-data:/app/data
+      - virex-uploads:/app/app/static/uploads
+    command: >
+      gunicorn
+        --bind 0.0.0.0:5000
+        --workers 2
+        --timeout 60
+        --access-logfile -
+        --error-logfile -
+        "run_api:app"
+    healthcheck:
+      test: ["CMD", "python", "-c",
+             "import urllib.request; urllib.request.urlopen('http://localhost:5000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+  # ── Dashboard / SIEM Server ───────────────────────────────
+  dashboard:
+    build: .
+    container_name: virex-dashboard
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - DASHBOARD_PORT=8070
+      - FLASK_DEBUG=false
+      - DASHBOARD_URL=http://dashboard:8070
+    ports:
+      - "8070:8070"
+    volumes:
+      - virex-db:/app/db
+      - virex-data:/app/data
+      - virex-uploads:/app/app/static/uploads
+    depends_on:
+      api:
+        condition: service_healthy
+    command: >
+      gunicorn
+        --bind 0.0.0.0:8070
+        --workers 2
+        --timeout 60
+        --access-logfile -
+        --error-logfile -
+        "run_dashboard:app"
+
+# ── Persistent Volumes ────────────────────────────────────
+volumes:
+  virex-db:
+    name: virex-database
+  virex-data:
+    name: virex-appdata
+  virex-uploads:
+    name: virex-uploads
