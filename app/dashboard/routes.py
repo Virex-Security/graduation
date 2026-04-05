@@ -22,6 +22,7 @@ from app.dashboard.services import SecurityDashboard
 from app.dashboard.metrics import calculate_threat_score, is_recent, determine_threat_status, run_timeline_updates
 from app.chatbot import SecurityChatbot
 from app.auth import login_user, logout_user, user_manager, Role, token_required, admin_required, require_role
+from app.api.responses import ok, created, bad_request, unauthorized, forbidden, not_found, conflict, rate_limited, server_error, paginated
 
 # Dashboard services and chatbot initialization
 dashboard = SecurityDashboard()
@@ -96,7 +97,7 @@ def create_dashboard_app():
     def login():
         auth = request.get_json()
         if not auth or not auth.get('username') or not auth.get('password'):
-            return jsonify({'message': 'Missing credentials'}), 401
+            return unauthorized('Missing credentials')
         resp, status = login_user(auth.get('username'), auth.get('password'))
         if status == 200:
             user = user_manager.get_user(auth.get('username'))
@@ -111,7 +112,7 @@ def create_dashboard_app():
     def signup():
         auth = request.get_json()
         if not auth or not auth.get('username') or not auth.get('password'):
-            return jsonify({'message': 'Missing username or password'}), 400
+            return bad_request('Missing username or password')
         
         username = auth.get('username').strip()
         password = auth.get('password')
@@ -122,33 +123,33 @@ def create_dashboard_app():
         
         # Validation
         if len(username) < 3:
-            return jsonify({'message': 'Username must be at least 3 characters'}), 400
+            return bad_request('Username must be at least 3 characters')
             
         if not full_name:
-            return jsonify({'message': 'Full name is required'}), 400
+            return bad_request('Full name is required')
             
         if not email:
-            return jsonify({'message': 'Email is required'}), 400
+            return bad_request('Email is required')
             
         # Basic email validation
         import re
         email_pattern = r'^[^\s@]+@[^\s@]+\.[^\s@]+$'
         if not re.match(email_pattern, email):
-            return jsonify({'message': 'Please enter a valid email address'}), 400
+            return bad_request('Please enter a valid email address')
             
         if not phone:
-            return jsonify({'message': 'Phone number is required'}), 400
+            return bad_request('Phone number is required')
             
         if not department:
-            return jsonify({'message': 'Department is required'}), 400
+            return bad_request('Department is required')
         
         is_valid_password, password_message = user_manager.validate_password_policy(password)
         if not is_valid_password:
-            return jsonify({'message': password_message}), 400
+            return bad_request(password_message)
             
         # Check if user already exists
         if user_manager.get_user(username):
-            return jsonify({'message': 'Username already exists'}), 409
+            return conflict('Username already exists')
             
         # Add new user with USER role and additional info
         success, message = user_manager.add_user(username, password, Role.USER)
@@ -163,9 +164,9 @@ def create_dashboard_app():
             # Log the new user creation
             new_user = user_manager.get_user(username)
             log_action(new_user, "Account Created", f"Full name: {full_name}, Email: {email}")
-            return jsonify({'message': 'Account created successfully'}), 201
+            return created(message='Account created successfully')
         else:
-            return jsonify({'message': message}), 400
+            return bad_request(message)
     @app.route('/api/auth/logout')
     def logout():
         token = request.cookies.get('auth_token')
@@ -195,12 +196,12 @@ def create_dashboard_app():
         data       = request.get_json(silent=True) or {}
         identifier = (data.get('identifier') or data.get('username') or '').strip()
         if not identifier:
-            return jsonify({'error': 'Username or email required'}), 400
+            return bad_request('Username or email required')
             
         # Persistent rate limit check (3 requests per 10 minutes)
         request_count = _db.get_otp_request_count(identifier, 600)
         if request_count >= 3:
-            return jsonify({"error": "Too many requests. Try again later."}), 429
+            return rate_limited("Too many requests. Try again later.")
             
         _db.log_otp_request(identifier)
         
@@ -210,11 +211,11 @@ def create_dashboard_app():
             all_users = user_manager.get_all_users()
             user = next((u for u in all_users if u.get('email','').lower() == identifier.lower()), None)
         if not user:
-            return jsonify({"message": "If that email is registered, a reset link was sent."}), 200
+            return ok(message="If that email is registered, a reset link was sent.")
         user_id = user.get('user_id') or user.get('id')
         email   = user.get('email')
         if not email:
-            return jsonify({"message": "If that email is registered, a reset link was sent."}), 200
+            return ok(message="If that email is registered, a reset link was sent.")
         otp = str(secrets.randbelow(900000) + 100000) 
         import hashlib
         otp_hash = hashlib.sha256(otp.encode()).hexdigest()
@@ -240,11 +241,9 @@ def create_dashboard_app():
             send_otp_email(email, otp)
         except Exception as e:
             logger.error(f"OTP email failed: {e}")
-            return jsonify({'error': 'Failed to deliver OTP'}), 500
+            return server_error('Failed to deliver OTP')
 
-        return jsonify({
-            'message': 'OTP sent to registered email'
-        }), 200
+        return ok(message='OTP sent to registered email')
 
     @app.route('/api/verify-reset-otp', methods=['POST'])
     def verify_reset_otp():
@@ -253,39 +252,39 @@ def create_dashboard_app():
         otp      = data.get('otp', '').strip()
         new_pass = data.get('new_password', '').strip()
         if not user_id or not otp or not new_pass:
-            return jsonify({'error': 'user_id, otp and new_password required'}), 400
+            return bad_request('user_id, otp and new_password required')
             
         with _db.db_cursor() as cur:
             cur.execute('SELECT * FROM password_resets WHERE user_id = ? AND used = 0', (user_id,))
             record = cur.fetchone()
             
         if not record:
-            return jsonify({'error': 'No OTP requested for this user'}), 400
+            return bad_request('No OTP requested for this user')
             
         if record.get('otp_attempts', 0) >= 5:
-            return jsonify({'error': 'Too many attempts. Request a new OTP.'}), 429
+            return rate_limited('Too many attempts. Request a new OTP.')
             
         import hashlib
         incoming_hash = hashlib.sha256(str(otp).encode()).hexdigest()
         if not hmac.compare_digest(record['otp'], incoming_hash):
             with _db.db_cursor() as cur:
                 cur.execute('UPDATE password_resets SET otp_attempts = COALESCE(otp_attempts, 0) + 1 WHERE user_id = ?', (user_id,))
-            return jsonify({'error': 'Invalid OTP'}), 400
+            return bad_request('Invalid OTP')
             
         if time.strftime('%Y-%m-%d %H:%M:%S') > record['otp_expiry']:
             with _db.db_cursor() as cur:
                 cur.execute('UPDATE password_resets SET otp_attempts = 0 WHERE user_id = ?', (user_id,))
-            return jsonify({'error': 'OTP expired'}), 400
+            return bad_request('OTP expired')
             
         user = _db.get_user_by_id(user_id)
         if not user:
-            return jsonify({'error': 'User not found'}), 404
-        ok, msg = user_manager.change_password(user['username'], new_pass)
-        if not ok:
-            return jsonify({'error': msg}), 400
+            return not_found('User not found')
+        ok_change, msg = user_manager.change_password(user['username'], new_pass)
+        if not ok_change:
+            return bad_request(msg)
         with _db.db_cursor() as cur:
             cur.execute('UPDATE password_resets SET used = 1, otp_attempts = 0 WHERE user_id = ?', (user_id,))
-        return jsonify({'message': 'Password reset successfully'}), 200
+        return ok(message='Password reset successfully')
 
     @app.route('/')
     def index_page():
@@ -312,7 +311,7 @@ def create_dashboard_app():
     def system_health(current_user):
         state = dashboard.connection_state or 'Connected'
         api_online = state == 'Connected'
-        return jsonify({
+        return ok(data={
             'status': 'ok' if api_online else 'offline',
             'api_online': api_online,
             'connection_state': state,
@@ -369,7 +368,7 @@ def create_dashboard_app():
         # previously we masked IP addresses for non-admin users; the requirement
         # now is to display the source IP in full, so we simply return the data
         # as-is. snippet/payload may still be hidden by the frontend if desired.
-        return jsonify(data)
+        return ok(data=data)
     from app import config as _cfg
     INTERNAL_SECRET = _cfg.internal_secret()
     if not INTERNAL_SECRET:
@@ -380,10 +379,10 @@ def create_dashboard_app():
         @wraps(f)
         def decorated(*args, **kwargs):
             if not INTERNAL_SECRET:
-                return jsonify({'error': 'Internal auth not configured'}), 503
+                return server_error('Internal auth not configured')
             token = request.headers.get('X-Internal-Token', '')
             if not secrets.compare_digest(token, INTERNAL_SECRET):
-                return jsonify({'error': 'Forbidden'}), 403
+                return forbidden('Forbidden')
             return f(*args, **kwargs)
         return decorated
     @app.route('/api/dashboard/threat', methods=['POST'])
@@ -402,7 +401,7 @@ def create_dashboard_app():
             data.get('detection_type', 'Other'),
             data.get('blocked', False)
         )
-        return jsonify({'status': 'logged'})
+        return ok(message='logged')
     @app.route('/api/dashboard/stats', methods=['POST'])
     @require_internal_secret 
     def update_stats():
@@ -414,7 +413,7 @@ def create_dashboard_app():
             dashboard.stats['blocked_requests'] = data['blocked_requests']
         if 'rate_limit_hits' in data:
             dashboard.stats['rate_limit_hits'] = data['rate_limit_hits']
-        return jsonify({'status': 'updated'})
+        return ok(message='updated')
     @app.route('/api/dashboard/reset', methods=['POST'])
     @admin_required
     def reset_stats(current_user):
@@ -437,16 +436,16 @@ def create_dashboard_app():
                     json.dump([], f)
             except Exception as e:
                 print(f"[-] Error clearing audit log: {e}")
-            return jsonify({'status': 'stats_reset', 'message': 'All stats and logs cleared'})
+            return ok(data={'status': 'stats_reset'}, message='All stats and logs cleared')
         except Exception as e:
             print(f"[-] Reset error: {e}")
-            return jsonify({'status': 'error', 'message': str(e)}), 500
+            return server_error(str(e))
 
     @app.route('/api/user')
     @token_required
     def get_current_user(current_user):
         """Return current user information for permission checks"""
-        return jsonify({
+        return ok(data={
             'username': current_user.get('username'),
             'role': current_user.get('role'),
             'email': current_user.get('email', '')
@@ -465,23 +464,23 @@ def create_dashboard_app():
         """
         try:
             stats = dashboard.compute_ml_metrics()
-            return jsonify(stats)
+            return ok(data=stats)
         except FileNotFoundError as e:
             # can't load model/vectorizer but we still want indicator values returned
             indicators = dashboard.compute_attack_indicators()
-            return jsonify({
+            return ok(data={
                 "status": "error",
                 "message": f"Model file not found: {e}",
                 "attack_indicators": indicators
-            }), 200
+            })
         except Exception as e:
             # on any other failure, return error flag but still include indicators
             indicators = dashboard.compute_attack_indicators()
-            return jsonify({
+            return ok(data={
                 "status": "error",
                 "message": str(e),
                 "attack_indicators": indicators
-            }), 200
+            })
     @app.route('/incidents')
     @app.route('/incidents_list')
     @token_required
@@ -538,14 +537,14 @@ def create_dashboard_app():
         incidents_data = []
         for inc in dashboard.incidents.values():
             incidents_data.append(inc.__dict__)
-        return jsonify(incidents_data)
+        return paginated(incidents_data)
     @app.route('/api/incident/<id>')
     @admin_required
     def get_incident_details(current_user, id):
         global dashboard
         if id not in dashboard.incidents:
-            return jsonify({'error': 'Not found'}), 404
-        return jsonify(dashboard.incidents[id].__dict__)
+            return not_found('Incident not found')
+        return ok(data=dashboard.incidents[id].__dict__)
     @app.route('/api/incident/<id>/action', methods=['POST'])
     @admin_required
     def incident_action(current_user, id):
@@ -556,14 +555,14 @@ def create_dashboard_app():
         actor = current_user['username']
         log_action(current_user, f"Incident Action: {action}", f"Incident ID: {id}, Comment: {comment}")
         success, message = dashboard.perform_action(id, action, actor, comment)
-        return jsonify({'status': 'success' if success else 'error', 'message': message})
+        return ok(data={'status': 'success' if success else 'error'}, message=message)
     @app.route('/api/incident/<id>/export')
     @admin_required
     def export_incident(current_user, id):
         global dashboard
         if id not in dashboard.incidents:
-            return jsonify({'error': 'Not found'}), 404
-        return jsonify(dashboard.incidents[id].__dict__)
+            return not_found('Incident not found')
+        return ok(data=dashboard.incidents[id].__dict__)
     @app.route('/api/reports/distribution')
     @token_required
     def report_distribution(current_user):
@@ -577,7 +576,7 @@ def create_dashboard_app():
             if end_date and inc.first_seen > end_date:
                 continue
             dist[inc.detection_type] += 1
-        return jsonify(dist)
+        return ok(data=dist)
     @app.route('/requests')
     @token_required
     def requests_page(current_user):
@@ -766,10 +765,10 @@ def create_dashboard_app():
         data = request.get_json()
         new_plan = data.get('plan')
         if new_plan not in ['Free', 'Pro', 'Enterprise']:
-            return jsonify({'success': False, 'message': 'Invalid plan'}), 400
+            return bad_request('Invalid plan')
         
         success, message = user_manager.update_user(current_user['username'], subscription=new_plan)
-        return jsonify({'success': success, 'message': message})
+        return ok(message=message) if success else bad_request(message)
 
 
     @app.route('/blocked_page')
@@ -814,8 +813,7 @@ def create_dashboard_app():
     @token_required
     def get_profile_data(current_user):
         """Return user profile data for profile page"""
-        return jsonify({
-            'status': 'success',
+        return ok(data={
             'user': {
                 'username': current_user.get('username'),
                 'email': current_user.get('email', ''),
@@ -837,8 +835,7 @@ def create_dashboard_app():
     def get_profile_activity(current_user):
         """Return user activity data"""
         # Mock activity data - replace with real data from your logs
-        return jsonify({
-            'status': 'success',
+        return ok(data={
             'stats': {
                 'alerts_reviewed': 42,
                 'incidents_resolved': 15,
@@ -856,8 +853,7 @@ def create_dashboard_app():
     def get_profile_sessions(current_user):
         """Return user active sessions"""
         # Mock session data - replace with real session data
-        return jsonify({
-            'status': 'success',
+        return ok(data={
             'sessions': [
                 {
                     'id': 'session_001',
@@ -876,7 +872,7 @@ def create_dashboard_app():
         """Update user profile"""
         data = request.get_json()
         if not data:
-            return jsonify({'status': 'error', 'message': 'No data provided'}), 400
+            return bad_request('No data provided')
         
         username = current_user.get('username')
         
@@ -888,7 +884,7 @@ def create_dashboard_app():
         if 'password' in data and data['password']:
             is_valid_password, password_message = user_manager.validate_password_policy(data['password'])
             if not is_valid_password:
-                return jsonify({'status': 'error', 'message': password_message}), 400
+                return bad_request(password_message)
             update_data['password'] = data['password']
         
         # Update user in user manager
@@ -896,9 +892,9 @@ def create_dashboard_app():
         
         if success:
             log_action(current_user, "Profile Updated", f"Updated profile information: {', '.join(update_data.keys())}")
-            return jsonify({'status': 'success', 'message': 'Profile updated successfully'})
+            return ok(message='Profile updated successfully')
         else:
-            return jsonify({'status': 'error', 'message': message or 'Failed to update profile'}), 400
+            return bad_request(message or 'Failed to update profile')
     @app.route('/api/profile/change-password', methods=['POST'])
     @token_required
     def change_password_profile(current_user):
@@ -909,24 +905,24 @@ def create_dashboard_app():
         username = current_user.get('username')
 
         if not current_password or not new_password:
-            return jsonify({'status': 'error', 'message': 'Current and new password are required'}), 400
+            return bad_request('Current and new password are required')
 
         if not user_manager.verify_password(username, current_password):
-            return jsonify({'status': 'error', 'message': 'Current password is incorrect'}), 400
+            return bad_request('Current password is incorrect')
 
         success, message = user_manager.change_password(username, new_password)
         if not success:
-            return jsonify({'status': 'error', 'message': message}), 400
+            return bad_request(message)
 
         log_action(current_user, "Password Changed", "User changed their password")
-        return jsonify({'status': 'success', 'message': message})
+        return ok(message=message)
     @app.route('/api/profile/logout-session', methods=['POST'])
     @token_required
     def logout_session(current_user):
         """Logout a specific session"""
         session_id = request.get_json().get('session_id')
         log_action(current_user, "Session Revoked", f"Revoked session: {session_id}")
-        return jsonify({'status': 'success', 'message': 'Session revoked successfully'})
+        return ok(message='Session revoked successfully')
 
     @app.route('/api/profile/avatar', methods=['POST'])
     @token_required
@@ -937,26 +933,26 @@ def create_dashboard_app():
 
         file = request.files.get('avatar')
         if not file or file.filename == '':
-            return jsonify({'error': 'No file'}), 400
+            return bad_request('No file')
 
         # Enforce file size limit
         file.seek(0, os.SEEK_END)
         size = file.tell()
         file.seek(0)
         if size > MAX_SIZE:
-            return jsonify({'error': 'File too large (max 512KB)'}), 400
+            return bad_request('File too large (max 512KB)')
 
         filename = secure_filename(file.filename)
         ext = os.path.splitext(filename)[1].lower()
         if ext not in {'.png', '.jpg', '.jpeg', '.gif', '.webp'}:
-            return jsonify({'error': 'Invalid file extension'}), 400
+            return bad_request('Invalid file extension')
 
         # Replace deprecated imghdr with python-magic
         header = file.read(2048)
         file.seek(0)
         mime = magic.from_buffer(header, mime=True)
         if mime not in ALLOWED_MIME:
-            return jsonify({'error': f'Invalid image type: {mime}'}), 400
+            return bad_request(f'Invalid image type: {mime}')
 
         # Save to private directory outside web root
         upload_dir = Path(current_app.root_path).parent / 'private_uploads' / 'avatars'
@@ -970,7 +966,7 @@ def create_dashboard_app():
         user_manager.update_user(current_user.get('username'), avatar_url=avatar_url)
         log_action(current_user, "Avatar Upload", f"User uploaded a new profile picture: {new_filename}")
                 
-        return jsonify({'status': 'success', 'avatar_url': avatar_url})
+        return ok(data={'avatar_url': avatar_url})
 
     @app.route('/api/avatar/<filename>')
     @token_required
@@ -985,11 +981,11 @@ def create_dashboard_app():
         # For now, let's stick to the prompt's recommendation for strictness:
         # "Ensures users can only access their own files"
         if not filename.startswith(current_user['username'] + '_') and current_user.get('role') != 'admin':
-            return jsonify({'error': 'Forbidden'}), 403
+            return forbidden('Forbidden')
 
         upload_dir = Path(current_app.root_path).parent / 'private_uploads' / 'avatars'
         if not (upload_dir / filename).exists():
-             return jsonify({'error': 'File not found'}), 404
+             return not_found('File not found')
 
         return send_from_directory(str(upload_dir), filename)
 
@@ -1037,7 +1033,7 @@ def create_dashboard_app():
                 'cors_enabled': False,
             }
         }
-        return jsonify(settings)
+        return ok(data=settings)
     
     @app.route('/api/settings', methods=['POST'])
     @admin_required
@@ -1046,7 +1042,7 @@ def create_dashboard_app():
         data = request.get_json()
         # Here you would save settings to database or config file
         log_action(current_user, "Settings Updated", f"Updated system settings")
-        return jsonify({'status': 'success', 'message': 'Settings updated successfully'})
+        return ok(message='Settings updated successfully')
 
     # ============================================================
     # USER MANAGER (Admin Only)
@@ -1103,7 +1099,7 @@ def create_dashboard_app():
                 'recent_actions': activity['actions_list'][-10:]  # Last 10 actions
             })
         
-        return jsonify({'users': users_with_activity})
+        return ok(data={'users': users_with_activity})
     
     @app.route('/api/users/<user_id>', methods=['GET'])
     @admin_required
@@ -1111,13 +1107,13 @@ def create_dashboard_app():
         """Get detailed information about a specific user"""
         user = user_manager.get_user_by_id(user_id)
         if not user:
-            return jsonify({'error': 'User not found'}), 404
+            return not_found('User not found')
         
         # Get all actions by this user
         audit_logs = dashboard.load_audit_log()
         user_actions = [log for log in audit_logs if log.get('username') == user.get('username')]
         
-        return jsonify({
+        return ok(data={
             'user': user,
             'actions': user_actions[-50:]  # Last 50 actions
         })
@@ -1128,14 +1124,14 @@ def create_dashboard_app():
         """Activate or deactivate a user"""
         user = user_manager.get_user_by_id(user_id)
         if not user:
-            return jsonify({'error': 'User not found'}), 404
+            return not_found('User not found')
         
         new_status = 'inactive' if user.get('status') == 'active' else 'active'
         # Update user status in database
         user_manager.update_user(user.get('username'), status=new_status)
         log_action(current_user, "User Status Changed", f"Changed {user.get('username')} status to {new_status}")
         
-        return jsonify({'status': 'success', 'new_status': new_status})
+        return ok(data={'new_status': new_status})
     
     @app.route('/api/users/<user_id>/change-role', methods=['POST'])
     @admin_required
@@ -1146,17 +1142,17 @@ def create_dashboard_app():
         
         valid_roles = ['admin', 'user', 'viewer']
         if not new_role or new_role not in valid_roles:
-            return jsonify({'error': f'Invalid role. Must be one of: {", ".join(valid_roles)}'}), 400
+            return bad_request(f'Invalid role. Must be one of: {", ".join(valid_roles)}')
         
         user = user_manager.get_user_by_id(user_id)
         if not user:
-            return jsonify({'error': 'User not found'}), 404
+            return not_found('User not found')
         
         # Update user role
         user_manager.update_user(user.get('username'), role=new_role)
         log_action(current_user, "User Role Changed", f"Changed {user.get('username')} role to {new_role}")
         
-        return jsonify({'status': 'success', 'new_role': new_role})
+        return ok(data={'new_role': new_role})
     
     @app.route('/api/users/<user_id>', methods=['DELETE'])
     @admin_required
@@ -1164,16 +1160,16 @@ def create_dashboard_app():
         """Delete a user"""
         user = user_manager.get_user_by_id(user_id)
         if not user:
-            return jsonify({'error': 'User not found'}), 404
+            return not_found('User not found')
         
         if user.get('username') == current_user.get('username'):
-            return jsonify({'error': 'Cannot delete your own account'}), 400
+            return bad_request('Cannot delete your own account')
         
         # Delete user
         user_manager.delete_user(user.get('username'))
         log_action(current_user, "User Deleted", f"Deleted user {user.get('username')}")
         
-        return jsonify({'status': 'success', 'message': 'User deleted successfully'})
+        return ok(message='User deleted successfully')
     
     @app.route('/api/users', methods=['POST'])
     @admin_required
@@ -1187,12 +1183,12 @@ def create_dashboard_app():
             role = data.get('role', 'viewer')
             
             if not username or not email or not password:
-                return jsonify({'error': 'Username, email, and password are required'}), 400
+                return bad_request('Username, email, and password are required')
             
             # Check if user already exists
             existing_user = user_manager.get_user(username)
             if existing_user:
-                return jsonify({'error': 'Username already exists'}), 400
+                return bad_request('Username already exists')
             
             # Create new user
             new_user = user_manager.create_user(
@@ -1204,14 +1200,10 @@ def create_dashboard_app():
             
             log_action(current_user, "User Created", f"Created new user: {username} with role: {role}")
             
-            return jsonify({
-                'status': 'success',
-                'message': 'User created successfully',
-                'user': new_user
-            })
+            return created(data={'user': new_user}, message='User created successfully')
         except Exception as e:
             print(f"Error creating user: {e}")
-            return jsonify({'error': str(e)}), 500
+            return server_error(str(e))
 
     @app.route('/critical')
     @token_required
@@ -1265,7 +1257,7 @@ def create_dashboard_app():
                 threat['ip'] = "XXX.XXX.XXX.XXX"
                 threat['snippet'] = "[HIDDEN]"
                 threat['payload'] = "[HIDDEN]"
-        return jsonify({
+        return ok(data={
             'total': len(critical_threats),
             'new_24h': len([t for t in critical_threats if is_recent(t.get('timestamp', ''))]),
             'affected_assets': len(set(t.get('endpoint', '') for t in critical_threats if t.get('endpoint'))),
@@ -1280,10 +1272,10 @@ def create_dashboard_app():
         page_context = data.get('page_context')
         history = data.get('history', [])
         if not message:
-            return jsonify({'error': 'Message required'}), 400
+            return bad_request('Message required')
         print(f"[NLP] Chat request from {current_user['username']} ({current_user['role']}): {message}")
         response_text = security_bot.generate_response(message, incident_id, page_context, history, role=current_user['role'])
-        return jsonify({
+        return ok(data={
             'response': response_text,
             'timestamp': datetime.now().strftime("%H:%M")
         })
@@ -1310,10 +1302,10 @@ def create_dashboard_app():
             else:
                 blacklist = []
             
-            return jsonify({'blacklist': blacklist})
+            return ok(data={'blacklist': blacklist})
         except Exception as e:
             print(f"Error loading blacklist: {e}")
-            return jsonify({'blacklist': []})
+            return ok(data={'blacklist': []})
     
     @app.route('/api/blacklist', methods=['POST'])
     @admin_required
@@ -1327,7 +1319,7 @@ def create_dashboard_app():
             status = data.get('status', 'active')
             
             if not blacklist_type or not value or not reason:
-                return jsonify({'error': 'Type, value, and reason are required'}), 400
+                return bad_request('Type, value, and reason are required')
             
             # Load existing blacklist
             project_root = Path(__file__).parent.parent.parent
@@ -1361,10 +1353,10 @@ def create_dashboard_app():
             
             log_action(current_user, "Blacklist Entry Added", f"Added {blacklist_type}: {value}")
             
-            return jsonify({'status': 'success', 'message': 'Added to blacklist successfully', 'entry': new_entry})
+            return created(data={'entry': new_entry}, message='Added to blacklist successfully')
         except Exception as e:
             print(f"Error adding to blacklist: {e}")
-            return jsonify({'error': str(e)}), 500
+            return server_error(str(e))
     
     @app.route('/api/blacklist/<int:entry_id>', methods=['PUT'])
     @admin_required
@@ -1377,7 +1369,7 @@ def create_dashboard_app():
             project_root = Path(__file__).parent.parent.parent
             blacklist_file = project_root / 'data' / 'blacklist.json'
             if not blacklist_file.exists():
-                return jsonify({'error': 'Blacklist not found'}), 404
+                return not_found('Blacklist not found')
             
             with open(blacklist_file, 'r') as f:
                 blacklist = json.load(f)
@@ -1385,7 +1377,7 @@ def create_dashboard_app():
             # Find and update entry
             entry = next((item for item in blacklist if item.get('id') == entry_id), None)
             if not entry:
-                return jsonify({'error': 'Entry not found'}), 404
+                return not_found('Entry not found')
             
             # Update fields
             if 'reason' in data:
@@ -1402,10 +1394,10 @@ def create_dashboard_app():
             
             log_action(current_user, "Blacklist Entry Updated", f"Updated entry ID: {entry_id}")
             
-            return jsonify({'status': 'success', 'message': 'Blacklist entry updated successfully'})
+            return ok(message='Blacklist entry updated successfully')
         except Exception as e:
             print(f"Error updating blacklist: {e}")
-            return jsonify({'error': str(e)}), 500
+            return server_error(str(e))
     
     @app.route('/api/blacklist/<int:entry_id>', methods=['DELETE'])
     @admin_required
@@ -1416,7 +1408,7 @@ def create_dashboard_app():
             project_root = Path(__file__).parent.parent.parent
             blacklist_file = project_root / 'data' / 'blacklist.json'
             if not blacklist_file.exists():
-                return jsonify({'error': 'Blacklist not found'}), 404
+                return not_found('Blacklist not found')
             
             with open(blacklist_file, 'r') as f:
                 blacklist = json.load(f)
@@ -1424,7 +1416,7 @@ def create_dashboard_app():
             # Find and remove entry
             entry = next((item for item in blacklist if item.get('id') == entry_id), None)
             if not entry:
-                return jsonify({'error': 'Entry not found'}), 404
+                return not_found('Entry not found')
             
             blacklist = [item for item in blacklist if item.get('id') != entry_id]
             
@@ -1434,10 +1426,10 @@ def create_dashboard_app():
             
             log_action(current_user, "Blacklist Entry Deleted", f"Deleted {entry.get('type')}: {entry.get('value')}")
             
-            return jsonify({'status': 'success', 'message': 'Blacklist entry deleted successfully'})
+            return ok(message='Blacklist entry deleted successfully')
         except Exception as e:
             print(f"Error deleting blacklist: {e}")
-            return jsonify({'error': str(e)}), 500
+            return server_error(str(e))
 
     # ── Attack History Page ───────────────────────────────────
     @app.route('/attack-history')
