@@ -179,6 +179,12 @@ def create_api_app():
 
     @app.route("/health")
     def health():
+        return jsonify({"status": "healthy"}), 200
+
+    @app.route("/health/detailed")
+    @token_required
+    @admin_required
+    def health_detailed(current_user):
         return {"status": "healthy", "uptime": time.time() - security.start_time,
                 "total_requests": security.total_requests,
                 "blocked_requests": security.blocked_requests}
