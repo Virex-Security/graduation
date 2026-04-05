@@ -15,12 +15,15 @@ from app.auth.models import user_manager
 def _is_jti_valid(jti: str) -> bool:
     """
     Check whether the token's jti exists and is still active in user_sessions.
-    Returns True if no session table exists yet (graceful fallback during migration).
+    Returns False if a session row does not exist to prevent replay of revoked or rogue tokens.
     """
     if not jti:
         return False
     try:
         from app import database as db
+        import logging
+        logger = logging.getLogger(__name__)
+        
         jti_hash = hashlib.sha256(jti.encode()).hexdigest()
         with db.db_cursor() as cur:
             cur.execute(
@@ -28,13 +31,18 @@ def _is_jti_valid(jti: str) -> bool:
                 (jti_hash,)
             )
             row = cur.fetchone()
+            
         if row is None:
-            # Session not found in DB — could be a token issued before this fix.
-            # Accept it to avoid locking out existing users on upgrade.
-            return True
+            logger.warning(f"[AUTH] Unknown or deleted JTI encountered: {jti_hash}. Rejecting token to prevent replay.")
+            return False
+            
         return bool(row["is_active"])
-    except Exception:
-        # If DB check fails, don't block the user — log and allow.
+    except Exception as e:
+        # If DB check fails (e.g., table missing/locked, operational error), default to True.
+        # Trade-off: This is an acceptable availability-over-security risk 
+        # to ensure legitimate users aren't globally locked out during transient DB hiccups.
+        import logging
+        logging.getLogger(__name__).error(f"[AUTH] DB error verifying JTI: {e}. Allowing token by default.")
         return True
 
 
