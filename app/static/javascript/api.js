@@ -16,6 +16,15 @@ const API = {
         ...options.headers
       };
 
+      // Auto-add CSRF token for state-changing requests
+      const method = (options.method || 'GET').toUpperCase();
+      if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(method)) {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        if (csrfToken) {
+          headers['X-CSRFToken'] = csrfToken;
+        }
+      }
+
       if (options.body && !(options.body instanceof FormData)) {
         headers['Content-Type'] = 'application/json';
         options.body = JSON.stringify(options.body);

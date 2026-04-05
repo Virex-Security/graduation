@@ -48,6 +48,9 @@ def create_dashboard_app():
     
     app = Flask(__name__, template_folder=template_folder, static_folder=static_folder)
     
+    from flask_wtf.csrf import CSRFProtect
+    csrf = CSRFProtect(app)
+    
     # Config & Secrets
     app.config['SECRET_KEY'] = dashboard.secret_key
     SMTP_EMAIL    = os.getenv('SMTP_EMAIL')

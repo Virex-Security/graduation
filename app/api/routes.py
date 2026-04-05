@@ -64,6 +64,9 @@ def _get_real_ip():
 def create_api_app():
     app = Flask(__name__)
     
+    from flask_wtf.csrf import CSRFProtect
+    csrf = CSRFProtect(app)
+    
     from werkzeug.middleware.proxy_fix import ProxyFix
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1)
 

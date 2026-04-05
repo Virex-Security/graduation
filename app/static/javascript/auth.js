@@ -44,29 +44,20 @@ const Auth = {
    */
   async login(username, password) {
     try {
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        credentials: "same-origin",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
-      });
+      const data = await API.post("/api/auth/login", { username, password });
+      
+      const userData = {
+        username: username,
+        role: data.role,
+        loginTime: new Date().toISOString(),
+      };
 
-      if (response.ok) {
-        const data = await response.json();
-        const userData = {
-          username: username,
-          role: data.role,
-          loginTime: new Date().toISOString(),
-        };
+      localStorage.setItem(this.SESSION_KEY, "active");
+      localStorage.setItem(this.USER_KEY, JSON.stringify(userData));
 
-        localStorage.setItem(this.SESSION_KEY, "active");
-        localStorage.setItem(this.USER_KEY, JSON.stringify(userData));
-
-        // Redirect to the protected dashboard route; server will verify the cookie
-        window.location.href = "/dashboard";
-        return true;
-      }
-      return false;
+      // Redirect to the protected dashboard route; server will verify the cookie
+      window.location.href = "/dashboard";
+      return true;
     } catch (error) {
       console.error("Login error:", error);
       return false;
@@ -78,7 +69,7 @@ const Auth = {
    */
   async logout() {
     try {
-      await fetch("/api/auth/logout");
+      await API.get("/api/auth/logout");
     } catch (e) {}
     localStorage.removeItem(this.SESSION_KEY);
     localStorage.removeItem(this.USER_KEY);
