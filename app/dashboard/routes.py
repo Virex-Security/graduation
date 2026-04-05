@@ -30,27 +30,30 @@ security_bot = SecurityChatbot(dashboard)
 
 
 def create_dashboard_app():
-    # Set template and static folders relative to app directory
+    # ── Initialization ────────────────────────────────────────
+    import random, smtplib
+    from email.mime.text import MIMEText
+    from app import database as _db
+    from app import config as _cfg
+    
+    # Paths & Folders
     project_root = Path(__file__).parent.parent
     template_folder = str(project_root / 'templates')
     static_folder = str(project_root / 'static')
     
-    # Try absolute path as fallback
     if not os.path.exists(template_folder):
-        # Get absolute path from current working directory
         cwd = Path.cwd()
         template_folder = str(cwd / 'app' / 'templates')
         static_folder = str(cwd / 'app' / 'static')
     
-    print(f"Debug - Template folder: {template_folder}")
-    print(f"Debug - Static folder: {static_folder}")
-    print(f"Debug - Template folder exists: {os.path.exists(template_folder)}")
-    print(f"Debug - signup.html exists: {os.path.exists(os.path.join(template_folder, 'signup.html'))}")
+    app = Flask(__name__, template_folder=template_folder, static_folder=static_folder)
     
-    app = Flask(__name__, 
-                template_folder=template_folder,
-                static_folder=static_folder)
+    # Config & Secrets
     app.config['SECRET_KEY'] = dashboard.secret_key
+    SMTP_EMAIL    = os.getenv('SMTP_EMAIL')
+    SMTP_PASSWORD = _cfg.smtp_password()
+    SECRET_KEY    = _cfg.secret_key()
+
     def log_action(current_user, action, details=""):
         """Centralized logging for role-based actions"""
         log_entry = {
@@ -61,7 +64,6 @@ def create_dashboard_app():
             "action": action,
             "details": details
         }
-        print(f"[AUDIT] {log_entry}")
         dashboard.write_audit_log(log_entry)
     # ----------------------------------------------------------
     # TRAFFIC LOGGER - intercepts every request automatically
@@ -180,14 +182,6 @@ def create_dashboard_app():
                 pass
         return logout_user()
     # ── Forgot Password / OTP ─────────────────────────────────
-    import random, smtplib
-    from email.mime.text import MIMEText
-    from app import database as _db
-
-    SMTP_EMAIL    = os.getenv('SMTP_EMAIL')
-    from app import config as _cfg
-    SMTP_PASSWORD = _cfg.smtp_password()
-    SECRET_KEY    = _cfg.secret_key()
 
 
 

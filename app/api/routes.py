@@ -62,12 +62,10 @@ def _get_real_ip():
 
 
 def create_api_app():
-    from werkzeug.middleware.proxy_fix import ProxyFix
     app = Flask(__name__)
+    
+    from werkzeug.middleware.proxy_fix import ProxyFix
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1)
-    from app import database as db
-
-
 
     # ── Config ────────────────────────────────────────────────
     app.config["MAX_CONTENT_LENGTH"] = int(os.getenv("MAX_CONTENT_LENGTH", str(1 * 1024 * 1024)))
@@ -76,6 +74,9 @@ def create_api_app():
     allowed_origins_list = [o.strip() for o in allowed_origins.split(",") if o.strip()]
     CORS(app, resources={r"/api/*": {"origins": allowed_origins_list}})
 
+    # Extensions / Dependencies
+    from app import database as db
+    from app.api.persistence import load_blocked_ips, save_blocked_ips
     security = SimpleSecurityManager()
 
     BRUTE_FORCE_LIMIT      = 5
@@ -83,7 +84,6 @@ def create_api_app():
     BRUTE_FORCE_BLOCK_TIME = 900  # 15 minutes
 
     # Load persisted blocked IPs on startup
-    from app.api.persistence import load_blocked_ips, save_blocked_ips
     blocked_ips = load_blocked_ips()
 
     @app.before_request
