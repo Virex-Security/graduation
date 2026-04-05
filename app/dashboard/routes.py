@@ -374,6 +374,8 @@ def create_dashboard_app():
     def require_internal_secret(f):
         @wraps(f)
         def decorated(*args, **kwargs):
+            if not INTERNAL_SECRET:
+                return jsonify({'error': 'Internal auth not configured'}), 503
             token = request.headers.get('X-Internal-Token', '')
             if not secrets.compare_digest(token, INTERNAL_SECRET):
                 return jsonify({'error': 'Forbidden'}), 403
