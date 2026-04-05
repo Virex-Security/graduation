@@ -231,7 +231,8 @@ def create_api_app():
 
     @app.route("/api/logs", methods=["GET"])
     @token_required
-    def get_logs_route():
+    @admin_required
+    def get_logs_route(current_user):
         logs = services.get_request_logs()
         return jsonify({"logs": logs, "total": len(logs)})
 
@@ -266,8 +267,9 @@ def create_api_app():
               "jti": secrets.token_hex(16),   # for revocation
           }, current_app.config["SECRET_KEY"], algorithm="HS256")
           resp = make_response(jsonify({"message": "Login successful"}))
+          from app import config as _cfg
           resp.set_cookie("auth_token", token, httponly=True,
-                        secure=False, samesite="Lax", max_age=8*3600)
+                        secure=_cfg.cookie_secure(), samesite="Lax", max_age=8*3600)
           return resp, 200
         else:
               # Brute force tracking

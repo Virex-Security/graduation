@@ -1,160 +1,169 @@
-# Virex Security System (Graduation Project)
+# 🛡️ Virex Security System
 
-A lightweight **API Security + SIEM Dashboard** demo built with **Flask**.
-It detects common web attacks (SQL Injection, XSS, brute force, scanner behavior, rate limiting) and visualizes events and incidents in a dashboard.
-
-## 🆕 **Refactored Structure** (March 2026)
-
-The project has been refactored into a clean, modular structure for better maintainability and scalability.
-
-## Tech Stack
-
-- **Backend:** Python + Flask
-- **Dashboard:** Flask templates + HTML/CSS/JavaScript
-- **ML:** TF‑IDF + RandomForest (scikit-learn)
-- **Security:** Rule-based + ML-based threat detection
-
-## Services & Ports (Local)
-
-- **API Service:** `http://127.0.0.1:5000`
-- **Dashboard:** `http://127.0.0.1:8070/`
+A full-stack SIEM (Security Information and Event Management) platform with:
+- **WAF** — Web Application Firewall (signature + ML-based detection)
+- **SIEM Dashboard** — Real-time threat monitoring and incident management
+- **ML Engine** — Anomaly detection using scikit-learn
+- **Chatbot** — Bilingual (EN/AR) security assistant
+- **Attack Simulator** — For testing and demos
 
 ---
 
 ## 🚀 Quick Start
 
-### 1) Setup Environment
+### Prerequisites
+| Tool | Minimum Version |
+|------|----------------|
+| Python | 3.10+ |
+| Node.js | 18+ |
+| npm | 9+ |
+
+### 1. Clone & configure
 
 ```bash
-python -m venv .venv
-.venv\Scripts\activate
+git clone https://github.com/Virex-Security/graduation.git
+cd graduation
+
+# Copy and edit the environment file
+cp .env.example .env
+# Edit .env — set SECRET_KEY, INTERNAL_API_SECRET, and optionally SMTP_*
+```
+
+Generate secure keys:
+```bash
+python3 -c "import secrets; print('SECRET_KEY=' + secrets.token_hex(32))"
+python3 -c "import secrets; print('INTERNAL_API_SECRET=' + secrets.token_hex(32))"
+```
+
+### 2. Install Python dependencies
+
+```bash
 pip install -r requirements.txt
 ```
 
-### 2) Configure `.env` File
-
-```env
-SECRET_KEY=your-secret-key-here
-API_PORT=5000
-DASHBOARD_PORT=8070
-API_URL=http://127.0.0.1:5000
-DASHBOARD_URL=http://127.0.0.1:8070
-```
-
-### 3) Run Services
-
-**Terminal 1 - API:**
+### 3. Train the ML model (first time only)
 
 ```bash
+python3 scripts/train_model_enhanced.py
+```
+
+### 4. Start the servers
+
+**Linux / macOS:**
+```bash
+bash start.sh all
+```
+
+**Windows:**
+```cmd
+start.bat all
+```
+
+**Manual:**
+```bash
+# Terminal 1 — API server (port 5000)
 python run_api.py
-```
 
-**Terminal 2 - Dashboard:**
-
-```bash
+# Terminal 2 — Dashboard (port 8070)
 python run_dashboard.py
 ```
 
-### 4) Run Attack Simulator (Optional)
+### 5. Open the dashboard
+
+```
+http://localhost:8070
+```
+
+Default credentials (change after first login!):
+| Username | Password | Role |
+|----------|----------|------|
+| admin | Admin@123 | Admin |
+
+---
+
+## 🐳 Docker (Recommended)
 
 ```bash
-python scripts/attack_simulator.py
+cp .env.example .env   # fill in values
+docker-compose up -d
+```
+
+Services:
+- Dashboard: http://localhost:8070
+- API: http://localhost:5000
+
+---
+
+## 🏗️ Architecture
+
+```
+graduation/
+├── app/
+│   ├── api/            # WAF + REST API (port 5000)
+│   │   ├── routes.py   # API route handlers
+│   │   ├── security.py # WAF / threat detection manager
+│   │   ├── services.py # Business logic
+│   │   ├── responses.py# Standardized API responses (NEW)
+│   │   └── persistence.py
+│   ├── auth/           # Authentication & authorization
+│   │   ├── auth.py     # Login / logout / token minting
+│   │   ├── decorators.py # @token_required, @admin_required
+│   │   ├── models.py   # UserManager (DB-backed)
+│   │   └── roles.py
+│   ├── chatbot/        # Dobby — bilingual security chatbot
+│   ├── dashboard/      # SIEM Dashboard (port 8070)
+│   │   ├── routes.py   # Dashboard route handlers
+│   │   ├── services.py # Dashboard data service
+│   │   └── metrics.py
+│   ├── ml/             # ML inference engine
+│   ├── security/       # Event processing utilities
+│   ├── config.py       # Centralized config + startup validator (NEW)
+│   ├── database.py     # SQLite data access layer
+│   └── static/         # CSS, JS, images
+├── detections/         # CSRF / SSRF rule modules
+├── frontend/           # React dashboard (Vite + Tailwind)
+├── scripts/            # ML training, attack simulator
+├── db/                 # SQLite database (gitignored)
+├── data/               # ML data, model files (gitignored)
+├── .env.example        # Environment template
+├── Dockerfile
+├── docker-compose.yml
+└── start.sh / start.bat
 ```
 
 ---
----
 
-## 📊 Key Features
+## 🔐 Security Configuration
 
-1. **Multi-Layer Threat Detection**
-   - Regex patterns (SQL Injection, XSS)
-   - Rate limiting & scanner detection
-   - ML-based anomaly detection
-
-2. **SIEM Dashboard**
-   - Real-time threat visualization
-   - Incident management
-   - Security score calculation
-   - ML performance metrics
-
-3. **Role-Based Access Control**
-   - Admin and User roles
-   - Protected endpoints
-   - Audit logging
-
-4. **ML Integration**
-   - TF-IDF + Random Forest
-   - Auto-retraining every hour
-   - Live detection statistics
+| Setting | Dev | Production |
+|---------|-----|------------|
+| `FLASK_DEBUG` | true | **false** |
+| `COOKIE_SECURE` | false | **true** (requires HTTPS) |
+| `SECRET_KEY` | any | **random 32+ byte hex** |
+| HTTPS | optional | **required** |
 
 ---
 
-## 🛠️ Development
-
-### Train ML Model
+## 🧪 Running Tests
 
 ```bash
-python scripts/train_model_enhanced.py
-```
-
-### Run Tests
-
-```bash
-pytest tests/
+pytest tests/ -v
 ```
 
 ---
 
-## 📝 API Endpoints
+## 🔒 Security Notes
 
-### Essential
-
-- `GET /api/health` - Health check
-- `POST /api/login` - User login (with brute force protection)
-- `GET /api/security/stats` - Security statistics
-- `GET /api/users` - Get users (demo data)
-- `GET /api/orders` - Get orders (demo data)
-- `GET /api/products` - Get products (demo data)
-
-### Dashboard Pages
-
-- `/` - Landing page
-- `/dashboard` - Main dashboard
-- `/incidents` - Incident management
-- `/ml-detections` - ML performance
-- `/profile` - User profile
+- Passwords are hashed with Werkzeug's `generate_password_hash` (PBKDF2-SHA256)
+- JWT tokens stored in `httpOnly` cookies (not localStorage)
+- Token revocation via `jti` + `user_sessions` table
+- Rate limiting: 10 req/10s global + 5 login attempts/60s per IP
+- WAF: signature rules (SQL injection, XSS, command injection, path traversal) + ML model
+- CSRF and SSRF detection modules active on all state-changing requests
+- All sensitive paths return 404 (scanner honeypot)
 
 ---
 
-## 🐛 Troubleshooting
+## 📜 License
 
-**Import errors:** Ensure virtual environment is activated and run from project root.
-
-**Dashboard shows zeros:** Check API is running and `data/siem_audit.json` exists.
-
-**Templates not found:** Use `run_dashboard.py` (not `dashboard.py` directly).
-
----
-
-## 📖 Module Guide
-
-- **app/api/** - API routes, security manager, business logic
-- **app/dashboard/** - Dashboard routes, services, incident management
-- **app/auth/** - Authentication, decorators, user management
-- **app/ml/** - ML model loading and threat detection
-- **app/security/** - Request filtering and event utilities
-- **app/chatbot/** - NLP-based security assistant
-
----
-
-## 🚧 Future Roadmap
-
-- SQL Server integration
-- WebSocket real-time updates
-- Custom ML training UI
-- Docker deployment
-- Enhanced role system
-
----
-
-**Built with ❤️ for cybersecurity education**
+Educational project — Virex Security Team

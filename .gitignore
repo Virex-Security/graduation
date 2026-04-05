@@ -42,3 +42,24 @@ Thumbs.db
 # IDE
 .vscode/
 .idea/
+
+# ⚠️ Database files — contain real data, never commit
+*.db
+*.sqlite
+*.sqlite3
+db/virex.db
+
+# Uploaded files
+app/static/uploads/
+
+# Generated ML artifacts
+data/model.pkl
+data/vectorizer.pkl
+
+# Coverage
+.coverage
+htmlcov/
+
+# Logs
+*.log
+siem_audit.json

@@ -57,7 +57,7 @@ class SimpleSecurityManager:
         _db._seed_rules_table()
 
         db_rules = get_rules(active_only=True)
-        print(f"[DEBUG] SimpleSecurityManager: loaded {len(db_rules)} rule(s) from DB")
+        logger.debug("[DEBUG] SimpleSecurityManager: loaded {len(db_rules)} rule(s) from DB")
 
         self._db_rules = db_rules  # keep raw list for reference
 
@@ -72,7 +72,7 @@ class SimpleSecurityManager:
                 compiled = re.compile(pattern, re.IGNORECASE | re.DOTALL)
                 self._compiled_db_rules.setdefault(rtype, []).append((compiled, rule))
             except re.error as exc:
-                print(f"[DEBUG] Bad regex in rule '{rule.get('name')}': {exc}")
+                logger.debug("[DEBUG] Bad regex in rule '{rule.get('name)}': {exc}")
 
         # DB severity (lowercase) -> display severity (Title case)
         self._severity_map = {
@@ -236,12 +236,23 @@ class SimpleSecurityManager:
         return result
 
     # ── Rate Limit ────────────────────────────────────────────
-    def check_rate_limit(self, ip):
+    def check_rate_limit(self, ip, window: int = None, limit: int = None):
+        """
+        Sliding-window rate limiter.
+
+        Default window/limit are loaded from environment to allow tuning
+        without code changes. Sensible defaults: 100 req/60s per IP.
+        Override per call for sensitive endpoints (e.g. login: 5/60s).
+        """
+        import os
+        window = window or int(os.getenv("RATE_LIMIT_WINDOW", "60"))
+        limit  = limit  or int(os.getenv("RATE_LIMIT_MAX",    "100"))
+
         now = time.time()
         q   = self.rate_limit_storage[ip]
-        while q and now - q[0] > 10:
+        while q and now - q[0] > window:
             q.popleft()
-        if len(q) >= 10:
+        if len(q) >= limit:
             self.rate_limit_hits += 1
             self.log_to_dashboard(
                 "Rate Limit", ip, "Rate limit exceeded", "Medium",
@@ -271,7 +282,7 @@ class SimpleSecurityManager:
             text = str(value)
 
             # ── Layer 1: DB Rules ─────────────────────────────
-            print(f"[DEBUG] Scanning value (len={len(text)}): {text[:80]!r}")
+            logger.debug("[DEBUG] Scanning value (len={len(text)}): {text[:80]!r}")
             if self._apply_db_rules(text, ip):
                 return False
 

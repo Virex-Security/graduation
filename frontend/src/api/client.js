@@ -1,10 +1,13 @@
 /**
- * Central API client for Virex Dashboard.
- * Wraps fetch with auth, error handling, and timeout logic.
+ * Virex API Client — cookie-based authentication.
+ *
+ * All requests include credentials: 'include' so the browser
+ * automatically sends the httpOnly auth_token cookie.
+ * No tokens are ever read or stored in JavaScript.
  */
 
 const BASE = '/api';
-const TIMEOUT_MS = 12000;
+const TIMEOUT_MS = 12_000;
 
 function withTimeout(promise, ms) {
   return Promise.race([
@@ -17,20 +20,21 @@ function withTimeout(promise, ms) {
 
 async function request(method, path, body = null, opts = {}) {
   const headers = { 'Content-Type': 'application/json', ...opts.headers };
-  const token = localStorage.getItem('virex_token');
-  if (token) headers['Authorization'] = `Bearer ${token}`;
 
   const fetchPromise = fetch(`${BASE}${path}`, {
     method,
     headers,
+    credentials: 'include',   // ← send httpOnly cookie automatically
     body: body ? JSON.stringify(body) : undefined,
   });
 
   const res = await withTimeout(fetchPromise, TIMEOUT_MS);
 
   if (res.status === 401) {
-    localStorage.removeItem('virex_token');
-    window.location.href = '/login';
+    // Session expired or invalid — redirect to login
+    if (!window.location.pathname.includes('/login')) {
+      window.location.href = '/login';
+    }
     throw new Error('Unauthorized');
   }
 
@@ -44,10 +48,10 @@ async function request(method, path, body = null, opts = {}) {
 }
 
 const API = {
-  get: (path, opts) => request('GET', path, null, opts),
-  post: (path, body, opts) => request('POST', path, body, opts),
-  put: (path, body, opts) => request('PUT', path, body, opts),
-  delete: (path, opts) => request('DELETE', path, null, opts),
+  get:    (path, opts)       => request('GET',    path, null, opts),
+  post:   (path, body, opts) => request('POST',   path, body, opts),
+  put:    (path, body, opts) => request('PUT',    path, body, opts),
+  delete: (path, opts)       => request('DELETE', path, null, opts),
 };
 
 export default API;

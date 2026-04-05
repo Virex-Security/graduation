@@ -3,7 +3,9 @@ Dashboard Routes - Flask application and route handlers for SIEM Dashboard
 """
 from functools import wraps
 import os
+import hmac
 from venv import logger
+from werkzeug.utils import secure_filename
 
 from flask import Flask, current_app, render_template, jsonify, request, redirect, url_for, g
 import json
@@ -182,8 +184,9 @@ def create_dashboard_app():
     from app import database as _db
 
     SMTP_EMAIL    = os.getenv('SMTP_EMAIL')
-    SMTP_PASSWORD = os.environ['SMTP_PASSWORD']   # fail loudly if missing
-    SECRET_KEY    = os.environ['SECRET_KEY']
+    from app import config as _cfg
+    SMTP_PASSWORD = _cfg.smtp_password()
+    SECRET_KEY    = _cfg.secret_key()
 
     @app.route('/api/request-reset-otp', methods=['POST'])
     def request_reset_otp():
@@ -245,7 +248,7 @@ def create_dashboard_app():
             record = cur.fetchone()
         if not record:
             return jsonify({'error': 'No OTP requested for this user'}), 400
-        if record['otp'] != otp:
+        if not hmac.compare_digest(record['otp'], str(otp)):
             return jsonify({'error': 'Invalid OTP'}), 400
         if time.strftime('%Y-%m-%d %H:%M:%S') > record['otp_expiry']:
             return jsonify({'error': 'OTP expired'}), 400
@@ -342,7 +345,11 @@ def create_dashboard_app():
         # now is to display the source IP in full, so we simply return the data
         # as-is. snippet/payload may still be hidden by the frontend if desired.
         return jsonify(data)
-    INTERNAL_SECRET = os.environ['INTERNAL_API_SECRET']
+    from app import config as _cfg
+    INTERNAL_SECRET = _cfg.internal_secret()
+    if not INTERNAL_SECRET:
+        import logging as _log
+        _log.getLogger(__name__).error('[CONFIG] INTERNAL_API_SECRET not set')
 
     def require_internal_secret(f):
         @wraps(f)
@@ -847,15 +854,11 @@ def create_dashboard_app():
         username = current_user.get('username')
         
         # Update user data
-        update_data = {}
-        if 'full_name' in data:
-            update_data['full_name'] = data['full_name']
-        if 'email' in data:
-            update_data['email'] = data['email']
-        if 'department' in data:
-            update_data['department'] = data['department']
+        # Whitelist only safe profile fields — never accept role/status from user
+        ALLOWED_PROFILE_FIELDS = {'full_name', 'email', 'department', 'phone'}
+        update_data = {k: v for k, v in data.items() if k in ALLOWED_PROFILE_FIELDS}
+
         if 'password' in data and data['password']:
-            # Validate password if provided
             is_valid_password, password_message = user_manager.validate_password_policy(data['password'])
             if not is_valid_password:
                 return jsonify({'status': 'error', 'message': password_message}), 400
@@ -918,7 +921,7 @@ def create_dashboard_app():
         if imghdr.what(None, h=header) not in ALLOWED_MAGIC:
             return jsonify({'error': 'Invalid image content'}), 400
 
-        upload_dir = Path(current_app.root_path) / 'private_uploads' / 'avatars'
+        upload_dir = Path(current_app.root_path) / 'static' / 'uploads' / 'avatars'
         upload_dir.mkdir(parents=True, exist_ok=True)
         new_filename = f"{current_user['username']}_{int(time.time())}{ext}"
         file.save(str(upload_dir / new_filename))
@@ -1429,4 +1432,5 @@ if __name__ == '__main__':
     # Start timeline update thread
     threading.Thread(target=run_timeline_updates, daemon=True).start()
     app = create_dashboard_app()
-    app.run(host='0.0.0.0', port=8070, debug=True, use_reloader=False)
+    _debug = os.getenv('FLASK_DEBUG', 'false').lower() == 'true'
+    app.run(host='0.0.0.0', port=8070, debug=_debug, use_reloader=False)

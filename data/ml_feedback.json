@@ -1178,45 +1178,5 @@
     "attack_type": "Anomaly",
     "reviewed": false,
     "promoted_to_rule": false
-  },
-  {
-    "timestamp": "2026-04-02T22:36:38Z",
-    "text_hash": "0f2797f2182804d0cc7f0b85d254c146",
-    "text_snippet": "Admin@123456",
-    "risk_score": 0.8079072113147296,
-    "decision": "monitor",
-    "attack_type": "Brute Force",
-    "reviewed": false,
-    "promoted_to_rule": false
-  },
-  {
-    "timestamp": "2026-04-02T22:44:50Z",
-    "text_hash": "14bb219f11c3d56c354d719311632b48",
-    "text_snippet": "Admmin@123456",
-    "risk_score": 0.7047369830125619,
-    "decision": "monitor",
-    "attack_type": "Anomaly",
-    "reviewed": false,
-    "promoted_to_rule": false
-  },
-  {
-    "timestamp": "2026-04-02T22:45:00Z",
-    "text_hash": "0f2797f2182804d0cc7f0b85d254c146",
-    "text_snippet": "Admin@123456",
-    "risk_score": 0.8079072113147295,
-    "decision": "monitor",
-    "attack_type": "Brute Force",
-    "reviewed": false,
-    "promoted_to_rule": false
-  },
-  {
-    "timestamp": "2026-04-02T22:50:38Z",
-    "text_hash": "0f2797f2182804d0cc7f0b85d254c146",
-    "text_snippet": "Admin@123456",
-    "risk_score": 0.8079072113147295,
-    "decision": "monitor",
-    "attack_type": "Brute Force",
-    "reviewed": false,
-    "promoted_to_rule": false
   }
 ]

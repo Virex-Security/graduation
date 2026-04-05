@@ -25,6 +25,13 @@ import joblib
 import warnings
 warnings.filterwarnings('ignore')
 
+# ── Auto-resolve paths relative to this script ───────────
+from pathlib import Path as _Path
+_SCRIPT_DIR   = _Path(__file__).resolve().parent   # scripts/
+_PROJECT_ROOT = _SCRIPT_DIR.parent                 # graduation-fixed/
+_DATA_DIR     = _PROJECT_ROOT / "data"
+# ─────────────────────────────────────────────────────────
+
 # ─────────────────────────────────────────────
 # 1. LOAD DATA
 # ─────────────────────────────────────────────
@@ -32,7 +39,7 @@ print("=" * 55)
 print("  Virex ML Model Training & Evaluation")
 print("=" * 55)
 
-data = pd.read_csv("ml_training_data.csv")
+data = pd.read_csv(str(_DATA_DIR / "ml_training_data.csv"))
 
 print(f"\n📊 Dataset Statistics:")
 print(f"   Total Samples  : {len(data)}")
@@ -260,13 +267,13 @@ fig.text(0.5, 0.01,
 # ─────────────────────────────────────────────
 # 7. SAVE
 # ─────────────────────────────────────────────
-output_img = "ml_evaluation_report.png"
+output_img = str(_DATA_DIR / "ml_evaluation_report.png")
 plt.savefig(output_img, dpi=150, bbox_inches='tight',
             facecolor=DARK_BG, edgecolor='none')
 plt.close()
 
-joblib.dump(model,      "model.pkl")
-joblib.dump(vectorizer, "vectorizer.pkl")
+joblib.dump(model,      str(_DATA_DIR / "model.pkl"))
+joblib.dump(vectorizer, str(_DATA_DIR / "vectorizer.pkl"))
 
 print(f"\n✅ Saved: model.pkl, vectorizer.pkl")
 print(f"✅ Saved: {output_img}")

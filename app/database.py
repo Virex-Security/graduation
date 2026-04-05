@@ -37,9 +37,10 @@ def db_cursor():
 
 
 def init_db():
-    """يتأكد إن الـ DB موجودة ويعمل seed للـ roles والـ users."""
+    """Ensure DB is ready: seed roles, users, and create performance indexes."""
     _seed_roles()
     _seed_users()
+    ensure_indexes()
     logger.info("[DB] Ready — %s", DB_PATH)
 
 
@@ -323,7 +324,7 @@ def get_rules(active_only: bool = True) -> list:
         else:
             cur.execute("SELECT * FROM rules ORDER BY rule_id")
         rules = [dict(r) for r in cur.fetchall()]
-    print(f"[DEBUG] get_rules() loaded {len(rules)} rule(s) from DB")
+    logger.debug("[DEBUG] get_rules() loaded {len(rules)} rule(s) from DB")
     return rules
 
 
@@ -778,41 +779,6 @@ def load_stats() -> dict:
         }
 
 
-def log_threat(attack_type: str, ip_address: str = None, endpoint: str = None,
-               method: str = None, payload: str = None, severity: str = 'High',
-               description: str = None, blocked: bool = False,
-               ml_detected: bool = False, confidence: float = 0.0,
-               detection_type: str = None):
-    """Insert a threat event into threat_logs."""
-    _ensure_rules_table()
-    now = time.strftime("%Y-%m-%d %H:%M:%S")
-    with db_cursor() as cur:
-        cur.execute("""
-            INSERT INTO threat_logs
-              (attack_type, ip_address, endpoint, method, payload,
-               severity, description, blocked, ml_detected, confidence,
-               detection_type, created_at)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?)
-        """, (attack_type, ip_address, endpoint, method, payload,
-               severity, description, 1 if blocked else 0,
-               1 if ml_detected else 0, confidence, detection_type, now))
-
-
-def get_threat_logs(limit: int = 100, attack_type: str = None) -> list:
-    """Fetch threat log entries, newest first."""
-    _ensure_rules_table()
-    with db_cursor() as cur:
-        if attack_type:
-            cur.execute(
-                "SELECT * FROM threat_logs WHERE attack_type = ? ORDER BY threat_log_id DESC LIMIT ?",
-                (attack_type, limit)
-            )
-        else:
-            cur.execute(
-                "SELECT * FROM threat_logs ORDER BY threat_log_id DESC LIMIT ?",
-                (limit,)
-            )
-        return [dict(r) for r in cur.fetchall()]
 
 
 def clear_threat_logs():
@@ -876,3 +842,27 @@ def clear_all_attacks():
     with db_cursor() as cur:
         cur.execute("DELETE FROM threat_logs")
         cur.execute("DELETE FROM blocked_events")
+
+
+# ══════════════════════════════════════════════════════════════
+# INDEXES (performance)
+# ══════════════════════════════════════════════════════════════
+
+def ensure_indexes():
+    """Create indexes on high-traffic columns if not yet present."""
+    indexes = [
+        "CREATE INDEX IF NOT EXISTS idx_threat_logs_ip       ON threat_logs(ip_address)",
+        "CREATE INDEX IF NOT EXISTS idx_threat_logs_type     ON threat_logs(attack_type)",
+        "CREATE INDEX IF NOT EXISTS idx_threat_logs_created  ON threat_logs(created_at)",
+        "CREATE INDEX IF NOT EXISTS idx_threat_logs_blocked  ON threat_logs(blocked)",
+        "CREATE INDEX IF NOT EXISTS idx_users_email          ON users(email)",
+        "CREATE INDEX IF NOT EXISTS idx_sessions_jti         ON user_sessions(jwt_token_hash)",
+        "CREATE INDEX IF NOT EXISTS idx_sessions_active      ON user_sessions(is_active)",
+        "CREATE INDEX IF NOT EXISTS idx_login_attempts_user  ON login_attempts(user_id)",
+        "CREATE INDEX IF NOT EXISTS idx_audit_logs_user      ON audit_logs(user_id)",
+        "CREATE INDEX IF NOT EXISTS idx_notifications_user   ON notifications(user_id)",
+    ]
+    with db_cursor() as cur:
+        for sql in indexes:
+            cur.execute(sql)
+    logger.info("[DB] Indexes ensured")
