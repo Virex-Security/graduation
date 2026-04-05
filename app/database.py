@@ -232,7 +232,8 @@ def _ensure_rules_table():
                 user_id INTEGER NOT NULL,
                 otp TEXT NOT NULL,
                 otp_expiry TEXT NOT NULL,
-                used INTEGER DEFAULT 0
+                used INTEGER DEFAULT 0,
+                otp_attempts INTEGER DEFAULT 0
             )
         """)
         cur.execute("""

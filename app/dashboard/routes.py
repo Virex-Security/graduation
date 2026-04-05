@@ -259,11 +259,6 @@ def create_dashboard_app():
             return jsonify({'error': 'user_id, otp and new_password required'}), 400
             
         with _db.db_cursor() as cur:
-            try:
-                cur.execute('ALTER TABLE password_resets ADD COLUMN otp_attempts INTEGER DEFAULT 0')
-            except Exception:
-                pass
-            
             cur.execute('SELECT * FROM password_resets WHERE user_id = ? AND used = 0', (user_id,))
             record = cur.fetchone()
             
