@@ -1,5 +1,5 @@
 """
-apply_all_patches.p
+apply_all_patches.py
 =====================
 يطبق كل الـ patches بالترتيب الصح.
 
