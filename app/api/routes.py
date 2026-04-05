@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 import jwt
 import secrets
 from app.api.security import SimpleSecurityManager
-from app.api import services
+from app import database as db, config as virex_config
 from app.auth import user_manager
 from app.auth.decorators import admin_required, token_required
 from app.security import new_request_id, is_trivial, is_business_relevant
@@ -29,14 +29,33 @@ load_dotenv()
 logger = logging.getLogger(__name__)
 
 
-TRUSTED_PROXIES = {"127.0.0.1", "10.0.0.1"}   # add your proxy IPs
-
 def _get_real_ip():
-    if request.remote_addr in TRUSTED_PROXIES:
-        xff = request.headers.get("X-Forwarded-For", "")
-        if xff:
-            return xff.split(",")[0].strip()
-    return request.remote_addr
+    """
+    Securely detects the client's real IP address.
+    If the immediate remote_addr is in TRUSTED_PROXIES, we trust the 
+    X-Forwarded-For header and parse it FROM RIGHT TO LEFT to find 
+    the first non-proxy IP.
+    """
+    trusted = virex_config.trusted_proxies()
+    remote_ip = request.remote_addr
+
+    if remote_ip not in trusted:
+        return remote_ip
+
+    xff = request.headers.get("X-Forwarded-For", "")
+    if not xff:
+        return remote_ip
+
+    # Parse XFF from right to left
+    # Spoofing check: header might be "SPOOFED_IP, REAL_CLINET_IP"
+    # Proxy appends the IP it sees: "SPOOFED_IP, REAL_CLINET_IP, PROXY_IP"
+    ips = [ip.strip() for ip in xff.split(",") if ip.strip()]
+    for ip in reversed(ips):
+        if ip not in trusted:
+            return ip
+
+    return remote_ip
+
 
 # Or use Werkzeug's ProxyFix middleware:
 

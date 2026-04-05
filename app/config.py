@@ -28,6 +28,7 @@ _DEFAULTS = {
     "MAX_CONTENT_LENGTH":    "1048576",
     "SMTP_EMAIL":            "",
     "SMTP_PASSWORD":         "",
+    "TRUSTED_PROXIES":      "127.0.0.1",
 }
 
 # ── Insecure default values that must be changed in production ──
@@ -161,3 +162,9 @@ def smtp_email() -> str:
 
 def smtp_password() -> str:
     return os.getenv("SMTP_PASSWORD", "")
+
+
+def trusted_proxies() -> frozenset:
+    """Returns a frozenset of trusted proxy IPs from configuration."""
+    raw = get("TRUSTED_PROXIES")
+    return frozenset(ip.strip() for ip in raw.split(",") if ip.strip())
