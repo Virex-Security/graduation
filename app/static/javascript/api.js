@@ -33,12 +33,16 @@ const API = {
       clearTimeout(timeoutId);
 
       // Handle auth failures
-      if (response.status === 401 || response.status === 403) {
+      if (response.status === 401) {
         window.location.href = '/login?msg=Session+expired';
         throw new Error('Authentication required');
       }
 
       const data = await response.json().catch(() => null);
+
+      if (response.status === 403) {
+        throw new Error(data?.message || data?.error || 'You do not have permission to perform this action.');
+      }
 
       if (!response.ok) {
         const errorMsg = data?.error || data?.message || `HTTP ${response.status} failed`;
