@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # 🛡️ Virex Security System
 
 A full-stack SIEM (Security Information and Event Management) platform with:
@@ -222,3 +223,6 @@ pytest tests/ -v
 ## 📜 License
 
 Educational project — Virex Security Team
+=======
+# graduation1
+>>>>>>> 967891135f8e00079cef2ba1d9796462c24daaba

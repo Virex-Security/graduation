@@ -1,0 +1,136 @@
+/* ====================================================================
+   RAMADAN TRIANGLE BUNTING — Cute colorful flags on curved strings
+   Colors: #FF4444 (red) · #FFD700 (yellow) · #DAA520 (gold)
+   Toggle: set isRamadan = false in ramadan.js to hide
+   ==================================================================== */
+
+/* ---------- Container ---------- */
+#ramadan-mode {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  height: 80px;
+  pointer-events: none;
+  z-index: 90;
+  overflow: visible;
+}
+
+#ramadan-mode.hidden {
+  display: none;
+}
+
+.ramadan-bunting-wrap {
+  position: relative;
+  width: 100%;
+  height: 80px;
+  pointer-events: none;
+}
+
+/* ---------- String SVGs ---------- */
+.rb-string {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  pointer-events: none;
+}
+
+.rb-string--1 {
+  top: 0;
+  height: 66px;
+  animation: rbBounce1 4s ease-in-out infinite;
+}
+
+.rb-string--2 {
+  top: 10px;
+  height: 62px;
+  opacity: 0.85;
+  animation: rbBounce2 4s ease-in-out infinite;
+  animation-delay: -2s;
+}
+
+/* ---------- Cord (the string line) ---------- */
+.rb-cord {
+  stroke: #DAA520;
+  stroke-width: 2;
+  fill: none;
+  stroke-linecap: round;
+  opacity: 0.7;
+}
+
+/* ---------- Triangles ---------- */
+.rb-tri {
+  opacity: 0.9;
+}
+
+.rb-tri--red {
+  fill: #FF4444;
+}
+
+.rb-tri--yel {
+  fill: #FFD700;
+}
+
+.rb-tri--gold {
+  fill: #DAA520;
+}
+
+/* ---------- Gentle bounce animation ---------- */
+@keyframes rbBounce1 {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(5px);
+  }
+}
+
+@keyframes rbBounce2 {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(4px);
+  }
+}
+
+/* ====================================================================
+   RESPONSIVE
+   ==================================================================== */
+@media (max-width: 768px) {
+
+  #ramadan-mode,
+  .ramadan-bunting-wrap {
+    height: 65px;
+  }
+
+  .rb-string--1 {
+    height: 55px;
+  }
+
+  .rb-string--2 {
+    height: 50px;
+  }
+}
+
+@media (max-width: 480px) {
+
+  #ramadan-mode,
+  .ramadan-bunting-wrap {
+    height: 50px;
+  }
+
+  .rb-string--1 {
+    height: 44px;
+  }
+
+  .rb-string--2 {
+    display: none;
+  }
+}
