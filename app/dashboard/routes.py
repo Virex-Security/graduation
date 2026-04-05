@@ -506,7 +506,7 @@ def create_dashboard_app():
                             user=current_user,
                             active_page='incidents')
     @app.route('/incident/<id>')
-    @token_required
+    @admin_required
     def incident_details_page(current_user, id):
         global dashboard
         if id not in dashboard.incidents:
