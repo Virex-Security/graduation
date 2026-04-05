@@ -99,7 +99,7 @@ class SimpleSecurityManager:
         }
 
         total_patterns = sum(len(v) for v in self._compiled_db_rules.values())
-        print(
+        logger.debug(
             f"[DEBUG] Compiled {total_patterns} pattern(s) across "
             f"{len(self._compiled_db_rules)} rule type(s): "
             f"{list(self._compiled_db_rules.keys())}"
@@ -166,7 +166,7 @@ class SimpleSecurityManager:
                     rule_name    = rule.get("name", "Unknown Rule")
                     action       = rule.get("action", "block").lower()
 
-                    print(
+                    logger.debug(
                         f"[DEBUG] Rule TRIGGERED: '{rule_name}' | type={rtype} | "
                         f"severity={severity} | action={action} | ip={ip} | "
                         f"snippet={text[:60]!r}"
