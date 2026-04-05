@@ -23,7 +23,7 @@ title %}{{ title }} - Virex{% endblock %} {% block stylesheets %}
       <div class="stat-box-icon">
         <i class="fas fa-shield-exclamation stat-icon-danger"></i>
       </div>
-      <div class="stat-box-title">High Alert</div>
+      <div class="stat-box-title">Critical</div>
       <div class="stat-value stat-value-danger">{{ critical_count }}</div>
     </div>
 
@@ -98,122 +98,122 @@ title %}{{ title }} - Virex{% endblock %} {% block stylesheets %}
     <div class="user-block-notice">
       <i class="fas fa-hand user-block-icon"></i>
 
-    {% endif %} {% if logs %}
-    <table class="data-table">
-      <thead>
-        <tr>
-          <th>Timestamp</th>
-          <th>Source IP</th>
-          <th>Attack Type</th>
-          <th class="admin-only">Detection Method</th>
-          <th class="admin-only">Endpoint</th>
-          <th class="admin-only">Severity</th>
-          <th class="admin-only">Details</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for log in logs %}
-        <tr
-          class="event-row row-{{ log.severity }}"
-          data-severity="{{ log.severity or log.get('severity','') }}"
-          data-attack-type="{{ log.attack_type or log.get('attack_type','') or log.type or log.get('type','') }}"
-          data-ip="{{ log.ip or log.get('ip','') }}"
-        >
-          <td class="font-mono text-sm">{{ log.timestamp }}</td>
-          <td>
-            <span class="font-mono font-semibold">{{ log.ip }}</span>
-          </td>
-          <td>
-            <span class="attack-type-label"
-              >{{ log.attack_type or log.type }}</span
-            >
-          </td>
-          <td class="admin-only">
-            {% set det = log.detection_type or 'Unknown' %} {% if
-            log.ml_detected %}
-            <span class="badge badge-ml">
-              <i class="fas fa-brain"></i> {{ det }}
-            </span>
-            {% else %}
-            <span class="badge badge-rule">
-              <i class="fas fa-shield-alt"></i> {{ det }}
-            </span>
-            {% endif %}
-          </td>
-          <td class="admin-only">
-            <div class="endpoint-cell">
-              <span class="endpoint-method">{{ log.method or 'N/A' }}</span>
-              <span class="endpoint-path">{{ log.endpoint or 'N/A' }}</span>
-            </div>
-          </td>
-          <td class="admin-only">
-            <span class="severity-badge severity-{{ log.severity }}"
-              >{{ log.severity }}</span
-            >
-          </td>
-          <td class="admin-only">
-            <button
-              onclick="showDetails('{{ loop.index }}')"
-              class="details-btn"
-            >
-              <i class="fas fa-info-circle"></i> View Details
-            </button>
-          </td>
-        </tr>
-        {% if user.role == 'admin' %}
-        <tr id="details{{ loop.index }}" class="details-row">
-          <td colspan="7" class="details-cell">
-            <div class="details-grid">
-              <div>
-                <h4 class="details-heading">
-                  <i class="fas fa-exclamation-triangle icon-danger"></i>
-                  Block Reason
-                </h4>
-                <p class="details-text">{{ log.description }}</p>
-                {% if log.ml_detected and log.confidence %}
-                <div class="confidence-section">
+      {% endif %} {% if logs %}
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Timestamp</th>
+            <th>Source IP</th>
+            <th>Attack Type</th>
+            <th class="admin-only">Detection Method</th>
+            <th class="admin-only">Endpoint</th>
+            <th class="admin-only">Severity</th>
+            <th class="admin-only">Details</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for log in logs %}
+          <tr
+            class="event-row row-{{ log.severity }}"
+            data-severity="{{ log.severity or log.get('severity','') }}"
+            data-attack-type="{{ log.attack_type or log.get('attack_type','') or log.type or log.get('type','') }}"
+            data-ip="{{ log.ip or log.get('ip','') }}"
+          >
+            <td class="font-mono text-sm">{{ log.timestamp }}</td>
+            <td>
+              <span class="font-mono font-semibold">{{ log.ip }}</span>
+            </td>
+            <td>
+              <span class="attack-type-label"
+                >{{ log.attack_type or log.type }}</span
+              >
+            </td>
+            <td class="admin-only">
+              {% set det = log.detection_type or 'Unknown' %} {% if
+              log.ml_detected %}
+              <span class="badge badge-ml">
+                <i class="fas fa-brain"></i> {{ det }}
+              </span>
+              {% else %}
+              <span class="badge badge-rule">
+                <i class="fas fa-shield-alt"></i> {{ det }}
+              </span>
+              {% endif %}
+            </td>
+            <td class="admin-only">
+              <div class="endpoint-cell">
+                <span class="endpoint-method">{{ log.method or 'N/A' }}</span>
+                <span class="endpoint-path">{{ log.endpoint or 'N/A' }}</span>
+              </div>
+            </td>
+            <td class="admin-only">
+              <span class="severity-badge severity-{{ log.severity }}"
+                >{{ log.severity }}</span
+              >
+            </td>
+            <td class="admin-only">
+              <button
+                onclick="showDetails('{{ loop.index }}')"
+                class="details-btn"
+              >
+                <i class="fas fa-info-circle"></i> View Details
+              </button>
+            </td>
+          </tr>
+          {% if user.role == 'admin' %}
+          <tr id="details{{ loop.index }}" class="details-row">
+            <td colspan="7" class="details-cell">
+              <div class="details-grid">
+                <div>
                   <h4 class="details-heading">
-                    <i class="fas fa-chart-line icon-purple"></i>
-                    ML Confidence Score
+                    <i class="fas fa-exclamation-triangle icon-danger"></i>
+                    Block Reason
                   </h4>
-                  <div class="confidence-box">
-                    <span class="confidence-value"
-                      >{{ (log.confidence * 100)|round(1) }}%</span
-                    >
-                  </div>
-                </div>
-                {% endif %}
-              </div>
-              <div>
-                <h4 class="details-heading">
-                  <i class="fas fa-code icon-yellow"></i>
-                  Malicious Payload
-                </h4>
-                <div class="payload-box">
-                  {{ log.payload or log.snippet or 'N/A' }}
-                </div>
-                <div class="meta-grid">
-                  <div class="meta-card meta-card-blue">
-                    <div class="meta-label">Request Method</div>
-                    <div class="meta-value meta-value-blue">
-                      {{ log.method or 'N/A' }}
+                  <p class="details-text">{{ log.description }}</p>
+                  {% if log.ml_detected and log.confidence %}
+                  <div class="confidence-section">
+                    <h4 class="details-heading">
+                      <i class="fas fa-chart-line icon-purple"></i>
+                      ML Confidence Score
+                    </h4>
+                    <div class="confidence-box">
+                      <span class="confidence-value"
+                        >{{ (log.confidence * 100)|round(1) }}%</span
+                      >
                     </div>
                   </div>
-                  <div class="meta-card meta-card-green">
-                    <div class="meta-label">Detection Type</div>
-                    <div class="meta-value meta-value-green">
-                      {{ log.detection_type or 'Other' }}
+                  {% endif %}
+                </div>
+                <div>
+                  <h4 class="details-heading">
+                    <i class="fas fa-code icon-yellow"></i>
+                    Malicious Payload
+                  </h4>
+                  <div class="payload-box">
+                    {{ log.payload or log.snippet or 'N/A' }}
+                  </div>
+                  <div class="meta-grid">
+                    <div class="meta-card meta-card-blue">
+                      <div class="meta-label">Request Method</div>
+                      <div class="meta-value meta-value-blue">
+                        {{ log.method or 'N/A' }}
+                      </div>
+                    </div>
+                    <div class="meta-card meta-card-green">
+                      <div class="meta-label">Detection Type</div>
+                      <div class="meta-value meta-value-green">
+                        {{ log.detection_type or 'Other' }}
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </td>
-        </tr>
-        {% endif %} {% endfor %}
-      </tbody>
-    </table>
-  </div>
+            </td>
+          </tr>
+          {% endif %} {% endfor %}
+        </tbody>
+      </table>
+    </div>
     {% else %}
     <div class="empty-state">
       <i class="fas fa-shield-check fa-3x empty-state-icon"></i>
