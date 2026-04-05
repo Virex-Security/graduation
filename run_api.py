@@ -9,7 +9,9 @@ load_dotenv()
 
 # Validate config BEFORE importing Flask app (so crash is clear)
 from app.config import validate_config
-validate_config()
+
+is_prod = os.getenv("FLASK_ENV", "development") == "production"
+validate_config(strict=is_prod)
 
 from app.api import create_api_app
 

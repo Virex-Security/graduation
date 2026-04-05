@@ -8,7 +8,9 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from app.config import validate_config
-validate_config()
+
+is_prod = os.getenv("FLASK_ENV", "development") == "production"
+validate_config(strict=is_prod)
 
 from app.dashboard import create_dashboard_app
 

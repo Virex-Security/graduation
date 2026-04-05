@@ -42,6 +42,7 @@ _INSECURE_VALUES = {
         "secret",
         "password",
         "test-secret-key-for-ci-minimum-32-chars!!",
+        "9e2f4a7d1c8b3e6f0a5d2c9b4e7f1a8d3c6b9e2f5a0d7c4b1e8f3a6d9c2b5e8f1a4d7c0b3e6f9a2d5c8b1e4f7a0d3c6",
     ],
     "INTERNAL_API_SECRET": [
         "supersecrettoken",
@@ -51,6 +52,7 @@ _INSECURE_VALUES = {
         "test-internal-secret-for-ci-only-32chars",
         "password",
         "admin",
+        "Vx7kR2mNpL9qT4wY8sJ3hB6dE1fC5nQ0aZuWHgKoPiXrDtMs",
     ],
 }
 
