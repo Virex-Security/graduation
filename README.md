@@ -24,15 +24,15 @@ A full-stack SIEM (Security Information and Event Management) platform with:
 git clone https://github.com/Virex-Security/graduation.git
 cd graduation
 
-# Copy and edit the environment file
+# ⚠️ Setup environment variables
 cp .env.example .env
-# Edit .env — set SECRET_KEY, INTERNAL_API_SECRET, and optionally SMTP_*
+# Edit .env — set SECRET_KEY, INTERNAL_API_SECRET, and SMTP_*
 ```
 
-Generate secure keys:
+Generate secure keys (DO NOT use defaults!):
 ```bash
-python3 -c "import secrets; print('SECRET_KEY=' + secrets.token_hex(32))"
-python3 -c "import secrets; print('INTERNAL_API_SECRET=' + secrets.token_hex(32))"
+python3 -c "import secrets; print('SECRET_KEY=\"' + secrets.token_hex(64) + '\"')"
+python3 -c "import secrets; print('INTERNAL_API_SECRET=\"' + secrets.token_urlsafe(48) + '\"')"
 ```
 
 ### 2. Install Python dependencies
@@ -139,8 +139,14 @@ graduation/
 |---------|-----|------------|
 | `FLASK_DEBUG` | true | **false** |
 | `COOKIE_SECURE` | false | **true** (requires HTTPS) |
-| `SECRET_KEY` | any | **random 32+ byte hex** |
+| `SECRET_KEY` | any | **random 64+ byte hex** |
 | HTTPS | optional | **required** |
+
+### ⚠️ Secret Rotation
+If your `.env` file is accidentally committed or shared, you **MUST** rotate all secrets immediately. 
+1. Generate new `SECRET_KEY` and `INTERNAL_API_SECRET`.
+2. Update the `SMTP_PASSWORD`.
+3. Restart all services.
 
 ---
 
