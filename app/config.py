@@ -37,7 +37,20 @@ _INSECURE_VALUES = {
         "change-me-in-production",
         "fallback-dev-key-change-in-production",
         "dev-secret",
-    ]
+        "dev-secret-key",
+        "secret",
+        "password",
+        "test-secret-key-for-ci-minimum-32-chars!!",
+    ],
+    "INTERNAL_API_SECRET": [
+        "supersecrettoken",
+        "secret",
+        "changeme",
+        "internal-secret",
+        "test-internal-secret-for-ci-only-32chars",
+        "password",
+        "admin",
+    ],
 }
 
 
@@ -78,10 +91,20 @@ def validate_config(strict: bool = False) -> bool:
     if not cookie_secure():
         warnings.append("  ⚠️  COOKIE_SECURE is disabled — auth cookies will be sent over HTTP (insecure in production)")
 
-    # Check SECRET_KEY minimum length
+    # Check SECRET_KEY minimum length and entropy
     secret = os.getenv("SECRET_KEY", "")
-    if secret and len(secret) < 32:
-        errors.append(f"  ❌ SECRET_KEY is too short ({len(secret)} chars, minimum 32)")
+    if secret and len(secret) < 64:
+        errors.append(f"  ❌ SECRET_KEY is too short ({len(secret)} chars, minimum 64)")
+    # Detect sequential/low-entropy patterns like a1b2c3d4...
+    if secret and len(secret) >= 8:
+        unique_chars = len(set(secret))
+        if unique_chars < 16:
+            errors.append("  ❌ SECRET_KEY appears low-entropy (too few unique characters) — regenerate with secrets.token_hex(64)")
+
+    # Check INTERNAL_API_SECRET minimum length
+    internal = os.getenv("INTERNAL_API_SECRET", "")
+    if internal and len(internal) < 32:
+        errors.append(f"  ❌ INTERNAL_API_SECRET is too short ({len(internal)} chars, minimum 32)")
 
     # Report
     if warnings:
