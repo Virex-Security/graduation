@@ -7,15 +7,7 @@ import hmac
 from venv import logger
 from werkzeug.utils import secure_filename
 
-<<<<<<< HEAD
-from flask import Flask, current_app, render_template, jsonify, request, redirect, url_for, g
-=======
-<<<<<<< HEAD
-from flask import Flask, current_app, render_template, jsonify, request, redirect, url_for, g
-=======
 from flask import Flask, current_app, render_template, jsonify, request, redirect, url_for, g, send_from_directory
->>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
->>>>>>> 29c1406ff0d33cca29bb3c738f3c070c695be578
 import json
 import time
 from datetime import datetime, timedelta
@@ -30,13 +22,7 @@ from app.dashboard.services import SecurityDashboard
 from app.dashboard.metrics import calculate_threat_score, is_recent, determine_threat_status, run_timeline_updates
 from app.chatbot import SecurityChatbot
 from app.auth import login_user, logout_user, user_manager, Role, token_required, admin_required, require_role
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
 from app.api.responses import ok, created, bad_request, unauthorized, forbidden, not_found, conflict, rate_limited, server_error, paginated
->>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
->>>>>>> 29c1406ff0d33cca29bb3c738f3c070c695be578
 
 # Dashboard services and chatbot initialization
 dashboard = SecurityDashboard()
@@ -44,12 +30,6 @@ security_bot = SecurityChatbot(dashboard)
 
 
 def create_dashboard_app():
-<<<<<<< HEAD
-    # Set template and static folders relative to app directory
-=======
-<<<<<<< HEAD
-    # Set template and static folders relative to app directory
-=======
     # ── Initialization ────────────────────────────────────────
     import random, smtplib
     from email.mime.text import MIMEText
@@ -57,45 +37,20 @@ def create_dashboard_app():
     from app import config as _cfg
     
     # Paths & Folders
->>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
->>>>>>> 29c1406ff0d33cca29bb3c738f3c070c695be578
     project_root = Path(__file__).parent.parent
     template_folder = str(project_root / 'templates')
     static_folder = str(project_root / 'static')
     
-<<<<<<< HEAD
-    # Try absolute path as fallback
     if not os.path.exists(template_folder):
-        # Get absolute path from current working directory
-=======
-<<<<<<< HEAD
-    # Try absolute path as fallback
-    if not os.path.exists(template_folder):
-        # Get absolute path from current working directory
-=======
-    if not os.path.exists(template_folder):
->>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
->>>>>>> 29c1406ff0d33cca29bb3c738f3c070c695be578
         cwd = Path.cwd()
         template_folder = str(cwd / 'app' / 'templates')
         static_folder = str(cwd / 'app' / 'static')
     
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> 29c1406ff0d33cca29bb3c738f3c070c695be578
     print(f"Debug - Template folder: {template_folder}")
     print(f"Debug - Static folder: {static_folder}")
     print(f"Debug - Template folder exists: {os.path.exists(template_folder)}")
     print(f"Debug - signup.html exists: {os.path.exists(os.path.join(template_folder, 'signup.html'))}")
     
-    app = Flask(__name__, 
-                template_folder=template_folder,
-                static_folder=static_folder)
-    app.config['SECRET_KEY'] = dashboard.secret_key
-<<<<<<< HEAD
-=======
-=======
     app = Flask(__name__, template_folder=template_folder, static_folder=static_folder)
     
     # Config & Secrets
@@ -103,9 +58,6 @@ def create_dashboard_app():
     SMTP_EMAIL    = os.getenv('SMTP_EMAIL')
     SMTP_PASSWORD = _cfg.smtp_password()
     SECRET_KEY    = _cfg.secret_key()
-
->>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
->>>>>>> 29c1406ff0d33cca29bb3c738f3c070c695be578
     def log_action(current_user, action, details=""):
         """Centralized logging for role-based actions"""
         log_entry = {
@@ -116,14 +68,7 @@ def create_dashboard_app():
             "action": action,
             "details": details
         }
-<<<<<<< HEAD
         print(f"[AUDIT] {log_entry}")
-=======
-<<<<<<< HEAD
-        print(f"[AUDIT] {log_entry}")
-=======
->>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
->>>>>>> 29c1406ff0d33cca29bb3c738f3c070c695be578
         dashboard.write_audit_log(log_entry)
     # ----------------------------------------------------------
     # TRAFFIC LOGGER - intercepts every request automatically
@@ -159,15 +104,7 @@ def create_dashboard_app():
     def login():
         auth = request.get_json()
         if not auth or not auth.get('username') or not auth.get('password'):
-<<<<<<< HEAD
-            return jsonify({'message': 'Missing credentials'}), 401
-=======
-<<<<<<< HEAD
-            return jsonify({'message': 'Missing credentials'}), 401
-=======
             return unauthorized('Missing credentials')
->>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
->>>>>>> 29c1406ff0d33cca29bb3c738f3c070c695be578
         resp, status = login_user(auth.get('username'), auth.get('password'))
         if status == 200:
             user = user_manager.get_user(auth.get('username'))
@@ -182,15 +119,7 @@ def create_dashboard_app():
     def signup():
         auth = request.get_json()
         if not auth or not auth.get('username') or not auth.get('password'):
-<<<<<<< HEAD
-            return jsonify({'message': 'Missing username or password'}), 400
-=======
-<<<<<<< HEAD
-            return jsonify({'message': 'Missing username or password'}), 400
-=======
             return bad_request('Missing username or password')
->>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
->>>>>>> 29c1406ff0d33cca29bb3c738f3c070c695be578
         
         username = auth.get('username').strip()
         password = auth.get('password')
@@ -201,20 +130,6 @@ def create_dashboard_app():
         
         # Validation
         if len(username) < 3:
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> 29c1406ff0d33cca29bb3c738f3c070c695be578
-            return jsonify({'message': 'Username must be at least 3 characters'}), 400
-            
-        if not full_name:
-            return jsonify({'message': 'Full name is required'}), 400
-            
-        if not email:
-            return jsonify({'message': 'Email is required'}), 400
-<<<<<<< HEAD
-=======
-=======
             return bad_request('Username must be at least 3 characters')
             
         if not full_name:
@@ -222,35 +137,11 @@ def create_dashboard_app():
             
         if not email:
             return bad_request('Email is required')
->>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
->>>>>>> 29c1406ff0d33cca29bb3c738f3c070c695be578
             
         # Basic email validation
         import re
         email_pattern = r'^[^\s@]+@[^\s@]+\.[^\s@]+$'
         if not re.match(email_pattern, email):
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> 29c1406ff0d33cca29bb3c738f3c070c695be578
-            return jsonify({'message': 'Please enter a valid email address'}), 400
-            
-        if not phone:
-            return jsonify({'message': 'Phone number is required'}), 400
-            
-        if not department:
-            return jsonify({'message': 'Department is required'}), 400
-        
-        is_valid_password, password_message = user_manager.validate_password_policy(password)
-        if not is_valid_password:
-            return jsonify({'message': password_message}), 400
-            
-        # Check if user already exists
-        if user_manager.get_user(username):
-            return jsonify({'message': 'Username already exists'}), 409
-<<<<<<< HEAD
-=======
-=======
             return bad_request('Please enter a valid email address')
             
         if not phone:
@@ -266,8 +157,6 @@ def create_dashboard_app():
         # Check if user already exists
         if user_manager.get_user(username):
             return conflict('Username already exists')
->>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
->>>>>>> 29c1406ff0d33cca29bb3c738f3c070c695be578
             
         # Add new user with USER role and additional info
         success, message = user_manager.add_user(username, password, Role.USER)

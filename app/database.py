@@ -911,14 +911,6 @@ def create_department(name: str, slug: str, description: str = "") -> int:
 # ══════════════════════════════════════════════════════════════
 
 def load_stats() -> dict:
-<<<<<<< HEAD
-    _ensure_rules_table()
-=======
-<<<<<<< HEAD
-    _ensure_rules_table()
-=======
->>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
->>>>>>> 29c1406ff0d33cca29bb3c738f3c070c695be578
     with db_cursor() as cur:
         cur.execute("SELECT COUNT(*) FROM threat_logs")
         total = cur.fetchone()[0]
@@ -952,14 +944,6 @@ def load_stats() -> dict:
 
 def clear_threat_logs():
     """Delete all rows from threat_logs (used by the dashboard reset action)."""
-<<<<<<< HEAD
-    _ensure_rules_table()
-=======
-<<<<<<< HEAD
-    _ensure_rules_table()
-=======
->>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
->>>>>>> 29c1406ff0d33cca29bb3c738f3c070c695be578
     with db_cursor() as cur:
         cur.execute("DELETE FROM threat_logs")
 
@@ -1042,10 +1026,6 @@ def ensure_indexes():
         for sql in indexes:
             cur.execute(sql)
     logger.info("[DB] Indexes ensured")
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
 
 
 # ══════════════════════════════════════════════════════════════
@@ -1096,5 +1076,3 @@ def get_recent_login_failures(username: str, window_sec: int) -> int:
             WHERE username = ? AND success = 0 AND attempted_at > ?
         """, (username, since))
         return cur.fetchone()[0]
->>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
->>>>>>> 29c1406ff0d33cca29bb3c738f3c070c695be578
