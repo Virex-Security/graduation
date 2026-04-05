@@ -236,6 +236,10 @@ def _ensure_rules_table():
                 otp_attempts INTEGER DEFAULT 0
             )
         """)
+        try:
+            cur.execute("ALTER TABLE password_resets ADD COLUMN otp_attempts INTEGER DEFAULT 0")
+        except Exception:
+            pass
         cur.execute("""
             CREATE TABLE IF NOT EXISTS audit_logs (
                 audit_log_id INTEGER PRIMARY KEY AUTOINCREMENT,
