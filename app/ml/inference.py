@@ -152,7 +152,43 @@ def _load_or_train():
         _retrain_model()
 
 
+def _merge_feedback_into_training():
+    merged_count = 0
+    try:
+        if not FEEDBACK_LOG_PATH.exists():
+            return 0
+        with _feedback_lock:
+            with open(FEEDBACK_LOG_PATH, "r", encoding="utf-8") as f:
+                feedback = json.load(f)
+                
+            new_entries = []
+            for entry in feedback:
+                if entry.get("reviewed") and not entry.get("promoted_to_rule"):
+                    new_entries.append(entry)
+                    entry["promoted_to_rule"] = True
+                    
+            if not new_entries:
+                return 0
+                
+            import csv
+            with open(TRAINING_DATA_PATH, "a", encoding="utf-8", newline="") as f:
+                writer = csv.writer(f)
+                for entry in new_entries:
+                    text = entry.get("text_snippet", "")
+                    label = 1 if entry.get("decision") == "block" else 0
+                    writer.writerow([text, label])
+                    
+            with open(FEEDBACK_LOG_PATH, "w", encoding="utf-8") as f:
+                json.dump(feedback, f, indent=2, ensure_ascii=False)
+                
+            merged_count = len(new_entries)
+            logger.info(f"[ML-FEEDBACK] Merged {merged_count} reviewed items into training CSV.")
+    except Exception as e:
+        logger.error(f"[ML-FEEDBACK] merge failed: {e}")
+    return merged_count
+
 def _retrain_model():
+    _merge_feedback_into_training()
     global _model, _vectorizer, MODEL_LOADED
     try:
         data = pd.read_csv(str(TRAINING_DATA_PATH))
