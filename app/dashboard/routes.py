@@ -245,17 +245,34 @@ def create_dashboard_app():
         new_pass = data.get('new_password', '').strip()
         if not user_id or not otp or not new_pass:
             return jsonify({'error': 'user_id, otp and new_password required'}), 400
+            
         with _db.db_cursor() as cur:
+            try:
+                cur.execute('ALTER TABLE password_resets ADD COLUMN otp_attempts INTEGER DEFAULT 0')
+            except Exception:
+                pass
+            
             cur.execute('SELECT * FROM password_resets WHERE user_id = ? AND used = 0', (user_id,))
             record = cur.fetchone()
+            
         if not record:
             return jsonify({'error': 'No OTP requested for this user'}), 400
+            
+        if record.get('otp_attempts', 0) >= 5:
+            return jsonify({'error': 'Too many attempts. Request a new OTP.'}), 429
+            
         import hashlib
         incoming_hash = hashlib.sha256(str(otp).encode()).hexdigest()
         if not hmac.compare_digest(record['otp'], incoming_hash):
+            with _db.db_cursor() as cur:
+                cur.execute('UPDATE password_resets SET otp_attempts = COALESCE(otp_attempts, 0) + 1 WHERE user_id = ?', (user_id,))
             return jsonify({'error': 'Invalid OTP'}), 400
+            
         if time.strftime('%Y-%m-%d %H:%M:%S') > record['otp_expiry']:
+            with _db.db_cursor() as cur:
+                cur.execute('UPDATE password_resets SET otp_attempts = 0 WHERE user_id = ?', (user_id,))
             return jsonify({'error': 'OTP expired'}), 400
+            
         user = _db.get_user_by_id(user_id)
         if not user:
             return jsonify({'error': 'User not found'}), 404
@@ -263,7 +280,7 @@ def create_dashboard_app():
         if not ok:
             return jsonify({'error': msg}), 400
         with _db.db_cursor() as cur:
-            cur.execute('UPDATE password_resets SET used = 1 WHERE user_id = ?', (user_id,))
+            cur.execute('UPDATE password_resets SET used = 1, otp_attempts = 0 WHERE user_id = ?', (user_id,))
         return jsonify({'message': 'Password reset successfully'}), 200
 
     @app.route('/')
