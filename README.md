@@ -164,6 +164,19 @@ pytest tests/ -v
 
 ---
 
+## 💾 Database Concurrency
+
+> [!IMPORTANT]
+> This project uses **SQLite** for simplicity and zero-configuration setup. SQLite supports multiple simultaneous readers but only **one simultaneous writer**. 
+> 
+> To ensure stability under load, we have implemented:
+> - **WAL Mode**: Write-Ahead Logging for better concurrency.
+> - **Extended Timeouts**: Connection busy timeouts set to 30 seconds.
+> - **Worker Strategy**: Gunicorn workers are limited to **1 per service** in `docker-compose.yml` to prevent internal write contention.
+> 
+> **Production Recommendation:**
+> For high-concurrency environments or large-scale deployments, we recommend migrating to **PostgreSQL**.
+
 ## 📜 License
 
 Educational project — Virex Security Team
