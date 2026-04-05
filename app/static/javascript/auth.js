@@ -47,13 +47,18 @@ const Auth = {
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
 >>>>>>> 29c1406ff0d33cca29bb3c738f3c070c695be578
+>>>>>>> e562fb4fbab15a7132710eeb98952e01d5380179
       const response = await fetch("/api/auth/login", {
         method: "POST",
         credentials: "same-origin",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
       });
+<<<<<<< HEAD
+=======
 
       if (response.ok) {
         const data = await response.json();
@@ -81,15 +86,32 @@ const Auth = {
         role: data.role,
         loginTime: new Date().toISOString(),
       };
+>>>>>>> e562fb4fbab15a7132710eeb98952e01d5380179
 
-      localStorage.setItem(this.SESSION_KEY, "active");
-      localStorage.setItem(this.USER_KEY, JSON.stringify(userData));
+      if (response.ok) {
+        const data = await response.json();
+        const userData = {
+          username: username,
+          role: data.role,
+          loginTime: new Date().toISOString(),
+        };
 
+<<<<<<< HEAD
+        localStorage.setItem(this.SESSION_KEY, "active");
+        localStorage.setItem(this.USER_KEY, JSON.stringify(userData));
+
+        // Redirect to the protected dashboard route; server will verify the cookie
+        window.location.href = "/dashboard";
+        return true;
+      }
+      return false;
+=======
       // Redirect to the protected dashboard route; server will verify the cookie
       window.location.href = "/dashboard";
       return true;
 >>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
 >>>>>>> 29c1406ff0d33cca29bb3c738f3c070c695be578
+>>>>>>> e562fb4fbab15a7132710eeb98952e01d5380179
     } catch (error) {
       console.error("Login error:", error);
       return false;
@@ -107,9 +129,13 @@ const Auth = {
 <<<<<<< HEAD
       await fetch("/api/auth/logout");
 =======
+<<<<<<< HEAD
+      await fetch("/api/auth/logout");
+=======
       await API.get("/api/auth/logout");
 >>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
 >>>>>>> 29c1406ff0d33cca29bb3c738f3c070c695be578
+>>>>>>> e562fb4fbab15a7132710eeb98952e01d5380179
     } catch (e) {}
     localStorage.removeItem(this.SESSION_KEY);
     localStorage.removeItem(this.USER_KEY);

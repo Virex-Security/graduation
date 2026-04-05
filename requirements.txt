@@ -8,6 +8,8 @@ flask==2.2.5
 flask-cors==4.0.0
 flask-limiter==3.5.0
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
@@ -17,6 +19,7 @@ flask-wtf==1.2.1
 >>>>>>> 29c1406ff0d33cca29bb3c738f3c070c695be578
 =======
 >>>>>>> 967891135f8e00079cef2ba1d9796462c24daaba
+>>>>>>> e562fb4fbab15a7132710eeb98952e01d5380179
 
 # --- Authentication ---
 PyJWT==2.8.0

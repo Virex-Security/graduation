@@ -100,7 +100,10 @@ document.addEventListener("DOMContentLoaded", () => {
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
 >>>>>>> 29c1406ff0d33cca29bb3c738f3c070c695be578
+>>>>>>> e562fb4fbab15a7132710eeb98952e01d5380179
       const res = await fetch("/api/request-reset-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -124,6 +127,11 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       } else {
         showMessage(msgBox, data.error || "Failed to generate OTP", "error");
+<<<<<<< HEAD
+      }
+    } catch (e) {
+      showMessage(msgBox, "Network error. Please try again.", "error");
+=======
       }
     } catch (e) {
       showMessage(msgBox, "Network error. Please try again.", "error");
@@ -149,6 +157,7 @@ document.addEventListener("DOMContentLoaded", () => {
       showMessage(msgBox, e.message || "Failed to generate OTP", "error");
 >>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
 >>>>>>> 29c1406ff0d33cca29bb3c738f3c070c695be578
+>>>>>>> e562fb4fbab15a7132710eeb98952e01d5380179
     }
   };
 
@@ -167,7 +176,10 @@ document.addEventListener("DOMContentLoaded", () => {
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
 >>>>>>> 29c1406ff0d33cca29bb3c738f3c070c695be578
+>>>>>>> e562fb4fbab15a7132710eeb98952e01d5380179
       const res = await fetch("/api/verify-reset-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -176,6 +188,8 @@ document.addEventListener("DOMContentLoaded", () => {
           otp,
           new_password: newPassword,
         }),
+<<<<<<< HEAD
+=======
       });
       const data = await res.json();
       if (res.ok) {
@@ -204,25 +218,34 @@ document.addEventListener("DOMContentLoaded", () => {
         user_id: otpResetUserId,
         otp,
         new_password: newPassword,
+>>>>>>> e562fb4fbab15a7132710eeb98952e01d5380179
       });
-
-      showMessage(
-        msgBox,
-        data.message || "Password reset successful!",
-        "success",
-      );
-      setTimeout(() => {
-        if (document.getElementById("otp-reset-form")) {
-          document.getElementById("otp-reset-form").style.display = "none";
-        }
-        if (typeof window.closeOtpResetModal === "function") {
-          window.closeOtpResetModal();
-        }
-      }, 2000);
+      const data = await res.json();
+      if (res.ok) {
+        showMessage(
+          msgBox,
+          data.message || "Password reset successful!",
+          "success",
+        );
+        setTimeout(() => {
+          if (document.getElementById("otp-reset-form")) {
+            document.getElementById("otp-reset-form").style.display = "none";
+          }
+          if (typeof window.closeOtpResetModal === "function") {
+            window.closeOtpResetModal();
+          }
+        }, 2000);
+      } else {
+        showMessage(msgBox, data.error || "Failed to reset password", "error");
+      }
     } catch (e) {
+<<<<<<< HEAD
+      showMessage(msgBox, "Network error. Please try again.", "error");
+=======
       showMessage(msgBox, e.message || "Failed to reset password", "error");
 >>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
 >>>>>>> 29c1406ff0d33cca29bb3c738f3c070c695be578
+>>>>>>> e562fb4fbab15a7132710eeb98952e01d5380179
     }
   };
 
