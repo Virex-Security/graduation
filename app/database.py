@@ -8,6 +8,7 @@ import sqlite3
 import threading
 import time
 import logging
+import re
 from pathlib import Path
 from contextlib import contextmanager
 
@@ -40,11 +41,21 @@ def db_cursor():
 
 
 def init_db():
-    """Ensure DB is ready: seed roles, users, and create performance indexes."""
+    """Ensure DB is ready: schema, seed roles, users, and create performance indexes."""
+    _ensure_schema()
     _seed_roles()
     _seed_users()
     ensure_indexes()
     logger.info("[DB] Ready — %s", DB_PATH)
+
+
+def _add_column_if_missing(cur, table, column, definition):
+    """Safely adds a column to a table if it doesn't already exist (idempotent)."""
+    cur.execute(f"PRAGMA table_info({table})")
+    cols = [r["name"] for r in cur.fetchall()]
+    if column not in cols:
+        cur.execute(f"ALTER TABLE {table} ADD COLUMN {column} {definition}")
+        logger.info("[DB] Added column %s to table %s", column, table)
 
 
 # ══════════════════════════════════════════════════════════════
@@ -179,10 +190,19 @@ def update_user(username: str, **kwargs) -> bool:
     allowed = {"email", "password_hash", "role_id", "department_id",
                "is_active", "last_login", "updated_at",
                "full_name", "phone", "department", "avatar_url"}
-    fields = {k: v for k, v in kwargs.items() if k in allowed}
-    if not fields:
+    # Strict validation: Every key in kwargs MUST be in allowlist and match regex
+    for k in kwargs:
+        if k not in allowed:
+            raise ValueError(f"[SECURITY] Unauthorized column update: {k}")
+        if not re.fullmatch(r"^[a-z0-9_]+$", k):
+            raise ValueError(f"[SECURITY] Invalid column format: {k}")
+
+    if not kwargs:
         return False
+
+    fields = kwargs.copy()
     fields["updated_at"] = time.strftime("%Y-%m-%d %H:%M:%S")
+    
     set_clause = ", ".join(f"{k} = ?" for k in fields)
     values = list(fields.values()) + [username]
     with db_cursor() as cur:
@@ -210,9 +230,10 @@ def get_all_roles() -> list:
 # RULES
 # ══════════════════════════════════════════════════════════════
 
-def _ensure_rules_table():
-    """Create the rules table if it doesn't already exist."""
+def _ensure_schema():
+    """Create all required tables and handle schema migrations if they don't already exist."""
     with db_cursor() as cur:
+        # Rules Table
         cur.execute("""
             CREATE TABLE IF NOT EXISTS rules (
                 rule_id      INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -226,6 +247,7 @@ def _ensure_rules_table():
                 created_at   TEXT
             )
         """)
+        # Password Resets Table
         cur.execute("""
             CREATE TABLE IF NOT EXISTS password_resets (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -236,10 +258,8 @@ def _ensure_rules_table():
                 otp_attempts INTEGER DEFAULT 0
             )
         """)
-        try:
-            cur.execute("ALTER TABLE password_resets ADD COLUMN otp_attempts INTEGER DEFAULT 0")
-        except Exception:
-            pass
+        # Run specific schema updates safely
+        _add_column_if_missing(cur, "password_resets", "otp_attempts", "INTEGER DEFAULT 0")
         cur.execute("""
             CREATE TABLE IF NOT EXISTS audit_logs (
                 audit_log_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -315,7 +335,6 @@ def _ensure_rules_table():
 
 def _seed_rules_table():
     """Insert default WAF detection rules if the table is empty."""
-    _ensure_rules_table()
     with db_cursor() as cur:
         cur.execute("SELECT COUNT(*) FROM rules")
         if cur.fetchone()[0] > 0:
@@ -348,11 +367,7 @@ def _seed_rules_table():
 def get_rules(active_only: bool = True) -> list:
     """
     Return WAF rules from the database as a list of dictionaries.
-    Each dict has keys: rule_id, name, type, pattern, severity, action,
-                        is_active, description, created_at.
-    Example: {"type": "sql_injection", "severity": "high", ...}
     """
-    _ensure_rules_table()
     with db_cursor() as cur:
         if active_only:
             cur.execute("SELECT * FROM rules WHERE is_active = 1 ORDER BY rule_id")
@@ -784,7 +799,6 @@ def create_department(name: str, slug: str, description: str = "") -> int:
 # ══════════════════════════════════════════════════════════════
 
 def load_stats() -> dict:
-    _ensure_rules_table()
     with db_cursor() as cur:
         cur.execute("SELECT COUNT(*) FROM threat_logs")
         total = cur.fetchone()[0]
@@ -818,7 +832,6 @@ def load_stats() -> dict:
 
 def clear_threat_logs():
     """Delete all rows from threat_logs (used by the dashboard reset action)."""
-    _ensure_rules_table()
     with db_cursor() as cur:
         cur.execute("DELETE FROM threat_logs")
 

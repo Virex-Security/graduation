@@ -8,6 +8,7 @@ import sqlite3
 import threading
 import time
 import logging
+import re
 from pathlib import Path
 from contextlib import contextmanager
 
@@ -166,10 +167,19 @@ def insert_user(username, password_hash, email=None,
 def update_user(username: str, **kwargs) -> bool:
     allowed = {"email", "password_hash", "role_id", "department_id",
                "is_active", "last_login", "updated_at"}
-    fields = {k: v for k, v in kwargs.items() if k in allowed}
-    if not fields:
+    # Strict validation: Every key in kwargs MUST be in allowlist and match regex
+    for k in kwargs:
+        if k not in allowed:
+            raise ValueError(f"[SECURITY] Unauthorized column update: {k}")
+        if not re.fullmatch(r"^[a-z0-9_]+$", k):
+            raise ValueError(f"[SECURITY] Invalid column format: {k}")
+
+    if not kwargs:
         return False
+
+    fields = kwargs.copy()
     fields["updated_at"] = time.strftime("%Y-%m-%d %H:%M:%S")
+    
     set_clause = ", ".join(f"{k} = ?" for k in fields)
     values = list(fields.values()) + [username]
     with db_cursor() as cur:
