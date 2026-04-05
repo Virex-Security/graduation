@@ -206,11 +206,13 @@ def create_dashboard_app():
         if not email:
             return jsonify({'error': 'No email associated with this account'}), 400
         otp = str(secrets.randbelow(900000) + 100000) 
+        import hashlib
+        otp_hash = hashlib.sha256(otp.encode()).hexdigest()
         expiry = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time() + 300))
         with _db.db_cursor() as cur:
             cur.execute('DELETE FROM password_resets WHERE user_id = ?', (user_id,))
             cur.execute('INSERT INTO password_resets (user_id, otp, otp_expiry, used) VALUES (?,?,?,0)',
-                        (user_id, otp, expiry))
+                        (user_id, otp_hash, expiry))
         try:
             # Simple OTP email sender using smtplib
             def send_otp_email(to_email, otp):
@@ -248,7 +250,9 @@ def create_dashboard_app():
             record = cur.fetchone()
         if not record:
             return jsonify({'error': 'No OTP requested for this user'}), 400
-        if not hmac.compare_digest(record['otp'], str(otp)):
+        import hashlib
+        incoming_hash = hashlib.sha256(str(otp).encode()).hexdigest()
+        if not hmac.compare_digest(record['otp'], incoming_hash):
             return jsonify({'error': 'Invalid OTP'}), 400
         if time.strftime('%Y-%m-%d %H:%M:%S') > record['otp_expiry']:
             return jsonify({'error': 'OTP expired'}), 400

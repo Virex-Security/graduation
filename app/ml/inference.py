@@ -289,6 +289,17 @@ def get_ml_stats():
 
 # ── Startup ───────────────────────────────────────────────────
 _load_or_train()
+
+if MODEL_LOADED:
+    try:
+        test_score = _compute_risk_score("startup validation check")
+        if not (0.0 <= test_score <= 1.0):
+            logger.critical(f"[ML] predict_proba returned {test_score} (out of 0.0-1.0 range)! Version mismatch detected. Retraining model...")
+            _retrain_model()
+    except Exception as e:
+        logger.critical(f"[ML] Startup validation failed with error: {e}. Retraining model...")
+        _retrain_model()
+
 _retrain_thread = threading.Thread(target=_auto_retrain_loop, daemon=True)
 _retrain_thread.start()
 logger.info(f"[ML] Ready | block≥{THRESHOLD_BLOCK:.0%} monitor≥{THRESHOLD_MONITOR:.0%} cache={CACHE_SIZE}")
