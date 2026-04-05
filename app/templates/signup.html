@@ -3,7 +3,6 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Sign Up - VIREX Security</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -81,7 +80,6 @@
             </div>
 
             <form id="signupForm" class="auth-form">
-              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
               <div class="form-row">
                 <div class="form-group">
                   <label for="fullName">Full Name</label>

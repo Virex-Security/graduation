@@ -97,23 +97,32 @@ document.addEventListener("DOMContentLoaded", () => {
     msgBox.innerHTML =
       '<i class="fas fa-spinner fa-spin"></i> Generating OTP...';
     try {
-      const data = await API.post("/api/request-reset-otp", { identifier });
-      
-      otpResetUserId = data.user_id;
-      console.log("OTP Reset User ID set to:", otpResetUserId);
-      if (typeof window.showOtpResetModal === "function") {
-        window.showOtpResetModal(data.otp, data.expiry);
-      } else if (document.getElementById("otp-reset-form")) {
-        // Fallback for forgot_password.html
-        document.getElementById("forgot-password-form").style.display = "none";
-        document.getElementById("otp-reset-form").style.display = "block";
-        const msgBox2 = document.getElementById("otp-reset-message");
-        msgBox2.className = "success";
-        msgBox2.innerHTML = `<i class='fas fa-check-circle'></i> An OTP has been sent to your email address.<br><span style='font-size:0.9em'>(expires at ${data.expiry})</span>`;
-        msgBox2.classList.remove("hidden");
+      const res = await fetch("/api/request-reset-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ identifier }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        otpResetUserId = data.user_id;
+        console.log("OTP Reset User ID set to:", otpResetUserId);
+        if (typeof window.showOtpResetModal === "function") {
+          window.showOtpResetModal(data.otp, data.expiry);
+        } else if (document.getElementById("otp-reset-form")) {
+          // Fallback for forgot_password.html
+          document.getElementById("forgot-password-form").style.display =
+            "none";
+          document.getElementById("otp-reset-form").style.display = "block";
+          const msgBox2 = document.getElementById("otp-reset-message");
+          msgBox2.className = "success";
+          msgBox2.innerHTML = `<i class='fas fa-check-circle'></i> An OTP has been sent to your email address.<br><span style='font-size:0.9em'>(expires at ${data.expiry})</span>`;
+          msgBox2.classList.remove("hidden");
+        }
+      } else {
+        showMessage(msgBox, data.error || "Failed to generate OTP", "error");
       }
     } catch (e) {
-      showMessage(msgBox, e.message || "Failed to generate OTP", "error");
+      showMessage(msgBox, "Network error. Please try again.", "error");
     }
   };
 
@@ -129,27 +138,35 @@ document.addEventListener("DOMContentLoaded", () => {
     msgBox.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
     console.log("Submitting OTP reset with user_id:", otpResetUserId, "otp:", otp);
     try {
-      const data = await API.post("/api/verify-reset-otp", {
-        user_id: otpResetUserId,
-        otp,
-        new_password: newPassword,
+      const res = await fetch("/api/verify-reset-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user_id: otpResetUserId,
+          otp,
+          new_password: newPassword,
+        }),
       });
-
-      showMessage(
-        msgBox,
-        data.message || "Password reset successful!",
-        "success",
-      );
-      setTimeout(() => {
-        if (document.getElementById("otp-reset-form")) {
-          document.getElementById("otp-reset-form").style.display = "none";
-        }
-        if (typeof window.closeOtpResetModal === "function") {
-          window.closeOtpResetModal();
-        }
-      }, 2000);
+      const data = await res.json();
+      if (res.ok) {
+        showMessage(
+          msgBox,
+          data.message || "Password reset successful!",
+          "success",
+        );
+        setTimeout(() => {
+          if (document.getElementById("otp-reset-form")) {
+            document.getElementById("otp-reset-form").style.display = "none";
+          }
+          if (typeof window.closeOtpResetModal === "function") {
+            window.closeOtpResetModal();
+          }
+        }, 2000);
+      } else {
+        showMessage(msgBox, data.error || "Failed to reset password", "error");
+      }
     } catch (e) {
-      showMessage(msgBox, e.message || "Failed to reset password", "error");
+      showMessage(msgBox, "Network error. Please try again.", "error");
     }
   };
 
