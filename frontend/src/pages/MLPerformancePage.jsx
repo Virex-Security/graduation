@@ -230,7 +230,9 @@ export default memo(function MLPerformancePage() {
             </div>
             <div className="p-3 rounded-lg bg-bg-secondary/50 border border-border-dim/50 space-y-1">
               <div className="ds-overline">AU-ROC Score</div>
-              <div className="text-xs text-brand-primary font-mono font-bold tracking-widest">{data?.roc_auc?.toFixed(4) || '0.9756'}</div>
+              <div className={`text-xs font-mono tracking-widest ${data?.roc_auc != null ? 'text-brand-primary font-bold' : 'text-text-muted opacity-60'}`}>
+                {data?.roc_auc != null ? data.roc_auc.toFixed(4) : 'N/A'}
+              </div>
             </div>
           </div>
         </InfoCard>
