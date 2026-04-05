@@ -104,10 +104,15 @@ _feedback_lock = threading.Lock()
 
 # ── Feedback Loop ─────────────────────────────────────────────
 def _append_feedback(text, risk_score, decision, attack_type):
+    sanitized_text = re.sub(
+        r'(?i)(password|passwd|pwd|token|secret|key|auth)=[^\s&"]+',
+        r'\1=***REDACTED***',
+        text
+    )
     entry = {
         "timestamp":        time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "text_hash":        hashlib.md5(text.encode("utf-8", errors="replace")).hexdigest(),
-        "text_snippet":     text[:120],
+        "text_snippet":     sanitized_text[:120],
         "risk_score":       risk_score,
         "decision":         decision,
         "attack_type":      attack_type,
