@@ -7,7 +7,7 @@ import hmac
 from venv import logger
 from werkzeug.utils import secure_filename
 
-from flask import Flask, current_app, render_template, jsonify, request, redirect, url_for, g
+from flask import Flask, current_app, render_template, jsonify, request, redirect, url_for, g, send_from_directory
 import json
 import time
 from datetime import datetime, timedelta
@@ -931,32 +931,68 @@ def create_dashboard_app():
     @app.route('/api/profile/avatar', methods=['POST'])
     @token_required
     def upload_avatar(current_user):
-        import imghdr
-        ALLOWED_EXTS  = {'.png', '.jpg', '.jpeg', '.gif', '.bmp'}
-        ALLOWED_MAGIC = {'png', 'jpeg', 'gif', 'bmp'}
+        import magic
+        ALLOWED_MIME = {'image/png', 'image/jpeg', 'image/gif', 'image/webp'}
+        MAX_SIZE = 512 * 1024  # 512 KB
 
         file = request.files.get('avatar')
         if not file or file.filename == '':
             return jsonify({'error': 'No file'}), 400
 
+        # Enforce file size limit
+        file.seek(0, os.SEEK_END)
+        size = file.tell()
+        file.seek(0)
+        if size > MAX_SIZE:
+            return jsonify({'error': 'File too large (max 512KB)'}), 400
+
         filename = secure_filename(file.filename)
         ext = os.path.splitext(filename)[1].lower()
-        if ext not in ALLOWED_EXTS:
-            return jsonify({'error': 'Invalid file type'}), 400
+        if ext not in {'.png', '.jpg', '.jpeg', '.gif', '.webp'}:
+            return jsonify({'error': 'Invalid file extension'}), 400
 
-        header = file.read(512); file.seek(0)
-        if imghdr.what(None, h=header) not in ALLOWED_MAGIC:
-            return jsonify({'error': 'Invalid image content'}), 400
+        # Replace deprecated imghdr with python-magic
+        header = file.read(2048)
+        file.seek(0)
+        mime = magic.from_buffer(header, mime=True)
+        if mime not in ALLOWED_MIME:
+            return jsonify({'error': f'Invalid image type: {mime}'}), 400
 
-        upload_dir = Path(current_app.root_path) / 'static' / 'uploads' / 'avatars'
+        # Save to private directory outside web root
+        upload_dir = Path(current_app.root_path).parent / 'private_uploads' / 'avatars'
         upload_dir.mkdir(parents=True, exist_ok=True)
+        
         new_filename = f"{current_user['username']}_{int(time.time())}{ext}"
         file.save(str(upload_dir / new_filename))
-        avatar_url = url_for('static', filename=f'uploads/avatars/{new_filename}')
+        
+        # New authenticated URL
+        avatar_url = f"/api/avatar/{new_filename}"
         user_manager.update_user(current_user.get('username'), avatar_url=avatar_url)
-        log_action(current_user, "Avatar Upload", "User uploaded a new profile picture")
+        log_action(current_user, "Avatar Upload", f"User uploaded a new profile picture: {new_filename}")
                 
         return jsonify({'status': 'success', 'avatar_url': avatar_url})
+
+    @app.route('/api/avatar/<filename>')
+    @token_required
+    def serve_avatar(current_user, filename):
+        """Serve avatar from private storage with authentication."""
+        # Optional: Security check to ensure the user can only see their own or authorized avatars
+        # For simplicity in this SIEM, we'll allow seeing any authenticated avatar if needed,
+        # but the prompt suggested restricting to the user's specific filename.
+        # Let's check if the filename starts with the user's username OR is the one in their profile.
+        
+        # But wait, in a dashboard, admins might need to see others' avatars.
+        # For now, let's stick to the prompt's recommendation for strictness:
+        # "Ensures users can only access their own files"
+        if not filename.startswith(current_user['username'] + '_') and current_user.get('role') != 'admin':
+            return jsonify({'error': 'Forbidden'}), 403
+
+        upload_dir = Path(current_app.root_path).parent / 'private_uploads' / 'avatars'
+        if not (upload_dir / filename).exists():
+             return jsonify({'error': 'File not found'}), 404
+
+        return send_from_directory(str(upload_dir), filename)
+
 
     # ============================================================
     # SETTINGS PAGE
