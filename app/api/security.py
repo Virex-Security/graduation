@@ -36,7 +36,14 @@ class SimpleSecurityManager:
         self.path_traversal_count = 0
         self.brute_force_count    = 0
         self.rate_limit_hits      = 0
+<<<<<<< HEAD
         self.rate_limit_storage   = defaultdict(deque)
+=======
+<<<<<<< HEAD
+        self.rate_limit_storage   = defaultdict(deque)
+=======
+>>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
+>>>>>>> 29c1406ff0d33cca29bb3c738f3c070c695be578
         self.start_time           = time.time()
         self.dashboard_url        = os.getenv("DASHBOARD_URL", "http://127.0.0.1:8070")
         self._stats_lock          = threading.Lock()
@@ -237,6 +244,10 @@ class SimpleSecurityManager:
 
     # ── Rate Limit ────────────────────────────────────────────
     def check_rate_limit(self, ip, window: int = None, limit: int = None):
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 29c1406ff0d33cca29bb3c738f3c070c695be578
         """
         Sliding-window rate limiter.
 
@@ -256,12 +267,40 @@ class SimpleSecurityManager:
             self.rate_limit_hits += 1
             self.log_to_dashboard(
                 "Rate Limit", ip, "Rate limit exceeded", "Medium",
+<<<<<<< HEAD
+=======
+=======
+        """Persistent rate limiter using SQLite."""
+        import os
+        from app import database as _db
+        window = window or int(os.getenv("RATE_LIMIT_WINDOW", "60"))
+        limit  = limit  or int(os.getenv("RATE_LIMIT_MAX",    "100"))
+
+        # Unique key for this IP and endpoint combination
+        key = f"{ip}:{request.path}"
+        
+        hit_count = _db.get_api_hit_count(key, window)
+        if hit_count >= limit:
+            self.rate_limit_hits += 1
+            self.log_to_dashboard(
+                "Rate Limit", ip, f"Rate limit exceeded for {request.path}", "Medium",
+>>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
+>>>>>>> 29c1406ff0d33cca29bb3c738f3c070c695be578
                 endpoint=request.path, method=request.method,
                 detection_type="Rule-based", blocked=True,
                 request_id=getattr(request, "request_id", ""),
             )
             return False
+<<<<<<< HEAD
         q.append(now)
+=======
+<<<<<<< HEAD
+        q.append(now)
+=======
+            
+        _db.log_api_hit(key)
+>>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
+>>>>>>> 29c1406ff0d33cca29bb3c738f3c070c695be578
         return True
 
     # ── Main Security Check ───────────────────────────────────

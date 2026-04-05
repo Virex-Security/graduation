@@ -24,6 +24,10 @@ A full-stack SIEM (Security Information and Event Management) platform with:
 git clone https://github.com/Virex-Security/graduation.git
 cd graduation
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 29c1406ff0d33cca29bb3c738f3c070c695be578
 # Copy and edit the environment file
 cp .env.example .env
 # Edit .env — set SECRET_KEY, INTERNAL_API_SECRET, and optionally SMTP_*
@@ -33,6 +37,20 @@ Generate secure keys:
 ```bash
 python3 -c "import secrets; print('SECRET_KEY=' + secrets.token_hex(32))"
 python3 -c "import secrets; print('INTERNAL_API_SECRET=' + secrets.token_hex(32))"
+<<<<<<< HEAD
+=======
+=======
+# ⚠️ Setup environment variables
+cp .env.example .env
+# Edit .env — set SECRET_KEY, INTERNAL_API_SECRET, and SMTP_*
+```
+
+Generate secure keys (DO NOT use defaults!):
+```bash
+python3 -c "import secrets; print('SECRET_KEY=\"' + secrets.token_hex(64) + '\"')"
+python3 -c "import secrets; print('INTERNAL_API_SECRET=\"' + secrets.token_urlsafe(48) + '\"')"
+>>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
+>>>>>>> 29c1406ff0d33cca29bb3c738f3c070c695be578
 ```
 
 ### 2. Install Python dependencies
@@ -139,9 +157,27 @@ graduation/
 |---------|-----|------------|
 | `FLASK_DEBUG` | true | **false** |
 | `COOKIE_SECURE` | false | **true** (requires HTTPS) |
+<<<<<<< HEAD
 | `SECRET_KEY` | any | **random 32+ byte hex** |
 | HTTPS | optional | **required** |
 
+=======
+<<<<<<< HEAD
+| `SECRET_KEY` | any | **random 32+ byte hex** |
+| HTTPS | optional | **required** |
+
+=======
+| `SECRET_KEY` | any | **random 64+ byte hex** |
+| HTTPS | optional | **required** |
+
+### ⚠️ Secret Rotation
+If your `.env` file is accidentally committed or shared, you **MUST** rotate all secrets immediately. 
+1. Generate new `SECRET_KEY` and `INTERNAL_API_SECRET`.
+2. Update the `SMTP_PASSWORD`.
+3. Restart all services.
+
+>>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
+>>>>>>> 29c1406ff0d33cca29bb3c738f3c070c695be578
 ---
 
 ## 🧪 Running Tests
@@ -164,6 +200,25 @@ pytest tests/ -v
 
 ---
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+## 💾 Database Concurrency
+
+> [!IMPORTANT]
+> This project uses **SQLite** for simplicity and zero-configuration setup. SQLite supports multiple simultaneous readers but only **one simultaneous writer**. 
+> 
+> To ensure stability under load, we have implemented:
+> - **WAL Mode**: Write-Ahead Logging for better concurrency.
+> - **Extended Timeouts**: Connection busy timeouts set to 30 seconds.
+> - **Worker Strategy**: Gunicorn workers are limited to **1 per service** in `docker-compose.yml` to prevent internal write contention.
+> 
+> **Production Recommendation:**
+> For high-concurrency environments or large-scale deployments, we recommend migrating to **PostgreSQL**.
+
+>>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
+>>>>>>> 29c1406ff0d33cca29bb3c738f3c070c695be578
 ## 📜 License
 
 Educational project — Virex Security Team
