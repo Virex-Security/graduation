@@ -238,26 +238,9 @@ class SimpleSecurityManager:
     # ── Rate Limit ────────────────────────────────────────────
     def check_rate_limit(self, ip, window: int = None, limit: int = None):
         """
-        Sliding-window rate limiter.
-
-        Default window/limit are loaded from environment to allow tuning
-        without code changes. Sensible defaults: 100 req/60s per IP.
-        Override per call for sensitive endpoints (e.g. login: 5/60s).
+        Persistent rate limiter using SQLite.
+        Default window/limit are loaded from environment.
         """
-        import os
-        window = window or int(os.getenv("RATE_LIMIT_WINDOW", "60"))
-        limit  = limit  or int(os.getenv("RATE_LIMIT_MAX",    "100"))
-
-        now = time.time()
-        q   = self.rate_limit_storage[ip]
-        while q and now - q[0] > window:
-            q.popleft()
-        if len(q) >= limit:
-            self.rate_limit_hits += 1
-            self.log_to_dashboard(
-                "Rate Limit", ip, "Rate limit exceeded", "Medium",
-        """Persistent rate limiter using SQLite.""")
-        import os
         from app import database as _db
         window = window or int(os.getenv("RATE_LIMIT_WINDOW", "60"))
         limit  = limit  or int(os.getenv("RATE_LIMIT_MAX",    "100"))
@@ -269,12 +252,15 @@ class SimpleSecurityManager:
         if hit_count >= limit:
             self.rate_limit_hits += 1
             self.log_to_dashboard(
-
-                  "Rate Limit", ip, f"Rate limit exceeded for {request.path}", "Medium",
+                "Rate Limit", ip, f"Rate limit exceeded for {request.path}", "Medium",
                 endpoint=request.path, method=request.method,
                 detection_type="Rule-based", blocked=True,
                 request_id=getattr(request, "request_id", ""),
             )
+            return True  # Blocked
+
+        return False  # Allowed
+
     # ── Main Security Check ───────────────────────────────────
     def check_request_security(self, data, ip):
         """
