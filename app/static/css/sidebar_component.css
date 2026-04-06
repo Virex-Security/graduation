@@ -274,18 +274,92 @@
 .modern-sidebar__item.active {
   background: linear-gradient(
     135deg,
-    color-mix(in srgb, var(--brand-primary) 22%, transparent),
-    color-mix(in srgb, var(--brand-secondary) 14%, transparent)
+    color-mix(in srgb, #e046ba 25%, transparent),
+    color-mix(in srgb, #8b5cf6 20%, transparent)
   );
-  color: var(--text-primary);
+  color: #fff;
   box-shadow:
-    inset 0 0 0 1px color-mix(in srgb, var(--brand-primary) 35%, transparent),
-    0 4px 18px color-mix(in srgb, var(--brand-primary) 20%, transparent);
+    inset 0 0 0 1px rgba(224, 70, 186, 0.5),
+    0 0 15px rgba(224, 70, 186, 0.4),
+    0 0 30px rgba(139, 92, 246, 0.2);
 }
 
 .modern-sidebar__item.active .modern-sidebar__icon,
 .modern-sidebar__item.is-active .modern-sidebar__icon {
-  color: var(--brand-primary);
+  color: #e046ba;
+  text-shadow: 0 0 8px rgba(224, 70, 186, 0.6);
+}
+
+/* ── Accordion Groups ── */
+.modern-sidebar__group {
+  display: flex;
+  flex-direction: column;
+}
+
+.modern-sidebar__group-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.78rem 0.9rem;
+  border: 0;
+  border-radius: var(--sidebar-item-radius);
+  background: transparent;
+  color: var(--text-primary);
+  text-decoration: none;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 0.5rem;
+}
+
+.modern-sidebar__group-header:hover {
+  background: var(--sidebar-hover-bg);
+  box-shadow: var(--sidebar-hover-shadow);
+}
+
+.modern-sidebar__group-header .modern-sidebar__icon {
+  color: color-mix(in srgb, var(--brand-primary) 80%, var(--text-primary));
+  font-size: 0.95rem;
+  width: 22px;
+  display: inline-flex;
+  justify-content: center;
+}
+
+.modern-sidebar__chevron {
+  margin-left: auto;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.modern-sidebar__group-header[aria-expanded="true"] .modern-sidebar__chevron {
+  transform: rotate(180deg);
+}
+
+.modern-sidebar__group-items {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.modern-sidebar__group-header[aria-expanded="true"] ~ .modern-sidebar__group-items {
+  grid-template-rows: 1fr;
+}
+
+.modern-sidebar__group-items-inner {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding-left: 1.25rem; /* Indentation for sub-items */
+  margin-top: 0.2rem;
+}
+
+.modern-sidebar__group-items-inner .modern-sidebar__item {
+  padding: 0.6rem 0.9rem;
+  font-size: 0.9rem;
 }
 
 .modern-sidebar__reset {

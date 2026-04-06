@@ -75,7 +75,7 @@
     </div>
   </div>
 
-  <nav class="modern-sidebar__nav" aria-label="Primary">
+  <nav class="modern-sidebar__nav" aria-label="Primary" id="sidebar-nav">
     <a
       href="/dashboard"
       class="modern-sidebar__item {% if active_page == 'dashboard' %}active{% endif %}"
@@ -84,110 +84,147 @@
       <span class="modern-sidebar__label">Dashboard</span>
     </a>
 
-    <a
-      href="/incidents"
-      class="modern-sidebar__item {% if active_page == 'incidents' %}active{% endif %}"
-    >
-      <span class="modern-sidebar__icon"
-        ><i class="fas fa-exclamation-triangle"></i
-      ></span>
-      <span class="modern-sidebar__label">Incidents</span>
-    </a>
+    <!-- SECURITY GROUP -->
+    <div class="modern-sidebar__group">
+      <button 
+        type="button" 
+        class="modern-sidebar__group-header" 
+        aria-expanded="{% if active_page in ['incidents', 'attack-history', 'ml-detections', 'blocked', 'critical', 'requests'] %}true{% else %}false{% endif %}"
+      >
+        <span class="modern-sidebar__icon"><i class="fas fa-shield-halved"></i></span>
+        <span class="modern-sidebar__label">Security</span>
+        <span class="modern-sidebar__chevron"><i class="fas fa-chevron-down"></i></span>
+      </button>
+      <div class="modern-sidebar__group-items">
+        <div class="modern-sidebar__group-items-inner">
+          <a
+            href="/incidents"
+            class="modern-sidebar__item {% if active_page == 'incidents' %}active{% endif %}"
+          >
+            <span class="modern-sidebar__icon"><i class="fas fa-exclamation-triangle"></i></span>
+            <span class="modern-sidebar__label">Incidents</span>
+          </a>
 
-    <a
-      href="/attack-history"
-      class="modern-sidebar__item {% if active_page == 'attack-history' %}active{% endif %}"
-    >
-      <span class="modern-sidebar__icon"
-        ><i class="fas fa-shield-virus"></i
-      ></span>
-      <span class="modern-sidebar__label">Attack History</span>
-    </a>
+          <a
+            href="/attack-history"
+            class="modern-sidebar__item {% if active_page == 'attack-history' %}active{% endif %}"
+          >
+            <span class="modern-sidebar__icon"><i class="fas fa-shield-virus"></i></span>
+            <span class="modern-sidebar__label">Attack History</span>
+          </a>
 
-    <a
-      href="/ml-detections"
-      class="modern-sidebar__item {% if active_page == 'ml-detections' %}active{% endif %}"
-    >
-      <span class="modern-sidebar__icon"><i class="fas fa-brain"></i></span>
-      <span class="modern-sidebar__label">ML Detections</span>
-    </a>
+          <a
+            href="/ml-detections"
+            class="modern-sidebar__item {% if active_page == 'ml-detections' %}active{% endif %}"
+          >
+            <span class="modern-sidebar__icon"><i class="fas fa-brain"></i></span>
+            <span class="modern-sidebar__label">ML Detections</span>
+          </a>
 
-    <a
-      href="/blocked_page"
-      class="modern-sidebar__item {% if active_page == 'blocked' %}active{% endif %}"
-    >
-      <span class="modern-sidebar__icon"><i class="fas fa-hand"></i></span>
-      <span class="modern-sidebar__label">Blocked</span>
-    </a>
+          <a
+            href="/blocked_page"
+            class="modern-sidebar__item {% if active_page == 'blocked' %}active{% endif %}"
+          >
+            <span class="modern-sidebar__icon"><i class="fas fa-hand"></i></span>
+            <span class="modern-sidebar__label">Blocked</span>
+          </a>
 
-    <a
-      href="/critical"
-      class="modern-sidebar__item {% if active_page == 'critical' %}active{% endif %}"
-    >
-      <span class="modern-sidebar__icon"><i class="fas fa-radiation"></i></span>
-      <span class="modern-sidebar__label">Critical</span>
-    </a>
+          <a
+            href="/critical"
+            class="modern-sidebar__item {% if active_page == 'critical' %}active{% endif %}"
+          >
+            <span class="modern-sidebar__icon"><i class="fas fa-radiation"></i></span>
+            <span class="modern-sidebar__label">Critical</span>
+          </a>
 
-    <a
-      href="/requests"
-      class="modern-sidebar__item {% if active_page == 'requests' %}active{% endif %}"
-    >
-      <span class="modern-sidebar__icon"><i class="fas fa-globe"></i></span>
-      <span class="modern-sidebar__label">All Requests</span>
-    </a>
+          <a
+            href="/requests"
+            class="modern-sidebar__item {% if active_page == 'requests' %}active{% endif %}"
+          >
+            <span class="modern-sidebar__icon"><i class="fas fa-globe"></i></span>
+            <span class="modern-sidebar__label">All Requests</span>
+          </a>
+        </div>
+      </div>
+    </div>
 
-    <a
-      href="/pricing"
-      class="modern-sidebar__item {% if active_page == 'pricing' %}active{% endif %}"
-    >
-      <span class="modern-sidebar__icon"><i class="fas fa-crown"></i></span>
-      <span class="modern-sidebar__label">Upgrade Plan</span>
-    </a>
+    <!-- MANAGEMENT GROUP -->
+    <div class="modern-sidebar__group">
+      <button 
+        type="button" 
+        class="modern-sidebar__group-header" 
+        aria-expanded="{% if active_page in ['pricing', 'settings', 'user-manager', 'blacklist'] %}true{% else %}false{% endif %}"
+      >
+        <span class="modern-sidebar__icon"><i class="fas fa-layer-group"></i></span>
+        <span class="modern-sidebar__label">Management</span>
+        <span class="modern-sidebar__chevron"><i class="fas fa-chevron-down"></i></span>
+      </button>
+      <div class="modern-sidebar__group-items">
+        <div class="modern-sidebar__group-items-inner">
+          <a
+            href="/pricing"
+            class="modern-sidebar__item {% if active_page == 'pricing' %}active{% endif %}"
+          >
+            <span class="modern-sidebar__icon"><i class="fas fa-crown"></i></span>
+            <span class="modern-sidebar__label">Upgrade Plan</span>
+          </a>
 
-    <a
-      href="/settings"
-      class="modern-sidebar__item {% if active_page == 'settings' %}active{% endif %}"
-    >
-      <span class="modern-sidebar__icon"><i class="fas fa-sliders"></i></span>
-      <span class="modern-sidebar__label">Settings</span>
-    </a>
+          <a
+            href="/settings"
+            class="modern-sidebar__item {% if active_page == 'settings' %}active{% endif %}"
+          >
+            <span class="modern-sidebar__icon"><i class="fas fa-sliders"></i></span>
+            <span class="modern-sidebar__label">Settings</span>
+          </a>
 
-    {% if user and user.role == 'admin' %}
-    <a
-      href="/user-manager"
-      class="modern-sidebar__item {% if active_page == 'user-manager' %}active{% endif %}"
-    >
-      <span class="modern-sidebar__icon"
-        ><i class="fas fa-users-gear"></i
-      ></span>
-      <span class="modern-sidebar__label">User Manager</span>
-    </a>
+          {% if user and user.role == 'admin' %}
+          <a
+            href="/user-manager"
+            class="modern-sidebar__item {% if active_page == 'user-manager' %}active{% endif %}"
+          >
+            <span class="modern-sidebar__icon"><i class="fas fa-users-gear"></i></span>
+            <span class="modern-sidebar__label">User Manager</span>
+          </a>
 
-    <a
-      href="/blacklist"
-      class="modern-sidebar__item {% if active_page == 'blacklist' %}active{% endif %}"
-    >
-      <span class="modern-sidebar__icon"><i class="fas fa-ban"></i></span>
-      <span class="modern-sidebar__label">Blacklist</span>
-    </a>
+          <a
+            href="/blacklist"
+            class="modern-sidebar__item {% if active_page == 'blacklist' %}active{% endif %}"
+          >
+            <span class="modern-sidebar__icon"><i class="fas fa-ban"></i></span>
+            <span class="modern-sidebar__label">Blacklist</span>
+          </a>
 
-    <button
-      type="button"
-      class="modern-sidebar__item modern-sidebar__reset"
-      id="sidebar-reset-btn"
-    >
-      <span class="modern-sidebar__icon"><i class="fas fa-trash-can"></i></span>
-      <span class="modern-sidebar__label">Reset Stats</span>
-    </button>
-    {% endif %}
+          <button
+            type="button"
+            class="modern-sidebar__item modern-sidebar__reset"
+            id="sidebar-reset-btn"
+          >
+            <span class="modern-sidebar__icon"><i class="fas fa-trash-can"></i></span>
+            <span class="modern-sidebar__label">Reset Stats</span>
+          </button>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
   </nav>
 
   <div class="modern-sidebar__footer">
     <button type="button" class="modern-sidebar__logout" id="logout-btn">
-      <span class="modern-sidebar__icon"
-        ><i class="fas fa-right-from-bracket"></i
-      ></span>
+      <span class="modern-sidebar__icon"><i class="fas fa-right-from-bracket"></i></span>
       <span class="modern-sidebar__label">Logout</span>
     </button>
   </div>
 </aside>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const headers = document.querySelectorAll(".modern-sidebar__group-header");
+    headers.forEach(header => {
+      header.addEventListener("click", (e) => {
+        const isExpanded = header.getAttribute("aria-expanded") === "true";
+        header.setAttribute("aria-expanded", !isExpanded);
+      });
+    });
+  });
+</script>
