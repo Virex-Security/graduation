@@ -8,13 +8,6 @@ import sqlite3
 import threading
 import time
 import logging
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
-import re
->>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
->>>>>>> 29c1406ff0d33cca29bb3c738f3c070c695be578
 from pathlib import Path
 from contextlib import contextmanager
 
@@ -28,18 +21,10 @@ def db_cursor():
     """كل عملية بتفتح connection جديدة وبتقفلها — يمنع database is locked."""
     conn = sqlite3.connect(str(DB_PATH), timeout=10, check_same_thread=False)
     conn.row_factory = sqlite3.Row
-<<<<<<< HEAD
-    conn.execute("PRAGMA journal_mode=WAL")
-=======
-<<<<<<< HEAD
-    conn.execute("PRAGMA journal_mode=WAL")
-=======
     try:
         conn.execute("PRAGMA journal_mode=WAL")
     except sqlite3.OperationalError:
         pass
->>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
->>>>>>> 29c1406ff0d33cca29bb3c738f3c070c695be578
     conn.execute("PRAGMA foreign_keys=ON")
     conn.execute("PRAGMA busy_timeout=5000")
     cur = conn.cursor()
@@ -181,32 +166,10 @@ def insert_user(username, password_hash, email=None,
 def update_user(username: str, **kwargs) -> bool:
     allowed = {"email", "password_hash", "role_id", "department_id",
                "is_active", "last_login", "updated_at"}
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> 29c1406ff0d33cca29bb3c738f3c070c695be578
     fields = {k: v for k, v in kwargs.items() if k in allowed}
     if not fields:
         return False
     fields["updated_at"] = time.strftime("%Y-%m-%d %H:%M:%S")
-<<<<<<< HEAD
-=======
-=======
-    # Strict validation: Every key in kwargs MUST be in allowlist and match regex
-    for k in kwargs:
-        if k not in allowed:
-            raise ValueError(f"[SECURITY] Unauthorized column update: {k}")
-        if not re.fullmatch(r"^[a-z0-9_]+$", k):
-            raise ValueError(f"[SECURITY] Invalid column format: {k}")
-
-    if not kwargs:
-        return False
-
-    fields = kwargs.copy()
-    fields["updated_at"] = time.strftime("%Y-%m-%d %H:%M:%S")
-    
->>>>>>> 4c5ae8566bbeb2af6ffddd6da0dc25f97d5a40fa
->>>>>>> 29c1406ff0d33cca29bb3c738f3c070c695be578
     set_clause = ", ".join(f"{k} = ?" for k in fields)
     values = list(fields.values()) + [username]
     with db_cursor() as cur:

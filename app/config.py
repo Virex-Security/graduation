@@ -28,7 +28,6 @@ _DEFAULTS = {
     "MAX_CONTENT_LENGTH":    "1048576",
     "SMTP_EMAIL":            "",
     "SMTP_PASSWORD":         "",
-    "TRUSTED_PROXIES":       "127.0.0.1",
 }
 
 # ── Insecure default values that must be changed in production ──
@@ -38,20 +37,7 @@ _INSECURE_VALUES = {
         "change-me-in-production",
         "fallback-dev-key-change-in-production",
         "dev-secret",
-        "dev-secret-key",
-        "secret",
-        "password",
-        "test-secret-key-for-ci-minimum-32-chars!!",
-    ],
-    "INTERNAL_API_SECRET": [
-        "supersecrettoken",
-        "secret",
-        "changeme",
-        "internal-secret",
-        "test-internal-secret-for-ci-only-32chars",
-        "password",
-        "admin",
-    ],
+    ]
 }
 
 
@@ -96,11 +82,6 @@ def validate_config(strict: bool = False) -> bool:
     secret = os.getenv("SECRET_KEY", "")
     if secret and len(secret) < 32:
         errors.append(f"  ❌ SECRET_KEY is too short ({len(secret)} chars, minimum 32)")
-
-    # Check INTERNAL_API_SECRET minimum length
-    internal = os.getenv("INTERNAL_API_SECRET", "")
-    if internal and len(internal) < 32:
-        errors.append(f"  ❌ INTERNAL_API_SECRET is too short ({len(internal)} chars, minimum 32)")
 
     # Report
     if warnings:
@@ -157,9 +138,3 @@ def smtp_email() -> str:
 
 def smtp_password() -> str:
     return os.getenv("SMTP_PASSWORD", "")
-
-
-def trusted_proxies() -> frozenset:
-    """Returns a frozenset of trusted proxy IPs from configuration."""
-    raw = get("TRUSTED_PROXIES")
-    return frozenset(ip.strip() for ip in raw.split(",") if ip.strip())

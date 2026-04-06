@@ -13,11 +13,9 @@ import jwt
 import secrets
 from app.api.security import SimpleSecurityManager
 from app.api import services
-from app import database as db, config as virex_config
 from app.auth import user_manager
 from app.auth.decorators import admin_required, token_required
 from app.security import new_request_id, is_trivial, is_business_relevant
-from app.api.responses import ok, created, bad_request, unauthorized, forbidden, not_found, rate_limited, paginated
 
 try:
     from detections import detect_csrf, detect_ssrf
@@ -31,39 +29,25 @@ load_dotenv()
 logger = logging.getLogger(__name__)
 
 
+TRUSTED_PROXIES = {"127.0.0.1", "10.0.0.1"}   # add your proxy IPs
+
 def _get_real_ip():
-    """
-    Securely detects the client's real IP address.
-    If the immediate remote_addr is in TRUSTED_PROXIES, we trust the 
-    X-Forwarded-For header and parse it FROM RIGHT TO LEFT to find 
-    the first non-proxy IP.
-    """
-    trusted = virex_config.trusted_proxies()
-    remote_ip = request.remote_addr
-
-    if remote_ip not in trusted:
-        return remote_ip
-
-    xff = request.headers.get("X-Forwarded-For", "")
-    if not xff:
-        return remote_ip
-
-    # Parse XFF from right to left
-    ips = [ip.strip() for ip in xff.split(",") if ip.strip()]
-    for ip in reversed(ips):
-        if ip not in trusted:
-            return ip
-
-    return remote_ip
+    if request.remote_addr in TRUSTED_PROXIES:
+        xff = request.headers.get("X-Forwarded-For", "")
+        if xff:
+            return xff.split(",")[0].strip()
+    return request.remote_addr
 
 # Or use Werkzeug's ProxyFix middleware:
 
 
 def create_api_app():
-    app = Flask(__name__)
-    
     from werkzeug.middleware.proxy_fix import ProxyFix
+    app = Flask(__name__)
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1)
+    from app import database as db
+
+
 
     # ── Config ────────────────────────────────────────────────
     app.config["MAX_CONTENT_LENGTH"] = int(os.getenv("MAX_CONTENT_LENGTH", str(1 * 1024 * 1024)))
@@ -75,9 +59,10 @@ def create_api_app():
     security = SimpleSecurityManager()
 
     # ── Brute force tracker (+ persistent blocked_ips) ────────
+    brute_force_tracker = defaultdict(list)
     BRUTE_FORCE_LIMIT      = 5
-    BRUTE_FORCE_WINDOW     = 300  # 5 minutes
-    BRUTE_FORCE_BLOCK_TIME = 900  # 15 minutes
+    BRUTE_FORCE_WINDOW     = 60
+    BRUTE_FORCE_BLOCK_TIME = 300
 
     # Load persisted blocked IPs on startup
     from app.api.persistence import load_blocked_ips, save_blocked_ips
@@ -97,7 +82,7 @@ def create_api_app():
         if not security.check_rate_limit(client_ip):
             security.blocked_requests += 1
             security._persist_stats()
-            return rate_limited("Rate limit exceeded")
+            return jsonify({"error": "Rate limit exceeded"}), 429
 
         # 3b. Scanner Detection
         sensitive_paths = ["/admin", "/wp-admin", "/phpmyadmin", "/.env",
@@ -113,7 +98,7 @@ def create_api_app():
             )
             security.blocked_requests += 1
             security._persist_stats()
-            return not_found("Sensitive path access attempted")
+            return jsonify({"error": "Not Found"}), 404
 
         # 3c. CSRF
         if _CSRF_SSRF_ENABLED and request.method in ("POST", "PUT", "DELETE", "PATCH"):
@@ -128,7 +113,8 @@ def create_api_app():
             if _csrf_result["detected"]:
                 security.blocked_requests += 1
                 security._persist_stats()
-                return forbidden(f"CSRF validation failed: {_csrf_result['reason']}")
+                return jsonify({"error": "CSRF validation failed",
+                                "reason": _csrf_result["reason"]}), 403
 
         # 3d. SSRF
         if _CSRF_SSRF_ENABLED:
@@ -143,7 +129,8 @@ def create_api_app():
             if _ssrf_result["detected"]:
                 security.blocked_requests += 1
                 security._persist_stats()
-                return forbidden(f"SSRF attempt blocked: {_ssrf_result['reason']}")
+                return jsonify({"error": "SSRF attempt blocked",
+                                "reason": _ssrf_result["reason"]}), 403
 
         # 3e. Content Scan — JSON + Form + Files metadata
         data_to_scan = {}
@@ -168,7 +155,7 @@ def create_api_app():
             if not safe:
                 security.blocked_requests += 1
                 security._persist_stats()
-                return bad_request(msg)
+                return jsonify({"error": msg}), 400
 
         if not request_blocked and is_business:
             security.total_requests += 1
@@ -186,32 +173,29 @@ def create_api_app():
     # ── Basic Routes ──────────────────────────────────────────
     @app.route("/")
     def index():
-        return ok(data={"status": "running", "security_level": "high", "version": "2.0.0"}, 
-                  message="API Security System Active")
+        return {"status": "running", "message": "API Security System Active",
+                "security_level": "high", "version": "2.0.0"}
 
     @app.route("/health")
     def health():
-        return ok(data={"status": "healthy"})
+        return jsonify({"status": "healthy"}), 200
 
     @app.route("/health/detailed")
     @token_required
     @admin_required
     def health_detailed(current_user):
-        return ok(data={
-            "status": "healthy", 
-            "uptime": time.time() - security.start_time,
-            "total_requests": security.total_requests,
-            "blocked_requests": security.blocked_requests
-        })
+        return {"status": "healthy", "uptime": time.time() - security.start_time,
+                "total_requests": security.total_requests,
+                "blocked_requests": security.blocked_requests}
 
     @app.route("/api/health")
     def api_health():
-        return ok(data={"connected": True, "status": "healthy", "timestamp": time.time()})
+        return jsonify({"connected": True, "status": "healthy", "timestamp": time.time()})
 
     @app.route("/api/data", methods=["POST"])
     def api_data():
-        return created(data={"id": int(time.time()), "processed_at": time.time()}, 
-                       message="Data accepted")
+        return jsonify({"message": "Data accepted", "id": int(time.time()),
+                        "processed_at": time.time()}), 201
 
     # ── Data Routes ───────────────────────────────────────────
     @app.route("/api/users", methods=["GET"])
@@ -220,7 +204,7 @@ def create_api_app():
     def get_users_route(current_user):
       q = request.args.get("search", "")
       results = services.get_users(q if q else None)
-      return ok(data={"users": results})
+      return jsonify({"users": results})
 
     @app.route("/api/orders", methods=["GET"])
     @token_required
@@ -228,7 +212,7 @@ def create_api_app():
         user_filter = request.args.get("user", "")
         results = services.get_orders(current_user["username"])
         services.log_request("/api/orders", "GET", _get_real_ip(), 200, user_filter)
-        return paginated(results)
+        return jsonify({"orders": results, "total": len(results)})
 
     @app.route("/api/products", methods=["GET"])
     @token_required
@@ -237,7 +221,7 @@ def create_api_app():
         q   = request.args.get("search", "")
         results = services.get_products(cat if cat else None, q if q else None)
         services.log_request("/api/products", "GET", _get_real_ip(), 200, q or cat)
-        return paginated(results)
+        return jsonify({"products": results, "total": len(results)})
 
     @app.route("/api/orders", methods=["POST"])
     @token_required
@@ -248,14 +232,14 @@ def create_api_app():
         data.get("product"),
         data.get("price")
     )
-        return created(data={"order": new_order})
+        return jsonify({"order": new_order}), 201
 
     @app.route("/api/logs", methods=["GET"])
     @token_required
     @admin_required
     def get_logs_route(current_user):
         logs = services.get_request_logs()
-        return paginated(logs)
+        return jsonify({"logs": logs, "total": len(logs)})
 
     # ── Auth ──────────────────────────────────────────────────
     @app.route("/api/login", methods=["POST"])
@@ -271,52 +255,48 @@ def create_api_app():
             if now < blocked_ips[ip]:
                 remaining = int(blocked_ips[ip] - now)
                 security.blocked_requests += 1
-                return rate_limited(f"IP blocked for {remaining} seconds")
+                return jsonify({"error": f"IP blocked for {remaining} seconds"}), 429
             else:
                 del blocked_ips[ip]
                 save_blocked_ips(blocked_ips)
 
         verified_user = user_manager.verify_password(username, password) if username and password else None
-        
         if verified_user:
-            db.log_login_attempt(username, ip, True, user_id=verified_user.get("user_id"))
-            # Mint and return JWT — same as dashboard's login_user()
-            token = jwt.encode({
-                "user": username,
-                "role": verified_user["role"],
-                "exp": datetime.utcnow() + timedelta(hours=8),
-                "iat": datetime.utcnow(),
-                "jti": secrets.token_hex(16),   # for revocation
-            }, current_app.config["SECRET_KEY"], algorithm="HS256")
-            
-            resp_json, status = ok(message="Login successful")
-            resp = make_response(resp_json)
-            from app import config as _cfg
-            resp.set_cookie("auth_token", token, httponly=True,
-                          secure=_cfg.cookie_secure(), samesite="Strict", max_age=8*3600)
-            return resp, 200
+          brute_force_tracker[ip] = []
+          # Mint and return JWT — same as dashboard's login_user()
+          token = jwt.encode({
+              "user": username,
+              "role": verified_user["role"],
+              "exp": datetime.utcnow() + timedelta(hours=8),
+              "iat": datetime.utcnow(),
+              "jti": secrets.token_hex(16),   # for revocation
+          }, current_app.config["SECRET_KEY"], algorithm="HS256")
+          resp = make_response(jsonify({"message": "Login successful"}))
+          from app import config as _cfg
+          resp.set_cookie("auth_token", token, httponly=True,
+                        secure=_cfg.cookie_secure(), samesite="Lax", max_age=8*3600)
+          return resp, 200
         else:
-            # Brute force tracking using DB
-            db.log_login_attempt(username, ip, False, reason="Invalid credentials")
-            
-            # Count recent failures for this IP OR Username
-            recent_failures = db.get_recent_login_failures(username, 300)
-            security.brute_force_count += 1
-            
-            if recent_failures >= 5:
-                blocked_ips[ip] = now + 900
-                save_blocked_ips(blocked_ips)
-                return rate_limited("Too many failed attempts. Try again in 15 minutes.")
+              # Brute force tracking
+              attempts = [t for t in brute_force_tracker[ip]
+              if now - t < BRUTE_FORCE_WINDOW]
+              attempts.append(now)
+              brute_force_tracker[ip] = attempts
+              security.brute_force_count += 1
 
-            return unauthorized("Invalid credentials")
+              if len(attempts) >= BRUTE_FORCE_LIMIT:
+                  blocked_ips[ip] = now + BRUTE_FORCE_BLOCK_TIME
+                  save_blocked_ips(blocked_ips)
+                  return jsonify({"error": "Too many attempts. Try later."}), 429
+
+              return jsonify({"error": "Invalid credentials"}), 401
     # ── Attack History Endpoints ──────────────────────────────
     @app.route("/api/my-attacks", methods=["GET"])
     @token_required
     def get_my_attacks(current_user):   # ← accept injected user from decorator
-      user_key = current_user["username"]
-      from app.api.persistence import get_user_attacks
+      user_key = current_user["username"]  # always from verified token
       attacks = get_user_attacks(user_key)
-      return ok(data={"user": user_key, "attacks": attacks})
+      return jsonify({"user": user_key, "attacks": attacks})
 
     @app.route("/api/clear-attacks", methods=["DELETE"])
     @token_required
@@ -325,11 +305,12 @@ def create_api_app():
         from app.api.persistence import clear_all_attacks, clear_user_attacks
         if request.args.get("all") == "true":
             if current_user["role"] != "admin":
-                return forbidden("Admin only")
+                return jsonify({"error": "Admin only"}), 403
             clear_all_attacks()
-            return ok(message="All cleared")
+            return jsonify({"message": "All cleared"})
+        # Always use the identity from the verified token
         clear_user_attacks(current_user["username"])
-        return ok(message="Cleared")
+        return jsonify({"message": "Cleared"})
 
     # ── Security Stats ────────────────────────────────────────
     @app.route("/api/security/stats", methods=["GET"])
@@ -337,7 +318,7 @@ def create_api_app():
     @admin_required
     def get_security_stats(current_user):
         from app.ml.inference import get_ml_stats
-        return ok(data={
+        return jsonify({
             "total_requests":       security.total_requests,
             "blocked_requests":     security.blocked_requests,
             "sql_injection_count":  security.sql_injection_count,
@@ -358,6 +339,6 @@ def create_api_app():
     def get_ml_feedback(current_user):
         from app.api.persistence import get_ml_detections
         data = get_ml_detections(limit=100)
-        return paginated(data)
+        return jsonify({"feedback": data, "total": len(data)})
 
     return app

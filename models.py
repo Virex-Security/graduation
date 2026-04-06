@@ -1,25 +1,17 @@
 import json
 import os
-<<<<<<< HEAD
 import re
 from pathlib import Path
-=======
->>>>>>> 967891135f8e00079cef2ba1d9796462c24daaba
 from werkzeug.security import generate_password_hash, check_password_hash
 from roles import Role
 
 class UserManager:
-<<<<<<< HEAD
     def __init__(self, storage_path=None):
         # Use data/ directory for storage
         if storage_path is None:
             project_root = Path(__file__).parent
             storage_path = project_root / "data" / "users.json"
         self.storage_path = str(storage_path)
-=======
-    def __init__(self, storage_path="users.json"):
-        self.storage_path = storage_path
->>>>>>> 967891135f8e00079cef2ba1d9796462c24daaba
         self.users = {}
         self._load_users()
 
@@ -29,7 +21,6 @@ class UserManager:
                 self.users = json.load(f)
         else:
             # Initialize with default users if not exists
-<<<<<<< HEAD
             os.makedirs(os.path.dirname(self.storage_path), exist_ok=True)
             self.add_user("admin", "Admin@123", Role.ADMIN)
             self.add_user("user", "User@123", Role.USER)
@@ -59,19 +50,6 @@ class UserManager:
         valid, message = self.validate_password_policy(password)
         if not valid:
             return False, message
-=======
-            self.add_user("admin", "admin123", Role.ADMIN)
-            self.add_user("user", "user123", Role.USER)
-            self._save_users()
-
-    def _save_users(self):
-        with open(self.storage_path, 'w') as f:
-            json.dump(self.users, f, indent=4)
-
-    def add_user(self, username, password, role=Role.USER):
-        if username in self.users:
-            return False, "User already exists"
->>>>>>> 967891135f8e00079cef2ba1d9796462c24daaba
         
         self.users[username] = {
             "id": len(self.users) + 1,
@@ -91,7 +69,6 @@ class UserManager:
             return user
         return None
 
-<<<<<<< HEAD
     def change_password(self, username, new_password):
         if username not in self.users:
             return False, "User not found"
@@ -104,7 +81,5 @@ class UserManager:
         self._save_users()
         return True, "Password changed successfully"
 
-=======
->>>>>>> 967891135f8e00079cef2ba1d9796462c24daaba
 # Singleton-like instance
 user_manager = UserManager()

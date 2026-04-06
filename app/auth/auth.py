@@ -65,8 +65,8 @@ def login_user(username: str, password: str):
         "auth_token",
         token,
         httponly=True,
-          secure=config.cookie_secure(),   # ← env-driven, not hardcoded False
-            samesite="Lax",
+        secure=config.cookie_secure(),   # ← env-driven, not hardcoded False
+        samesite="Lax",
         max_age=8 * 3600,
     )
     return resp, 200
@@ -93,5 +93,5 @@ def logout_user():
 
     resp = make_response(jsonify({"message": "Logged out successfully"}))
     resp.set_cookie("auth_token", "", expires=0, httponly=True,
-                      secure=config.cookie_secure(), samesite="Lax")
+                    secure=config.cookie_secure(), samesite="Lax")
     return resp

@@ -7,7 +7,6 @@
       "default",
       {
         "ignore": [
-<<<<<<< HEAD
           "border: 1px solid color-mix(in srgb, var(--brand-primary) 25%, transparent)",
           "backdrop-filter",
           "user-select",
@@ -38,9 +37,6 @@
           "border-color: color-mix(in srgb, var(--brand-primary) 70%, transparent)",
           "border: 1.5px solid color-mix(in srgb, var(--brand-primary) 22%, transparent)",
           "border: 2px solid color-mix(in srgb, var(--brand-primary) 45%, transparent)"
-=======
-          "border: 1px solid color-mix(in srgb, var(--brand-primary) 25%, transparent)"
->>>>>>> 967891135f8e00079cef2ba1d9796462c24daaba
         ]
       }
     ]
