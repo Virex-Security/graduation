@@ -2,6 +2,9 @@ function setSidebarExpandedState(sidebar, expanded) {
   sidebar.classList.toggle("collapsed", !expanded);
   sidebar.setAttribute("aria-expanded", String(expanded));
   localStorage.setItem("sidebarCollapsed", String(!expanded));
+  
+  // Update body class for components that need to respond to sidebar state
+  document.body.classList.toggle("is-sidebar-collapsed", !expanded);
 
   const toggles = document.querySelectorAll(
     `[data-sidebar-target="${sidebar.id}"]`,

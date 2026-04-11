@@ -780,6 +780,13 @@ body::after {
    MAIN CONTENT
    =========================================== */
 
+/* Light Theme Title Override */
+[data-theme="light"] .section-title h1 {
+  background: none;
+  -webkit-text-fill-color: #0f172a;
+  color: #0f172a;
+}
+
 /* Main Content Container */
 .main-content {
   padding: 2.5rem;

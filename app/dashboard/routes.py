@@ -95,9 +95,14 @@ def create_dashboard_app():
     @app.route('/api/auth/login', methods=['POST'])
     def login():
         auth = request.get_json()
+        print(f"[DEBUG] Login attempt via API! auth payload: {auth}")
         if not auth or not auth.get('username') or not auth.get('password'):
             return jsonify({'message': 'Missing credentials'}), 401
-        resp, status = login_user(auth.get('username'), auth.get('password'))
+        
+        username = auth.get('username').strip()
+        print(f"[DEBUG] Processing login for user: '{username}'")
+        resp, status = login_user(username, auth.get('password'))
+        print(f"[DEBUG] login_user returned status: {status}")
         if status == 200:
             user = user_manager.get_user(auth.get('username'))
             from app.database import log_audit

@@ -1,6 +1,6 @@
 <aside class="sidebar modern-sidebar" id="sidebar" aria-expanded="true">
   <div class="modern-sidebar__brand-row">
-    <div class="sidebar-brand modern-sidebar__brand" style="display: flex; align-items: center; gap: 4px;">
+    <div class="sidebar-brand modern-sidebar__brand modern-sidebar__brand-wrap">
       <span class="brand-v-icon">VIREX</span>
     </div>
 
@@ -17,155 +17,167 @@
     </button>
   </div>
 
+  <div class="modern-sidebar__profile-consolidated">
+    <div class="modern-sidebar__avatar" aria-hidden="true">
+      {{ user.full_name[:2]|upper if user and user.full_name else
+      (user.username[:2] if user and user.username else 'AD')|upper }}
+    </div>
+    <div class="modern-sidebar__profile-copy">
+      <span class="modern-sidebar__username"
+        >{{ user.username if user and user.username else 'admin' }}</span
+      >
+      <span class="modern-sidebar__role_sub"
+        >{{ user.role if user and user.role else 'admin' }}</span
+      >
+      <span class="modern-sidebar__status-text status-disconnected" id="sidebar-connection-status">
+        <span class="status-dot"></span> Disconnected
+      </span>
+    </div>
+  </div>
+
   <nav class="modern-sidebar__nav" aria-label="Primary" id="sidebar-nav">
-    <div class="nav-heading">OVERVIEW</div>
-    
-    <a href="/dashboard" class="modern-sidebar__item {% if active_page == 'dashboard' %}active{% endif %}">
-      <span class="modern-sidebar__icon"><i class="fas fa-border-all"></i></span>
+    <div class="nav-heading">OVERVIEW </div>
+
+    <a
+      href="/dashboard"
+      class="modern-sidebar__item {% if active_page == 'dashboard' %}active{% endif %}"
+    >
+      <span class="modern-sidebar__icon"><i class="fas fa-home"></i></span>
       <span class="modern-sidebar__label">Dashboard</span>
     </a>
 
-    <a href="/incidents" class="modern-sidebar__item {% if active_page == 'incidents' %}active{% endif %}">
-      <span class="modern-sidebar__icon"><i class="fas fa-exclamation-triangle"></i></span>
+    <a
+      href="/incidents"
+      class="modern-sidebar__item {% if active_page == 'incidents' %}active{% endif %}"
+    >
+      <span class="modern-sidebar__icon"
+        ><i class="fas fa-exclamation-triangle"></i
+      ></span>
       <span class="modern-sidebar__label">Incidents</span>
     </a>
 
-    <a href="/attack-history" class="modern-sidebar__item {% if active_page == 'attack-history' %}active{% endif %}">
-      <span class="modern-sidebar__icon"><i class="fas fa-shield-virus"></i></span>
+    <a
+      href="/attack-history"
+      class="modern-sidebar__item {% if active_page == 'attack-history' %}active{% endif %}"
+    >
+      <span class="modern-sidebar__icon"
+        ><i class="fas fa-history"></i
+      ></span>
       <span class="modern-sidebar__label">Attack History</span>
     </a>
 
-    <div class="nav-heading" style="margin-top: 1.5rem;">ACCESS</div>
-    <button type="button" class="modern-sidebar__item modern-sidebar__trigger" id="access-panel-trigger">
-      <span class="modern-sidebar__icon"><i class="fas fa-table-cells-large"></i></span>
-      <span class="modern-sidebar__label">Access Panel</span>
-    </button>
-  </nav>
-
-  <div class="modern-sidebar__footer">
-    <div class="modern-sidebar__profile-simplified">
-      <div class="modern-sidebar__avatar" aria-hidden="true">
-        {% if user and user.avatar_url %}
-        <img src="{{ user.avatar_url }}" alt="avatar" style="width: 100%; height: 100%; object-fit: cover; border-radius: 10px;" />
-        {% else %}
-        {{ user.full_name[:2]|upper if user and user.full_name else (user.username[:2] if user and user.username else 'AD')|upper }}
-        {% endif %}
-      </div>
-      <div class="modern-sidebar__profile-copy">
-        <div class="modern-sidebar__username">
-          {{ user.full_name if user and user.full_name else (user.username if user else 'admin') }} 
-          <span class="modern-sidebar__role_sub">{{ user.role if user else 'admin' }}</span>
+    <!-- Security Dropdown -->
+    <div class="modern-sidebar__dropdown-expanded-group {% if active_page in ['ml-detections', 'blocked', 'critical', 'blacklist'] %}is-expanded{% endif %}">
+      <button
+        type="button"
+        class="modern-sidebar__item modern-sidebar__dropdown-toggle"
+        data-dropdown-toggle="security"
+      >
+        <div class="modern-sidebar__dropdown-label-group">
+          <span class="modern-sidebar__icon"><i class="fas fa-shield-alt"></i></span>
+          <span class="modern-sidebar__label">Security</span>
         </div>
-        <div class="modern-sidebar__status-text user-connection-status" id="sidebar-connection-status">
-          <span class="status-dot"></span> Disconnected
-        </div>
-      </div>
-    </div>
+        <span class="modern-sidebar__chevron"><i class="fas fa-chevron-down"></i></span>
+      </button>
 
-    <button type="button" class="modern-sidebar__logout" id="logout-btn">
-      <span class="modern-sidebar__icon"><i class="fas fa-right-from-bracket"></i></span>
-      <span class="modern-sidebar__label">Logout</span>
-    </button>
-  </div>
-
-  <!-- FLOATING ACCESS PANEL -->
-  <div class="floating-access-panel" id="floating-access-panel">
-    <div class="fap-header">
-      <button class="fap-close" id="fap-close-btn" aria-label="Close Panel"><i class="fas fa-times"></i></button>
-    </div>
-    
-    <div class="fap-section">
-      <div class="fap-section-title"><i class="fas fa-lock"></i> SECURITY</div>
-      <div class="fap-links">
-        <a href="/ml-detections" class="fap-link {% if active_page == 'ml-detections' %}active{% endif %}">
+      <div class="modern-sidebar__submenu" id="submenu-security">
+        <a href="/ml-detections" class="modern-sidebar__submenu-item {% if active_page == 'ml-detections' %}active{% endif %}">
           <i class="fas fa-brain"></i> ML Detections
         </a>
-        <a href="/blocked_page" class="fap-link {% if active_page == 'blocked' %}active{% endif %}">
+        <a href="/blocked_page" class="modern-sidebar__submenu-item {% if active_page == 'blocked' %}active{% endif %}">
           <i class="fas fa-hand"></i> Blocked
         </a>
-        <a href="/critical" class="fap-link {% if active_page == 'critical' %}active{% endif %}">
+        <a href="/critical" class="modern-sidebar__submenu-item {% if active_page == 'critical' %}active{% endif %}">
           <i class="fas fa-radiation"></i> Critical
         </a>
         {% if user and user.role == 'admin' %}
-        <a href="/blacklist" class="fap-link {% if active_page == 'blacklist' %}active{% endif %}">
+        <a href="/blacklist" class="modern-sidebar__submenu-item {% if active_page == 'blacklist' %}active{% endif %}">
           <i class="fas fa-ban"></i> Blacklist
         </a>
         {% endif %}
       </div>
     </div>
 
-    <div class="fap-section">
-      <div class="fap-section-title"><i class="fas fa-gear"></i> MANAGEMENT</div>
-      <div class="fap-links">
-        <a href="/requests" class="fap-link {% if active_page == 'requests' %}active{% endif %}">
+    <!-- Management Dropdown -->
+    <div class="modern-sidebar__dropdown-expanded-group {% if active_page in ['requests', 'user-manager', 'settings'] %}is-expanded{% endif %}">
+      <button
+        type="button"
+        class="modern-sidebar__item modern-sidebar__dropdown-toggle"
+        data-dropdown-toggle="management"
+      >
+        <div class="modern-sidebar__dropdown-label-group">
+          <span class="modern-sidebar__icon"><i class="fas fa-cog"></i></span>
+          <span class="modern-sidebar__label">Management</span>
+        </div>
+        <span class="modern-sidebar__chevron"><i class="fas fa-chevron-down"></i></span>
+      </button>
+
+      <div class="modern-sidebar__submenu" id="submenu-management">
+        <a href="/requests" class="modern-sidebar__submenu-item {% if active_page == 'requests' %}active{% endif %}">
           <i class="fas fa-globe"></i> All Requests
         </a>
         {% if user and user.role == 'admin' %}
-        <a href="/user-manager" class="fap-link {% if active_page == 'user-manager' %}active{% endif %}">
+        <a href="/user-manager" class="modern-sidebar__submenu-item {% if active_page == 'user-manager' %}active{% endif %}">
           <i class="fas fa-users-gear"></i> User Manager
         </a>
         {% endif %}
-        <a href="/settings" class="fap-link {% if active_page == 'settings' %}active{% endif %}">
+        <a href="/settings" class="modern-sidebar__submenu-item {% if active_page == 'settings' %}active{% endif %}">
           <i class="fas fa-sliders"></i> Settings
         </a>
-        <a href="/pricing" class="fap-link {% if active_page == 'pricing' %}active{% endif %}">
-          <i class="fas fa-crown"></i> Upgrade Plan
-        </a>
         {% if user and user.role == 'admin' %}
-        <button type="button" class="fap-link fap-reset-btn" id="sidebar-reset-btn">
-          <i class="fas fa-trash-can"></i> Reset Stats
+        <button type="button" class="modern-sidebar__submenu-item" id="sidebar-reset-btn">
+          <i class="fas fa-arrows-rotate"></i> Reset Stats
         </button>
         {% endif %}
       </div>
     </div>
+  </nav>
+
+  <div class="modern-sidebar__footer">
+    <button type="button" class="modern-sidebar__logout" id="logout-btn">
+      <span class="modern-sidebar__icon"
+        ><i class="fas fa-right-from-bracket"></i
+      ></span>
+      <span class="modern-sidebar__label">Logout</span>
+    </button>
   </div>
+
+
 </aside>
 
 <script>
   document.addEventListener("DOMContentLoaded", () => {
-    const trigger = document.getElementById("access-panel-trigger");
-    const panel = document.getElementById("floating-access-panel");
-    const closeBtn = document.getElementById("fap-close-btn");
+    const sidebarEl = document.getElementById("sidebar");
+    const dropdownToggles = document.querySelectorAll(".modern-sidebar__dropdown-toggle");
 
-    if(trigger && panel && closeBtn) {
-      let hoverTimeout;
+    dropdownToggles.forEach(toggle => {
+      toggle.addEventListener("click", (e) => {
+        e.preventDefault();
+        
+        if (sidebarEl && sidebarEl.classList.contains("collapsed")) return;
 
-      const openPanel = () => {
-        clearTimeout(hoverTimeout);
-        panel.classList.add("is-visible");
-      };
+        const group = toggle.closest(".modern-sidebar__dropdown-expanded-group");
+        const wasExpanded = group.classList.contains("is-expanded");
 
-      const closePanel = () => {
-        hoverTimeout = setTimeout(() => {
-          panel.classList.remove("is-visible");
-        }, 200); // 200ms grace period to move mouse from trigger to panel
-      };
+        document.querySelectorAll(".modern-sidebar__dropdown-expanded-group").forEach(g => {
+          if (g !== group) g.classList.remove("is-expanded");
+        });
 
-      // Hover mechanics
-      trigger.addEventListener("mouseenter", openPanel);
-      trigger.addEventListener("mouseleave", closePanel);
-      panel.addEventListener("mouseenter", openPanel);
-      panel.addEventListener("mouseleave", closePanel);
-
-      // Fallback click
-      trigger.addEventListener("click", (e) => {
-        e.stopPropagation();
-        openPanel();
+        group.classList.toggle("is-expanded", !wasExpanded);
       });
+    });
 
-      // Explicit close button
-      closeBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        panel.classList.remove("is-visible");
-      });
-
-      // Click outside to close fallback
-      document.addEventListener("click", (e) => {
-        if (!panel.contains(e.target) && !trigger.contains(e.target)) {
-          if (panel.classList.contains("is-visible")) {
-            panel.classList.remove("is-visible");
-          }
+    if (sidebarEl) {
+      const observer = new MutationObserver(() => {
+        if (sidebarEl.classList.contains("collapsed")) {
+          document.querySelectorAll(".modern-sidebar__dropdown-expanded-group").forEach(g => {
+            g.classList.remove("is-expanded");
+          });
         }
+      });
+      observer.observe(sidebarEl, {
+        attributes: true,
+        attributeFilter: ["class"],
       });
     }
   });

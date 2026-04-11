@@ -105,7 +105,6 @@ document.addEventListener("DOMContentLoaded", () => {
       const data = await res.json();
       if (res.ok) {
         otpResetUserId = data.user_id;
-        console.log("OTP Reset User ID set to:", otpResetUserId);
         if (typeof window.showOtpResetModal === "function") {
           window.showOtpResetModal(data.otp, data.expiry);
         } else if (document.getElementById("otp-reset-form")) {
@@ -136,7 +135,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     msgBox.className = "";
     msgBox.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
-    console.log("Submitting OTP reset with user_id:", otpResetUserId, "otp:", otp);
     try {
       const res = await fetch("/api/verify-reset-otp", {
         method: "POST",

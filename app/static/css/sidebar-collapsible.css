@@ -1,7 +1,9 @@
 /* Override sidebar with collapsible functionality */
 .sidebar {
   width: 260px;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.s ease !important;
+  transition:
+    transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0s ease !important;
   overflow: hidden;
   box-shadow:
     0 0 30px color-mix(in srgb, var(--brand-primary) 15%, transparent),
@@ -9,7 +11,7 @@
     2px 0 10px rgba(0, 0, 0, 0.1);
 }
 
-.sidebar.collapsed {
+.sidebar.collapsed:not(.modern-sidebar) {
   transform: translateX(-100%);
   opacity: 0;
   pointer-events: none;
@@ -25,13 +27,13 @@
   transition: margin-left 0.1s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* When sidebar is collapsed, main wrapper expands */
-.sidebar.collapsed ~ .main-wrapper {
+/* When legacy sidebar is collapsed, main wrapper expands */
+.sidebar.collapsed:not(.modern-sidebar) ~ .main-wrapper {
   margin-left: 0;
 }
 
 /* Alternative selector for different DOM structures */
-.dashboard-wrapper:has(.sidebar.collapsed) .main-wrapper {
+.dashboard-wrapper:has(.sidebar.collapsed:not(.modern-sidebar)) .main-wrapper {
   margin-left: 0;
 }
 
@@ -41,8 +43,12 @@
   margin-left: 0;
 }
 
-.sidebar-menu::-webkit-scrollbar { width: 2px; }
-.sidebar-menu::-webkit-scrollbar-track { background: transparent; }
+.sidebar-menu::-webkit-scrollbar {
+  width: 2px;
+}
+.sidebar-menu::-webkit-scrollbar-track {
+  background: transparent;
+}
 .sidebar-menu::-webkit-scrollbar-thumb {
   background: color-mix(in srgb, var(--brand-primary) 30%, transparent);
   border-radius: 2px;
@@ -79,18 +85,29 @@
     inset 0 0 20px color-mix(in srgb, var(--brand-primary) 15%, transparent);
 }
 
-.reset-menu-btn:hover i { filter: drop-shadow(0 0 10px var(--brand-primary)); }
+.reset-menu-btn:hover i {
+  filter: drop-shadow(0 0 10px var(--brand-primary));
+}
 
 /* Sidebar Logout Button */
 .sidebar-logout-btn {
-  width: 100%; margin-top: 1rem; padding: 0.875rem 1rem;
+  width: 100%;
+  margin-top: 1rem;
+  padding: 0.875rem 1rem;
   background: var(--brand-gradient);
   border: 1px solid var(--border-light);
-  border-radius: 12px; color: white;
-  font-size: 0.95rem; font-weight: 600; cursor: pointer;
-  display: flex; align-items: center; justify-content: center; gap: 0.75rem;
+  border-radius: 12px;
+  color: white;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 15px color-mix(in srgb, var(--brand-primary) 35%, transparent);
+  box-shadow: 0 4px 15px
+    color-mix(in srgb, var(--brand-primary) 35%, transparent);
 }
 
 .sidebar-logout-btn:hover {
