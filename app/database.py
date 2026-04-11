@@ -176,20 +176,39 @@ def insert_user(username, password_hash, email=None,
 
 
 def update_user(username: str, **kwargs) -> bool:
-    allowed = {"password_hash", "email", "role_name", "status", "full_name",
-               "phone", "department", "last_login", "pending_email",
-               "email_otp_hash", "email_otp_expiry", "email_otp_attempts",
-               "failed_login_attempts", "lockout_until"}
+    # Strict allowlist — column names are NEVER taken from user input
+    ALLOWED_COLUMNS = frozenset({
+        "password_hash", "email", "role_name", "status", "full_name",
+        "phone", "department", "last_login", "pending_email",
+        "email_otp_hash", "email_otp_expiry", "email_otp_attempts",
+        "failed_login_attempts", "lockout_until",
+    })
 
-    fields = {k: v for k, v in kwargs.items() if k in allowed}
+    # Validate every key — log and skip anything not in the allowlist
+    fields = {}
+    for k, v in kwargs.items():
+        if k not in ALLOWED_COLUMNS:
+            logger.warning(f"[DB] update_user: rejected unknown column '{k}'")
+            continue
+        fields[k] = v
+
     if not fields:
         return False
+
     fields["updated_at"] = time.strftime("%Y-%m-%d %H:%M:%S")
-    set_clause = ", ".join(f"{k} = ?" for k in fields)
-    values = list(fields.values()) + [username]
+
+    # SET clause built only from validated column names — values always via ? placeholder
+    set_clause = ", ".join(f"{col} = ?" for col in fields)   # col ∈ ALLOWED_COLUMNS
+    values = list(fields.values()) + [username]               # username bound as a parameter
+
     with db_cursor() as cur:
-        cur.execute(f"UPDATE users SET {set_clause} WHERE username = ?", values)
+        # Parameterized query — no user data ever reaches the SQL string itself
+        cur.execute(
+            f"UPDATE users SET {set_clause} WHERE username = ?",  # noqa: S608
+            values
+        )
         return cur.rowcount > 0
+
 
 
 def delete_user(username: str) -> bool:

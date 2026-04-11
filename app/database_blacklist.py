@@ -25,18 +25,25 @@ def insert_blacklist_entry(entry):
         return cur.lastrowid
 
 def update_blacklist_entry(entry_id, data):
-    fields = []
-    values = []
-    for k in ['reason', 'status', 'updated_by', 'date_updated']:
-        if k in data:
-            fields.append(f"{k} = ?")
-            values.append(data[k])
-    if not fields:
+    # Strict allowlist — only these column names may appear in the SET clause
+    ALLOWED_COLUMNS = frozenset({'reason', 'status', 'updated_by', 'date_updated'})
+
+    # Build params dict with only validated column names
+    params = {k: data[k] for k in ALLOWED_COLUMNS if k in data}
+    if not params:
         return False
-    values.append(entry_id)
+
+    # Column names come only from ALLOWED_COLUMNS — values bound as named parameters
+    set_clause = ", ".join(f"{col} = :{col}" for col in params)
+    params['entry_id'] = entry_id  # bind WHERE value as a named parameter too
+
     with db_cursor() as cur:
-        cur.execute(f"UPDATE blacklist SET {', '.join(fields)} WHERE id = ?", values)
+        cur.execute(
+            f"UPDATE blacklist SET {set_clause} WHERE id = :entry_id",  # noqa: S608
+            params
+        )
         return cur.rowcount > 0
+
 
 def delete_blacklist_entry(entry_id):
     with db_cursor() as cur:
