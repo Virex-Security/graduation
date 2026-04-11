@@ -6,21 +6,19 @@ import secrets
 from datetime import datetime, timedelta
 
 import jwt
-from flask import current_app, make_response, jsonify, request
+from flask import current_app, make_response, request
 from app import config
 from app.services.auth_service import AuthService
+from app.api import responses
 
 def login_user(username: str, password: str):
     """Verify credentials and set tokens in cookies."""
     user = AuthService.verify_credentials(username, password)
     if not user:
-        return jsonify({"message": "Invalid credentials"}), 401
+        return responses.unauthorized("Invalid credentials")
         
     if user.get("locked"):
-        return jsonify({
-            "status": "error",
-            "message": "Account is temporarily locked. Please try again in 15 minutes."
-        }), 423 # Locked
+        return responses.error("Account is temporarily locked. Please try again in 15 minutes.", status=423) # Locked
 
     access_token, refresh_token, jti = AuthService.mint_tokens(username, user["role"])
 
@@ -30,34 +28,35 @@ def login_user(username: str, password: str):
         ua = request.user_agent.string or ""
         AuthService.register_session(user_id, jti, ip, ua)
 
-    resp = make_response(jsonify({"message": "Logged in successfully", "role": user["role"]}))
+    resp_body, status = responses.ok({"message": "Logged in successfully", "role": user["role"]})
+    resp = make_response(resp_body)
     is_secure = config.cookie_secure()
     
     resp.set_cookie("auth_token", access_token, httponly=True, secure=is_secure, samesite="Lax", max_age=15 * 60)
     resp.set_cookie("refresh_token", refresh_token, httponly=True, secure=is_secure, samesite="Lax", max_age=7 * 24 * 3600)
-    return resp, 200
+    return resp, status
 
 
 def refresh_user_tokens():
     """Rotate tokens using a valid refresh token."""
     refresh_token = request.cookies.get("refresh_token")
     if not refresh_token:
-        return jsonify({"message": "Refresh token missing"}), 401
+        return responses.unauthorized("Refresh token missing")
         
     try:
         data = jwt.decode(refresh_token, current_app.config["SECRET_KEY"], algorithms=["HS256"])
         if data.get("type") != "refresh":
-            return jsonify({"message": "Invalid token type"}), 401
+            return responses.unauthorized("Invalid token type")
             
         jti = data.get("jti", "")
         if jti and not AuthService.is_session_valid(jti):
-            return jsonify({"message": "Session revoked"}), 401
+            return responses.unauthorized("Session revoked")
             
         username = data.get("user")
         role = data.get("role")
         user = AuthService.get_user(username)
         if not user or user.get("locked"):
-            return jsonify({"message": "User invalid or locked"}), 401
+            return responses.unauthorized("User invalid or locked")
             
         # Revoke old jti and issue new (Rotation)
         AuthService.revoke_session(jti)
@@ -69,17 +68,18 @@ def refresh_user_tokens():
             ua = request.user_agent.string or ""
             AuthService.register_session(user_id, new_jti, ip, ua)
             
-        resp = make_response(jsonify({"message": "Tokens refreshed successfully"}))
+        resp_body, status = responses.ok({"message": "Tokens refreshed successfully"})
+        resp = make_response(resp_body)
         is_secure = config.cookie_secure()
         
         resp.set_cookie("auth_token", new_access, httponly=True, secure=is_secure, samesite="Lax", max_age=15 * 60)
         resp.set_cookie("refresh_token", new_refresh, httponly=True, secure=is_secure, samesite="Lax", max_age=7 * 24 * 3600)
-        return resp, 200
+        return resp, status
 
     except jwt.ExpiredSignatureError:
-        return jsonify({"message": "Refresh token expired"}), 401
+        return responses.unauthorized("Refresh token expired")
     except Exception:
-        return jsonify({"message": "Invalid refresh token"}), 401
+        return responses.unauthorized("Invalid refresh token")
 
 
 def logout_user():
@@ -96,7 +96,8 @@ def logout_user():
             except Exception:
                 pass
 
-    resp = make_response(jsonify({"message": "Logged out successfully"}))
+    resp_body, status = responses.ok({"message": "Logged out successfully"})
+    resp = make_response(resp_body)
     is_secure = config.cookie_secure()
     resp.set_cookie("auth_token", "", expires=0, httponly=True, secure=is_secure, samesite="Lax")
     resp.set_cookie("refresh_token", "", expires=0, httponly=True, secure=is_secure, samesite="Lax")

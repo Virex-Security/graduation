@@ -114,18 +114,17 @@ class AuthService:
     @staticmethod
     def verify_credentials_and_generate_response(username, password):
         """Verifies credentials and returns (Flask Response, status_code)."""
-        from flask import make_response, jsonify, request
+        from flask import make_response, request
         from app import config
+        from app.api import responses
         
         user = AuthService.verify_credentials(username, password)
         if not user:
-            return jsonify({"message": "Invalid credentials"}), 401
+            return responses.unauthorized("Invalid credentials")
             
         if user.get("locked"):
-            return jsonify({
-                "status": "error",
-                "message": "Account is temporarily locked. Please try again in 15 minutes."
-            }), 423
+            # 423 Locked
+            return responses.error("Account is temporarily locked. Please try again in 15 minutes.", status=423)
             
         access_token, refresh_token, jti = AuthService.mint_tokens(username, user["role"])
         
@@ -135,9 +134,10 @@ class AuthService:
             ua = request.user_agent.string or ""
             AuthService.register_session(user_id, jti, ip, ua)
             
-        resp = make_response(jsonify({"message": "Logged in successfully", "role": user["role"]}))
+        resp_body, status = responses.ok({"message": "Logged in successfully", "role": user["role"]})
+        resp = make_response(resp_body)
         is_secure = config.cookie_secure()
         
         resp.set_cookie("auth_token", access_token, httponly=True, secure=is_secure, samesite="Lax", max_age=15 * 60)
         resp.set_cookie("refresh_token", refresh_token, httponly=True, secure=is_secure, samesite="Lax", max_age=7 * 24 * 3600)
-        return resp, 200
+        return resp, status

@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 import jwt
 import secrets
 from app.api.security import SimpleSecurityManager
-from app.api import services
+from app.api import services, responses
 from app.auth import user_manager
 from app.auth.decorators import admin_required, token_required
 from app.security import new_request_id, is_trivial, is_business_relevant
@@ -81,12 +81,12 @@ def create_api_app():
         
         # 1. Rate Limiting (Service-layer)
         if not threat_service.check_rate_limit(client_ip, request.path):
-            return jsonify({"error": "Rate limit exceeded"}), 429
+            return responses.rate_limited("Rate limit exceeded")
 
         # 2. Scanner & Metadata Detection (Service-layer)
         safe, msg = threat_service.scan_request_context(client_ip, request.path, request.method, request.request_id)
         if not safe:
-            return jsonify({"error": msg}), 404
+            return responses.not_found(msg)
 
         # 3. CSRF & SSRF Validation
         if _CSRF_SSRF_ENABLED and request.method in ("POST", "PUT", "DELETE", "PATCH"):
@@ -99,7 +99,7 @@ def create_api_app():
                 "ip": client_ip, "user_agent": request.user_agent.string,
             })
             if _csrf_result["detected"]:
-                return jsonify({"error": "CSRF validation failed", "reason": _csrf_result["reason"]}), 403
+                return responses.forbidden("CSRF validation failed", data={"reason": _csrf_result["reason"]})
 
         if _CSRF_SSRF_ENABLED:
             _ssrf_result = detect_ssrf({
@@ -111,7 +111,7 @@ def create_api_app():
                 "ip": client_ip, "user_agent": request.user_agent.string,
             })
             if _ssrf_result["detected"]:
-                return jsonify({"error": "SSRF attempt blocked", "reason": _ssrf_result["reason"]}), 403
+                return responses.forbidden("SSRF attempt blocked", data={"reason": _ssrf_result["reason"]})
 
         # 4. Content Security Scan
         data_to_scan = {}
@@ -130,7 +130,7 @@ def create_api_app():
         if data_to_scan:
             safe, msg = threat_service.scan_request_data(data_to_scan, client_ip, request.path, request.method, request.request_id)
             if not safe:
-                return jsonify({"error": msg}), 400
+                return responses.bad_request(msg)
 
         if not request_blocked and is_business:
             security.total_requests += 1
@@ -159,29 +159,30 @@ def create_api_app():
     # ── Basic Routes ──────────────────────────────────────────
     @app.route("/")
     def index():
-        return {"status": "running", "message": "API Security System Active",
-                "security_level": "high", "version": "2.0.0"}
+        return responses.ok({"status": "running", "message": "API Security System Active",
+                             "security_level": "high", "version": "2.0.0"})
 
     @app.route("/health")
     def health():
-        return jsonify({"status": "healthy"}), 200
+        return responses.ok({"status": "healthy"})
 
     @app.route("/health/detailed")
     @token_required
     @admin_required
     def health_detailed(current_user):
-        return {"status": "healthy",
-                "total_requests": security.total_requests,
-                "blocked_requests": security.blocked_requests}
+        return responses.ok({
+            "status": "healthy",
+            "total_requests": security.total_requests,
+            "blocked_requests": security.blocked_requests
+        })
 
     @app.route("/api/health")
     def api_health():
-        return jsonify({"connected": True, "status": "healthy", "timestamp": time.time()})
+        return responses.ok({"connected": True, "status": "healthy", "timestamp": time.time()})
 
     @app.route("/api/data", methods=["POST"])
     def api_data():
-        return jsonify({"message": "Data accepted", "id": int(time.time()),
-                        "processed_at": time.time()}), 201
+        return responses.created({"id": int(time.time()), "processed_at": time.time()})
 
     # ── Data Routes ───────────────────────────────────────────
     @app.route("/api/users", methods=["GET"])
@@ -190,7 +191,7 @@ def create_api_app():
     def get_users_route(current_user):
       q = request.args.get("search", "")
       results = services.get_users(q if q else None)
-      return jsonify({"users": results})
+      return responses.ok({"users": results})
 
     @app.route("/api/orders", methods=["GET"])
     @token_required
@@ -198,7 +199,7 @@ def create_api_app():
         user_filter = request.args.get("user", "")
         results = services.get_orders(current_user["username"])
         services.log_request("/api/orders", "GET", _get_real_ip(), 200, user_filter)
-        return jsonify({"orders": results, "total": len(results)})
+        return responses.ok({"orders": results, "total": len(results)})
 
     @app.route("/api/products", methods=["GET"])
     @token_required
@@ -207,7 +208,7 @@ def create_api_app():
         q   = request.args.get("search", "")
         results = services.get_products(cat if cat else None, q if q else None)
         services.log_request("/api/products", "GET", _get_real_ip(), 200, q or cat)
-        return jsonify({"products": results, "total": len(results)})
+        return responses.ok({"products": results, "total": len(results)})
 
     @app.route("/api/orders", methods=["POST"])
     @token_required
@@ -218,14 +219,14 @@ def create_api_app():
         data.get("product"),
         data.get("price")
     )
-        return jsonify({"order": new_order}), 201
+        return responses.created({"order": new_order})
 
     @app.route("/api/logs", methods=["GET"])
     @token_required
     @admin_required
     def get_logs_route(current_user):
         logs = services.get_request_logs()
-        return jsonify({"logs": logs, "total": len(logs)})
+        return responses.ok({"logs": logs, "total": len(logs)})
 
     # ── Auth ──────────────────────────────────────────────────
     @app.route("/api/login", methods=["POST"])
@@ -241,7 +242,7 @@ def create_api_app():
             if now < blocked_ips[ip]:
                 remaining = int(blocked_ips[ip] - now)
                 security.blocked_requests += 1
-                return jsonify({"error": f"IP blocked for {remaining} seconds"}), 429
+                return responses.rate_limited(f"IP blocked for {remaining} seconds")
             else:
                 del blocked_ips[ip]
                 save_blocked_ips(blocked_ips)
@@ -257,7 +258,7 @@ def create_api_app():
               "iat": datetime.utcnow(),
               "jti": secrets.token_hex(16),   # for revocation
           }, current_app.config["SECRET_KEY"], algorithm="HS256")
-          resp = make_response(jsonify({"message": "Login successful"}))
+          resp = make_response(responses.ok({"message": "Login successful"})[0])
           from app import config as _cfg
           resp.set_cookie("auth_token", token, httponly=True,
                         secure=_cfg.cookie_secure(), samesite="Lax", max_age=8*3600)
@@ -273,16 +274,16 @@ def create_api_app():
               if len(attempts) >= BRUTE_FORCE_LIMIT:
                   blocked_ips[ip] = now + BRUTE_FORCE_BLOCK_TIME
                   save_blocked_ips(blocked_ips)
-                  return jsonify({"error": "Too many attempts. Try later."}), 429
+                  return responses.rate_limited("Too many attempts. Try later.")
 
-              return jsonify({"error": "Invalid credentials"}), 401
+              return responses.unauthorized("Invalid credentials")
     # ── Attack History Endpoints ──────────────────────────────
     @app.route("/api/my-attacks", methods=["GET"])
     @token_required
     def get_my_attacks(current_user):   # ← accept injected user from decorator
       user_key = current_user["username"]  # always from verified token
       attacks = get_user_attacks(user_key)
-      return jsonify({"user": user_key, "attacks": attacks})
+      return responses.ok({"user": user_key, "attacks": attacks})
 
     @app.route("/api/clear-attacks", methods=["DELETE"])
     @token_required
@@ -291,12 +292,12 @@ def create_api_app():
         from app.api.persistence import clear_all_attacks, clear_user_attacks
         if request.args.get("all") == "true":
             if current_user["role"] != "admin":
-                return jsonify({"error": "Admin only"}), 403
+                return responses.forbidden("Admin only")
             clear_all_attacks()
-            return jsonify({"message": "All cleared"})
+            return responses.ok({"message": "All cleared"})
         # Always use the identity from the verified token
         clear_user_attacks(current_user["username"])
-        return jsonify({"message": "Cleared"})
+        return responses.ok({"message": "Cleared"})
 
     # ── Security Stats ────────────────────────────────────────
     @app.route("/api/security/stats", methods=["GET"])
@@ -304,7 +305,7 @@ def create_api_app():
     @admin_required
     def get_security_stats(current_user):
         from app.ml.inference import get_ml_stats
-        return jsonify({
+        return responses.ok({
             "total_requests":       security.total_requests,
             "blocked_requests":     security.blocked_requests,
             "sql_injection_count":  security.sql_injection_count,
@@ -325,6 +326,6 @@ def create_api_app():
     def get_ml_feedback(current_user):
         from app.api.persistence import get_ml_detections
         data = get_ml_detections(limit=100)
-        return jsonify({"feedback": data, "total": len(data)})
+        return responses.ok({"feedback": data, "total": len(data)})
 
     return app

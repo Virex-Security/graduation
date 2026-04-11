@@ -77,6 +77,14 @@ const API = {
         throw new Error(errorMsg);
       }
 
+      // Handle standardized structure: {success, data, error}
+      if (data && typeof data === 'object' && 'success' in data && 'data' in data) {
+        if (!data.success) {
+            throw new Error(data.error || 'Request failed');
+        }
+        return data.data;
+      }
+
       return data;
 
     } catch (error) {

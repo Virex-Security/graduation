@@ -55,26 +55,3 @@ class SimpleSecurityManager:
 
     def _persist_stats(self):
         pass # Now live in DB
-      )
-                self.log_to_dashboard(
-                    decision.attack_type, ip,
-                    f"[ML-MONITOR] score={decision.risk_score:.0%}: {text[:60]}",
-                    "Medium", endpoint=request.path, method=request.method,
-                    snippet=text[:100], detection_type="ML Model",
-                    blocked=False, request_id=getattr(request, "request_id", ""),
-                    risk_score=decision.risk_score,
-                )
-                try:
-                    from app.api.persistence import log_ml_detection
-                    log_ml_detection(
-                        text[:120], decision.risk_score, "monitor",
-                        decision.attack_type, ip, request.path
-                    )
-                except Exception:
-                    pass
-
-            return True
-
-        if not scan(data):
-            return False, "Malicious content detected"
-        return True, "OK"

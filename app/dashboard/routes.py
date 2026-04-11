@@ -61,6 +61,7 @@ def create_dashboard_app():
     app.config['WTF_CSRF_CHECK_DEFAULT'] = True
     csrf = CSRFProtect(app)
     security = SimpleSecurityManager()
+    from app.api import responses
 
 
     def log_action(current_user, action, details=""):
@@ -108,7 +109,7 @@ def create_dashboard_app():
         
         if not security.check_rate_limit(ip, window=window, limit=limit):
             security.blocked_requests += 1
-            return jsonify({"error": "Rate limit exceeded"}), 429
+            return responses.rate_limited("Rate limit exceeded")
 
         # 4. Sensitive Path Scanning (Scanner Detection)
         sensitive_paths = ["/admin", "/wp-admin", "/phpmyadmin", "/.env", "/config", "/etc/passwd"]
@@ -120,7 +121,7 @@ def create_dashboard_app():
                 request_id=request.request_id
             )
             security.blocked_requests += 1
-            return jsonify({"error": "Forbidden"}), 403
+            return responses.forbidden("Forbidden")
 
         # 5. Content Security Scan (Args, JSON, Form data)
         data_to_scan = {}
@@ -134,7 +135,7 @@ def create_dashboard_app():
             safe, msg = security.check_request_security(data_to_scan, ip)
             if not safe:
                 security.blocked_requests += 1
-                return jsonify({"error": msg}), 400
+                return responses.bad_request(msg)
 
         # 6. Global stats and persistent logging
         if is_business_relevant(request):
@@ -143,7 +144,7 @@ def create_dashboard_app():
 
     @app.errorhandler(CSRFError)
     def handle_csrf_error(e):
-        return jsonify({'status': 'error', 'message': f'CSRF validation failed: {e.description}'}), 400
+        return responses.bad_request(f'CSRF validation failed: {e.description}')
 
 
     @app.route('/api/auth/refresh', methods=['POST'])
@@ -158,7 +159,7 @@ def create_dashboard_app():
         
         auth = request.get_json()
         if not auth or not auth.get('username') or not auth.get('password'):
-            return jsonify({'message': 'Missing credentials'}), 401
+            return responses.unauthorized("Missing credentials")
             
         username = auth.get('username').strip()
         
@@ -179,7 +180,7 @@ def create_dashboard_app():
         
         data = request.get_json()
         if not data:
-            return jsonify({'message': 'No input data provided'}), 400
+            return responses.bad_request("No input data provided")
             
         username = (data.get('username') or '').strip()
         password = data.get('password')
@@ -197,9 +198,9 @@ def create_dashboard_app():
         if success:
             # Audit log via Service
             AuditService.log_action(None, "Account Created", "User registration", details=f"Username: {username}")
-            return jsonify({'message': 'Account created successfully'}), 201
+            return responses.created({'message': 'Account created successfully'})
         else:
-            return jsonify({'message': message}), 400
+            return responses.bad_request(message)
 
     @app.route('/api/auth/logout')
     def logout():
@@ -240,18 +241,18 @@ def create_dashboard_app():
         data = request.get_json(silent=True) or {}
         identifier = (data.get('identifier') or data.get('username') or '').strip()
         if not identifier:
-            return jsonify({'error': 'Username or email required'}), 400
+            return responses.bad_request('Username or email required')
             
         # Rate Limiting via service-aligned repository
         rl_repo = RateLimitRepository()
         if not rl_repo.check_and_increment(f"otp:{identifier}", window=600, limit=3):
-             return jsonify({"error": "Too many requests. Try again later."}), 429
+             return responses.rate_limited("Too many requests. Try again later.")
              
         success, message = PasswordResetService.initiate_reset(identifier)
         if success:
-            return jsonify({"message": message}), 200
+            return responses.ok({"message": message})
         else:
-            return jsonify({"error": message}), 500
+            return responses.server_error(message)
 
     @app.route('/api/verify-reset-otp', methods=['POST'])
     def verify_reset_otp():
@@ -274,13 +275,13 @@ def create_dashboard_app():
                     identifier = user['username']
             
             if not all([identifier, otp, new_password]):
-                return jsonify({'error': 'Missing fields'}), 400
+                return responses.bad_request('Missing fields')
             
         success, message = PasswordResetService.verify_and_reset(identifier, otp, new_password)
         if success:
-            return jsonify({'message': message}), 200
+            return responses.ok({'message': message})
         else:
-            return jsonify({'error': message}), 400
+            return responses.bad_request(message)
 
 
     @app.route('/')
@@ -308,7 +309,7 @@ def create_dashboard_app():
     def system_health(current_user):
         state = dashboard.connection_state or 'Connected'
         api_online = state == 'Connected'
-        return jsonify({
+        return responses.ok({
             'status': 'ok' if api_online else 'offline',
             'api_online': api_online,
             'connection_state': state,
@@ -365,7 +366,7 @@ def create_dashboard_app():
         # previously we masked IP addresses for non-admin users; the requirement
         # now is to display the source IP in full, so we simply return the data
         # as-is. snippet/payload may still be hidden by the frontend if desired.
-        return jsonify(data)
+        return responses.ok(data)
     from app import config as _cfg
     INTERNAL_SECRET = _cfg.internal_secret()
     if not INTERNAL_SECRET:
@@ -376,28 +377,28 @@ def create_dashboard_app():
         @wraps(f)
         def decorated(*args, **kwargs):
             if not INTERNAL_SECRET:
-                return jsonify({'error': 'Internal auth not configured'}), 503
+                return responses.error('Internal auth not configured', status=503)
             
             # 1. IP Restriction (Only localhost for internal APIs)
             remote_ip = request.headers.get('X-Forwarded-For', request.remote_addr) or ''
             remote_ip = remote_ip.split(',')[0].strip()
             if remote_ip not in ('127.0.0.1', 'localhost'):
-                return jsonify({'error': 'Forbidden: External access denied'}), 403
+                return responses.forbidden('Forbidden: External access denied')
 
             # 2. HMAC Verify: signature = hmac(secret, timestamp)
             timestamp = request.headers.get('X-Internal-Timestamp', '')
             signature = request.headers.get('X-Internal-Token', '') # legacy header name
             
             if not timestamp or not signature:
-                return jsonify({'error': 'Missing internal auth headers'}), 401
+                return responses.unauthorized('Missing internal auth headers')
             
             # Verify timestamp is within 5 minutes (prevent replay)
             try:
                 ts_int = float(timestamp)
                 if abs(time.time() - ts_int) > 300:
-                    return jsonify({'error': 'Internal auth expired'}), 401
+                    return responses.unauthorized('Internal auth expired')
             except (ValueError, TypeError):
-                return jsonify({'error': 'Invalid timestamp'}), 400
+                return responses.bad_request('Invalid timestamp')
 
             expected = hmac.new(
                 key=INTERNAL_SECRET.encode(),
@@ -406,7 +407,7 @@ def create_dashboard_app():
             ).hexdigest()
 
             if not secrets.compare_digest(signature, expected):
-                return jsonify({'error': 'Invalid internal signature'}), 403
+                return responses.forbidden('Invalid internal signature')
 
             return f(*args, **kwargs)
         return decorated
@@ -428,7 +429,7 @@ def create_dashboard_app():
             data.get('detection_type', 'Other'),
             data.get('blocked', False)
         )
-        return jsonify({'status': 'logged'})
+        return responses.ok({'status': 'logged'})
     @app.route('/api/dashboard/stats', methods=['POST'])
     @require_internal_secret 
     def update_stats():
@@ -440,7 +441,7 @@ def create_dashboard_app():
             dashboard.stats['blocked_requests'] = data['blocked_requests']
         if 'rate_limit_hits' in data:
             dashboard.stats['rate_limit_hits'] = data['rate_limit_hits']
-        return jsonify({'status': 'updated'})
+        return responses.ok({'status': 'updated'})
     @app.route('/api/dashboard/reset', methods=['POST'])
     @admin_required
     def reset_stats(current_user):
@@ -454,15 +455,15 @@ def create_dashboard_app():
             # Audit log via Service
             AuditService.log_action(current_user.get('user_id'), "Reset Stats", "Dashboard and DB Clear", details="System-wide reset performed.")
             
-            return jsonify({'status': 'stats_reset', 'message': 'All stats and logs cleared'})
+            return responses.ok({'status': 'stats_reset', 'message': 'All stats and logs cleared'})
         except Exception as e:
-            return jsonify({'status': 'error', 'message': str(e)}), 500
+            return responses.server_error(str(e))
 
     @app.route('/api/user')
     @token_required
     def get_current_user(current_user):
         """Return current user information for permission checks"""
-        return jsonify({
+        return responses.ok({
             'username': current_user.get('username'),
             'role': current_user.get('role'),
             'email': current_user.get('email', '')
@@ -481,23 +482,23 @@ def create_dashboard_app():
         """
         try:
             stats = dashboard.compute_ml_metrics()
-            return jsonify(stats)
+            return responses.ok(stats)
         except FileNotFoundError as e:
             # can't load model/vectorizer but we still want indicator values returned
             indicators = dashboard.compute_attack_indicators()
-            return jsonify({
+            return responses.ok({
                 "status": "error",
                 "message": f"Model file not found: {e}",
                 "attack_indicators": indicators
-            }), 200
+            })
         except Exception as e:
             # on any other failure, return error flag but still include indicators
             indicators = dashboard.compute_attack_indicators()
-            return jsonify({
+            return responses.ok({
                 "status": "error",
                 "message": str(e),
                 "attack_indicators": indicators
-            }), 200
+            })
     @app.route('/incidents')
     @app.route('/incidents_list')
     @token_required
@@ -554,14 +555,14 @@ def create_dashboard_app():
         incidents_data = []
         for inc in dashboard.incidents.values():
             incidents_data.append(inc.__dict__)
-        return jsonify(incidents_data)
+        return responses.ok(incidents_data)
     @app.route('/api/incident/<id>')
     @admin_required
     def get_incident_details(current_user, id):
         global dashboard
         if id not in dashboard.incidents:
-            return jsonify({'error': 'Not found'}), 404
-        return jsonify(dashboard.incidents[id].__dict__)
+            return responses.not_found()
+        return responses.ok(dashboard.incidents[id].__dict__)
     @app.route('/api/incident/<id>/action', methods=['POST'])
     @admin_required
     def incident_action(current_user, id):
@@ -573,14 +574,17 @@ def create_dashboard_app():
         
         # Use service to coordinate incident actions and logging
         success, message = IncidentService.perform_action(id, action, current_user['username'], comment)
-        return jsonify({'status': 'success' if success else 'error', 'message': message})
+        if success:
+            return responses.ok({'message': message})
+        else:
+            return responses.error(message)
     @app.route('/api/incident/<id>/export')
     @admin_required
     def export_incident(current_user, id):
         global dashboard
         if id not in dashboard.incidents:
-            return jsonify({'error': 'Not found'}), 404
-        return jsonify(dashboard.incidents[id].__dict__)
+            return responses.not_found()
+        return responses.ok(dashboard.incidents[id].__dict__)
     @app.route('/api/reports/distribution')
     @token_required
     def report_distribution(current_user):
@@ -594,7 +598,7 @@ def create_dashboard_app():
             if end_date and inc.first_seen > end_date:
                 continue
             dist[inc.detection_type] += 1
-        return jsonify(dist)
+        return responses.ok(dist)
     @app.route('/requests')
     @token_required
     def requests_page(current_user):
@@ -786,7 +790,10 @@ def create_dashboard_app():
             return jsonify({'success': False, 'message': 'Invalid plan'}), 400
         
         success, message = user_manager.update_user(current_user['username'], subscription=new_plan)
-        return jsonify({'success': success, 'message': message})
+        if success:
+            return responses.ok({'message': message})
+        else:
+            return responses.bad_request(message)
 
 
     @app.route('/blocked_page')
