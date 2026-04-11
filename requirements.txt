@@ -9,6 +9,9 @@ flask-cors==4.0.0
 flask-limiter==3.5.0
 flask-wtf==1.2.1
 
+# --- Security ---
+python-magic==0.4.27
+
 
 # --- Authentication ---
 PyJWT==2.8.0

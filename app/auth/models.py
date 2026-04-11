@@ -22,13 +22,18 @@ class UserManager:
     def validate_password_policy(password):
         if not isinstance(password, str) or not password:
             return False, "Password is required"
-        if len(password) < 8:
-            return False, "Password must be at least 8 characters"
+        if len(password) < 10:
+            return False, "Password must be at least 10 characters"
         if not re.search(r"[A-Z]", password):
             return False, "Password must include at least one uppercase letter"
+        if not re.search(r"[a-z]", password):
+            return False, "Password must include at least one lowercase letter"
+        if not re.search(r"[0-9]", password):
+            return False, "Password must include at least one number"
         if not re.search(r"[^A-Za-z0-9]", password):
-            return False, "Password must include at least one symbol"
+            return False, "Password must include at least one special character (e.g. !@#$%)"
         return True, "Valid password"
+
 
     # ── Read ──────────────────────────────────────────────────
     def get_user(self, username: str) -> dict | None:

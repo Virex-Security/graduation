@@ -42,13 +42,17 @@ class SecurityDashboard:
         
         self.audit_log_path = "logs/audit.log"
 
+        # ── Log Rotation Constants ─────────────────────────────
+        self.MAX_LOG_BYTES  = 5 * 1024 * 1024  # 5 MB per file
+        self.MAX_ROTATIONS  = 3                 # Keep audit.log.1, .2, .3
+
         self.audit_log_lock = threading.Lock()
         self.audit_lock = threading.Lock()
 
         os.makedirs(os.path.dirname(self.audit_log_path), exist_ok=True)
         if not os.path.exists(self.audit_log_path):
-            with open(self.audit_log_path, "w") as f:
-                json.dump([], f)
+            open(self.audit_log_path, 'w').close()  # Create empty flat file
+
         
         self.secret_key = os.getenv("SECRET_KEY", "fallback-dev-key-change-in-production")
         # Restore stats from disk on startup
@@ -169,24 +173,32 @@ class SecurityDashboard:
             **audit_entry
         })
         return True, "Action performed successfully"
+    def _rotate_log_if_needed(self):
+        """Rename audit.log → audit.log.1 → audit.log.2 ... if file exceeds MAX_LOG_BYTES."""
+        try:
+            if os.path.getsize(self.audit_log_path) < self.MAX_LOG_BYTES:
+                return
+            # Shift existing rotations: .3 is dropped, .2 → .3, .1 → .2, active → .1
+            for i in range(self.MAX_ROTATIONS - 1, 0, -1):
+                src  = f"{self.audit_log_path}.{i}"
+                dest = f"{self.audit_log_path}.{i + 1}"
+                if os.path.exists(src):
+                    os.replace(src, dest)
+            os.replace(self.audit_log_path, f"{self.audit_log_path}.1")
+            open(self.audit_log_path, 'w').close()  # Start fresh
+        except Exception as e:
+            print(f"[LOG-ROTATE] Rotation failed: {e}")
+
     def write_audit_log(self, log_entry):
-        # central helper used by role actions etc. ensure thread safety
+        """Append a single JSON line (JSONL) — no full file load; rotates when large."""
         with self.audit_lock:
             try:
-                # use r+ to preserve existing content; if the file is
-                # malformed we fall back to recreating it with only the new
-                # entry rather than blowing it away entirely.
-                with open(self.audit_log_path, 'r+') as f:
-                    try:
-                        logs = json.load(f)
-                    except Exception:
-                        logs = []
-                    logs.append(log_entry)
-                    f.seek(0)
-                    json.dump(logs, f, indent=4)
-                    f.truncate()
+                self._rotate_log_if_needed()
+                with open(self.audit_log_path, 'a') as f:
+                    f.write(json.dumps(log_entry) + '\n')
             except Exception as e:
-                print(f"Error writing audit log: {e}")
+                print(f"[AUDIT] Error writing audit log: {e}")
+
     def update_timeline(self):
         self.check_api_connection()
         if self.connection_state == CONNECTED:
@@ -476,37 +488,43 @@ class SecurityDashboard:
             'attack_indicators': self.compute_attack_indicators(),
             'connection_state': self.connection_state
         }
-    def load_audit_log(self):
-        """Load and merge audit actions from JSON and live threats from SQLite."""
+    def load_audit_log(self, max_json_entries: int = 500):
+        """Load audit log using tail-read (JSONL) + SQLite threats — no full file load."""
         all_logs = []
-        
-        # 1. Fetch JSON audit actions (administrative actions)
+
+        # 1. Tail-read JSONL admin action entries (last max_json_entries lines)
         with self.audit_lock:
             try:
                 if os.path.exists(self.audit_log_path):
                     with open(self.audit_log_path, 'r') as f:
-                        json_logs = json.load(f)
-                        if isinstance(json_logs, list):
-                            all_logs.extend(json_logs)
+                        # Efficient tail: read last N non-empty lines without
+                        # loading the full file into a list first.
+                        lines = []
+                        for raw in f:
+                            raw = raw.strip()
+                            if raw:
+                                lines.append(raw)
+                                if len(lines) > max_json_entries:
+                                    lines.pop(0)  # discard oldest to bound memory
+                        for raw in lines:
+                            try:
+                                all_logs.append(json.loads(raw))
+                            except json.JSONDecodeError:
+                                pass
             except Exception as e:
-                print(f"[-] Error loading JSON audit log: {e}")
+                print(f"[-] Error loading JSONL audit log: {e}")
 
-        # 2. Fetch SQLite threats (live traffic detections)
+        # 2. Fetch SQLite threats (limited to avoid huge in-memory lists)
         try:
-            db_threats = self.db.get_threat_logs(limit=2000)
+            db_threats = self.db.get_threat_logs(limit=500)
             for t in db_threats:
-                # Normalize SQLite fields to match template expectations
-                # (e.g., ip_address -> ip, created_at -> timestamp)
                 normalized = dict(t)
-                normalized['id'] = t.get('threat_log_id')
-                normalized['ip'] = t.get('ip_address')
+                normalized['id']        = t.get('threat_log_id')
+                normalized['ip']        = t.get('ip_address')
                 normalized['timestamp'] = t.get('created_at')
-                # Template expects boolean for blocked
-                normalized['blocked'] = bool(t.get('blocked'))
-                # Ensure type is set for the table badge logic
+                normalized['blocked']   = bool(t.get('blocked'))
                 if 'type' not in normalized:
-                   normalized['type'] = t.get('attack_type')
-                
+                    normalized['type']  = t.get('attack_type')
                 all_logs.append(normalized)
         except Exception as e:
             print(f"[-] Error loading SQLite threat logs: {e}")
@@ -514,6 +532,7 @@ class SecurityDashboard:
         # 3. Sort by timestamp descending
         all_logs.sort(key=lambda x: str(x.get('timestamp', '')), reverse=True)
         return all_logs
+
 
     def _get_ml_relevant_logs(self, logs):
         """Filter logs for ML metrics calculation.

@@ -522,12 +522,12 @@ def create_dashboard_app():
             # Clear the DB threat logs
             from app import database as _db
             _db.clear_threat_logs()
-            # Clear the JSON audit log
+            # Clear the JSON audit log (JSONL format — reset to empty flat file)
             try:
-                with open(dashboard.audit_log_path, 'w') as f:
-                    json.dump([], f)
+                open(dashboard.audit_log_path, 'w').close()
             except Exception as e:
                 print(f"[-] Error clearing audit log: {e}")
+
             return jsonify({'status': 'stats_reset', 'message': 'All stats and logs cleared'})
         except Exception as e:
             print(f"[-] Reset error: {e}")
@@ -1113,32 +1113,54 @@ def create_dashboard_app():
     @app.route('/api/profile/avatar', methods=['POST'])
     @token_required
     def upload_avatar(current_user):
-        import imghdr
-        ALLOWED_EXTS  = {'.png', '.jpg', '.jpeg', '.gif', '.bmp'}
-        ALLOWED_MAGIC = {'png', 'jpeg', 'gif', 'bmp'}
+        import magic  # python-magic: validates actual file bytes, not just extension
+
+        # ── Security Constants ─────────────────────────────────
+        MAX_UPLOAD_BYTES = 2 * 1024 * 1024         # 2 MB hard limit
+        ALLOWED_EXTS     = {'.png', '.jpg', '.jpeg', '.gif', '.webp'}
+        ALLOWED_MIMES    = {
+            'image/png', 'image/jpeg', 'image/gif', 'image/webp'
+        }
 
         file = request.files.get('avatar')
         if not file or file.filename == '':
-            return jsonify({'error': 'No file'}), 400
+            return jsonify({'error': 'No file provided'}), 400
 
+        # 1. Extension whitelist
         filename = secure_filename(file.filename)
         ext = os.path.splitext(filename)[1].lower()
         if ext not in ALLOWED_EXTS:
-            return jsonify({'error': 'Invalid file type'}), 400
+            return jsonify({'error': f'File extension not allowed. Permitted: {", ".join(ALLOWED_EXTS)}'}), 400
 
-        header = file.read(512); file.seek(0)
-        if imghdr.what(None, h=header) not in ALLOWED_MAGIC:
-            return jsonify({'error': 'Invalid image content'}), 400
+        # 2. Size limit — read into memory up to MAX+1 bytes to detect oversized files
+        #    without buffering the entire upload first.
+        chunk = file.read(MAX_UPLOAD_BYTES + 1)
+        if len(chunk) > MAX_UPLOAD_BYTES:
+            return jsonify({'error': f'File too large. Maximum allowed size is 2 MB.'}), 413
+        file.seek(0)
 
+        # 3. True MIME validation via libmagic (reads binary file signature)
+        detected_mime = magic.from_buffer(chunk, mime=True)
+        if detected_mime not in ALLOWED_MIMES:
+            logger.warning(
+                f"[UPLOAD] Blocked upload from {current_user.get('username')}: "
+                f"extension={ext}, detected MIME={detected_mime}"
+            )
+            return jsonify({'error': f'File content does not match a permitted image type (detected: {detected_mime})'}), 400
+
+        # 4. Save with a randomised, user-scoped filename (no path traversal possible)
         upload_dir = Path(current_app.root_path) / 'static' / 'uploads' / 'avatars'
         upload_dir.mkdir(parents=True, exist_ok=True)
-        new_filename = f"{current_user['username']}_{int(time.time())}{ext}"
+        new_filename = f"{secure_filename(current_user['username'])}_{int(time.time())}{ext}"
+        file.seek(0)
         file.save(str(upload_dir / new_filename))
+
         avatar_url = url_for('static', filename=f'uploads/avatars/{new_filename}')
         user_manager.update_user(current_user.get('username'), avatar_url=avatar_url)
-        log_action(current_user, "Avatar Upload", "User uploaded a new profile picture")
-                
+        log_action(current_user, "Avatar Upload", f"Uploaded avatar: {new_filename} ({detected_mime})")
+
         return jsonify({'status': 'success', 'avatar_url': avatar_url})
+
 
     # ============================================================
     # SETTINGS PAGE
