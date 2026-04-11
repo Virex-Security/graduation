@@ -18,15 +18,16 @@ from app.dashboard.metrics import (
 
 load_dotenv()
 
+from app.repositories.threat_repo import ThreatRepository
+from app.repositories.audit_repo import AuditRepository
+
 class SecurityDashboard:
     @property
     def threat_log(self):
-        """قائمة كل التهديدات (آخر 1000) من قاعدة البيانات."""
-        return self.db.get_threat_logs(limit=1000)
+        """Get all threat logs via ThreatRepository."""
+        return ThreatRepository.get_logs(limit=1000)
 
     def __init__(self):
-        from app import database as db
-        self.db = db
         self.timeline_data = deque(maxlen=50)
         self.ip_tracker = defaultdict(int)
         self.incidents = {}
@@ -41,66 +42,43 @@ class SecurityDashboard:
         self.api_url = "http://127.0.0.1:5000/api/health"
         
         self.audit_log_path = "logs/audit.log"
-
-        # ── Log Rotation Constants ─────────────────────────────
-        self.MAX_LOG_BYTES  = 5 * 1024 * 1024  # 5 MB per file
-        self.MAX_ROTATIONS  = 3                 # Keep audit.log.1, .2, .3
-
+        self.MAX_LOG_BYTES  = 5 * 1024 * 1024
+        self.MAX_ROTATIONS  = 3
         self.audit_log_lock = threading.Lock()
         self.audit_lock = threading.Lock()
 
         os.makedirs(os.path.dirname(self.audit_log_path), exist_ok=True)
-        if not os.path.exists(self.audit_log_path):
-            open(self.audit_log_path, 'w').close()  # Create empty flat file
+        self.secret_key = os.getenv("SECRET_KEY", "fallback-dev-key")
+        self.load_stats_from_repo()
 
-        
-        self.secret_key = os.getenv("SECRET_KEY", "fallback-dev-key-change-in-production")
-        # Restore stats from disk on startup
-        self.load_stats_from_audit()
     def log_clean_request(self, ip, endpoint="", method="GET"):
-        """Log a normal (non-attack) request — memory only, no DB write per request."""
+        """Note: In the new architecture, we might not track every clean request in DB to avoid overhead."""
         self.stats["total_requests"] = self.stats.get("total_requests", 0) + 1
-    def load_stats_from_audit(self):
-        """Load stats from DB (threat_logs table)."""
-        stats = self.db.load_stats()
-        self.stats = {
-            'total_requests': stats.get('total_requests', 0),
-            'blocked_requests': stats.get('blocked_requests', 0),
-            'ml_detections': stats.get('ml_detections', 0),
-            'sql_injection_attempts': stats.get('sql_injection_attempts', 0),
-            'xss_attempts': stats.get('xss_attempts', 0),
-            'brute_force_attempts': stats.get('brute_force_attempts', 0),
-            'scanner_attempts': stats.get('scanner_attempts', 0),
-            'rate_limit_hits': stats.get('rate_limit_hits', 0)
-        }
-        # recent threats
-        self.recent_threats = [t for t in self.db.get_threat_logs(limit=20) if t.get('attack_type') != 'Clean'][:10]
-        # build ip tracker
+
+    def load_stats_from_repo(self):
+        """Load aggregated stats via ThreatRepository."""
+        stats = ThreatRepository.get_stats()
+        self.stats = stats
+        # Sync with legacy key names if needed
+        self.stats.setdefault('blocked_requests', stats.get('blocked_requests', 0))
+        
+        # Build ip tracker from recent history
         self.ip_tracker.clear()
-        for t in self.db.get_threat_logs(limit=1000):
-            if t.get('attack_type') == 'Clean':
-                continue
+        recent_logs = ThreatRepository.get_logs(limit=1000)
+        for t in recent_logs:
             ip = t.get('ip_address', '')
             if ip and ip not in ('Unknown', 'XXX.XXX.XXX.XXX'):
                 self.ip_tracker[ip] += 1
+
     def get_accurate_stats(self):
-        """Recalculate all stats from DB."""
-        stats = self.db.load_stats()
-        return {
-            'total_requests': stats.get('total_requests', 0),
-            'blocked_requests': stats.get('blocked_requests', 0),
-            'ml_detections': stats.get('ml_detections', 0),
-            'sql_injection_attempts': stats.get('sql_injection_attempts', 0),
-            'xss_attempts': stats.get('xss_attempts', 0),
-            'brute_force_attempts': stats.get('brute_force_attempts', 0),
-            'scanner_attempts': stats.get('scanner_attempts', 0),
-            'rate_limit_hits': stats.get('rate_limit_hits', 0)
-        }
+        return ThreatRepository.get_stats()
+
     def log_threat(self, threat_type, ip, description, severity="High", endpoint="", method="", snippet="", detection_type="Other", blocked=False):
-        # سجل التهديد في قاعدة البيانات
-        confidence = 0.95 if isinstance(detection_type, str) and detection_type.lower().startswith("ml") else 0.0
-        ml_detected = isinstance(detection_type, str) and detection_type.lower().startswith("ml")
-        self.db.log_threat(
+        """Log a threat using the ThreatRepository."""
+        confidence = 0.95 if "ml" in str(detection_type).lower() else 0.0
+        ml_detected = "ml" in str(detection_type).lower()
+        
+        log_id = ThreatRepository.log_threat(
             attack_type=threat_type,
             ip_address=ip,
             endpoint=endpoint,
@@ -113,32 +91,20 @@ class SecurityDashboard:
             confidence=confidence,
             detection_type=detection_type
         )
-        # تحديث recent_threats و ip_tracker
-        self.recent_threats = [t for t in self.db.get_threat_logs(limit=20) if t.get('attack_type') != 'Clean'][:10]
-        self.ip_tracker.clear()
-        for t in self.db.get_threat_logs(limit=1000):
-            if t.get('attack_type') == 'Clean':
-                continue
-            ip_db = t.get('ip_address', '')
-            if ip_db and ip_db not in ('Unknown', 'XXX.XXX.XXX.XXX'):
-                self.ip_tracker[ip_db] += 1
-        # Group into Incidents (in-memory, can be improved to DB)
-        incident_key = f"{ip}_{threat_type}"
-        if incident_key not in self.incidents:
-            new_incident = Incident(threat_type, ip, dict(), detection_type)
-            self.incidents[new_incident.id] = new_incident
-        else:
-            found = False
-            for inc in self.incidents.values():
-                if inc.source_ip == ip and inc.category == threat_type and inc.status != "Closed":
-                    inc.events.append({})
-                    inc.last_seen = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                    inc.severity = severity
-                    found = True
-                    break
-            if not found:
-                new_incident = Incident(threat_type, ip, dict(), detection_type)
-                self.incidents[new_incident.id] = new_incident
+        
+        # Aggregated notifications or in-memory updates
+        self.load_stats_from_repo()
+        
+        # Grouping logic (Incidents)
+        for inc in self.incidents.values():
+            if inc.source_ip == ip and inc.category == threat_type and inc.status != "Closed":
+                inc.events.append({"log_id": log_id})
+                inc.last_seen = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                return
+                
+        new_incident = Incident(threat_type, ip, {"log_id": log_id}, detection_type)
+        self.incidents[new_incident.id] = new_incident
+
     def perform_action(self, incident_id, action, actor, comment=""):
         if incident_id not in self.incidents:
             return False, "Incident not found"

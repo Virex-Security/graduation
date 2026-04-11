@@ -11,7 +11,7 @@ const LayoutManager = {
   connectionPollId: null,
 
   init() {
-    this.initCsrfInterceptor();
+    this.initGlobalFetchInterceptor();
     this.sidebar = document.getElementById("sidebar");
 
     this.mainWrapper = document.querySelector(".main-wrapper");
@@ -419,10 +419,11 @@ const LayoutManager = {
   },
 
   /**
-   * Global CSRF Fetch Interceptor
-   * Ensures even direct fetch calls include the CSRF token
+   * Global Fetch Interceptor
+   * 1. Injects CSRF tokens into unsafe methods.
+   * 2. Intercepts 401 Unauthorized responses to perform seamless Token Rotation.
    */
-  initCsrfInterceptor() {
+  initGlobalFetchInterceptor() {
     const originalFetch = window.fetch;
     window.fetch = async (...args) => {
         let [resource, config] = args;
@@ -444,7 +445,37 @@ const LayoutManager = {
             }
         }
         
-        return originalFetch(resource, config);
+        const response = await originalFetch(resource, config);
+
+        // Handle Token Rotation silently via Refresh Token
+        if (response.status === 401 && !config._isRetry) {
+            const pathName = typeof resource === 'string' ? resource : (resource.url || '');
+            
+            // Break loop if refresh itself fails or we are actively logging in
+            if (!pathName.includes('/api/auth/refresh') && !pathName.includes('/login') && !pathName.includes('/api/auth/login')) {
+                config._isRetry = true;
+                try {
+                    const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+                    const refreshResp = await originalFetch('/api/auth/refresh', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            ...(token ? { 'X-CSRF-Token': token } : {})
+                        }
+                    });
+                    
+                    if (refreshResp.ok) {
+                        return originalFetch(resource, config);
+                    } else {
+                        window.location.href = '/login';
+                    }
+                } catch (e) {
+                    window.location.href = '/login';
+                }
+            }
+        }
+
+        return response;
     };
   }
 };

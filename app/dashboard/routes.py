@@ -25,7 +25,7 @@ mask = CSRFProtect()
 from app.dashboard.metrics import calculate_threat_score, is_recent, determine_threat_status, run_timeline_updates
 
 from app.chatbot import SecurityChatbot
-from app.auth import login_user, logout_user, user_manager, Role, token_required, admin_required, require_role
+from app.auth import login_user, logout_user, refresh_user_tokens, user_manager, Role, token_required, admin_required, require_role
 from app.api.security import SimpleSecurityManager
 from app.security import new_request_id, is_trivial, is_business_relevant
 
@@ -102,9 +102,11 @@ def create_dashboard_app():
         ip = ip.split(',')[0].strip()
 
         # 3. Rate Limiting Protection (Stricter for auth/login)
-        is_auth = request.path.startswith('/api/auth/') or request.path == '/login'
-        limit = 20 if is_auth else 100 # 20 attempts/min for auth, 100 for others
-        if not security.check_rate_limit(ip, limit=limit):
+        is_auth = request.path.startswith('/api/auth/') or request.path in ('/login', '/api/login')
+        window = 60 if is_auth else 900
+        limit = 5 if is_auth else 100
+        
+        if not security.check_rate_limit(ip, window=window, limit=limit):
             security.blocked_requests += 1
             return jsonify({"error": "Rate limit exceeded"}), 429
 
@@ -144,97 +146,80 @@ def create_dashboard_app():
         return jsonify({'status': 'error', 'message': f'CSRF validation failed: {e.description}'}), 400
 
 
+    @app.route('/api/auth/refresh', methods=['POST'])
+    def refresh():
+        return refresh_user_tokens()
+
+
     @app.route('/api/auth/login', methods=['POST'])
     def login():
+        from app.services.auth_service import AuthService
+        from app.services.audit_service import AuditService
+        
         auth = request.get_json()
-        print(f"[DEBUG] Login attempt via API! auth payload: {auth}")
         if not auth or not auth.get('username') or not auth.get('password'):
             return jsonify({'message': 'Missing credentials'}), 401
-        
+            
         username = auth.get('username').strip()
-        print(f"[DEBUG] Processing login for user: '{username}'")
-        resp, status = login_user(username, auth.get('password'))
-        print(f"[DEBUG] login_user returned status: {status}")
+        
+        # AuthService handles verification, lockout rules, and token generation logic
+        resp, status = AuthService.verify_credentials_and_generate_response(username, auth.get('password'))
+        
         if status == 200:
-            user = user_manager.get_user(auth.get('username'))
-            from app.database import log_audit
-            user_id = user.get('id') if user else None
-            ip = request.headers.get('X-Forwarded-For', request.remote_addr) or 'Unknown'
-            ip = ip.split(',')[0].strip()
-            if user_id:
-                log_audit(user_id, "Login", ip)
+            user = AuthService.get_user(username)
+            if user:
+                ip = _get_real_ip()
+                AuditService.log_action(user.get('user_id'), "Login", "Dashboard Access", ip=ip)
         return resp, status
+
     @app.route('/api/auth/signup', methods=['POST'])
     def signup():
-        auth = request.get_json()
-        if not auth or not auth.get('username') or not auth.get('password'):
-            return jsonify({'message': 'Missing username or password'}), 400
+        from app.services.user_service import UserService
+        from app.services.audit_service import AuditService
         
-        username = auth.get('username').strip()
-        password = auth.get('password')
-        full_name = auth.get('fullName', '').strip()
-        email = auth.get('email', '').strip()
-        phone = auth.get('phone', '').strip()
-        department = auth.get('department', '').strip()
+        data = request.get_json()
+        if not data:
+            return jsonify({'message': 'No input data provided'}), 400
+            
+        username = (data.get('username') or '').strip()
+        password = data.get('password')
         
-        # Validation
-        if len(username) < 3:
-            return jsonify({'message': 'Username must be at least 3 characters'}), 400
-            
-        if not full_name:
-            return jsonify({'message': 'Full name is required'}), 400
-            
-        if not email:
-            return jsonify({'message': 'Email is required'}), 400
-            
-        # Basic email validation
-        import re
-        email_pattern = r'^[^\s@]+@[^\s@]+\.[^\s@]+$'
-        if not re.match(email_pattern, email):
-            return jsonify({'message': 'Please enter a valid email address'}), 400
-            
-        if not phone:
-            return jsonify({'message': 'Phone number is required'}), 400
-            
-        if not department:
-            return jsonify({'message': 'Department is required'}), 400
+        # Call service to handle registration and business logic
+        success, message = UserService.register_user(
+            username=username,
+            password=password,
+            full_name=data.get('fullName', '').strip(),
+            email=data.get('email', '').strip(),
+            phone=data.get('phone', '').strip(),
+            department=data.get('department', '').strip()
+        )
         
-        is_valid_password, password_message = user_manager.validate_password_policy(password)
-        if not is_valid_password:
-            return jsonify({'message': password_message}), 400
-            
-        # Check if user already exists
-        if user_manager.get_user(username):
-            return jsonify({'message': 'Username already exists'}), 409
-            
-        # Add new user with USER role and additional info
-        success, message = user_manager.add_user(username, password, Role.USER)
         if success:
-            # Update user with additional information
-            user_manager.update_user(username, 
-                                  full_name=full_name,
-                                  email=email,
-                                  department=department,
-                                  phone=phone)
-            
-            # Log the new user creation
-            new_user = user_manager.get_user(username)
-            log_action(new_user, "Account Created", f"Full name: {full_name}, Email: {email}")
+            # Audit log via Service
+            AuditService.log_action(None, "Account Created", "User registration", details=f"Username: {username}")
             return jsonify({'message': 'Account created successfully'}), 201
         else:
             return jsonify({'message': message}), 400
+
     @app.route('/api/auth/logout')
     def logout():
+        from app.services.auth_service import AuthService
+        from app.services.audit_service import AuditService
+        
         token = request.cookies.get('auth_token')
         if token:
             try:
+                # Decoupled audit logging
                 data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=["HS256"])
-                user = user_manager.get_user(data['user'])
+                user = AuthService.get_user(data['user'])
                 if user:
-                    log_action(user, "Logout")
+                    AuditService.log_action(user.get('user_id'), "Logout", "Dashboard Session Ended")
             except Exception:
                 pass
+        
+        from app.auth.auth import logout_user
         return logout_user()
+
     # ── Forgot Password / OTP ─────────────────────────────────
     import random, smtplib
     from email.mime.text import MIMEText
@@ -249,104 +234,54 @@ def create_dashboard_app():
 
     @app.route('/api/request-reset-otp', methods=['POST'])
     def request_reset_otp():
-        data       = request.get_json(silent=True) or {}
+        from app.services.password_reset_service import PasswordResetService
+        from app.repositories.rate_limit_repo import RateLimitRepository
+        
+        data = request.get_json(silent=True) or {}
         identifier = (data.get('identifier') or data.get('username') or '').strip()
         if not identifier:
             return jsonify({'error': 'Username or email required'}), 400
             
-        current_time = time.time()
-        requests_history = otp_request_tracker.get(identifier, [])
-        requests_history = [t for t in requests_history if current_time - t < 600]
-        
-        if len(requests_history) >= 3:
-            return jsonify({"error": "Too many requests. Try again later."}), 429
-            
-        requests_history.append(current_time)
-        otp_request_tracker[identifier] = requests_history
-        
-        # دور بالـ username أو الـ email
-        user = user_manager.get_user(identifier)
-        if not user:
-            all_users = user_manager.get_all_users()
-            user = next((u for u in all_users if u.get('email','').lower() == identifier.lower()), None)
-        if not user:
-            return jsonify({"message": "If that email is registered, a reset link was sent."}), 200
-        user_id = user.get('user_id') or user.get('id')
-        email   = user.get('email')
-        if not email:
-            return jsonify({"message": "If that email is registered, a reset link was sent."}), 200
-        otp = secrets.token_urlsafe(16)
-        # Using bcrypt to hash the OTP token
-        otp_hash = bcrypt.hashpw(otp.encode(), bcrypt.gensalt()).decode()
-        expiry = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time() + 300))
-        with _db.db_cursor() as cur:
-            cur.execute('DELETE FROM password_resets WHERE user_id = ?', (user_id,))
-            cur.execute('INSERT INTO password_resets (user_id, otp, otp_expiry, otp_attempts, used) VALUES (?,?,?,0,0)',
-                        (user_id, otp_hash, expiry))
-
-        try:
-            # Simple OTP email sender using smtplib
-            def send_otp_email(to_email, otp):
-                subject = "Your Password Reset OTP"
-                body = f"Your OTP for password reset is: {otp}\nThis code will expire in 5 minutes."
-                msg = MIMEText(body)
-                msg['Subject'] = subject
-                msg['From'] = SMTP_EMAIL
-                msg['To'] = to_email
-
-                with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
-                    server.login(SMTP_EMAIL, SMTP_PASSWORD)
-                    server.sendmail(SMTP_EMAIL, [to_email], msg.as_string())
-
-            send_otp_email(email, otp)
-        except Exception as e:
-            logger.error(f"OTP email failed: {e}")
-            return jsonify({'error': 'Failed to deliver OTP'}), 500
-
-        return jsonify({
-            'message': 'OTP sent to registered email'
-        }), 200
+        # Rate Limiting via service-aligned repository
+        rl_repo = RateLimitRepository()
+        if not rl_repo.check_and_increment(f"otp:{identifier}", window=600, limit=3):
+             return jsonify({"error": "Too many requests. Try again later."}), 429
+             
+        success, message = PasswordResetService.initiate_reset(identifier)
+        if success:
+            return jsonify({"message": message}), 200
+        else:
+            return jsonify({"error": message}), 500
 
     @app.route('/api/verify-reset-otp', methods=['POST'])
     def verify_reset_otp():
-        data     = request.get_json(silent=True) or {}
-        user_id  = data.get('user_id')
-        otp      = data.get('otp', '').strip()
-        new_pass = data.get('new_password', '').strip()
-        if not user_id or not otp or not new_pass:
-            return jsonify({'error': 'user_id, otp and new_password required'}), 400
-            
-        with _db.db_cursor() as cur:
-            cur.execute('SELECT * FROM password_resets WHERE user_id = ? AND used = 0', (user_id,))
-            record = cur.fetchone()
-            
-        if not record:
-            return jsonify({'error': 'No OTP requested for this user'}), 400
-            
-        if record.get('otp_attempts', 0) >= 5:
-            return jsonify({'error': 'Too many attempts. Request a new OTP.'}), 429
-            
-        # Verify bcrypt hash securely
-        if not bcrypt.checkpw(str(otp).encode(), record['otp'].encode()):
-            with _db.db_cursor() as cur:
-                cur.execute('UPDATE password_resets SET otp_attempts = COALESCE(otp_attempts, 0) + 1 WHERE user_id = ?', (user_id,))
-            return jsonify({'error': 'Invalid OTP'}), 400
+        from app.services.password_reset_service import PasswordResetService
+        
+        data = request.get_json(silent=True) or {}
+        identifier = (data.get('identifier') or '').strip()
+        otp = (data.get('otp') or '').strip()
+        new_password = data.get('new_password')
 
+        if not all([identifier, otp, new_password]):
+            # Sometimes frontend uses user_id instead of identifier
+            # but our new service prefers identifier (username/email)
+            # We'll check if a user_id was passed and resolve it
+            user_id = data.get('user_id')
+            if user_id:
+                from app.repositories.user_repo import UserRepository
+                user = UserRepository.get_by_id(user_id)
+                if user:
+                    identifier = user['username']
             
-        if time.strftime('%Y-%m-%d %H:%M:%S') > record['otp_expiry']:
-            with _db.db_cursor() as cur:
-                cur.execute('UPDATE password_resets SET otp_attempts = 0 WHERE user_id = ?', (user_id,))
-            return jsonify({'error': 'OTP expired'}), 400
+            if not all([identifier, otp, new_password]):
+                return jsonify({'error': 'Missing fields'}), 400
             
-        user = _db.get_user_by_id(user_id)
-        if not user:
-            return jsonify({'error': 'User not found'}), 404
-        ok, msg = user_manager.change_password(user['username'], new_pass)
-        if not ok:
-            return jsonify({'error': msg}), 400
-        with _db.db_cursor() as cur:
-            cur.execute('UPDATE password_resets SET used = 1, otp_attempts = 0 WHERE user_id = ?', (user_id,))
-        return jsonify({'message': 'Password reset successfully'}), 200
+        success, message = PasswordResetService.verify_and_reset(identifier, otp, new_password)
+        if success:
+            return jsonify({'message': message}), 200
+        else:
+            return jsonify({'error': message}), 400
+
 
     @app.route('/')
     def index_page():
@@ -509,28 +444,18 @@ def create_dashboard_app():
     @app.route('/api/dashboard/reset', methods=['POST'])
     @admin_required
     def reset_stats(current_user):
-        global dashboard
+        from app.services.dashboard_services import AnalyticsService
+        from app.services.audit_service import AuditService
+        
         try:
-            log_action(current_user, "Reset Stats", "Cleared all memory stats and audit logs")
-            # Reset in-memory stats
-            for key in dashboard.stats:
-                dashboard.stats[key] = 0
-            dashboard.ip_tracker.clear()
-            dashboard.recent_threats = []
-            dashboard.timeline_data.clear()
-            dashboard.incidents.clear()
-            # Clear the DB threat logs
-            from app import database as _db
-            _db.clear_threat_logs()
-            # Clear the JSON audit log (JSONL format — reset to empty flat file)
-            try:
-                open(dashboard.audit_log_path, 'w').close()
-            except Exception as e:
-                print(f"[-] Error clearing audit log: {e}")
-
+            # Service handles the multi-repository clearing logic
+            AnalyticsService.reset_all_data()
+            
+            # Audit log via Service
+            AuditService.log_action(current_user.get('user_id'), "Reset Stats", "Dashboard and DB Clear", details="System-wide reset performed.")
+            
             return jsonify({'status': 'stats_reset', 'message': 'All stats and logs cleared'})
         except Exception as e:
-            print(f"[-] Reset error: {e}")
             return jsonify({'status': 'error', 'message': str(e)}), 500
 
     @app.route('/api/user')
@@ -640,13 +565,14 @@ def create_dashboard_app():
     @app.route('/api/incident/<id>/action', methods=['POST'])
     @admin_required
     def incident_action(current_user, id):
-        global dashboard
+        from app.services.dashboard_services import IncidentService
+        
         data = request.get_json()
         action = data.get('action')
         comment = data.get('comment', '')
-        actor = current_user['username']
-        log_action(current_user, f"Incident Action: {action}", f"Incident ID: {id}, Comment: {comment}")
-        success, message = dashboard.perform_action(id, action, actor, comment)
+        
+        # Use service to coordinate incident actions and logging
+        success, message = IncidentService.perform_action(id, action, current_user['username'], comment)
         return jsonify({'status': 'success' if success else 'error', 'message': message})
     @app.route('/api/incident/<id>/export')
     @admin_required

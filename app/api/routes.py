@@ -70,37 +70,25 @@ def create_api_app():
 
     @app.before_request
     def before_request():
+        from app.services.threat_service import ThreatService
+        threat_service = ThreatService()
+        
         request.request_id = new_request_id()
         if is_trivial(request):
             return
 
         client_ip = _get_real_ip()
-        is_business = is_business_relevant(request)
-        request_blocked = False
-
-        # 3a. Rate Limiting
-        if not security.check_rate_limit(client_ip):
-            security.blocked_requests += 1
-            security._persist_stats()
+        
+        # 1. Rate Limiting (Service-layer)
+        if not threat_service.check_rate_limit(client_ip, request.path):
             return jsonify({"error": "Rate limit exceeded"}), 429
 
-        # 3b. Scanner Detection
-        sensitive_paths = ["/admin", "/wp-admin", "/phpmyadmin", "/.env",
-                           "/config", "/backup", "/etc/passwd"]
-        normalized_path = request.path.lower()
-        if any(normalized_path.startswith(p) for p in sensitive_paths):
-            security.log_to_dashboard(
-                "Scanner", client_ip,
-                f"Sensitive path: {request.path}", "Medium",
-                endpoint=request.path, method=request.method,
-                detection_type="Scanner", blocked=True,
-                request_id=getattr(request, "request_id", ""),
-            )
-            security.blocked_requests += 1
-            security._persist_stats()
-            return jsonify({"error": "Not Found"}), 404
+        # 2. Scanner & Metadata Detection (Service-layer)
+        safe, msg = threat_service.scan_request_context(client_ip, request.path, request.method, request.request_id)
+        if not safe:
+            return jsonify({"error": msg}), 404
 
-        # 3c. CSRF
+        # 3. CSRF & SSRF Validation
         if _CSRF_SSRF_ENABLED and request.method in ("POST", "PUT", "DELETE", "PATCH"):
             _csrf_result = detect_csrf({
                 "method": request.method, "path": request.path,
@@ -111,12 +99,8 @@ def create_api_app():
                 "ip": client_ip, "user_agent": request.user_agent.string,
             })
             if _csrf_result["detected"]:
-                security.blocked_requests += 1
-                security._persist_stats()
-                return jsonify({"error": "CSRF validation failed",
-                                "reason": _csrf_result["reason"]}), 403
+                return jsonify({"error": "CSRF validation failed", "reason": _csrf_result["reason"]}), 403
 
-        # 3d. SSRF
         if _CSRF_SSRF_ENABLED:
             _ssrf_result = detect_ssrf({
                 "method": request.method, "path": request.path,
@@ -127,34 +111,25 @@ def create_api_app():
                 "ip": client_ip, "user_agent": request.user_agent.string,
             })
             if _ssrf_result["detected"]:
-                security.blocked_requests += 1
-                security._persist_stats()
-                return jsonify({"error": "SSRF attempt blocked",
-                                "reason": _ssrf_result["reason"]}), 403
+                return jsonify({"error": "SSRF attempt blocked", "reason": _ssrf_result["reason"]}), 403
 
-        # 3e. Content Scan — JSON + Form + Files metadata
+        # 4. Content Security Scan
         data_to_scan = {}
-        if request.args:
-            data_to_scan.update(request.args.to_dict())
+        if request.args: data_to_scan.update(request.args.to_dict())
         if request.is_json:
             try:
                 j = request.get_json(silent=True)
-                if j and isinstance(j, dict):
-                    data_to_scan.update(j)
-            except Exception:
-                pass
-        if request.form:
-            data_to_scan.update(request.form.to_dict())
+                if j and isinstance(j, dict): data_to_scan.update(j)
+            except Exception: pass
+        if request.form: data_to_scan.update(request.form.to_dict())
         if request.files:
             for field, fobj in request.files.items():
-                data_to_scan[f"_file_name_{field}"]     = fobj.filename or ""
+                data_to_scan[f"_file_name_{field}"] = fobj.filename or ""
                 data_to_scan[f"_file_mimetype_{field}"] = fobj.content_type or ""
 
         if data_to_scan:
-            safe, msg = security.check_request_security(data_to_scan, client_ip)
+            safe, msg = threat_service.scan_request_data(data_to_scan, client_ip, request.path, request.method, request.request_id)
             if not safe:
-                security.blocked_requests += 1
-                security._persist_stats()
                 return jsonify({"error": msg}), 400
 
         if not request_blocked and is_business:
@@ -195,7 +170,7 @@ def create_api_app():
     @token_required
     @admin_required
     def health_detailed(current_user):
-        return {"status": "healthy", "uptime": time.time() - security.start_time,
+        return {"status": "healthy",
                 "total_requests": security.total_requests,
                 "blocked_requests": security.blocked_requests}
 
