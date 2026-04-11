@@ -11,7 +11,6 @@ const LayoutManager = {
   connectionPollId: null,
 
   init() {
-    this.initGlobalFetchInterceptor();
     this.sidebar = document.getElementById("sidebar");
 
     this.mainWrapper = document.querySelector(".main-wrapper");
@@ -195,44 +194,14 @@ const LayoutManager = {
   },
 
   initConnectionMonitor() {
-    this.checkApiConnection();
-
-    if (this.connectionPollId) {
-      clearInterval(this.connectionPollId);
-    }
-
-    this.connectionPollId = window.setInterval(() => {
-      this.checkApiConnection();
-    }, 15000);
-  },
-
-  async checkApiConnection() {
-    try {
-      const response = await fetch("/api/system/health", {
-        method: "GET",
-        credentials: "same-origin",
-        cache: "no-store",
-        headers: {
-          "Cache-Control": "no-cache",
-        },
+    if (typeof ConnectionService !== "undefined") {
+      ConnectionService.subscribe((status, msg) => {
+        this.updateConnectionStatus(status, msg);
+        this.updateProfileConnectionStatus(status === "connected");
       });
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-
-      const data = await response.json();
-      const isConnected = data.api_online === true;
-      this.updateConnectionStatus(
-        isConnected ? "connected" : "disconnected",
-        data.connection_state,
-      );
-      this.updateProfileConnectionStatus(isConnected);
-    } catch (error) {
-      this.updateConnectionStatus("disconnected");
-      this.updateProfileConnectionStatus(false);
     }
   },
+
 
   /**
    * Handle Reset Statistics
@@ -418,66 +387,6 @@ const LayoutManager = {
     text.textContent = isOnline ? "ONLINE" : "OFFLINE";
   },
 
-  /**
-   * Global Fetch Interceptor
-   * 1. Injects CSRF tokens into unsafe methods.
-   * 2. Intercepts 401 Unauthorized responses to perform seamless Token Rotation.
-   */
-  initGlobalFetchInterceptor() {
-    const originalFetch = window.fetch;
-    window.fetch = async (...args) => {
-        let [resource, config] = args;
-        
-        if (!config) config = {};
-        if (!config.headers) config.headers = {};
-
-        const method = (config.method || 'GET').toUpperCase();
-        const safeMethods = ['GET', 'HEAD', 'OPTIONS', 'TRACE'];
-
-        if (!safeMethods.includes(method)) {
-            const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-            if (token && !config.headers['X-CSRF-Token']) {
-                if (config.headers instanceof Headers) {
-                    config.headers.set('X-CSRF-Token', token);
-                } else {
-                    config.headers['X-CSRF-Token'] = token;
-                }
-            }
-        }
-        
-        const response = await originalFetch(resource, config);
-
-        // Handle Token Rotation silently via Refresh Token
-        if (response.status === 401 && !config._isRetry) {
-            const pathName = typeof resource === 'string' ? resource : (resource.url || '');
-            
-            // Break loop if refresh itself fails or we are actively logging in
-            if (!pathName.includes('/api/auth/refresh') && !pathName.includes('/login') && !pathName.includes('/api/auth/login')) {
-                config._isRetry = true;
-                try {
-                    const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-                    const refreshResp = await originalFetch('/api/auth/refresh', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            ...(token ? { 'X-CSRF-Token': token } : {})
-                        }
-                    });
-                    
-                    if (refreshResp.ok) {
-                        return originalFetch(resource, config);
-                    } else {
-                        window.location.href = '/login';
-                    }
-                } catch (e) {
-                    window.location.href = '/login';
-                }
-            }
-        }
-
-        return response;
-    };
-  }
 };
 
 

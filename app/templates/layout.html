@@ -1,3 +1,4 @@
+{% import "macros/uikit.html" as ui %}
 <!doctype html>
 <html lang="en" data-theme="dark">
   <head>
@@ -40,7 +41,13 @@
     <!-- Page content goes here -->
     {% endblock %}
 
-    <!-- Common JavaScript -->
+    <!-- Service Layer -->
+    <script src="{{ url_for('static', filename='javascript/api.js') }}"></script>
+    <script src="{{ url_for('static', filename='javascript/services/ui-utils.js') }}"></script>
+    <script src="{{ url_for('static', filename='javascript/services/threat-service.js') }}"></script>
+    <script src="{{ url_for('static', filename='javascript/services/connection-service.js') }}"></script>
+    
+    <!-- Unified Layout -->
     <script src="{{ url_for('static', filename='javascript/layout.js') }}"></script>
 
     <!-- Page-specific JavaScript -->

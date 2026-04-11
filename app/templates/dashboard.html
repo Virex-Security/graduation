@@ -77,53 +77,11 @@ title %}Dashboard - Virex{% endblock %} {% block stylesheets %}
   </header>
 
   <section class="stats-section">
-    <div>
-      <div class="stats-grid">
-        <div
-          class="stat-card card type-total clickable"
-          onclick="location.href = '/requests'"
-        >
-          <div class="stat-header">
-            <i class="fas fa-globe"></i>
-            <h3>Total Requests</h3>
-          </div>
-          <div class="stat-value" id="total-requests">0</div>
-        </div>
-
-        <div
-          class="stat-card card type-blocked clickable"
-          onclick="location.href = '/blocked_page'"
-        >
-          <div class="stat-header">
-            <i class="fas fa-hand" style="color: red"></i>
-            <h3>Blocked</h3>
-          </div>
-          <div class="stat-value" id="blocked-requests">0</div>
-        </div>
-
-        <div
-          class="stat-card card type-ml clickable"
-          onclick="location.href = '/ml-detections'"
-        >
-          <div class="stat-header">
-            <i class="fas fa-brain" style="color: var(--brand-secondary)"></i>
-            <h3>ML Detections</h3>
-          </div>
-          <div class="stat-value" id="ml-detections">0</div>
-        </div>
-
-        <div
-          class="stat-card card type-top-attack clickable"
-          id="top-attack-card"
-          onclick="location.href = '/threats-overview'"
-        >
-          <div class="stat-header">
-            <i class="fas fa-triangle-exclamation" id="top-attack-icon"></i>
-            <h3 id="top-attack-label">Top Attack</h3>
-          </div>
-          <div class="stat-value" id="top-attack-value" style="font-size: 1.2rem;">No Attacks</div>
-        </div>
-      </div>
+    <div class="stats-grid">
+      {{ ui.stat_card("total-requests", "Total Requests", "fa-globe", "0", "var(--brand-primary)", "/requests") }}
+      {{ ui.stat_card("blocked-requests", "Blocked", "fa-hand", "0", "red", "/blocked_page") }}
+      {{ ui.stat_card("ml-detections", "ML Detections", "fa-brain", "0", "var(--brand-secondary)", "/ml-detections") }}
+      {{ ui.stat_card("top-attack", "Top Attack", "fa-triangle-exclamation", "No Attacks", "var(--brand-primary)", "/threats-overview") }}
     </div>
   </section>
 
@@ -204,20 +162,7 @@ title %}Dashboard - Virex{% endblock %} {% block stylesheets %}
         <div class="alert-header">
           <h2>Recent Security Alerts</h2>
         </div>
-        <div class="table-responsive">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>Timestamp</th>
-                <th>Threat Type</th>
-                <th>Source IP</th>
-                <th>Severity</th>
-                <th>Details</th>
-              </tr>
-            </thead>
-            <tbody id="threats-table-body"></tbody>
-          </table>
-        </div>
+        {{ ui.data_table("threats", ["Timestamp", "Threat Type", "Source IP", "Severity", "Details"]) }}
       </div>
 
       <div class="chart-card card">
