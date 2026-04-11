@@ -99,7 +99,7 @@ async function handleSignup(event) {
     document.getElementById("signupForm").reset();
     // Redirect to login after 2 seconds
     setTimeout(() => {
-      window.location.href = "/login";
+      window.location.assign("/login");
     }, 2000);
 
   } catch (error) {
