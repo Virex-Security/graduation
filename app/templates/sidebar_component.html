@@ -128,23 +128,38 @@
     const closeBtn = document.getElementById("fap-close-btn");
 
     if(trigger && panel && closeBtn) {
-      // Toggle Panel
+      let hoverTimeout;
+
+      const openPanel = () => {
+        clearTimeout(hoverTimeout);
+        panel.classList.add("is-visible");
+      };
+
+      const closePanel = () => {
+        hoverTimeout = setTimeout(() => {
+          panel.classList.remove("is-visible");
+        }, 200); // 200ms grace period to move mouse from trigger to panel
+      };
+
+      // Hover mechanics
+      trigger.addEventListener("mouseenter", openPanel);
+      trigger.addEventListener("mouseleave", closePanel);
+      panel.addEventListener("mouseenter", openPanel);
+      panel.addEventListener("mouseleave", closePanel);
+
+      // Fallback click
       trigger.addEventListener("click", (e) => {
         e.stopPropagation();
-        const isOpen = panel.classList.contains("is-visible");
-        if(isOpen) {
-          panel.classList.remove("is-visible");
-        } else {
-          panel.classList.add("is-visible");
-        }
+        openPanel();
       });
 
-      // Close Panel
-      closeBtn.addEventListener("click", () => {
+      // Explicit close button
+      closeBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
         panel.classList.remove("is-visible");
       });
 
-      // Click outside to close
+      // Click outside to close fallback
       document.addEventListener("click", (e) => {
         if (!panel.contains(e.target) && !trigger.contains(e.target)) {
           if (panel.classList.contains("is-visible")) {
