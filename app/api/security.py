@@ -6,11 +6,17 @@ import os
 import time
 import logging
 import requests
+import hmac
 import threading
+
 from collections import defaultdict, deque
 from flask import request
 from dotenv import load_dotenv
+import redis
+
+from app import config
 from app.ml.inference import ml_analyze, MLDecision
+
 from app.security import build_event
 
 load_dotenv()
@@ -39,7 +45,21 @@ class SimpleSecurityManager:
         self.rate_limit_storage   = defaultdict(deque)
         self.start_time           = time.time()
         self.dashboard_url        = os.getenv("DASHBOARD_URL", "http://127.0.0.1:8070")
+        
+        # ── Redis Connection ──────────────────────────────────
+        self.redis_url = config.redis_url()
+        self.redis = None
+        self.use_redis = False
+        try:
+            self.redis = redis.from_url(self.redis_url, decode_responses=True, socket_timeout=2)
+            self.redis.ping()
+            self.use_redis = True
+            logger.info(f"[SEC] Connected to Redis at {self.redis_url}")
+        except Exception as e:
+            logger.warning(f"[SEC] Redis connection failed ({e}) — falling back to in-memory rate limiting")
+
         self._stats_lock          = threading.Lock()
+
 
         # ── Load WAF rules from DB ────────────────────────────
         self._load_db_rules()
@@ -127,15 +147,44 @@ class SimpleSecurityManager:
             payload["risk_score"] = round(risk_score * 100, 1)
 
         def send():
-            try:
-                requests.post(
-                    f"{self.dashboard_url}/api/dashboard/threat",
-                    json=payload, timeout=2
-                )
-            except Exception:
-                pass
+            secret = os.getenv("INTERNAL_API_SECRET")
+            if not secret:
+                logger.error("[DASHBOARD] INTERNAL_API_SECRET missing in environment")
+                return
+
+            timestamp = str(time.time())
+            signature = hmac.new(
+                key=secret.encode(),
+                msg=timestamp.encode(),
+                digestmod='sha256'
+            ).hexdigest()
+
+            headers = {
+                "X-Internal-Timestamp": timestamp,
+                "X-Internal-Token": signature  # Matches dashboard legacy header name
+            }
+
+            max_retries = 3
+            for attempt in range(max_retries):
+                try:
+                    resp = requests.post(
+                        f"{self.dashboard_url}/api/dashboard/threat",
+                        json=payload, headers=headers, timeout=5
+                    )
+                    if resp.status_code == 200:
+                        return
+                    else:
+                        logger.warning(f"[DASHBOARD] Log attempt {attempt+1} failed ({resp.status_code}): {resp.text}")
+                except Exception as e:
+                    logger.warning(f"[DASHBOARD] Log attempt {attempt+1} failed: {e}")
+                
+                if attempt < max_retries - 1:
+                    time.sleep(2 ** attempt) # Exponential backoff
+
+            logger.error(f"[DASHBOARD] FAILED to log threat after {max_retries} attempts")
 
         threading.Thread(target=send, daemon=True).start()
+
 
     def update_dashboard_stats(self):
         pass
@@ -238,24 +287,59 @@ class SimpleSecurityManager:
     # ── Rate Limit ────────────────────────────────────────────
     def check_rate_limit(self, ip, window: int = None, limit: int = None):
         """
-        Sliding-window rate limiter.
-
-        Default window/limit are loaded from environment to allow tuning
-        without code changes. Sensible defaults: 100 req/60s per IP.
-        Override per call for sensitive endpoints (e.g. login: 5/60s).
+        Sliding-window rate limiter via Redis (Atomic Lua Script)
+        with local in-memory fallback.
         """
-        import os
         window = window or int(os.getenv("RATE_LIMIT_WINDOW", "60"))
         limit  = limit  or int(os.getenv("RATE_LIMIT_MAX",    "100"))
+        now    = time.time()
 
-        now = time.time()
-        q   = self.rate_limit_storage[ip]
+        if self.use_redis:
+            try:
+                # Lua script for atomic sliding window:
+                # 1. Prune old timestamps
+                # 2. Check current count
+                # 3. Add current timestamp if under limit
+                lua = """
+                local key = KEYS[1]
+                local now = tonumber(ARGV[1])
+                local window = tonumber(ARGV[2])
+                local limit = tonumber(ARGV[3])
+                
+                redis.call('ZREMRANGEBYSCORE', key, 0, now - window)
+                local count = redis.call('ZCARD', key)
+                
+                if count < limit then
+                    redis.call('ZADD', key, now, now)
+                    redis.call('EXPIRE', key, window)
+                    return 1
+                else
+                    return 0
+                end
+                """
+                key = f"rl:{ip}:{request.path}" # Path-aware rate limiting
+                if not self.redis.register_script(lua)(keys=[key], args=[now, window, limit]):
+                    self.rate_limit_hits += 1
+                    self.log_to_dashboard(
+                        "Rate Limit", ip, "Rate limit exceeded (Redis)", "Medium",
+                        endpoint=request.path, method=request.method,
+                        detection_type="Rule-based", blocked=True,
+                        request_id=getattr(request, "request_id", ""),
+                    )
+                    return False
+                return True
+            except Exception as e:
+                logger.error(f"[SEC] Redis Rate Limit Failure: {e} — using fallback")
+                # Continue to fallback logic below if Redis fails at runtime
+
+        # ── Fallback: In-Memory Sliding Window ────────────────
+        q = self.rate_limit_storage[ip]
         while q and now - q[0] > window:
             q.popleft()
         if len(q) >= limit:
             self.rate_limit_hits += 1
             self.log_to_dashboard(
-                "Rate Limit", ip, "Rate limit exceeded", "Medium",
+                "Rate Limit", ip, f"Rate limit exceeded (Local Fallback)", "Medium",
                 endpoint=request.path, method=request.method,
                 detection_type="Rule-based", blocked=True,
                 request_id=getattr(request, "request_id", ""),
@@ -263,6 +347,7 @@ class SimpleSecurityManager:
             return False
         q.append(now)
         return True
+
 
     # ── Main Security Check ───────────────────────────────────
     def check_request_security(self, data, ip):

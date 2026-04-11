@@ -11,7 +11,9 @@ const LayoutManager = {
   connectionPollId: null,
 
   init() {
+    this.initCsrfInterceptor();
     this.sidebar = document.getElementById("sidebar");
+
     this.mainWrapper = document.querySelector(".main-wrapper");
     this.sidebarToggle = document.getElementById("sidebarToggle");
     this.navbar = document.querySelector(".navbar");
@@ -415,7 +417,38 @@ const LayoutManager = {
     badge.classList.toggle("offline", !isOnline);
     text.textContent = isOnline ? "ONLINE" : "OFFLINE";
   },
+
+  /**
+   * Global CSRF Fetch Interceptor
+   * Ensures even direct fetch calls include the CSRF token
+   */
+  initCsrfInterceptor() {
+    const originalFetch = window.fetch;
+    window.fetch = async (...args) => {
+        let [resource, config] = args;
+        
+        if (!config) config = {};
+        if (!config.headers) config.headers = {};
+
+        const method = (config.method || 'GET').toUpperCase();
+        const safeMethods = ['GET', 'HEAD', 'OPTIONS', 'TRACE'];
+
+        if (!safeMethods.includes(method)) {
+            const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            if (token && !config.headers['X-CSRF-Token']) {
+                if (config.headers instanceof Headers) {
+                    config.headers.set('X-CSRF-Token', token);
+                } else {
+                    config.headers['X-CSRF-Token'] = token;
+                }
+            }
+        }
+        
+        return originalFetch(resource, config);
+    };
+  }
 };
+
 
 // Initialize on DOM ready
 document.addEventListener("DOMContentLoaded", () => {

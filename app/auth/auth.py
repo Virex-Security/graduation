@@ -50,6 +50,13 @@ def login_user(username: str, password: str):
     user = user_manager.verify_password(username, password)
     if not user:
         return jsonify({"message": "Invalid credentials"}), 401
+        
+    if user.get("locked"):
+        return jsonify({
+            "status": "error",
+            "message": "Account is temporarily locked. Please try again in 15 minutes."
+        }), 423 # Locked
+
 
     token, jti = _mint_token(username, user["role"])
 

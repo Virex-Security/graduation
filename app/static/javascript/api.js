@@ -16,6 +16,16 @@ const API = {
         ...options.headers
       };
 
+      // Add CSRF token for state-changing methods
+      const method = (options.method || 'GET').toUpperCase();
+      if (!['GET', 'HEAD', 'OPTIONS', 'TRACE'].includes(method)) {
+          const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+          if (csrfToken) {
+              headers['X-CSRF-Token'] = csrfToken;
+          }
+      }
+
+
       if (options.body && !(options.body instanceof FormData)) {
         headers['Content-Type'] = 'application/json';
         options.body = JSON.stringify(options.body);

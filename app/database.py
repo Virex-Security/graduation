@@ -176,9 +176,11 @@ def insert_user(username, password_hash, email=None,
 
 
 def update_user(username: str, **kwargs) -> bool:
-    allowed = {"email", "password_hash", "role_id", "department_id",
-               "is_active", "last_login", "updated_at",
-               "full_name", "phone", "department"}
+    allowed = {"password_hash", "email", "role_name", "status", "full_name",
+               "phone", "department", "last_login", "pending_email",
+               "email_otp_hash", "email_otp_expiry", "email_otp_attempts",
+               "failed_login_attempts", "lockout_until"}
+
     fields = {k: v for k, v in kwargs.items() if k in allowed}
     if not fields:
         return False
@@ -232,8 +234,10 @@ def _ensure_rules_table():
                 user_id INTEGER NOT NULL,
                 otp TEXT NOT NULL,
                 otp_expiry TEXT NOT NULL,
+                otp_attempts INTEGER DEFAULT 0,
                 used INTEGER DEFAULT 0
             )
+
         """)
         cur.execute("""
             CREATE TABLE IF NOT EXISTS audit_logs (
@@ -271,14 +275,21 @@ def _ensure_rules_table():
                 username      TEXT NOT NULL UNIQUE,
                 password_hash TEXT NOT NULL,
                 email         TEXT,
+                pending_email TEXT,
+                email_otp_hash TEXT,
+                email_otp_expiry TEXT,
+                email_otp_attempts INTEGER DEFAULT 0,
                 role_name     TEXT DEFAULT 'user',
                 status        TEXT DEFAULT 'active',
                 full_name     TEXT,
                 phone         TEXT,
                 department    TEXT,
                 last_login    TEXT,
+                failed_login_attempts INTEGER DEFAULT 0,
+                lockout_until TEXT,
                 created_at    TEXT
             )
+
         """)
 
 

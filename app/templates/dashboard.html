@@ -261,7 +261,8 @@ title %}Dashboard - Virex{% endblock %} {% block stylesheets %}
 <script>
   window.DASHBOARD_CONFIG = {
     // Wrap Jinja variable in single quotes and parse it to prevent IDE syntax errors
-    apiEnabled: JSON.parse('{{ dashboard_api_enabled | tojson | safe }}')
+    apiEnabled: JSON.parse('{{ dashboard_api_enabled | tojson }}')
+
   };
 </script>
 <script src="/static/javascript/dashboard.js"></script>

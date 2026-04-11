@@ -48,12 +48,44 @@ class UserManager:
 
     def verify_password(self, username: str, password: str) -> dict | None:
         user = self.get_user(username)
-        if user and check_password_hash(user["password_hash"], password):
-            db.update_user(username, last_login=datetime.now().isoformat())
-            # نضمن إن مفتاح role موجود دايماً
+        if not user:
+            return None
+            
+        # 1. Check Lockout
+        lockout_str = user.get("lockout_until")
+        if lockout_str:
+            try:
+                lockout_until = datetime.fromisoformat(lockout_str)
+                if datetime.now() < lockout_until:
+                    user["locked"] = True
+                    return user # Return user with locked flag
+            except Exception:
+                pass
+        
+        # 2. Verify Password
+        if check_password_hash(user["password_hash"], password):
+            # Success: Reset attempts
+            db.update_user(username, 
+                           last_login=datetime.now().isoformat(),
+                           failed_login_attempts=0,
+                           lockout_until=None)
             user["role"] = user.get("role_name") or user.get("role", "user")
+            user["locked"] = False
             return user
-        return None
+        else:
+            # Failure: Increment attempts
+            attempts = user.get("failed_login_attempts", 0) + 1
+            lockout_until = None
+            if attempts >= 5:
+                # Lock for 15 minutes
+                lockout_until = (datetime.now() + timedelta(minutes=15)).isoformat()
+                logger.warning(f"[SEC] Account {username} locked due to brute-force attempts.")
+            
+            db.update_user(username, 
+                           failed_login_attempts=attempts,
+                           lockout_until=lockout_until)
+            return None
+
 
     # ── Create ────────────────────────────────────────────────
     def add_user(self, username: str, password: str, role=Role.USER):
