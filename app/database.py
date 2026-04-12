@@ -176,39 +176,18 @@ def insert_user(username, password_hash, email=None,
 
 
 def update_user(username: str, **kwargs) -> bool:
-    # Strict allowlist — column names are NEVER taken from user input
-    ALLOWED_COLUMNS = frozenset({
-        "password_hash", "email", "role_name", "status", "full_name",
-        "phone", "department", "last_login", "pending_email",
-        "email_otp_hash", "email_otp_expiry", "email_otp_attempts",
-        "failed_login_attempts", "lockout_until",
-    })
-
-    # Validate every key — log and skip anything not in the allowlist
-    fields = {}
-    for k, v in kwargs.items():
-        if k not in ALLOWED_COLUMNS:
-            logger.warning(f"[DB] update_user: rejected unknown column '{k}'")
-            continue
-        fields[k] = v
-
+    allowed = {"email", "password_hash", "role_id", "department_id",
+               "is_active", "last_login", "updated_at",
+               "full_name", "phone", "department"}
+    fields = {k: v for k, v in kwargs.items() if k in allowed}
     if not fields:
         return False
-
     fields["updated_at"] = time.strftime("%Y-%m-%d %H:%M:%S")
-
-    # SET clause built only from validated column names — values always via ? placeholder
-    set_clause = ", ".join(f"{col} = ?" for col in fields)   # col ∈ ALLOWED_COLUMNS
-    values = list(fields.values()) + [username]               # username bound as a parameter
-
+    set_clause = ", ".join(f"{k} = ?" for k in fields)
+    values = list(fields.values()) + [username]
     with db_cursor() as cur:
-        # Parameterized query — no user data ever reaches the SQL string itself
-        cur.execute(
-            f"UPDATE users SET {set_clause} WHERE username = ?",  # noqa: S608
-            values
-        )
+        cur.execute(f"UPDATE users SET {set_clause} WHERE username = ?", values)
         return cur.rowcount > 0
-
 
 
 def delete_user(username: str) -> bool:
@@ -253,10 +232,8 @@ def _ensure_rules_table():
                 user_id INTEGER NOT NULL,
                 otp TEXT NOT NULL,
                 otp_expiry TEXT NOT NULL,
-                otp_attempts INTEGER DEFAULT 0,
                 used INTEGER DEFAULT 0
             )
-
         """)
         cur.execute("""
             CREATE TABLE IF NOT EXISTS audit_logs (
@@ -294,21 +271,14 @@ def _ensure_rules_table():
                 username      TEXT NOT NULL UNIQUE,
                 password_hash TEXT NOT NULL,
                 email         TEXT,
-                pending_email TEXT,
-                email_otp_hash TEXT,
-                email_otp_expiry TEXT,
-                email_otp_attempts INTEGER DEFAULT 0,
                 role_name     TEXT DEFAULT 'user',
                 status        TEXT DEFAULT 'active',
                 full_name     TEXT,
                 phone         TEXT,
                 department    TEXT,
                 last_login    TEXT,
-                failed_login_attempts INTEGER DEFAULT 0,
-                lockout_until TEXT,
                 created_at    TEXT
             )
-
         """)
 
 

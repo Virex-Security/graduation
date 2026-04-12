@@ -81,6 +81,142 @@ INTENTS = {
         ]
     },
 
+    # ── System Status ─────────────────────────────────────────────
+    "system_status": {
+        "triggers": [
+            # EN
+            "system status", "status", "overview", "health", "dashboard",
+            "whats happening", "how is the system", "current state",
+            "system health", "network status", "security status",
+            "show stats", "give me stats", "stats", "statistics",
+            "summary", "report", "what is going on", "situation",
+            "is the system safe", "is it safe", "are we safe",
+            "under attack", "being attacked", "system secure",
+            "how many attacks", "how many times attacked",
+            "attacked today", "attacks today", "times attacked",
+            # AR
+            "الوضع ايه", "ايه الوضع", "احصائيات", "احصايات", "تقرير",
+            "الحالة ايه", "ايه الحالة", "ملخص", "عرض الاحصائيات",
+            "ايه اللي بيحصل", "الوضع الامني", "حالة النظام",
+            "اخبار النظام", "ايه الاخبار", "اعطني احصائيات",
+            "وريني الاحصائيات", "فيه ايه", "ايه في النظام",
+            "عايز اعرف احوال", "احوال النظام", "النظام امن",
+            "في هجمات", "بيتهاجم", "النظام بخير",
+        ]
+    },
+
+    # ── SQL Injection ─────────────────────────────────────────────
+    "sql_stats": {
+        "triggers": [
+            # EN
+            "sql injection", "sql attacks", "sql", "injection attacks",
+            "database attacks", "how many sql", "sql count",
+            "sql injection attempts", "any sql",
+            # AR
+            "حقن sql", "هجمات sql", "كام sql", "اس كيو ال",
+            "حقن قواعد البيانات", "هجمات قواعد البيانات",
+            "كام هجمة sql", "في sql",
+        ]
+    },
+
+    # ── XSS ───────────────────────────────────────────────────────
+    "xss_stats": {
+        "triggers": [
+            # EN
+            "xss", "cross site scripting", "script injection",
+            "how many xss", "xss attacks", "xss attempts",
+            # AR
+            "xss", "اكس اس اس", "كام xss", "هجمات xss",
+            "حقن سكريبت", "سكريبت injection",
+        ]
+    },
+
+    # ── Brute Force ───────────────────────────────────────────────
+    "brute_stats": {
+        "triggers": [
+            # EN
+            "brute force", "brute", "login attempts", "password attacks",
+            "how many brute", "failed logins", "password guessing",
+            "failed login", "login failed", "wrong password",
+            "password cracking", "tried to login", "tried to log in",
+            # AR
+            "بروت فورس", "تخمين كلمة السر", "محاولات تسجيل الدخول",
+            "هجمات كلمة المرور", "كام brute", "تخمين باسورد",
+            "محاولات دخول", "هجمات دخول", "حاول يخش",
+            "محاولات كلمة السر", "كام واحد حاول يدخل",
+        ]
+    },
+
+    # ── Scanner ───────────────────────────────────────────────────
+    "scanner_stats": {
+        "triggers": [
+            # EN
+            "scanner", "scanning", "port scan", "vulnerability scan",
+            "how many scans", "reconnaissance", "recon", "probing",
+            # AR
+            "سكانر", "فحص", "مسح", "كام فحص", "عمليات فحص",
+            "هجمات فحص", "استطلاع",
+        ]
+    },
+
+    # ── Rate Limit ────────────────────────────────────────────────
+    "ratelimit_stats": {
+        "triggers": [
+            # EN
+            "rate limit", "rate limiting", "dos", "ddos",
+            "too many requests", "flooding", "how many rate",
+            # AR
+            "rate limit", "حد الطلبات", "هجوم dos", "طوفان طلبات",
+            "ضغط على السيرفر", "كام rate limit",
+        ]
+    },
+
+    # ── ML Detections ─────────────────────────────────────────────
+    "ml_stats": {
+        "triggers": [
+            # EN
+            "ml detection", "machine learning", "ml", "ai detection",
+            "anomaly detection", "how many ml", "ml caught", "model",
+            # AR
+            "كشف ml", "تعلم آلي", "الموديل", "نموذج ml",
+            "كام ml", "الذكاء الاصطناعي كشف", "كشف تلقائي",
+        ]
+    },
+
+    # ── Top Attacker ──────────────────────────────────────────────
+    "top_attacker": {
+        "triggers": [
+            # EN
+            "top attacker", "most attacks", "worst ip", "dangerous ip",
+            "who attacked most", "top ip", "highest threat",
+            "most dangerous", "repeat attacker", "most frequent",
+            # AR
+            "اخطر ip", "اخطر مهاجم", "اكثر هجوم", "اكتر هجوم",
+            "اشد خطورة", "اي بي اخطر", "مين بيهاجم اكتر",
+            "اكثر مصدر تهديد", "اخطر عنوان",
+        ]
+    },
+
+    # ── Recent Threats ────────────────────────────────────────────
+    "recent_threats": {
+        "triggers": [
+            # EN
+            "recent threats", "latest threats", "last attack", "latest attack",
+            "what happened", "recent events", "recent attacks",
+            "show threats", "list threats", "any new attacks",
+            "what was the last", "recent incidents",
+            "any suspicious", "suspicious activity", "anything suspicious",
+            "new threats", "show me threats", "what threats", "any attacks",
+            "new attacks", "anything new", "latest events",
+            # AR
+            "اخر هجمة", "اخر تهديد", "ايه اخر حاجة", "اخر هجمات",
+            "ايه اللي اتكشف", "التهديدات الاخيرة", "اخر الاحداث",
+            "عرض التهديدات", "في هجمات حديثة", "ايه اخر واحدة",
+            "في حاجة مريبة", "في نشاط غريب", "هجمات جديدة",
+            "ايه الجديد", "اي هجمات", "فيه هجمات",
+        ]
+    },
+
     # ── Incident Analysis ─────────────────────────────────────────
     "incident_why": {
         "triggers": [
@@ -165,12 +301,19 @@ INTENTS = {
     "dashboard_help": {
         "triggers": ["how to use", "help me", "dashboard guide", "ازاي استخدم الموقع", "شرح الموقع", "مساعدة", "استخدام الداشبورد", "لوحة التحكم", "كيف استخدم"]
     },
+    "top_attack": {
+        "triggers": ["top attack", "what is top attack", "most frequent attack", "highest threat", "most common attack", "اكتر هجوم متكرر", "اخطر نوع هجوم", "اكثر هجوم", "نوع الهجوم المنتشر", "top attack type"]
+    },
 }
 
 # --- EXTENDED EXISTING INTENTS FOR BETTER RECOGNITION ---
 INTENTS["greeting"]["triggers"].extend(["عامل ايه يا دوبي", "يا دوبي", "صباحو", "مساءو", "hello dobby", "hi dobby", "ازيك يا دوبي"])
+INTENTS["system_status"]["triggers"].extend(["طمني", "كله تمام", "في هجمات دلوقتي", "اي الاخبار", "كله في السليم", "حالة السيرفر"])
 INTENTS["thanks"]["triggers"].extend(["حبيبي", "كفاءة", "الله ينور", "تسلم ايدك", "شكرا يا دوبي", "عظمة"])
 INTENTS["identity"]["triggers"].extend(["انت مين يالا", "مين المطور بتاعك", "مين برمجك", "انت عبارة عن ايه", "عرفني عليك"])
+INTENTS["top_attacker"]["triggers"].extend(["مين اكتر حد بيهاجم", "اسوا اي بي", "مين بيبعت هجمات", "اخطر حد"])
+INTENTS["recent_threats"]["triggers"].extend(["حصل ايه من شوية", "اخر الاخبار", "شوف كده في هجمات", "اخر تهديدات", "ايه بيحصل"])
+
 INTENTS["incident_action"]["triggers"].extend(["تنصحني بايه", "اتصرف ازاي", "اعمل ايه مع الهجوم", "الحل ايه"])
 
 
@@ -304,9 +447,117 @@ class SecurityChatbot:
         ])
 
     def _r_how_are_you(self, lang):
+        s = self.dashboard.stats
         if lang == 'ar':
-            return "الحمد لله تمام! أنا هنا لمساعدتك على فهم التهديدات الأمنية أفضل."
-        return "I'm doing well, thank you! I'm here to help you understand cyber threats better."
+            return f"أنا تمام، والنظام شغال! 💪\nحالياً بتابع **{s.get('total_requests',0)}** طلب وحجبت **{s.get('blocked_requests',0)}** هجمة."
+        return f"All good, system is running! 💪\nCurrently monitoring **{s.get('total_requests',0)}** requests with **{s.get('blocked_requests',0)}** blocked."
+
+    def _r_thanks(self, lang):
+        if lang == 'ar':
+            return random.choice([
+                "العفو! 🫡 أنا دايماً في الخدمة.",
+                "يسعدني! لو في أي حاجة تانية قولي. 👍",
+                "زي الفل! عرفني لو احتجت حاجة. 🛡️",
+            ])
+        return random.choice([
+            "You're welcome! 🫡 Always here to help.",
+            "Happy to help! Let me know if you need anything else. 👍",
+            "Anytime! Stay secure. 🛡️",
+        ])
+
+    def _r_status(self, lang):
+        s = self.dashboard.stats
+        blocked_pct = 0
+        if s.get('total_requests', 0) > 0:
+            blocked_pct = round(s['blocked_requests'] / s['total_requests'] * 100, 1)
+
+        if lang == 'ar':
+            return (
+                f"**📊 تقرير حالة النظام:**\n\n"
+                f"🔵 إجمالي الطلبات : **{s.get('total_requests',0)}**\n"
+                f"🔴 محجوب           : **{s.get('blocked_requests',0)}** ({blocked_pct}%)\n"
+                f"🤖 كشف ML          : **{s.get('ml_detections',0)}**\n"
+                f"💉 SQL Injection    : **{s.get('sql_injection_attempts',0)}**\n"
+                f"🖥️ XSS             : **{s.get('xss_attempts',0)}**\n"
+                f"🔑 Brute Force      : **{s.get('brute_force_attempts',0)}**\n"
+                f"🔍 Scanner          : **{s.get('scanner_attempts',0)}**\n"
+                f"⏱️ Rate Limit       : **{s.get('rate_limit_hits',0)}**"
+            )
+        return (
+            f"**📊 System Status Report:**\n\n"
+            f"🔵 Total Requests : **{s.get('total_requests',0)}**\n"
+            f"🔴 Blocked        : **{s.get('blocked_requests',0)}** ({blocked_pct}%)\n"
+            f"🤖 ML Detections  : **{s.get('ml_detections',0)}**\n"
+            f"💉 SQL Injection   : **{s.get('sql_injection_attempts',0)}**\n"
+            f"🖥️ XSS            : **{s.get('xss_attempts',0)}**\n"
+            f"🔑 Brute Force     : **{s.get('brute_force_attempts',0)}**\n"
+            f"🔍 Scanner         : **{s.get('scanner_attempts',0)}**\n"
+            f"⏱️ Rate Limit      : **{s.get('rate_limit_hits',0)}**"
+        )
+
+    def _r_attack_stat(self, intent, lang):
+        s = self.dashboard.stats
+        mapping = {
+            "sql_stats":      (s.get('sql_injection_attempts', 0), "SQL Injection",        "حقن SQL"),
+            "xss_stats":      (s.get('xss_attempts', 0),           "XSS",                  "XSS"),
+            "brute_stats":    (s.get('brute_force_attempts', 0),    "Brute Force",          "Brute Force"),
+            "scanner_stats":  (s.get('scanner_attempts', 0),        "Scanner",              "فحص"),
+            "ratelimit_stats":(s.get('rate_limit_hits', 0),         "Rate Limit",           "Rate Limit"),
+            "ml_stats":       (s.get('ml_detections', 0),           "ML Anomaly Detection", "كشف ML"),
+        }
+        count, name_en, name_ar = mapping[intent]
+        if lang == 'ar':
+            return f"🛡️ رصدنا **{count}** محاولة {name_ar} لحد دلوقتي."
+        return f"🛡️ Detected **{count}** {name_en} attempts so far."
+
+    def _r_top_attacker(self, lang, is_admin):
+        top = self.dashboard.get_top_attackers(3)
+        if not top:
+            return ("لسه مفيش هجمات مسجلة. 🟢" if lang == 'ar'
+                    else "No attacks recorded yet. 🟢")
+        lines = []
+        for i, (ip, count) in enumerate(top, 1):
+            ip_d = ip if is_admin else "XXX.XXX.XXX.XXX"
+            lines.append(f"{i}. `{ip_d}` — **{count}** محاولة" if lang == 'ar'
+                         else f"{i}. `{ip_d}` — **{count}** attempts")
+        header = "🚨 **أخطر المصادر:**\n" if lang == 'ar' else "🚨 **Top Attackers:**\n"
+        return header + "\n".join(lines)
+
+    def _r_top_attack(self, lang):
+        s = self.dashboard.stats
+        attack_types = {
+            "SQL Injection": s.get('sql_injection_attempts', 0),
+            "XSS": s.get('xss_attempts', 0),
+            "Brute Force": s.get('brute_force_attempts', 0),
+            "Scanner": s.get('scanner_attempts', 0),
+            "Rate Limit/DDoS": s.get('rate_limit_hits', 0),
+        }
+        if not attack_types or all(v == 0 for v in attack_types.values()):
+            return ("لاتوجد هجمات حالياً. النظام آمن! 🟢" if lang == 'ar'
+                    else "No attacks recorded currently. System is safe! 🟢")
+            
+        top_name, top_count = max(attack_types.items(), key=lambda x: x[1])
+        if lang == 'ar':
+            return f"🚨 **أعلى نوع هجوم (Top Attack):**\nهو **{top_name}** بعدد `{top_count}` محاولة."
+        return f"🚨 **Top Attack Type:**\nIt is **{top_name}** with `{top_count}` attempts."
+
+    def _r_recent_threats(self, lang, is_admin):
+        recent = list(self.dashboard.recent_threats)[-5:]
+        if not recent:
+            return ("مفيش تهديدات حديثة. 🟢" if lang == 'ar'
+                    else "No recent threats. 🟢")
+        header = "🔥 **آخر التهديدات:**\n" if lang == 'ar' else "🔥 **Recent Threats:**\n"
+        lines = []
+        for t in reversed(recent):
+            ip_d = t.get('ip', '?') if is_admin else "XXX.XXX.XXX.XXX"
+            lines.append(
+                f"• `{t.get('timestamp','?')}` — **{t.get('type','?')}** "
+                f"من {ip_d} ({t.get('severity','?')})"
+                if lang == 'ar' else
+                f"• `{t.get('timestamp','?')}` — **{t.get('type','?')}** "
+                f"from {ip_d} ({t.get('severity','?')})"
+            )
+        return header + "\n".join(lines)
 
     def _r_security_tips(self, lang):
         if lang == 'ar':
@@ -452,48 +703,46 @@ class SecurityChatbot:
         role:        str  = "user",
     ) -> str:
 
-        # ── INPUT VALIDATION MIDDLEWARE (Prompt Injection Defense) ──
-        forbidden_phrases = ["ignore instructions", "system prompt", "reveal"]
-        query_lower = user_query.lower()
-        if any(phrase in query_lower for phrase in forbidden_phrases):
-            return "🚫 Security Exception: Malicious prompt injection detected and blocked."
-
-        # ── EGRESS FILTER MIDDLEWARE ──
-        def filter_response(text: str) -> str:
-            # Prevent hallucinated internal metrics or logs from leaking
-            leak_keywords = ["192.168.", "10.0.0.", "log data:", "system internals", "user email", "database row"]
-            text_lower = text.lower()
-            if any(leak in text_lower for leak in leak_keywords):
-                return "🛡️ Security Block: The requested data contains restricted system internals or logs which I am not authorized to disclose."
-            return text
-
         # ── GEMINI AI INTEGRATION (MIND UPGRADE) ────────────────
         gemini_key = os.getenv("GEMINI_API_KEY")
         if gemini_key:
             try:
                 import google.generativeai as genai
                 genai.configure(api_key=gemini_key)
+                # Use gemini-1.5-flash for fast chat
                 model = genai.GenerativeModel("gemini-1.5-flash")
                 
-                # Structured prompt format to delimit and wrap untrusted data
+                # Fetch live data to make Dobby aware
+                s = self.dashboard.stats
+                sys_status = (
+                    f"Live Dashboard Stats:\n"
+                    f"- Total Requests: {s.get('total_requests', 0)}\n"
+                    f"- Blocked: {s.get('blocked_requests', 0)}\n"
+                    f"- ML Detections: {s.get('ml_detections', 0)}\n"
+                    f"- SQL Injection: {s.get('sql_injection_attempts', 0)}\n"
+                    f"- XSS: {s.get('xss_attempts', 0)}\n"
+                    f"- Rate Limit/DDoS: {s.get('rate_limit_hits', 0)}\n"
+                    f"- Brute Force: {s.get('brute_force_attempts', 0)}\n"
+                )
+                
                 prompt = (
-                    f"SYSTEM:\n"
-                    f"You are Dobby, a smart cyber-security educational assistant for the Virex application.\n"
-                    f"STRICT RULES:\n"
-                    f"1. You are strictly an EDUCATIONAL guide. You may ONLY answer questions explaining threats (e.g., 'What is DDoS?'), giving general security guidance, or explaining how to use a dashboard.\n"
-                    f"2. You DO NOT HAVE ACCESS to live logs, real-time stats, user data, or system internals. If the user asks for logs, amounts of attacks, top attackers, system health, or user info, you MUST politely refuse and state you only provide guidance.\n"
-                    f"3. Answer in the exact language the user used (English or Egyptian Arabic), keep it natural.\n"
+                    f"You are Dobby, a smart, professional, yet friendly cyber-security assistant for the Virex WAF Dashboard. "
+                    f"You answer quickly, concisely, and accurately.\n"
+                    f"Rules:\n"
+                    f"1. You have access to real-time system stats: {sys_status}\n"
+                    f"2. IMPORTANT: If the user asks for the 'top attack', you must figure out the highest attack type from the stats and tell them.\n"
+                    f"3. Answer in the exact language the user used (English or Egyptian Arabic), and keep it natural like a chat.\n"
                     f"4. Format the response nicely using simple Markdown.\n"
-                    f"5. Do NOT say you are an AI model. You are Dobby.\n\n"
-                    f"USER_DATA:\n"
-                    f"{user_query}"
+                    f"5. Do NOT say you are an AI model. You are Dobby, the Virex assistant.\n\n"
+                    f"User asks: {user_query}"
                 )
                 
                 response = model.generate_content(prompt)
                 if response and response.text:
-                    return filter_response(response.text)
+                    return response.text
             except Exception as e:
                 print("Gemini API Error:", e)
+                # Fallback to rule-based system if API fails or quota exceeded
 
         # ── FALLBACK: PURE PYTHON RULE-BASED ENGINE ──────────────
         time.sleep(0.2)
@@ -501,17 +750,32 @@ class SecurityChatbot:
         is_admin = (role == self.Role.ADMIN)
         intent   = _classify(user_query)
 
+        # ── non-admin: block sensitive queries ──────────────────
+        if not is_admin and intent in ("top_attacker",) and not incident_id:
+            if lang == 'ar':
+                return "عذراً، التفاصيل دي للمسؤولين فقط. 🔒"
+            return "Sorry, this information is restricted to admins. 🔒"
+
         # ── simple intents ───────────────────────────────────────
-        if intent == "identity":       return filter_response(self._r_identity(lang))
-        if intent == "greeting":       return filter_response(self._r_greeting(lang))
-        if intent == "how_are_you":    return filter_response(self._r_how_are_you(lang)) # We will rewrite this function later to not leak DB stats
-        if intent == "thanks":         return filter_response(self._r_thanks(lang))
-        if intent == "goodbye":        return filter_response(self._r_goodbye(lang))
-        if intent == "security_tips":  return filter_response(self._r_security_tips(lang))
+        if intent == "identity":       return self._r_identity(lang)
+        if intent == "greeting":       return self._r_greeting(lang)
+        if intent == "how_are_you":    return self._r_how_are_you(lang)
+        if intent == "thanks":         return self._r_thanks(lang)
+        if intent == "goodbye":        return self._r_goodbye(lang)
+        if intent == "system_status":  return self._r_status(lang)
+        if intent == "top_attacker":   return self._r_top_attacker(lang, is_admin)
+        if intent == "top_attack":     return self._r_top_attack(lang)
+        if intent == "recent_threats": return self._r_recent_threats(lang, is_admin)
+        if intent == "security_tips":  return self._r_security_tips(lang)
+
+        # ── attack type stats ────────────────────────────────────
+        if intent in ("sql_stats", "xss_stats", "brute_stats",
+                      "scanner_stats", "ratelimit_stats", "ml_stats"):
+            return self._r_attack_stat(intent, lang)
 
         # ── incident_action without incident → security tips ─────
         if intent == "incident_action" and not incident_id:
-            return filter_response(self._r_security_tips(lang))
+            return self._r_security_tips(lang)
 
         # ── incident_why without incident → clarify context ───────
         if intent == "incident_why" and not incident_id:
@@ -520,14 +784,14 @@ class SecurityChatbot:
             return "If you're asking why a specific attack happened, please provide context or open it from the Incidents page so I can analyze it for you. 🔍"
             
         # ── newly added knowledge intents ──────────────────────────
-        if intent == "what_is_sqli":   return filter_response(self._r_what_is_sqli(lang))
-        if intent == "what_is_xss":    return filter_response(self._r_what_is_xss(lang))
-        if intent == "what_is_ddos":   return filter_response(self._r_what_is_ddos(lang))
-        if intent == "what_is_malware": return filter_response(self._r_what_is_malware(lang))
-        if intent == "what_is_phishing":return filter_response(self._r_what_is_phishing(lang))
-        if intent == "what_is_firewall":return filter_response(self._r_what_is_firewall(lang))
-        if intent == "virex_info":     return filter_response(self._r_virex_info(lang))
-        if intent == "dashboard_help": return filter_response(self._r_dashboard_help(lang))
+        if intent == "what_is_sqli":   return self._r_what_is_sqli(lang)
+        if intent == "what_is_xss":    return self._r_what_is_xss(lang)
+        if intent == "what_is_ddos":   return self._r_what_is_ddos(lang)
+        if intent == "what_is_malware": return self._r_what_is_malware(lang)
+        if intent == "what_is_phishing":return self._r_what_is_phishing(lang)
+        if intent == "what_is_firewall":return self._r_what_is_firewall(lang)
+        if intent == "virex_info":     return self._r_virex_info(lang)
+        if intent == "dashboard_help": return self._r_dashboard_help(lang)
 
         # ── incident-specific ────────────────────────────────────
         if incident_id:
@@ -535,9 +799,10 @@ class SecurityChatbot:
             if not inc:
                 return ("الحادثة دي مش موجودة في السجلات." if lang == 'ar'
                         else "This incident was not found in records.")
-            if intent == "incident_why":    return filter_response(self._r_incident_why(inc, lang, is_admin))
-            if intent == "incident_action": return filter_response(self._r_incident_action(inc, lang, is_admin))
-            return filter_response(self._r_incident_why(inc, lang, is_admin))
+            if intent == "incident_why":    return self._r_incident_why(inc, lang, is_admin)
+            if intent == "incident_action": return self._r_incident_action(inc, lang, is_admin)
+            # fallback for incident page: give full summary
+            return self._r_incident_why(inc, lang, is_admin)
 
         # ── unknown ──────────────────────────────────────────────
-        return filter_response(self._r_unknown(lang))
+        return self._r_unknown(lang)

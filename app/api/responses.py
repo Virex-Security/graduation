@@ -8,75 +8,68 @@ from flask import jsonify
 
 # ── Success ────────────────────────────────────────────────────────────────
 
-def ok(data=None, status: int = 200):
-    """200 success with payload."""
-    return jsonify({
-        "success": True,
-        "data": data,
-        "error": None
-    }), status
+def ok(data=None, message: str = "OK", status: int = 200):
+    """200 success with optional payload."""
+    body = {"success": True, "message": message}
+    if data is not None:
+        body["data"] = data
+    return jsonify(body), status
 
 
-def created(data=None):
+def created(data=None, message: str = "Created"):
     """201 created."""
-    return ok(data=data, status=201)
+    return ok(data=data, message=message, status=201)
 
 
-# ── Client errors ──────────────────────────────────────────
-
-def error(message: str, data=None, status: int = 400):
-    """Standard error response."""
-    return jsonify({
-        "success": False,
-        "data": data,
-        "error": message
-    }), status
-
+# ── Client errors ──────────────────────────────────────────────────────────
 
 def bad_request(message: str = "Bad request", errors=None):
     """400 bad request."""
-    return error(message, data=errors, status=400)
+    body = {"success": False, "message": message}
+    if errors:
+        body["errors"] = errors
+    return jsonify(body), 400
 
 
 def unauthorized(message: str = "Unauthorized"):
     """401 unauthorized."""
-    return error(message, status=401)
+    return jsonify({"success": False, "message": message}), 401
 
 
 def forbidden(message: str = "Forbidden"):
     """403 forbidden."""
-    return error(message, status=403)
+    return jsonify({"success": False, "message": message}), 403
 
 
 def not_found(message: str = "Not found"):
     """404 not found."""
-    return error(message, status=404)
+    return jsonify({"success": False, "message": message}), 404
 
 
 def conflict(message: str = "Conflict"):
-    """409 conflict."""
-    return error(message, status=409)
+    """409 conflict (e.g. duplicate username)."""
+    return jsonify({"success": False, "message": message}), 409
 
 
 def rate_limited(message: str = "Too many requests"):
     """429 rate limited."""
-    return error(message, status=429)
+    return jsonify({"success": False, "message": message}), 429
 
 
-# ── Server errors ──────────────────────────────────────────
+# ── Server errors ──────────────────────────────────────────────────────────
 
 def server_error(message: str = "Internal server error"):
-    """500 internal server error."""
-    return error(message, status=500)
+    """500 internal server error. Never expose exception details."""
+    return jsonify({"success": False, "message": message}), 500
 
 
-# ── List wrapper ───────────────────────────────────────────
+# ── List wrapper ───────────────────────────────────────────────────────────
 
 def paginated(items: list, total: int = None, message: str = "OK"):
-    """Consistent list response with meta-data nested in data."""
-    data = {
-        "items": items,
+    """Consistent list response with item count."""
+    return jsonify({
+        "success": True,
+        "message": message,
+        "data": items,
         "total": total if total is not None else len(items),
-        "message": message
-    }
-    return ok(data=data)
+    }), 200

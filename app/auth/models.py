@@ -22,18 +22,13 @@ class UserManager:
     def validate_password_policy(password):
         if not isinstance(password, str) or not password:
             return False, "Password is required"
-        if len(password) < 10:
-            return False, "Password must be at least 10 characters"
+        if len(password) < 8:
+            return False, "Password must be at least 8 characters"
         if not re.search(r"[A-Z]", password):
             return False, "Password must include at least one uppercase letter"
-        if not re.search(r"[a-z]", password):
-            return False, "Password must include at least one lowercase letter"
-        if not re.search(r"[0-9]", password):
-            return False, "Password must include at least one number"
         if not re.search(r"[^A-Za-z0-9]", password):
-            return False, "Password must include at least one special character (e.g. !@#$%)"
+            return False, "Password must include at least one symbol"
         return True, "Valid password"
-
 
     # ── Read ──────────────────────────────────────────────────
     def get_user(self, username: str) -> dict | None:
@@ -53,44 +48,12 @@ class UserManager:
 
     def verify_password(self, username: str, password: str) -> dict | None:
         user = self.get_user(username)
-        if not user:
-            return None
-            
-        # 1. Check Lockout
-        lockout_str = user.get("lockout_until")
-        if lockout_str:
-            try:
-                lockout_until = datetime.fromisoformat(lockout_str)
-                if datetime.now() < lockout_until:
-                    user["locked"] = True
-                    return user # Return user with locked flag
-            except Exception:
-                pass
-        
-        # 2. Verify Password
-        if check_password_hash(user["password_hash"], password):
-            # Success: Reset attempts
-            db.update_user(username, 
-                           last_login=datetime.now().isoformat(),
-                           failed_login_attempts=0,
-                           lockout_until=None)
+        if user and check_password_hash(user["password_hash"], password):
+            db.update_user(username, last_login=datetime.now().isoformat())
+            # نضمن إن مفتاح role موجود دايماً
             user["role"] = user.get("role_name") or user.get("role", "user")
-            user["locked"] = False
             return user
-        else:
-            # Failure: Increment attempts
-            attempts = user.get("failed_login_attempts", 0) + 1
-            lockout_until = None
-            if attempts >= 5:
-                # Lock for 15 minutes
-                lockout_until = (datetime.now() + timedelta(minutes=15)).isoformat()
-                logger.warning(f"[SEC] Account {username} locked due to brute-force attempts.")
-            
-            db.update_user(username, 
-                           failed_login_attempts=attempts,
-                           lockout_until=lockout_until)
-            return None
-
+        return None
 
     # ── Create ────────────────────────────────────────────────
     def add_user(self, username: str, password: str, role=Role.USER):

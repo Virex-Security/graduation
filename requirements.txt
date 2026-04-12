@@ -7,11 +7,6 @@
 flask==2.2.5
 flask-cors==4.0.0
 flask-limiter==3.5.0
-flask-wtf==1.2.1
-
-# --- Security ---
-python-magic==0.4.27
-
 
 # --- Authentication ---
 PyJWT==2.8.0
@@ -19,13 +14,20 @@ PyJWT==2.8.0
 # --- AI & Chatbot ---
 google-generativeai==0.8.3
 
-# --- Machine Learning ---
+# --- Machine Learning (Core) ---
 scikit-learn==1.3.0
 numpy==1.24.3
 pandas==1.5.3
 joblib==1.3.2
+scipy>=1.9.0
 
-# --- ML Training (for train_model_enhanced.py) ---
+# --- ML v2 Enhancements ---
+xgboost>=1.7.0
+lightgbm>=3.3.0
+imbalanced-learn>=0.10.0
+shap>=0.41.0
+
+# --- ML Training & Evaluation ---
 matplotlib==3.7.2
 seaborn==0.12.2
 
@@ -35,8 +37,6 @@ requests==2.31.0
 # --- Utilities ---
 python-dotenv==1.0.0
 psutil==5.9.5
-redis==5.0.1
-
 
 # --- Testing ---
 pytest==7.4.0

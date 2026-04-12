@@ -197,8 +197,7 @@ title %}Incidents - Virex{% endblock %} {% block stylesheets %}
 </main>
 {% endblock %} {% block scripts %}
 <script>
-  let allIncidents = JSON.parse("{{ incidents | tojson }}");
-
+  let allIncidents = JSON.parse("{{ incidents|tojson | safe }}");
 
   // Re-render table based on current filter state
   function renderTableFromState() {

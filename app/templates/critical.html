@@ -87,11 +87,31 @@ title %}Critical Intelligence - Virex{% endblock %} {% block stylesheets %}
       </div>
     </div>
 
-    <div class="table-card critical-table card">
-        <div class="section-header">
-            <h2>Live Critical Feed</h2>
-        </div>
-        {{ ui.data_table("critical-threats", ["Threat ID", "Source IP", "Target", "Type", "Score", "ML Conf", "Time", "Freq", "Status"]) }}
+    <div class="table-card critical-table">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th class="sortable" onclick="sortTable('id')">
+              Threat ID <i class="fas fa-sort"></i>
+            </th>
+            <th>Source IP</th>
+            <th>Target Asset</th>
+            <th>Threat Type</th>
+            <th class="sortable" onclick="sortTable('score')">
+              Threat Score <i class="fas fa-sort"></i>
+            </th>
+            <th>ML Confidence</th>
+            <th>Detection Time</th>
+            <th>Frequency</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="threatTableBody">
+          <tr style="text-align: center; padding: 2rem">
+            <td colspan="9">Loading threats...</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 

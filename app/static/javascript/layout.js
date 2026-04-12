@@ -12,7 +12,6 @@ const LayoutManager = {
 
   init() {
     this.sidebar = document.getElementById("sidebar");
-
     this.mainWrapper = document.querySelector(".main-wrapper");
     this.sidebarToggle = document.getElementById("sidebarToggle");
     this.navbar = document.querySelector(".navbar");
@@ -194,14 +193,44 @@ const LayoutManager = {
   },
 
   initConnectionMonitor() {
-    if (typeof ConnectionService !== "undefined") {
-      ConnectionService.subscribe((status, msg) => {
-        this.updateConnectionStatus(status, msg);
-        this.updateProfileConnectionStatus(status === "connected");
-      });
+    this.checkApiConnection();
+
+    if (this.connectionPollId) {
+      clearInterval(this.connectionPollId);
     }
+
+    this.connectionPollId = window.setInterval(() => {
+      this.checkApiConnection();
+    }, 15000);
   },
 
+  async checkApiConnection() {
+    try {
+      const response = await fetch("/api/system/health", {
+        method: "GET",
+        credentials: "same-origin",
+        cache: "no-store",
+        headers: {
+          "Cache-Control": "no-cache",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      const data = await response.json();
+      const isConnected = data.api_online === true;
+      this.updateConnectionStatus(
+        isConnected ? "connected" : "disconnected",
+        data.connection_state,
+      );
+      this.updateProfileConnectionStatus(isConnected);
+    } catch (error) {
+      this.updateConnectionStatus("disconnected");
+      this.updateProfileConnectionStatus(false);
+    }
+  },
 
   /**
    * Handle Reset Statistics
@@ -386,9 +415,7 @@ const LayoutManager = {
     badge.classList.toggle("offline", !isOnline);
     text.textContent = isOnline ? "ONLINE" : "OFFLINE";
   },
-
 };
-
 
 // Initialize on DOM ready
 document.addEventListener("DOMContentLoaded", () => {

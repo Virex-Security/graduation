@@ -1,27 +1,6 @@
 // ==================== DEMO WEBSITE JS — ShopSecure ====================
 
-// ── Security: Enforce HTTPS on all requests ─────────────────────
-const originalFetch = window.fetch;
-window.fetch = async function(...args) {
-  let url = args[0];
-  if (typeof url === 'string') {
-    // 1. Upgrade HTTP to HTTPS automatically
-    if (url.startsWith('http://')) {
-      url = url.replace(/^http:\/\//i, 'https://');
-    }
-    
-    // 2. Validate API URL protocol & Block non-HTTPS requests
-    const parsedUrl = new URL(url, window.location.origin);
-    if (parsedUrl.protocol !== 'https:') {
-      console.error(`[SECURITY] Blocked insecure request to: ${url}`);
-      return Promise.reject(new Error("Insecure HTTP requests are blocked by security policy."));
-    }
-    args[0] = url;
-  }
-  return originalFetch.apply(this, args);
-};
-
-const API = 'https://127.0.0.1:5000';
+const API = 'http://127.0.0.1:5000';
 let gT = 0, gB = 0, gA = 0, gC = 0;
 
 // ==================== STATS ====================

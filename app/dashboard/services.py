@@ -18,16 +18,15 @@ from app.dashboard.metrics import (
 
 load_dotenv()
 
-from app.repositories.threat_repo import ThreatRepository
-from app.repositories.audit_repo import AuditRepository
-
 class SecurityDashboard:
     @property
     def threat_log(self):
-        """Get all threat logs via ThreatRepository."""
-        return ThreatRepository.get_logs(limit=1000)
+        """قائمة كل التهديدات (آخر 1000) من قاعدة البيانات."""
+        return self.db.get_threat_logs(limit=1000)
 
     def __init__(self):
+        from app import database as db
+        self.db = db
         self.timeline_data = deque(maxlen=50)
         self.ip_tracker = defaultdict(int)
         self.incidents = {}
@@ -42,43 +41,62 @@ class SecurityDashboard:
         self.api_url = "http://127.0.0.1:5000/api/health"
         
         self.audit_log_path = "logs/audit.log"
-        self.MAX_LOG_BYTES  = 5 * 1024 * 1024
-        self.MAX_ROTATIONS  = 3
+
         self.audit_log_lock = threading.Lock()
         self.audit_lock = threading.Lock()
 
         os.makedirs(os.path.dirname(self.audit_log_path), exist_ok=True)
-        self.secret_key = os.getenv("SECRET_KEY", "fallback-dev-key")
-        self.load_stats_from_repo()
-
-    def log_clean_request(self, ip, endpoint="", method="GET"):
-        """Note: In the new architecture, we might not track every clean request in DB to avoid overhead."""
-        self.stats["total_requests"] = self.stats.get("total_requests", 0) + 1
-
-    def load_stats_from_repo(self):
-        """Load aggregated stats via ThreatRepository."""
-        stats = ThreatRepository.get_stats()
-        self.stats = stats
-        # Sync with legacy key names if needed
-        self.stats.setdefault('blocked_requests', stats.get('blocked_requests', 0))
+        if not os.path.exists(self.audit_log_path):
+            with open(self.audit_log_path, "w") as f:
+                json.dump([], f)
         
-        # Build ip tracker from recent history
+        self.secret_key = os.getenv("SECRET_KEY", "fallback-dev-key-change-in-production")
+        # Restore stats from disk on startup
+        self.load_stats_from_audit()
+    def log_clean_request(self, ip, endpoint="", method="GET"):
+        """Log a normal (non-attack) request — memory only, no DB write per request."""
+        self.stats["total_requests"] = self.stats.get("total_requests", 0) + 1
+    def load_stats_from_audit(self):
+        """Load stats from DB (threat_logs table)."""
+        stats = self.db.load_stats()
+        self.stats = {
+            'total_requests': stats.get('total_requests', 0),
+            'blocked_requests': stats.get('blocked_requests', 0),
+            'ml_detections': stats.get('ml_detections', 0),
+            'sql_injection_attempts': stats.get('sql_injection_attempts', 0),
+            'xss_attempts': stats.get('xss_attempts', 0),
+            'brute_force_attempts': stats.get('brute_force_attempts', 0),
+            'scanner_attempts': stats.get('scanner_attempts', 0),
+            'rate_limit_hits': stats.get('rate_limit_hits', 0)
+        }
+        # recent threats
+        self.recent_threats = [t for t in self.db.get_threat_logs(limit=20) if t.get('attack_type') != 'Clean'][:10]
+        # build ip tracker
         self.ip_tracker.clear()
-        recent_logs = ThreatRepository.get_logs(limit=1000)
-        for t in recent_logs:
+        for t in self.db.get_threat_logs(limit=1000):
+            if t.get('attack_type') == 'Clean':
+                continue
             ip = t.get('ip_address', '')
             if ip and ip not in ('Unknown', 'XXX.XXX.XXX.XXX'):
                 self.ip_tracker[ip] += 1
-
     def get_accurate_stats(self):
-        return ThreatRepository.get_stats()
-
+        """Recalculate all stats from DB."""
+        stats = self.db.load_stats()
+        return {
+            'total_requests': stats.get('total_requests', 0),
+            'blocked_requests': stats.get('blocked_requests', 0),
+            'ml_detections': stats.get('ml_detections', 0),
+            'sql_injection_attempts': stats.get('sql_injection_attempts', 0),
+            'xss_attempts': stats.get('xss_attempts', 0),
+            'brute_force_attempts': stats.get('brute_force_attempts', 0),
+            'scanner_attempts': stats.get('scanner_attempts', 0),
+            'rate_limit_hits': stats.get('rate_limit_hits', 0)
+        }
     def log_threat(self, threat_type, ip, description, severity="High", endpoint="", method="", snippet="", detection_type="Other", blocked=False):
-        """Log a threat using the ThreatRepository."""
-        confidence = 0.95 if "ml" in str(detection_type).lower() else 0.0
-        ml_detected = "ml" in str(detection_type).lower()
-        
-        log_id = ThreatRepository.log_threat(
+        # سجل التهديد في قاعدة البيانات
+        confidence = 0.95 if isinstance(detection_type, str) and detection_type.lower().startswith("ml") else 0.0
+        ml_detected = isinstance(detection_type, str) and detection_type.lower().startswith("ml")
+        self.db.log_threat(
             attack_type=threat_type,
             ip_address=ip,
             endpoint=endpoint,
@@ -91,20 +109,32 @@ class SecurityDashboard:
             confidence=confidence,
             detection_type=detection_type
         )
-        
-        # Aggregated notifications or in-memory updates
-        self.load_stats_from_repo()
-        
-        # Grouping logic (Incidents)
-        for inc in self.incidents.values():
-            if inc.source_ip == ip and inc.category == threat_type and inc.status != "Closed":
-                inc.events.append({"log_id": log_id})
-                inc.last_seen = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                return
-                
-        new_incident = Incident(threat_type, ip, {"log_id": log_id}, detection_type)
-        self.incidents[new_incident.id] = new_incident
-
+        # تحديث recent_threats و ip_tracker
+        self.recent_threats = [t for t in self.db.get_threat_logs(limit=20) if t.get('attack_type') != 'Clean'][:10]
+        self.ip_tracker.clear()
+        for t in self.db.get_threat_logs(limit=1000):
+            if t.get('attack_type') == 'Clean':
+                continue
+            ip_db = t.get('ip_address', '')
+            if ip_db and ip_db not in ('Unknown', 'XXX.XXX.XXX.XXX'):
+                self.ip_tracker[ip_db] += 1
+        # Group into Incidents (in-memory, can be improved to DB)
+        incident_key = f"{ip}_{threat_type}"
+        if incident_key not in self.incidents:
+            new_incident = Incident(threat_type, ip, dict(), detection_type)
+            self.incidents[new_incident.id] = new_incident
+        else:
+            found = False
+            for inc in self.incidents.values():
+                if inc.source_ip == ip and inc.category == threat_type and inc.status != "Closed":
+                    inc.events.append({})
+                    inc.last_seen = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    inc.severity = severity
+                    found = True
+                    break
+            if not found:
+                new_incident = Incident(threat_type, ip, dict(), detection_type)
+                self.incidents[new_incident.id] = new_incident
     def perform_action(self, incident_id, action, actor, comment=""):
         if incident_id not in self.incidents:
             return False, "Incident not found"
@@ -139,32 +169,24 @@ class SecurityDashboard:
             **audit_entry
         })
         return True, "Action performed successfully"
-    def _rotate_log_if_needed(self):
-        """Rename audit.log → audit.log.1 → audit.log.2 ... if file exceeds MAX_LOG_BYTES."""
-        try:
-            if os.path.getsize(self.audit_log_path) < self.MAX_LOG_BYTES:
-                return
-            # Shift existing rotations: .3 is dropped, .2 → .3, .1 → .2, active → .1
-            for i in range(self.MAX_ROTATIONS - 1, 0, -1):
-                src  = f"{self.audit_log_path}.{i}"
-                dest = f"{self.audit_log_path}.{i + 1}"
-                if os.path.exists(src):
-                    os.replace(src, dest)
-            os.replace(self.audit_log_path, f"{self.audit_log_path}.1")
-            open(self.audit_log_path, 'w').close()  # Start fresh
-        except Exception as e:
-            print(f"[LOG-ROTATE] Rotation failed: {e}")
-
     def write_audit_log(self, log_entry):
-        """Append a single JSON line (JSONL) — no full file load; rotates when large."""
+        # central helper used by role actions etc. ensure thread safety
         with self.audit_lock:
             try:
-                self._rotate_log_if_needed()
-                with open(self.audit_log_path, 'a') as f:
-                    f.write(json.dumps(log_entry) + '\n')
+                # use r+ to preserve existing content; if the file is
+                # malformed we fall back to recreating it with only the new
+                # entry rather than blowing it away entirely.
+                with open(self.audit_log_path, 'r+') as f:
+                    try:
+                        logs = json.load(f)
+                    except Exception:
+                        logs = []
+                    logs.append(log_entry)
+                    f.seek(0)
+                    json.dump(logs, f, indent=4)
+                    f.truncate()
             except Exception as e:
-                print(f"[AUDIT] Error writing audit log: {e}")
-
+                print(f"Error writing audit log: {e}")
     def update_timeline(self):
         self.check_api_connection()
         if self.connection_state == CONNECTED:
@@ -454,43 +476,37 @@ class SecurityDashboard:
             'attack_indicators': self.compute_attack_indicators(),
             'connection_state': self.connection_state
         }
-    def load_audit_log(self, max_json_entries: int = 500):
-        """Load audit log using tail-read (JSONL) + SQLite threats — no full file load."""
+    def load_audit_log(self):
+        """Load and merge audit actions from JSON and live threats from SQLite."""
         all_logs = []
-
-        # 1. Tail-read JSONL admin action entries (last max_json_entries lines)
+        
+        # 1. Fetch JSON audit actions (administrative actions)
         with self.audit_lock:
             try:
                 if os.path.exists(self.audit_log_path):
                     with open(self.audit_log_path, 'r') as f:
-                        # Efficient tail: read last N non-empty lines without
-                        # loading the full file into a list first.
-                        lines = []
-                        for raw in f:
-                            raw = raw.strip()
-                            if raw:
-                                lines.append(raw)
-                                if len(lines) > max_json_entries:
-                                    lines.pop(0)  # discard oldest to bound memory
-                        for raw in lines:
-                            try:
-                                all_logs.append(json.loads(raw))
-                            except json.JSONDecodeError:
-                                pass
+                        json_logs = json.load(f)
+                        if isinstance(json_logs, list):
+                            all_logs.extend(json_logs)
             except Exception as e:
-                print(f"[-] Error loading JSONL audit log: {e}")
+                print(f"[-] Error loading JSON audit log: {e}")
 
-        # 2. Fetch SQLite threats (limited to avoid huge in-memory lists)
+        # 2. Fetch SQLite threats (live traffic detections)
         try:
-            db_threats = self.db.get_threat_logs(limit=500)
+            db_threats = self.db.get_threat_logs(limit=2000)
             for t in db_threats:
+                # Normalize SQLite fields to match template expectations
+                # (e.g., ip_address -> ip, created_at -> timestamp)
                 normalized = dict(t)
-                normalized['id']        = t.get('threat_log_id')
-                normalized['ip']        = t.get('ip_address')
+                normalized['id'] = t.get('threat_log_id')
+                normalized['ip'] = t.get('ip_address')
                 normalized['timestamp'] = t.get('created_at')
-                normalized['blocked']   = bool(t.get('blocked'))
+                # Template expects boolean for blocked
+                normalized['blocked'] = bool(t.get('blocked'))
+                # Ensure type is set for the table badge logic
                 if 'type' not in normalized:
-                    normalized['type']  = t.get('attack_type')
+                   normalized['type'] = t.get('attack_type')
+                
                 all_logs.append(normalized)
         except Exception as e:
             print(f"[-] Error loading SQLite threat logs: {e}")
@@ -498,7 +514,6 @@ class SecurityDashboard:
         # 3. Sort by timestamp descending
         all_logs.sort(key=lambda x: str(x.get('timestamp', '')), reverse=True)
         return all_logs
-
 
     def _get_ml_relevant_logs(self, logs):
         """Filter logs for ML metrics calculation.

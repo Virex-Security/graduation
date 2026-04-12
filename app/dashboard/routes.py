@@ -17,18 +17,11 @@ from collections import defaultdict
 from functools import wraps
 import jwt
 import secrets
-import bcrypt
-from flask_wtf.csrf import CSRFProtect, CSRFError
 from app.dashboard.services import SecurityDashboard
-mask = CSRFProtect()
-
+from app.dashboard.services import SecurityDashboard
 from app.dashboard.metrics import calculate_threat_score, is_recent, determine_threat_status, run_timeline_updates
-
 from app.chatbot import SecurityChatbot
-from app.auth import login_user, logout_user, refresh_user_tokens, user_manager, Role, token_required, admin_required, require_role
-from app.api.security import SimpleSecurityManager
-from app.security import new_request_id, is_trivial, is_business_relevant
-
+from app.auth import login_user, logout_user, user_manager, Role, token_required, admin_required, require_role
 
 # Dashboard services and chatbot initialization
 dashboard = SecurityDashboard()
@@ -57,13 +50,6 @@ def create_dashboard_app():
                 template_folder=template_folder,
                 static_folder=static_folder)
     app.config['SECRET_KEY'] = dashboard.secret_key
-    app.config['WTF_CSRF_ENABLED'] = True
-    app.config['WTF_CSRF_CHECK_DEFAULT'] = True
-    csrf = CSRFProtect(app)
-    security = SimpleSecurityManager()
-    from app.api import responses
-
-
     def log_action(current_user, action, details=""):
         """Centralized logging for role-based actions"""
         log_entry = {
@@ -79,148 +65,119 @@ def create_dashboard_app():
     # ----------------------------------------------------------
     # TRAFFIC LOGGER - intercepts every request automatically
     # ----------------------------------------------------------
+    SKIP_PREFIXES = ('/static/', '/api/dashboard/', '/api/system/', '/favicon', '/api/auth/', '/api/critical-threats', '/api/chat', '/api/ml/', '/api/user', '/api/incidents', '/api/critical')
+    # Dashboard internal pages - should not be counted as traffic
+    SKIP_EXACT = {
+        '/dashboard', '/critical', '/blocked', '/blocked_page', '/incidents',
+        '/requests', '/profile', '/ml-detections',
+        '/threats/sql-injection', '/threats/xss',
+        '/threats/ml-detection', '/threats/brute-force',
+        '/threats/scanner', '/threats/rate-limit',
+        '/login', '/signup', '/',
+        '/privacy', '/terms', '/docs', '/support',
+    }
     @app.before_request
     def load_global_context():
         logs = dashboard.load_audit_log()
         g.logs = logs
         g.global_stats = compute_global_stats(logs)
 
-    # ----------------------------------------------------------
-    # GLOBAL SECURITY LAYER - Protects all business-relevant endpoints
-    # ----------------------------------------------------------
     @app.before_request
-
-    def security_scan():
-        """Strict security scanning using SimpleSecurityManager"""
-        request.request_id = new_request_id()
-        
-        # 1. Strict Allowlist (Skip trivial requests like static files and health checks)
-        if is_trivial(request):
+    def track_request():
+        path = request.path
+        if any(path.startswith(p) for p in SKIP_PREFIXES):
             return
-
-        # 2. Extract Real IP
+        if path in SKIP_EXACT:
+            return
         ip = request.headers.get('X-Forwarded-For', request.remote_addr) or 'Unknown'
         ip = ip.split(',')[0].strip()
-
-        # 3. Rate Limiting Protection (Stricter for auth/login)
-        is_auth = request.path.startswith('/api/auth/') or request.path in ('/login', '/api/login')
-        window = 60 if is_auth else 900
-        limit = 5 if is_auth else 100
-        
-        if not security.check_rate_limit(ip, window=window, limit=limit):
-            security.blocked_requests += 1
-            return responses.rate_limited("Rate limit exceeded")
-
-        # 4. Sensitive Path Scanning (Scanner Detection)
-        sensitive_paths = ["/admin", "/wp-admin", "/phpmyadmin", "/.env", "/config", "/etc/passwd"]
-        if any(request.path.lower().startswith(p) for p in sensitive_paths):
-            security.log_to_dashboard(
-                "Scanner", ip, f"Sensitive path: {request.path}", "Medium",
-                endpoint=request.path, method=request.method,
-                detection_type="Scanner", blocked=True,
-                request_id=request.request_id
-            )
-            security.blocked_requests += 1
-            return responses.forbidden("Forbidden")
-
-        # 5. Content Security Scan (Args, JSON, Form data)
-        data_to_scan = {}
-        if request.args: data_to_scan.update(request.args.to_dict())
-        if request.is_json:
-            j = request.get_json(silent=True)
-            if j and isinstance(j, dict): data_to_scan.update(j)
-        if request.form: data_to_scan.update(request.form.to_dict())
-
-        if data_to_scan:
-            safe, msg = security.check_request_security(data_to_scan, ip)
-            if not safe:
-                security.blocked_requests += 1
-                return responses.bad_request(msg)
-
-        # 6. Global stats and persistent logging
-        if is_business_relevant(request):
-            security.total_requests += 1
-            dashboard.log_clean_request(ip=ip, endpoint=request.path, method=request.method)
-
-    @app.errorhandler(CSRFError)
-    def handle_csrf_error(e):
-        return responses.bad_request(f'CSRF validation failed: {e.description}')
-
-
-    @app.route('/api/auth/refresh', methods=['POST'])
-    def refresh():
-        return refresh_user_tokens()
-
-
+        dashboard.log_clean_request(ip=ip, endpoint=path, method=request.method)
     @app.route('/api/auth/login', methods=['POST'])
     def login():
-        from app.services.auth_service import AuthService
-        from app.services.audit_service import AuditService
-        
         auth = request.get_json()
         if not auth or not auth.get('username') or not auth.get('password'):
-            return responses.unauthorized("Missing credentials")
-            
-        username = auth.get('username').strip()
-        
-        # AuthService handles verification, lockout rules, and token generation logic
-        resp, status = AuthService.verify_credentials_and_generate_response(username, auth.get('password'))
-        
+            return jsonify({'message': 'Missing credentials'}), 401
+        resp, status = login_user(auth.get('username'), auth.get('password'))
         if status == 200:
-            user = AuthService.get_user(username)
-            if user:
-                ip = _get_real_ip()
-                AuditService.log_action(user.get('user_id'), "Login", "Dashboard Access", ip=ip)
+            user = user_manager.get_user(auth.get('username'))
+            from app.database import log_audit
+            user_id = user.get('id') if user else None
+            ip = request.headers.get('X-Forwarded-For', request.remote_addr) or 'Unknown'
+            ip = ip.split(',')[0].strip()
+            if user_id:
+                log_audit(user_id, "Login", ip)
         return resp, status
-
     @app.route('/api/auth/signup', methods=['POST'])
     def signup():
-        from app.services.user_service import UserService
-        from app.services.audit_service import AuditService
+        auth = request.get_json()
+        if not auth or not auth.get('username') or not auth.get('password'):
+            return jsonify({'message': 'Missing username or password'}), 400
         
-        data = request.get_json()
-        if not data:
-            return responses.bad_request("No input data provided")
+        username = auth.get('username').strip()
+        password = auth.get('password')
+        full_name = auth.get('fullName', '').strip()
+        email = auth.get('email', '').strip()
+        phone = auth.get('phone', '').strip()
+        department = auth.get('department', '').strip()
+        
+        # Validation
+        if len(username) < 3:
+            return jsonify({'message': 'Username must be at least 3 characters'}), 400
             
-        username = (data.get('username') or '').strip()
-        password = data.get('password')
+        if not full_name:
+            return jsonify({'message': 'Full name is required'}), 400
+            
+        if not email:
+            return jsonify({'message': 'Email is required'}), 400
+            
+        # Basic email validation
+        import re
+        email_pattern = r'^[^\s@]+@[^\s@]+\.[^\s@]+$'
+        if not re.match(email_pattern, email):
+            return jsonify({'message': 'Please enter a valid email address'}), 400
+            
+        if not phone:
+            return jsonify({'message': 'Phone number is required'}), 400
+            
+        if not department:
+            return jsonify({'message': 'Department is required'}), 400
         
-        # Call service to handle registration and business logic
-        success, message = UserService.register_user(
-            username=username,
-            password=password,
-            full_name=data.get('fullName', '').strip(),
-            email=data.get('email', '').strip(),
-            phone=data.get('phone', '').strip(),
-            department=data.get('department', '').strip()
-        )
-        
+        is_valid_password, password_message = user_manager.validate_password_policy(password)
+        if not is_valid_password:
+            return jsonify({'message': password_message}), 400
+            
+        # Check if user already exists
+        if user_manager.get_user(username):
+            return jsonify({'message': 'Username already exists'}), 409
+            
+        # Add new user with USER role and additional info
+        success, message = user_manager.add_user(username, password, Role.USER)
         if success:
-            # Audit log via Service
-            AuditService.log_action(None, "Account Created", "User registration", details=f"Username: {username}")
-            return responses.created({'message': 'Account created successfully'})
+            # Update user with additional information
+            user_manager.update_user(username, 
+                                  full_name=full_name,
+                                  email=email,
+                                  department=department,
+                                  phone=phone)
+            
+            # Log the new user creation
+            new_user = user_manager.get_user(username)
+            log_action(new_user, "Account Created", f"Full name: {full_name}, Email: {email}")
+            return jsonify({'message': 'Account created successfully'}), 201
         else:
-            return responses.bad_request(message)
-
+            return jsonify({'message': message}), 400
     @app.route('/api/auth/logout')
     def logout():
-        from app.services.auth_service import AuthService
-        from app.services.audit_service import AuditService
-        
         token = request.cookies.get('auth_token')
         if token:
             try:
-                # Decoupled audit logging
                 data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=["HS256"])
-                user = AuthService.get_user(data['user'])
+                user = user_manager.get_user(data['user'])
                 if user:
-                    AuditService.log_action(user.get('user_id'), "Logout", "Dashboard Session Ended")
+                    log_action(user, "Logout")
             except Exception:
                 pass
-        
-        from app.auth.auth import logout_user
         return logout_user()
-
     # ── Forgot Password / OTP ─────────────────────────────────
     import random, smtplib
     from email.mime.text import MIMEText
@@ -235,54 +192,108 @@ def create_dashboard_app():
 
     @app.route('/api/request-reset-otp', methods=['POST'])
     def request_reset_otp():
-        from app.services.password_reset_service import PasswordResetService
-        from app.repositories.rate_limit_repo import RateLimitRepository
-        
-        data = request.get_json(silent=True) or {}
+        data       = request.get_json(silent=True) or {}
         identifier = (data.get('identifier') or data.get('username') or '').strip()
         if not identifier:
-            return responses.bad_request('Username or email required')
+            return jsonify({'error': 'Username or email required'}), 400
             
-        # Rate Limiting via service-aligned repository
-        rl_repo = RateLimitRepository()
-        if not rl_repo.check_and_increment(f"otp:{identifier}", window=600, limit=3):
-             return responses.rate_limited("Too many requests. Try again later.")
-             
-        success, message = PasswordResetService.initiate_reset(identifier)
-        if success:
-            return responses.ok({"message": message})
-        else:
-            return responses.server_error(message)
+        current_time = time.time()
+        requests_history = otp_request_tracker.get(identifier, [])
+        requests_history = [t for t in requests_history if current_time - t < 600]
+        
+        if len(requests_history) >= 3:
+            return jsonify({"error": "Too many requests. Try again later."}), 429
+            
+        requests_history.append(current_time)
+        otp_request_tracker[identifier] = requests_history
+        
+        # دور بالـ username أو الـ email
+        user = user_manager.get_user(identifier)
+        if not user:
+            all_users = user_manager.get_all_users()
+            user = next((u for u in all_users if u.get('email','').lower() == identifier.lower()), None)
+        if not user:
+            return jsonify({"message": "If that email is registered, a reset link was sent."}), 200
+        user_id = user.get('user_id') or user.get('id')
+        email   = user.get('email')
+        if not email:
+            return jsonify({"message": "If that email is registered, a reset link was sent."}), 200
+        otp = str(secrets.randbelow(900000) + 100000) 
+        import hashlib
+        otp_hash = hashlib.sha256(otp.encode()).hexdigest()
+        expiry = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time() + 300))
+        with _db.db_cursor() as cur:
+            cur.execute('DELETE FROM password_resets WHERE user_id = ?', (user_id,))
+            cur.execute('INSERT INTO password_resets (user_id, otp, otp_expiry, used) VALUES (?,?,?,0)',
+                        (user_id, otp_hash, expiry))
+        try:
+            # Simple OTP email sender using smtplib
+            def send_otp_email(to_email, otp):
+                subject = "Your Password Reset OTP"
+                body = f"Your OTP for password reset is: {otp}\nThis code will expire in 5 minutes."
+                msg = MIMEText(body)
+                msg['Subject'] = subject
+                msg['From'] = SMTP_EMAIL
+                msg['To'] = to_email
+
+                with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
+                    server.login(SMTP_EMAIL, SMTP_PASSWORD)
+                    server.sendmail(SMTP_EMAIL, [to_email], msg.as_string())
+
+            send_otp_email(email, otp)
+        except Exception as e:
+            logger.error(f"OTP email failed: {e}")
+            return jsonify({'error': 'Failed to deliver OTP'}), 500
+
+        return jsonify({
+            'message': 'OTP sent to registered email'
+        }), 200
 
     @app.route('/api/verify-reset-otp', methods=['POST'])
     def verify_reset_otp():
-        from app.services.password_reset_service import PasswordResetService
-        
-        data = request.get_json(silent=True) or {}
-        identifier = (data.get('identifier') or '').strip()
-        otp = (data.get('otp') or '').strip()
-        new_password = data.get('new_password')
-
-        if not all([identifier, otp, new_password]):
-            # Sometimes frontend uses user_id instead of identifier
-            # but our new service prefers identifier (username/email)
-            # We'll check if a user_id was passed and resolve it
-            user_id = data.get('user_id')
-            if user_id:
-                from app.repositories.user_repo import UserRepository
-                user = UserRepository.get_by_id(user_id)
-                if user:
-                    identifier = user['username']
+        data     = request.get_json(silent=True) or {}
+        user_id  = data.get('user_id')
+        otp      = data.get('otp', '').strip()
+        new_pass = data.get('new_password', '').strip()
+        if not user_id or not otp or not new_pass:
+            return jsonify({'error': 'user_id, otp and new_password required'}), 400
             
-            if not all([identifier, otp, new_password]):
-                return responses.bad_request('Missing fields')
+        with _db.db_cursor() as cur:
+            try:
+                cur.execute('ALTER TABLE password_resets ADD COLUMN otp_attempts INTEGER DEFAULT 0')
+            except Exception:
+                pass
             
-        success, message = PasswordResetService.verify_and_reset(identifier, otp, new_password)
-        if success:
-            return responses.ok({'message': message})
-        else:
-            return responses.bad_request(message)
-
+            cur.execute('SELECT * FROM password_resets WHERE user_id = ? AND used = 0', (user_id,))
+            record = cur.fetchone()
+            
+        if not record:
+            return jsonify({'error': 'No OTP requested for this user'}), 400
+            
+        if record.get('otp_attempts', 0) >= 5:
+            return jsonify({'error': 'Too many attempts. Request a new OTP.'}), 429
+            
+        import hashlib
+        incoming_hash = hashlib.sha256(str(otp).encode()).hexdigest()
+        if not hmac.compare_digest(record['otp'], incoming_hash):
+            with _db.db_cursor() as cur:
+                cur.execute('UPDATE password_resets SET otp_attempts = COALESCE(otp_attempts, 0) + 1 WHERE user_id = ?', (user_id,))
+            return jsonify({'error': 'Invalid OTP'}), 400
+            
+        if time.strftime('%Y-%m-%d %H:%M:%S') > record['otp_expiry']:
+            with _db.db_cursor() as cur:
+                cur.execute('UPDATE password_resets SET otp_attempts = 0 WHERE user_id = ?', (user_id,))
+            return jsonify({'error': 'OTP expired'}), 400
+            
+        user = _db.get_user_by_id(user_id)
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+        ok, msg = user_manager.change_password(user['username'], new_pass)
+        if not ok:
+            return jsonify({'error': msg}), 400
+        with _db.db_cursor() as cur:
+            cur.execute('UPDATE password_resets SET used = 1, otp_attempts = 0 WHERE user_id = ?', (user_id,))
+        return jsonify({'message': 'Password reset successfully'}), 200
 
     @app.route('/')
     def index_page():
@@ -309,7 +320,7 @@ def create_dashboard_app():
     def system_health(current_user):
         state = dashboard.connection_state or 'Connected'
         api_online = state == 'Connected'
-        return responses.ok({
+        return jsonify({
             'status': 'ok' if api_online else 'offline',
             'api_online': api_online,
             'connection_state': state,
@@ -366,7 +377,7 @@ def create_dashboard_app():
         # previously we masked IP addresses for non-admin users; the requirement
         # now is to display the source IP in full, so we simply return the data
         # as-is. snippet/payload may still be hidden by the frontend if desired.
-        return responses.ok(data)
+        return jsonify(data)
     from app import config as _cfg
     INTERNAL_SECRET = _cfg.internal_secret()
     if not INTERNAL_SECRET:
@@ -377,43 +388,13 @@ def create_dashboard_app():
         @wraps(f)
         def decorated(*args, **kwargs):
             if not INTERNAL_SECRET:
-                return responses.error('Internal auth not configured', status=503)
-            
-            # 1. IP Restriction (Only localhost for internal APIs)
-            remote_ip = request.headers.get('X-Forwarded-For', request.remote_addr) or ''
-            remote_ip = remote_ip.split(',')[0].strip()
-            if remote_ip not in ('127.0.0.1', 'localhost'):
-                return responses.forbidden('Forbidden: External access denied')
-
-            # 2. HMAC Verify: signature = hmac(secret, timestamp)
-            timestamp = request.headers.get('X-Internal-Timestamp', '')
-            signature = request.headers.get('X-Internal-Token', '') # legacy header name
-            
-            if not timestamp or not signature:
-                return responses.unauthorized('Missing internal auth headers')
-            
-            # Verify timestamp is within 5 minutes (prevent replay)
-            try:
-                ts_int = float(timestamp)
-                if abs(time.time() - ts_int) > 300:
-                    return responses.unauthorized('Internal auth expired')
-            except (ValueError, TypeError):
-                return responses.bad_request('Invalid timestamp')
-
-            expected = hmac.new(
-                key=INTERNAL_SECRET.encode(),
-                msg=timestamp.encode(),
-                digestmod='sha256'
-            ).hexdigest()
-
-            if not secrets.compare_digest(signature, expected):
-                return responses.forbidden('Invalid internal signature')
-
+                return jsonify({'error': 'Internal auth not configured'}), 503
+            token = request.headers.get('X-Internal-Token', '')
+            if not secrets.compare_digest(token, INTERNAL_SECRET):
+                return jsonify({'error': 'Forbidden'}), 403
             return f(*args, **kwargs)
         return decorated
-
     @app.route('/api/dashboard/threat', methods=['POST'])
-    @csrf.exempt
     @require_internal_secret
     def log_threat_api():
         global dashboard
@@ -429,7 +410,7 @@ def create_dashboard_app():
             data.get('detection_type', 'Other'),
             data.get('blocked', False)
         )
-        return responses.ok({'status': 'logged'})
+        return jsonify({'status': 'logged'})
     @app.route('/api/dashboard/stats', methods=['POST'])
     @require_internal_secret 
     def update_stats():
@@ -441,29 +422,39 @@ def create_dashboard_app():
             dashboard.stats['blocked_requests'] = data['blocked_requests']
         if 'rate_limit_hits' in data:
             dashboard.stats['rate_limit_hits'] = data['rate_limit_hits']
-        return responses.ok({'status': 'updated'})
+        return jsonify({'status': 'updated'})
     @app.route('/api/dashboard/reset', methods=['POST'])
     @admin_required
     def reset_stats(current_user):
-        from app.services.dashboard_services import AnalyticsService
-        from app.services.audit_service import AuditService
-        
+        global dashboard
         try:
-            # Service handles the multi-repository clearing logic
-            AnalyticsService.reset_all_data()
-            
-            # Audit log via Service
-            AuditService.log_action(current_user.get('user_id'), "Reset Stats", "Dashboard and DB Clear", details="System-wide reset performed.")
-            
-            return responses.ok({'status': 'stats_reset', 'message': 'All stats and logs cleared'})
+            log_action(current_user, "Reset Stats", "Cleared all memory stats and audit logs")
+            # Reset in-memory stats
+            for key in dashboard.stats:
+                dashboard.stats[key] = 0
+            dashboard.ip_tracker.clear()
+            dashboard.recent_threats = []
+            dashboard.timeline_data.clear()
+            dashboard.incidents.clear()
+            # Clear the DB threat logs
+            from app import database as _db
+            _db.clear_threat_logs()
+            # Clear the JSON audit log
+            try:
+                with open(dashboard.audit_log_path, 'w') as f:
+                    json.dump([], f)
+            except Exception as e:
+                print(f"[-] Error clearing audit log: {e}")
+            return jsonify({'status': 'stats_reset', 'message': 'All stats and logs cleared'})
         except Exception as e:
-            return responses.server_error(str(e))
+            print(f"[-] Reset error: {e}")
+            return jsonify({'status': 'error', 'message': str(e)}), 500
 
     @app.route('/api/user')
     @token_required
     def get_current_user(current_user):
         """Return current user information for permission checks"""
-        return responses.ok({
+        return jsonify({
             'username': current_user.get('username'),
             'role': current_user.get('role'),
             'email': current_user.get('email', '')
@@ -482,23 +473,23 @@ def create_dashboard_app():
         """
         try:
             stats = dashboard.compute_ml_metrics()
-            return responses.ok(stats)
+            return jsonify(stats)
         except FileNotFoundError as e:
             # can't load model/vectorizer but we still want indicator values returned
             indicators = dashboard.compute_attack_indicators()
-            return responses.ok({
+            return jsonify({
                 "status": "error",
                 "message": f"Model file not found: {e}",
                 "attack_indicators": indicators
-            })
+            }), 200
         except Exception as e:
             # on any other failure, return error flag but still include indicators
             indicators = dashboard.compute_attack_indicators()
-            return responses.ok({
+            return jsonify({
                 "status": "error",
                 "message": str(e),
                 "attack_indicators": indicators
-            })
+            }), 200
     @app.route('/incidents')
     @app.route('/incidents_list')
     @token_required
@@ -555,36 +546,32 @@ def create_dashboard_app():
         incidents_data = []
         for inc in dashboard.incidents.values():
             incidents_data.append(inc.__dict__)
-        return responses.ok(incidents_data)
+        return jsonify(incidents_data)
     @app.route('/api/incident/<id>')
     @admin_required
     def get_incident_details(current_user, id):
         global dashboard
         if id not in dashboard.incidents:
-            return responses.not_found()
-        return responses.ok(dashboard.incidents[id].__dict__)
+            return jsonify({'error': 'Not found'}), 404
+        return jsonify(dashboard.incidents[id].__dict__)
     @app.route('/api/incident/<id>/action', methods=['POST'])
     @admin_required
     def incident_action(current_user, id):
-        from app.services.dashboard_services import IncidentService
-        
+        global dashboard
         data = request.get_json()
         action = data.get('action')
         comment = data.get('comment', '')
-        
-        # Use service to coordinate incident actions and logging
-        success, message = IncidentService.perform_action(id, action, current_user['username'], comment)
-        if success:
-            return responses.ok({'message': message})
-        else:
-            return responses.error(message)
+        actor = current_user['username']
+        log_action(current_user, f"Incident Action: {action}", f"Incident ID: {id}, Comment: {comment}")
+        success, message = dashboard.perform_action(id, action, actor, comment)
+        return jsonify({'status': 'success' if success else 'error', 'message': message})
     @app.route('/api/incident/<id>/export')
     @admin_required
     def export_incident(current_user, id):
         global dashboard
         if id not in dashboard.incidents:
-            return responses.not_found()
-        return responses.ok(dashboard.incidents[id].__dict__)
+            return jsonify({'error': 'Not found'}), 404
+        return jsonify(dashboard.incidents[id].__dict__)
     @app.route('/api/reports/distribution')
     @token_required
     def report_distribution(current_user):
@@ -598,7 +585,7 @@ def create_dashboard_app():
             if end_date and inc.first_seen > end_date:
                 continue
             dist[inc.detection_type] += 1
-        return responses.ok(dist)
+        return jsonify(dist)
     @app.route('/requests')
     @token_required
     def requests_page(current_user):
@@ -790,10 +777,7 @@ def create_dashboard_app():
             return jsonify({'success': False, 'message': 'Invalid plan'}), 400
         
         success, message = user_manager.update_user(current_user['username'], subscription=new_plan)
-        if success:
-            return responses.ok({'message': message})
-        else:
-            return responses.bad_request(message)
+        return jsonify({'success': success, 'message': message})
 
 
     @app.route('/blocked_page')
@@ -905,10 +889,9 @@ def create_dashboard_app():
         username = current_user.get('username')
         
         # Update user data
-        # Whitelist only safe profile fields — EMAIL CHANGE MUST USE VERIFIED FLOW
-        ALLOWED_PROFILE_FIELDS = {'full_name', 'department', 'phone'}
+        # Whitelist only safe profile fields — never accept role/status from user
+        ALLOWED_PROFILE_FIELDS = {'full_name', 'email', 'department', 'phone'}
         update_data = {k: v for k, v in data.items() if k in ALLOWED_PROFILE_FIELDS}
-
 
         if 'password' in data and data['password']:
             is_valid_password, password_message = user_manager.validate_password_policy(data['password'])
@@ -924,97 +907,7 @@ def create_dashboard_app():
             return jsonify({'status': 'success', 'message': 'Profile updated successfully'})
         else:
             return jsonify({'status': 'error', 'message': message or 'Failed to update profile'}), 400
-
-    @app.route('/api/profile/request-email-change', methods=['POST'])
-    @token_required
-    def request_email_change(current_user):
-        """Phase 1: Initiate email change by sending OTP to the new address"""
-        data = request.get_json() or {}
-        new_email = data.get('new_email', '').strip()
-        
-        if not new_email or '@' not in new_email:
-            return jsonify({'status': 'error', 'message': 'Invalid new email address'}), 400
-            
-        username = current_user.get('username')
-        user_id = current_user.get('user_id') or current_user.get('id')
-        
-        # Generate secure token
-        token = secrets.token_urlsafe(16)
-        token_hash = bcrypt.hashpw(token.encode(), bcrypt.gensalt()).decode()
-        expiry = (datetime.now() + timedelta(minutes=5)).strftime('%Y-%m-%d %H:%M:%S')
-        
-        with _db.db_cursor() as cur:
-            cur.execute("""
-                UPDATE users 
-                SET pending_email = ?, email_otp_hash = ?, email_otp_expiry = ?, email_otp_attempts = 0 
-                WHERE user_id = ?
-            """, (new_email, token_hash, expiry, user_id))
-            
-        # Send OTP to NEW email
-        try:
-            subject = "Confirm Your New Email Address"
-            body = f"Your confirmation token for updating your email is: {token}\nThis token will expire in 5 minutes."
-            msg = MIMEText(body)
-            msg['Subject'] = subject
-            msg['From'] = SMTP_EMAIL
-            msg['To'] = new_email
-
-            with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
-                server.login(SMTP_EMAIL, SMTP_PASSWORD)
-                server.sendmail(SMTP_EMAIL, [new_email], msg.as_string())
-            
-            log_action(current_user, "Email Change Requested", f"OTP sent to {new_email}")
-            return jsonify({'status': 'success', 'message': 'Confirmation token sent to your new email'})
-        except Exception as e:
-            logger.error(f"Failed to send email change OTP: {e}")
-            return jsonify({'status': 'error', 'message': 'Failed to send confirmation token'}), 500
-
-    @app.route('/api/profile/confirm-email-change', methods=['POST'])
-    @token_required
-    def confirm_email_change(current_user):
-        """Phase 2: Verify OTP and finalize the email change"""
-        data = request.get_json() or {}
-        token = data.get('token', '').strip()
-        
-        if not token:
-            return jsonify({'status': 'error', 'message': 'Confirmation token is required'}), 400
-            
-        user_id = current_user.get('user_id') or current_user.get('id')
-        
-        with _db.db_cursor() as cur:
-            cur.execute("SELECT email, pending_email, email_otp_hash, email_otp_expiry, email_otp_attempts FROM users WHERE user_id = ?", (user_id,))
-            record = cur.fetchone()
-            
-        if not record or not record['pending_email']:
-            return jsonify({'status': 'error', 'message': 'No pending email change found'}), 400
-            
-        if record['email_otp_attempts'] >= 5:
-            return jsonify({'status': 'error', 'message': 'Too many failed attempts. Please request a new token.'}), 429
-            
-        # Verify Token
-        if not bcrypt.checkpw(token.encode(), record['email_otp_hash'].encode()):
-            with _db.db_cursor() as cur:
-                cur.execute("UPDATE users SET email_otp_attempts = email_otp_attempts + 1 WHERE user_id = ?", (user_id,))
-            return jsonify({'status': 'error', 'message': 'Invalid confirmation token'}), 400
-            
-        # Check Expiry
-        if datetime.now() > datetime.strptime(record['email_otp_expiry'], '%Y-%m-%d %H:%M:%S'):
-            return jsonify({'status': 'error', 'message': 'Confirmation token has expired'}), 400
-            
-        # Success: Swap Email
-        new_email = record['pending_email']
-        with _db.db_cursor() as cur:
-            cur.execute("""
-                UPDATE users 
-                SET email = ?, pending_email = NULL, email_otp_hash = NULL, email_otp_expiry = NULL, email_otp_attempts = 0 
-                WHERE user_id = ?
-            """, (new_email, user_id))
-            
-        log_action(current_user, "Email Changed", f"Changed from {record['email']} to {new_email}")
-        return jsonify({'status': 'success', 'message': 'Email updated successfully'})
-
     @app.route('/api/profile/change-password', methods=['POST'])
-
     @token_required
     def change_password_profile(current_user):
         """Change user password"""
@@ -1046,54 +939,32 @@ def create_dashboard_app():
     @app.route('/api/profile/avatar', methods=['POST'])
     @token_required
     def upload_avatar(current_user):
-        import magic  # python-magic: validates actual file bytes, not just extension
-
-        # ── Security Constants ─────────────────────────────────
-        MAX_UPLOAD_BYTES = 2 * 1024 * 1024         # 2 MB hard limit
-        ALLOWED_EXTS     = {'.png', '.jpg', '.jpeg', '.gif', '.webp'}
-        ALLOWED_MIMES    = {
-            'image/png', 'image/jpeg', 'image/gif', 'image/webp'
-        }
+        import imghdr
+        ALLOWED_EXTS  = {'.png', '.jpg', '.jpeg', '.gif', '.bmp'}
+        ALLOWED_MAGIC = {'png', 'jpeg', 'gif', 'bmp'}
 
         file = request.files.get('avatar')
         if not file or file.filename == '':
-            return jsonify({'error': 'No file provided'}), 400
+            return jsonify({'error': 'No file'}), 400
 
-        # 1. Extension whitelist
         filename = secure_filename(file.filename)
         ext = os.path.splitext(filename)[1].lower()
         if ext not in ALLOWED_EXTS:
-            return jsonify({'error': f'File extension not allowed. Permitted: {", ".join(ALLOWED_EXTS)}'}), 400
+            return jsonify({'error': 'Invalid file type'}), 400
 
-        # 2. Size limit — read into memory up to MAX+1 bytes to detect oversized files
-        #    without buffering the entire upload first.
-        chunk = file.read(MAX_UPLOAD_BYTES + 1)
-        if len(chunk) > MAX_UPLOAD_BYTES:
-            return jsonify({'error': f'File too large. Maximum allowed size is 2 MB.'}), 413
-        file.seek(0)
+        header = file.read(512); file.seek(0)
+        if imghdr.what(None, h=header) not in ALLOWED_MAGIC:
+            return jsonify({'error': 'Invalid image content'}), 400
 
-        # 3. True MIME validation via libmagic (reads binary file signature)
-        detected_mime = magic.from_buffer(chunk, mime=True)
-        if detected_mime not in ALLOWED_MIMES:
-            logger.warning(
-                f"[UPLOAD] Blocked upload from {current_user.get('username')}: "
-                f"extension={ext}, detected MIME={detected_mime}"
-            )
-            return jsonify({'error': f'File content does not match a permitted image type (detected: {detected_mime})'}), 400
-
-        # 4. Save with a randomised, user-scoped filename (no path traversal possible)
         upload_dir = Path(current_app.root_path) / 'static' / 'uploads' / 'avatars'
         upload_dir.mkdir(parents=True, exist_ok=True)
-        new_filename = f"{secure_filename(current_user['username'])}_{int(time.time())}{ext}"
-        file.seek(0)
+        new_filename = f"{current_user['username']}_{int(time.time())}{ext}"
         file.save(str(upload_dir / new_filename))
-
         avatar_url = url_for('static', filename=f'uploads/avatars/{new_filename}')
         user_manager.update_user(current_user.get('username'), avatar_url=avatar_url)
-        log_action(current_user, "Avatar Upload", f"Uploaded avatar: {new_filename} ({detected_mime})")
-
+        log_action(current_user, "Avatar Upload", "User uploaded a new profile picture")
+                
         return jsonify({'status': 'success', 'avatar_url': avatar_url})
-
 
     # ============================================================
     # SETTINGS PAGE
@@ -1540,29 +1411,7 @@ def create_dashboard_app():
             print(f"Error deleting blacklist: {e}")
             return jsonify({'error': str(e)}), 500
 
-    @app.after_request
-    def add_security_headers(response):
-        """Global security headers to harden the application"""
-        response.headers['X-Content-Type-Options'] = 'nosniff'
-        response.headers['X-Frame-Options'] = 'DENY'
-        response.headers['X-XSS-Protection'] = '1; mode=block'
-        response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
-        response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
-        
-        # Strict Content Security Policy
-        csp = (
-            "default-src 'self'; "
-            "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
-            "style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com https://cdn.jsdelivr.net; "
-            "font-src 'self' https://cdnjs.cloudflare.com https://fonts.gstatic.com; "
-            "img-src 'self' data: *; "
-            "connect-src 'self';"
-        )
-        response.headers['Content-Security-Policy'] = csp
-        return response
-
     # ── Attack History Page ───────────────────────────────────
-
     @app.route('/attack-history')
     @token_required
     def attack_history_page(current_user):
@@ -1619,4 +1468,4 @@ if __name__ == '__main__':
     threading.Thread(target=run_timeline_updates, daemon=True).start()
     app = create_dashboard_app()
     _debug = os.getenv('FLASK_DEBUG', 'false').lower() == 'true'
-    app.run(host='127.0.0.1', port=8070, debug=_debug, use_reloader=False)
+    app.run(host='0.0.0.0', port=8070, debug=_debug, use_reloader=False)

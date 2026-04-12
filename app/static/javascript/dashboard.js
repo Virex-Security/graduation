@@ -1,250 +1,1158 @@
 /**
- * Dashboard Controller
- * Handles metric updates, chart rendering, and real-time security alerts.
+ * Dashboard Logic for CyberShield Pro
+ * Handles real-time updates, charts, and UI interactions
  */
 
+// Using global Formatters.escapeHTML instead of local string escape.
+
 const Dashboard = {
-    updateInterval: 2000,
-    charts: {},
-    apiEnabled: true,
+  updateInterval: 1000,
+  previousStats: {},
+  charts: {},
+  theme: localStorage.getItem("theme") || "dark",
+  apiEnabled: true,
 
-    init() {
-        this.apiEnabled = window.DASHBOARD_CONFIG?.apiEnabled !== false;
-        
-        this.initCharts();
-        this.bindEvents();
-        this.initSubscriptions();
+  /**
+   * Initialize Dashboard
+   */
+  init() {
+    this.apiEnabled = window.DASHBOARD_CONFIG?.apiEnabled !== false;
+    this.setupTheme();
+    this.initCharts();
+    this.checkAdmin();
+    this.bindEvents();
 
-        if (this.apiEnabled) {
-            this.refresh();
-            setInterval(() => this.refresh(), this.updateInterval);
-        } else {
-            document.getElementById("last-update").textContent = "API Disabled";
-        }
+    if (!this.apiEnabled) {
+      this.updateSidebarConnectionStatus("disconnected");
+      this.updateConnectionUI("Disconnected");
+      const lastUpdateEl = document.getElementById("last-update");
+      if (lastUpdateEl) lastUpdateEl.textContent = "API Disabled";
+      return;
+    }
 
-        // Handle Theme Changes
-        window.addEventListener("themeChanged", (e) => this.updateChartThemes(e.detail.theme));
-    },
+    this.startAutoRefresh();
+    this.startHealthPolling();
+    this.updateData();
 
-    /**
-     * Initial data load and polling refresh
-     */
-    async refresh() {
-        try {
-            const data = await API.get("/api/dashboard/data");
-            
-            this.updateStats(data.stats);
-            this.updateCharts(data);
-            this.updateTable(data.recent_threats);
-            this.updateThreatRankings(data.top_attackers);
+    // Listen for theme changes
+    window.addEventListener("themeChanged", (event) => {
+      this.onThemeChanged(event.detail.theme);
+    });
 
-            document.getElementById("last-update").textContent = new Date().toLocaleTimeString();
-        } catch (e) {
-            console.error("[Dashboard] Refresh failed:", e);
-        }
-    },
+    // real-time alerts from notification system
+    document.addEventListener("newSecurityAlert", (evt) => {
+      if (evt && evt.detail) {
+        this.addThreat(evt.detail);
+      }
+    });
+  },
 
-    initSubscriptions() {
-        // Connection status is now handled globally, but we can listen for score updates
-        window.addEventListener("newSecurityAlert", (e) => {
-            if (e.detail) this.appendAlertToTable(e.detail);
-        });
-    },
+  checkAdmin() {
+    const user = Auth.getUser();
+    if (user && user.role === "admin") {
+      const resetBtn = document.getElementById("reset-btn");
+      if (resetBtn) resetBtn.style.display = "block";
+    }
+  },
 
-    bindEvents() {
-        document.getElementById("refresh-btn")?.addEventListener("click", (e) => {
-            const btn = e.currentTarget;
-            btn.classList.add("spinning");
-            this.refresh().finally(() => btn.classList.remove("spinning"));
-        });
+  async startHealthPolling() {
+    // Backend now handles the 3-state logic
+    // JS just updates the UI based on dashboard.data.state
+  },
 
-        // Reset functionality using StatService
-        document.getElementById("reset-btn")?.addEventListener("click", async () => {
-            if (confirm("Are you sure you want to reset all security statistics?")) {
-                await StatService.reset();
-                this.refresh();
+  updateConnectionUI(status) {
+    const el = document.getElementById("conn-status");
+    if (!el) {
+      console.log(
+        "[Dashboard] conn-status element not found, skipping updateConnectionUI",
+      );
+      return;
+    }
+
+    const dot = el.parentElement.querySelector(".status-dot");
+    if (!dot) {
+      console.log(
+        "[Dashboard] status-dot element not found, skipping updateConnectionUI",
+      );
+      return;
+    }
+
+    el.textContent = status;
+
+    switch (status) {
+      case "Connected":
+        dot.style.backgroundColor = "var(--success)";
+        break;
+      case "Disconnected":
+      default:
+        dot.style.backgroundColor = "var(--danger)";
+        break;
+    }
+  },
+
+  /**
+   * Setup Theme (Dark/Light Mode)
+   */
+  setupTheme() {
+    document.documentElement.setAttribute("data-theme", this.theme);
+    const icon = document.querySelector("#theme-toggle i");
+    if (icon) {
+      icon.className = this.theme === "dark" ? "fas fa-sun" : "fas fa-moon";
+    }
+  },
+
+  /**
+   * Toggle Light/Dark Mode
+   */
+  toggleTheme() {
+    // Use ThemeManager for consistency across all pages
+    if (typeof ThemeManager !== "undefined") {
+      ThemeManager.toggleTheme();
+    } else {
+      // Fallback for backward compatibility
+      this.theme = this.theme === "dark" ? "light" : "dark";
+      localStorage.setItem("theme", this.theme);
+      this.setupTheme();
+    }
+  },
+
+  getCssVarColor(varName, fallback) {
+    const value = getComputedStyle(document.documentElement)
+      .getPropertyValue(varName)
+      .trim();
+    return value || fallback;
+  },
+
+  getColorWithAlpha(varName, fallbackHex, alpha = 1) {
+    const base = this.getCssVarColor(varName, fallbackHex);
+
+    if (base.startsWith("#")) {
+      let hex = base.slice(1);
+      if (hex.length === 3) {
+        hex = hex
+          .split("")
+          .map((ch) => ch + ch)
+          .join("");
+      }
+      if (hex.length === 6) {
+        const num = Number.parseInt(hex, 16);
+        const r = (num >> 16) & 255;
+        const g = (num >> 8) & 255;
+        const b = num & 255;
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+      }
+    }
+
+    const rgbMatch = base.match(/^rgb\((\d+)\s*,\s*(\d+)\s*,\s*(\d+)\)$/i);
+    if (rgbMatch) {
+      const [, r, g, b] = rgbMatch;
+      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+
+    const rgbaMatch = base.match(
+      /^rgba\((\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*([\d.]+)\)$/i,
+    );
+    if (rgbaMatch) {
+      const [, r, g, b] = rgbaMatch;
+      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+
+    return base;
+  },
+
+  getDistributionColors() {
+    return [
+      "#f59e0b", // SQLi (type-sqli)
+      "#38bdf8", // XSS (type-xss)
+      "#f87171", // Brute Force (type-brute)
+      "#22c55e", // Scanner (type-scanner)
+      "#a78bfa", // ML (type-ml)
+      "#fbbf24", // Rate Limit (type-rate)
+    ];
+  },
+
+  /**
+   * Handle theme change event from ThemeManager
+   */
+  onThemeChanged(newTheme) {
+    this.theme = newTheme;
+
+    // Re-initialize charts to match theme
+    Object.values(this.charts).forEach((chart) => {
+      chart.options.scales.x.grid.color =
+        newTheme === "dark" ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)";
+      chart.options.scales.y.grid.color =
+        newTheme === "dark" ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)";
+      chart.update();
+    });
+
+    if (this.charts.distribution) {
+      this.charts.distribution.data.datasets[0].backgroundColor =
+        this.getDistributionColors();
+      this.charts.distribution.update();
+    }
+  },
+
+  /**
+   * Initialize Charts using Chart.js
+   */
+  initCharts() {
+    const ctxTimeline = document
+      .getElementById("timelineChart")
+      .getContext("2d");
+    const ctxDistribution = document
+      .getElementById("distributionChart")
+      .getContext("2d");
+
+    // Timeline Chart
+    this.charts.timeline = new Chart(ctxTimeline, {
+      type: "line",
+      data: {
+        labels: [],
+        datasets: [
+          {
+            label: "Total Requests",
+            borderColor: "var(--brand-primary)",
+            backgroundColor: "rgba(124, 58, 237, 0.1)",
+            data: [],
+            tension: 0.4,
+            fill: true,
+          },
+          {
+            label: "Blocked Requests",
+            borderColor: "var(--text-secondary)",
+            backgroundColor: "rgba(239, 68, 68, 0.1)",
+            data: [],
+            tension: 0.4,
+            fill: true,
+          },
+          {
+            label: "Rate Limited",
+            borderColor: "var(--text-secondary)",
+            backgroundColor: "rgba(245, 158, 11, 0.1)",
+            data: [],
+            tension: 0.4,
+            fill: true,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          x: {
+            grid: { color: "rgba(255,255,255,0.05)" },
+            ticks: { color: "#9CA3AF" },
+          },
+          y: {
+            grid: { color: "rgba(255,255,255,0.05)" },
+            ticks: { color: "#9CA3AF" },
+          },
+        },
+        plugins: {
+          legend: { display: false },
+        },
+      },
+    });
+
+    // Distribution Chart (Pie)
+    this.charts.distribution = new Chart(ctxDistribution, {
+      type: "doughnut",
+      data: {
+        labels: ["SQLi", "XSS", "Brute Force", "Scanner", "ML", "Rate Limit"],
+        datasets: [
+          {
+            data: [0, 0, 0, 0, 0, 0],
+            backgroundColor: this.getDistributionColors(),
+            borderWidth: 0,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: "bottom",
+            labels: { color: "#9CA3AF", padding: 20 },
+          },
+        },
+        cutout: "70%",
+      },
+    });
+  },
+
+  /**
+   * Start data refresh timer
+   */
+  startAutoRefresh() {
+    if (!this.apiEnabled) return;
+    setInterval(() => this.updateData(), this.updateInterval);
+  },
+
+  /**
+   * Bind UI events
+   */
+  bindEvents() {
+    document
+      .getElementById("logout-btn")
+      .addEventListener("click", () => Auth.logout());
+    // Theme toggle is handled by ThemeManager
+    document.getElementById("refresh-btn").addEventListener("click", () => {
+      if (!this.apiEnabled) {
+        this.updateSidebarConnectionStatus("disconnected");
+        this.updateConnectionUI("Disconnected");
+        return;
+      }
+      const refreshBtn = document.getElementById("refresh-btn");
+      refreshBtn.classList.add("spinning");
+      this.updateData();
+      // Remove spinning class after animation
+      setTimeout(() => {
+        refreshBtn.classList.remove("spinning");
+      }, 1000);
+    });
+
+    const resetBtn = document.getElementById("reset-btn");
+    if (resetBtn) {
+      resetBtn.addEventListener("click", async () => {
+        const confirmed = await this.showConfirmation(
+          "هل أنت متأكد من إعادة تعيين جميع الإحصائيات الأمنية؟",
+          async () => {
+            try {
+              await API.post("/api/dashboard/reset");
+              this.updateData();
+            } catch(e) {
+              console.error("Failed to reset", e);
             }
+          },
+          null,
+        );
+      });
+    }
+  },
+
+  /**
+   * Show custom confirmation dialog
+   */
+  showConfirmation(message, onConfirm, onCancel) {
+    return new Promise((resolve) => {
+      // Create modal if not exists
+      let modal = document.getElementById("confirmation-modal");
+      if (!modal) {
+        modal = document.createElement("div");
+        modal.id = "confirmation-modal";
+        modal.className = "confirmation-modal";
+        modal.innerHTML = `
+                    <div class="confirmation-modal-content">
+                        <div class="confirmation-modal-title">⚠️ Confirm Action</div>
+                        <div class="confirmation-modal-message" id="confirmation-message"></div>
+                        <div class="confirmation-modal-buttons">
+                            <button class="confirmation-modal-btn confirmation-modal-btn-cancel" id="btn-cancel">No</button>
+                            <button class="confirmation-modal-btn confirmation-modal-btn-confirm" id="btn-confirm">Yes</button>
+                        </div>
+                    </div>
+                `;
+        document.body.appendChild(modal);
+
+        document.getElementById("btn-cancel").addEventListener("click", () => {
+          modal.classList.remove("active");
+          if (onCancel) onCancel();
+          resolve(false);
         });
-    },
 
-    /**
-     * Update KPI Stat Cards
-     */
-    updateStats(stats) {
-        UIUtils.animateNumber(document.getElementById("total-requests"), stats.total_requests);
-        UIUtils.animateNumber(document.getElementById("blocked-requests"), stats.blocked_requests);
-        UIUtils.animateNumber(document.getElementById("ml-detections"), stats.ml_detections);
+        document.getElementById("btn-confirm").addEventListener("click", () => {
+          modal.classList.remove("active");
+          if (onConfirm) onConfirm();
+          resolve(true);
+        });
+      }
 
-        // Update Top Attack Card
-        this.updateTopAttackCard(stats);
+      document.getElementById("confirmation-message").textContent = message;
+      modal.classList.add("active");
+    });
+  },
+  async updateData() {
+    if (!this.apiEnabled) {
+      this.updateSidebarConnectionStatus("disconnected");
+      this.updateConnectionUI("Disconnected");
+      return;
+    }
+    try {
+      console.log("[Dashboard] Fetching /api/dashboard/data");
+      const data = await API.get("/api/dashboard/data");
+      console.log("[Dashboard] Data received successfully");
 
-        // Update Security Score
-        if (stats.security_score !== undefined) {
-            const score = Math.round(stats.security_score);
-            const scoreEl = document.getElementById("security-score");
-            if (scoreEl) scoreEl.textContent = `${score}/100`;
-            
-            // Sync with navbar score
-            const navScore = document.getElementById("navbar-score-value");
-            if (navScore) navScore.textContent = `${score}/100`;
-        }
-    },
+      this.updateStats(data.stats);
+      this.updateTimeline(data.timeline);
+      this.updateDistribution(data.threat_distribution);
+      this.updateRecentThreats(data.recent_threats);
+      this.updateTopAttackers(data.top_attackers);
 
-    updateTopAttackCard(stats) {
-        const attacks = [
-            { label: "SQL Injection", val: stats.sql_injection_attempts, icon: "fa-database", color: "#f59e0b" },
-            { label: "XSS Attacks", val: stats.xss_attempts, icon: "fa-code", color: "#38bdf8" },
-            { label: "Brute Force", val: stats.brute_force_attempts, icon: "fa-key", color: "#f87171" },
-            { label: "Scanners", val: stats.scanner_attempts, icon: "fa-eye", color: "#22c55e" }
-        ];
+      const connectionState = data.connection_state || "Connected";
+      const effectiveStatus =
+        connectionState === "Connected" ? "Connected" : "Disconnected";
+      this.updateConnectionUI(effectiveStatus);
 
-        const top = attacks.reduce((p, c) => (p.val > c.val) ? p : c);
-        const valEl = document.getElementById("top-attack-value");
-        const cardEl = document.getElementById("top-attack-card");
+      const sidebarState =
+        connectionState === "Connected" ? "connected" : "disconnected";
+      console.log("[Dashboard] Setting sidebar state to", sidebarState);
+      this.updateSidebarConnectionStatus(sidebarState);
 
-        if (valEl && cardEl) {
-            if (top.val > 0) {
-                valEl.textContent = top.label.toUpperCase();
-                cardEl.style.setProperty("--card-accent", top.color);
-                const icon = cardEl.querySelector(".stat-header i");
-                if (icon) icon.className = `fas ${top.icon}`;
-            } else {
-                valEl.textContent = "No Attacks";
-                cardEl.style.setProperty("--card-accent", "var(--brand-primary)");
-            }
-        }
-    },
+      const lastUpdateEl = document.getElementById("last-update");
+      if (lastUpdateEl) {
+        lastUpdateEl.textContent = new Date().toLocaleTimeString();
+      }
+    } catch (error) {
+      console.error("[Dashboard] Failed to fetch dashboard data:", error);
+      console.error("[Dashboard] Error details:", error.message);
+      console.log("[Dashboard] Setting disconnected state");
+      this.updateSidebarConnectionStatus("disconnected");
+      this.updateConnectionUI("Disconnected");
+      // clear security score since API is offline
+      const scoreEl = document.getElementById("security-score");
+      if (scoreEl) scoreEl.textContent = "--/100";
+      // update navbar as well
+      this.updateNavbarSecurityScore(undefined);
+    }
+  },
 
-    /**
-     * Update Alert Table
-     */
-    updateTable(threats) {
-        const tbody = document.getElementById("threats-body");
-        if (!tbody) return;
+  /**
+   * Update Sidebar Connection Status
+   */
+  updateSidebarConnectionStatus(status) {
+    console.log("[Dashboard] Updating sidebar connection status to:", status);
+    const statusElement = document.getElementById("sidebar-connection-status");
 
-        if (!threats || threats.length === 0) {
-            UIUtils.renderTableEmptyState("threats-body", "No threats detected", 5);
-            return;
-        }
+    if (!statusElement) {
+      console.error("[Dashboard] sidebar-connection-status element not found!");
+      return;
+    }
 
-        tbody.innerHTML = threats.map(t => this.renderThreatRow(t)).join('');
-    },
+    console.log("[Dashboard] Element found, updating classes and content");
+    statusElement.classList.remove(
+      "status-connecting",
+      "status-connected",
+      "status-disconnected",
+    );
 
-    appendAlertToTable(threat) {
-        const tbody = document.getElementById("threats-body");
-        if (!tbody) return;
-        
-        // Remove empty state if present
-        if (tbody.querySelector(".text-muted")) tbody.innerHTML = "";
+    if (status === "connected") {
+      statusElement.classList.add("status-connected");
+      statusElement.innerHTML =
+        '<i class="fas fa-circle"></i><span>Connected</span>';
+      console.log("[Dashboard] Set to CONNECTED");
+    } else if (status === "disconnected") {
+      statusElement.classList.add("status-disconnected");
+      statusElement.innerHTML =
+        '<i class="fas fa-circle"></i><span>Disconnected</span>';
+      console.log("[Dashboard] Set to DISCONNECTED");
+    } else if (status === "connecting") {
+      statusElement.classList.add("status-connecting");
+      statusElement.innerHTML =
+        '<i class="fas fa-circle"></i><span>Wait for API</span>';
+      console.log("[Dashboard] Set to CONNECTING");
+    }
+  },
 
-        const row = document.createElement("tr");
-        row.innerHTML = this.renderThreatRow(threat);
-        tbody.prepend(row);
-        
-        // Keep only top 10
-        if (tbody.rows.length > 10) tbody.deleteRow(10);
-    },
+  /**
+   * Update KPI Cards
+   */
+  updateStats(stats) {
+    const mappings = {
+      "total-requests": { val: stats.total_requests, type: "info" },
+      "blocked-requests": { val: stats.blocked_requests, type: "blocked" },
+      "ml-detections": { val: stats.ml_detections, type: "ml" },
+    };
 
-    renderThreatRow(t) {
-        const timestamp = UIUtils.formatRelativeTime(t.timestamp || t.detected_at);
-        const badge = UIUtils.getThreatBadgeHTML(t.type);
-        const severity = UIUtils.getSeverityChipHTML(t.severity || "Low");
-        const ip = Formatters.escapeHTML(t.ip || "Unknown");
-        const details = Formatters.escapeHTML(t.details || `${t.type} detected`);
+    for (const [id, config] of Object.entries(mappings)) {
+      const el = document.getElementById(id);
+      if (el) {
+        this.animateNumber(el, config.val);
+        this.previousStats[id] = config.val;
+      }
+    }
+
+    // Top Attack Calculation
+    const attackStats = [
+      { label: "SQL Injection", val: stats.sql_injection_attempts, icon: "fa-database", color: "#f59e0b" },
+      { label: "XSS Attacks", val: stats.xss_attempts, icon: "fa-code", color: "#38bdf8" },
+      { label: "Brute Force", val: stats.brute_force_attempts, icon: "fa-key", color: "#f87171" },
+      { label: "Scanners", val: stats.scanner_attempts, icon: "fa-eye", color: "#22c55e" },
+      { label: "Rate Limited", val: stats.rate_limit_hits, icon: "fa-bolt", color: "#fbbf24" },
+    ];
+
+    // Find the attack with the highest value
+    const topAttack = attackStats.reduce((prev, current) => (prev.val > current.val) ? prev : current);
+
+    const topAttackCard = document.getElementById("top-attack-card");
+    const topAttackValEl = document.getElementById("top-attack-value");
+    const topAttackLabelEl = document.getElementById("top-attack-label");
+    const topAttackIconEl = document.getElementById("top-attack-icon");
+
+    if (topAttackCard && topAttackValEl && topAttackLabelEl && topAttackIconEl) {
+      if (topAttack.val > 0) {
+        // Show the name of the attack instead of the count
+        topAttackValEl.textContent = topAttack.label.toUpperCase();
+        topAttackValEl.style.fontSize = topAttack.label.length > 12 ? "1.5rem" : "2rem";
+        topAttackLabelEl.textContent = "Top Attack";
+        topAttackIconEl.className = `fas ${topAttack.icon}`;
+        topAttackIconEl.style.color = topAttack.color;
+        topAttackCard.style.setProperty("--card-accent", topAttack.color);
+        topAttackCard.onclick = () => location.href = '/threats-overview';
+      } else {
+        topAttackValEl.textContent = "No Attacks";
+        topAttackValEl.style.fontSize = "1.8rem";
+        topAttackLabelEl.textContent = "Top Attack";
+        topAttackIconEl.className = "fas fa-triangle-exclamation";
+        topAttackIconEl.style.color = "var(--text-secondary)";
+        topAttackCard.style.setProperty("--card-accent", "var(--brand-primary)");
+        topAttackCard.onclick = () => location.href = '/threats-overview';
+      }
+    }
+
+    // ML Model Performance card value
+    const mlPerfEl = document.getElementById("ml-model-performance");
+    if (mlPerfEl && typeof stats.ml_model_performance !== "undefined") {
+      mlPerfEl.textContent = `${stats.ml_model_performance.toFixed(2)}%`;
+    }
+
+    // Display security score supplied by backend (calculated using
+    // the project’s official formula).
+    if (typeof stats.security_score !== "undefined") {
+      const val = Math.max(0, Math.min(100, stats.security_score));
+      const scoreEl = document.getElementById("security-score");
+      if (scoreEl) {
+        scoreEl.textContent = `${val}/100`;
+      }
+      this.updateNavbarSecurityScore(val);
+    } else {
+      // backend didn't send a score (perhaps offline) – compute locally
+      const total = stats.total_requests || 0;
+      const blocked = stats.blocked_requests || 0;
+      // approximate detected incidents as sum of all non-clean categories
+      const detected =
+        (stats.ml_detections || 0) +
+        (stats.sql_injection_attempts || 0) +
+        (stats.xss_attempts || 0) +
+        (stats.brute_force_attempts || 0) +
+        (stats.scanner_attempts || 0) +
+        (stats.rate_limit_hits || 0);
+      // ml performance not available here; use neutral 0.5
+      const ml_perf = 0.5;
+      const DETECT_WEIGHT = 0.5;
+      const BLOCK_WEIGHT = 0.3;
+      const ML_WEIGHT = 0.2;
+      let fallback = 0;
+      if (total > 0) {
+        const detect_rate = detected / (total + 1);
+        const block_rate = blocked / (total + 1);
+        fallback =
+          100 *
+          (detect_rate * DETECT_WEIGHT +
+            block_rate * BLOCK_WEIGHT +
+            ml_perf * ML_WEIGHT);
+        fallback = Math.round(fallback * 100) / 100;
+      }
+      const scoreEl = document.getElementById("security-score");
+      if (scoreEl) {
+        scoreEl.textContent = `${fallback}/100`;
+      }
+      this.updateNavbarSecurityScore(fallback);
+    }
+  },
+
+  /**
+   * Animate Number Transition
+   */
+  animateNumber(element, target) {
+    const current = parseInt(element.textContent) || 0;
+    if (current === target) return;
+
+    element.textContent = target;
+    element.classList.add("number-animate");
+    setTimeout(() => element.classList.remove("number-animate"), 500);
+  },
+
+  /**
+   * Update Timeline Chart
+   */
+  updateTimeline(timeline) {
+    const labels = timeline.map((t) =>
+      new Date(t.timestamp * 1000).toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+      }),
+    );
+    const totals = timeline.map((t) => t.total_requests);
+    const blocked = timeline.map((t) => t.blocked_requests);
+    const limited = timeline.map((t) => t.rate_limit_hits || 0);
+
+    this.charts.timeline.data.labels = labels;
+    this.charts.timeline.data.datasets[0].data = totals;
+    this.charts.timeline.data.datasets[1].data = blocked;
+    this.charts.timeline.data.datasets[2].data = limited;
+    this.charts.timeline.update("none");
+  },
+
+  /**
+   * Update Threat Distribution Pie
+   */
+  updateDistribution(dist) {
+    const values = [
+      dist["SQL Injection"] || 0,
+      dist["XSS"] || 0,
+      dist["Brute Force"] || 0,
+      dist["Scanner"] || 0,
+      dist["ML Detection"] || 0,
+      dist["Rate Limit"] || 0,
+    ];
+    this.charts.distribution.data.datasets[0].data = values;
+    this.charts.distribution.update();
+  },
+
+  /**
+   * Map threat type string → CSS class + icon
+   */
+  getThreatTypeBadge(type) {
+    const t = (type || "").toLowerCase();
+
+    if (t.includes("sql"))
+      return {
+        cls: "threat-badge threat-sqli",
+        icon: "fa-database",
+        label: type,
+      };
+    if (t.includes("xss"))
+      return { cls: "threat-badge threat-xss", icon: "fa-code", label: type };
+    if (t.includes("brute"))
+      return { cls: "threat-badge threat-brute", icon: "fa-key", label: type };
+    if (t.includes("scan"))
+      return {
+        cls: "threat-badge threat-scanner",
+        icon: "fa-eye",
+        label: type,
+      };
+    if (t.includes("ml") || t.includes("anomaly"))
+      return { cls: "threat-badge threat-ml", icon: "fa-brain", label: type };
+    if (t.includes("rate"))
+      return { cls: "threat-badge threat-rate", icon: "fa-bolt", label: type };
+    if (t.includes("block"))
+      return {
+        cls: "threat-badge threat-blocked",
+        icon: "fa-shield-virus",
+        label: type,
+      };
+    return {
+      cls: "threat-badge threat-unknown",
+      icon: "fa-circle-question",
+      label: type,
+    };
+  },
+
+  /**
+   * Update Threat Table
+   */
+  updateRecentThreats(threats) {
+    const tbody = document.getElementById("threats-table-body");
+    if (!tbody) return;
+
+    if (threats.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--text-muted)">No threats detected</td></tr>`;
+      return;
+    }
+
+    // display the full IP address; no masking required
+
+    tbody.innerHTML = threats
+      .map((t) => {
+        const badge = this.getThreatTypeBadge(t.type);
+        const rawTs = t.timestamp ?? t.time ?? t.detected_at ?? "";
+        const safeTimestamp = rawTs
+          ? Formatters.escapeHTML(
+              typeof rawTs === "number"
+                ? new Date(rawTs * 1000).toLocaleString()
+                : new Date(rawTs).toLocaleString(),
+            )
+          : "-";
+
+        const rawPath =
+          t.request_path || t.path || t.url || t.request_url || "";
+        const cleanPath = rawPath ? rawPath.split("?")[0] : "-";
+        const safePath = Formatters.escapeHTML(cleanPath);
+
+        const method = Formatters.escapeHTML((t.method || "").toUpperCase());
+
+        const confRaw = t.confidence ?? t.score ?? t.probability ?? null;
+        const confidence =
+          confRaw != null
+            ? `${Math.round(Number(confRaw) * 100)}%`
+            : t.conf_pct
+              ? `${Number(t.conf_pct).toFixed(0)}%`
+              : "—";
+
+        const rawIp = t.ip || t.source_ip || t.src || "";
+        const maskedIp = rawIp; // show full address
+
+        const safeLabel = Formatters.escapeHTML(badge.label);
+        const safeSeverity = Formatters.escapeHTML(t.severity || "Unknown");
+
+        // simplified admin-friendly details: type and location only
+        const getSimpleDetail = (threat) => {
+          const threatType = threat.type || threat.attack_type || "Unknown";
+          let endpoint =
+            threat.endpoint || threat.path || threat.request_path || "";
+          if (endpoint) {
+            // strip querystring if present
+            endpoint = endpoint.split("?")[0];
+            // remove any leading slashes for cleaner display
+            endpoint = endpoint.replace(/^\/+/, "");
+            // drop a leading "api/" segment so details read like "XSS at data"
+            endpoint = endpoint.replace(/^api\//i, "");
+            return `${threatType} at ${endpoint}`;
+          }
+          return threatType;
+        };
+
+        const simpleDetail = getSimpleDetail(t);
+        const safeCategory = encodeURIComponent(t.type ?? "");
+        const safeIPParam = encodeURIComponent(rawIp ?? "");
+
+        const isBlocked =
+          t.blocked === true ||
+          String(t.severity || "").toLowerCase() === "high";
 
         return `
-            <td>${timestamp}</td>
-            <td>${badge}</td>
-            <td class="font-mono">${ip}</td>
-            <td>${severity}</td>
-            <td class="table-actions">
-                <span class="text-sm truncate" title="${details}">${details}</span>
-                <button onclick="location.href='/incident/${t.id}'" class="btn-text">View</button>
-            </td>
+            <tr class="${isBlocked ? "row-blocked" : ""}">
+                <td>${safeTimestamp}</td>
+                <td>
+                    <span class="${badge.cls}">
+                        <i class="fas ${badge.icon}"></i> ${safeLabel}
+                    </span>
+                </td>
+                <td class="attacker-ip">${Formatters.escapeHTML(maskedIp)}</td>
+                <td><span class="severity-badge severity-${safeSeverity.toLowerCase()}">${safeSeverity}</span></td>
+                <td style="display:flex; justify-content:space-between; align-items:center">
+                    <span>${Formatters.escapeHTML(simpleDetail)}</span>
+                    <button onclick="viewThreatDetails('${safeCategory}', '${safeIPParam}')" class="btn-view-more" title="View More Details" style="margin-left: 8px; padding: 4px 8px; font-size: 0.8rem; background: var(--brand-primary); color: white; border: none; border-radius: 4px; cursor: pointer;">
+                        View More
+                    </button>
+                </td>
+            </tr>
         `;
-    },
+      })
+      .join("");
+  },
 
-    updateThreatRankings(attackers) {
-        const container = document.getElementById("top-attackers-list");
-        if (!container) return;
+  /**
+   * Update Top Attackers
+   */
+  updateTopAttackers(attackers) {
+    const container = document.getElementById("top-attackers-list");
+    if (!container) return;
 
-        container.innerHTML = attackers.slice(0, 5).map(([ip, count]) => `
-            <div class="attacker-item">
-                <span class="attacker-ip">${Formatters.escapeHTML(ip)}</span>
-                <span class="attack-count badge">${count} sessions</span>
-            </div>
-        `).join('');
-    },
-
-    /**
-     * Chart Management
-     */
-    initCharts() {
-        const ctxTimeline = document.getElementById("timelineChart")?.getContext("2d");
-        const ctxDist = document.getElementById("distributionChart")?.getContext("2d");
-
-        if (ctxTimeline) {
-            this.charts.timeline = new Chart(ctxTimeline, {
-                type: 'line',
-                data: { labels: [], datasets: [
-                    { label: 'Requests', borderColor: '#7c3aed', backgroundColor: 'rgba(124, 58, 237, 0.1)', data: [], fill: true, tension: 0.4 },
-                    { label: 'Blocked', borderColor: '#ef4444', backgroundColor: 'rgba(239, 68, 68, 0.1)', data: [], fill: true, tension: 0.4 }
-                ]},
-                options: this.getChartOptions()
-            });
-        }
-
-        if (ctxDist) {
-            this.charts.distribution = new Chart(ctxDist, {
-                type: 'doughnut',
-                data: { labels: ['SQLi', 'XSS', 'Brute', 'Scanner', 'ML'], datasets: [{ data: [0,0,0,0,0], backgroundColor: ['#f59e0b', '#38bdf8', '#f87171', '#22c55e', '#a78bfa'] }]},
-                options: { ...this.getChartOptions(), cutout: '70%', plugins: { legend: { position: 'bottom' }}}
-            });
-        }
-    },
-
-    updateCharts(data) {
-        if (this.charts.timeline && data.timeline) {
-            this.charts.timeline.data.labels = data.timeline.map(t => new Date(t.timestamp * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
-            this.charts.timeline.data.datasets[0].data = data.timeline.map(t => t.total_requests);
-            this.charts.timeline.data.datasets[1].data = data.timeline.map(t => t.blocked_requests);
-            this.charts.timeline.update('none');
-        }
-
-        if (this.charts.distribution && data.threat_distribution) {
-            const dist = data.threat_distribution;
-            this.charts.distribution.data.datasets[0].data = [
-                dist['SQL Injection'] || 0, dist['XSS'] || 0, dist['Brute Force'] || 0, dist['Scanner'] || 0, dist['ML Detection'] || 0
-            ];
-            this.charts.distribution.update();
-        }
-    },
-
-    getChartOptions() {
-        const isDark = document.documentElement.getAttribute("data-theme") === "dark";
-        const gridColor = isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)";
-        return {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                x: { grid: { color: gridColor }, ticks: { color: '#9CA3AF' }},
-                y: { grid: { color: gridColor }, ticks: { color: '#9CA3AF' }}
-            },
-            plugins: { legend: { display: false }}
-        };
-    },
-
-    updateChartThemes(theme) {
-        const isDark = theme === "dark";
-        const gridColor = isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)";
-        Object.values(this.charts).forEach(chart => {
-            if (chart.options.scales) {
-                chart.options.scales.x.grid.color = gridColor;
-                chart.options.scales.y.grid.color = gridColor;
-            }
-            chart.update();
-        });
+    if (attackers.length === 0) {
+      container.innerHTML = `<p style="color:var(--text-muted); text-align:center">No attacker data available</p>`;
+      return;
     }
+
+    container.innerHTML = attackers
+      .map(
+        ([ip, count]) => `
+            <div class="attacker-item">
+                <div class="attacker-ip">${Formatters.escapeHTML(ip)}</div>
+                <div class="attack-count">${Formatters.escapeHTML(count)} attacks</div>
+            </div>
+        `,
+      )
+      .join("");
+  },
+
+  /**
+   * Add a single threat to the table, used for real‑time updates.
+   * This mirrors the logic in updateRecentThreats but only handles one
+   * entry and preserves existing rows.
+   */
+  addThreat(threat) {
+    const tbody = document.getElementById("threats-table-body");
+    if (!tbody) return;
+
+    // build row html using same helpers as updateRecentThreats
+    const badge = this.getThreatTypeBadge(threat.type);
+    const rawTs = threat.timestamp ?? threat.time ?? threat.detected_at ?? "";
+    const safeTimestamp = rawTs
+      ? Formatters.escapeHTML(
+          typeof rawTs === "number"
+            ? new Date(rawTs * 1000).toLocaleString()
+            : new Date(rawTs).toLocaleString(),
+        )
+      : "-";
+
+    const rawPath =
+      threat.request_path ||
+      threat.path ||
+      threat.url ||
+      threat.request_url ||
+      "";
+    const cleanPath = rawPath ? rawPath.split("?")[0] : "-";
+    const safePath = Formatters.escapeHTML(cleanPath);
+
+    const rawIp = threat.ip || threat.source_ip || threat.src || "";
+    const maskedIp = rawIp;
+
+    const safeLabel = Formatters.escapeHTML(badge.label);
+    const safeSeverity = Formatters.escapeHTML(threat.severity || "Unknown");
+
+    const isBlocked =
+      threat.blocked === true ||
+      String(threat.severity || "").toLowerCase() === "high";
+
+    const simpleDetail = (() => {
+      const threatType = threat.type || threat.attack_type || "Unknown";
+      let endpoint =
+        threat.endpoint || threat.path || threat.request_path || "";
+      if (endpoint) {
+        endpoint = endpoint.split("?")[0];
+        endpoint = endpoint.replace(/^\/+/, "");
+        endpoint = endpoint.replace(/^api\//i, "");
+        return `${threatType} at ${endpoint}`;
+      }
+      return threatType;
+    })();
+
+    const row = document.createElement("tr");
+    if (isBlocked) row.classList.add("row-blocked");
+    row.innerHTML = `
+                <td>${safeTimestamp}</td>
+                <td>
+                    <span class="${badge.cls}">
+                        <i class="fas ${badge.icon}"></i> ${safeLabel}
+                    </span>
+                </td>
+                <td class="attacker-ip">${Formatters.escapeHTML(maskedIp)}</td>
+                <td><span class="severity-badge severity-${safeSeverity.toLowerCase()}">${safeSeverity}</span></td>
+                <td style="display:flex; justify-content:space-between; align-items:center">
+                    <span>${Formatters.escapeHTML(simpleDetail)}</span>
+                    <button onclick="viewThreatDetails('${encodeURIComponent(threat.type ?? "")}', '${encodeURIComponent(rawIp ?? "")}')" class="btn-view-more" title="View More Details" style="margin-left: 8px; padding: 4px 8px; font-size: 0.8rem; background: var(--brand-primary); color: white; border: none; border-radius: 4px; cursor: pointer;">
+                        View More
+                    </button>
+                </td>
+            `;
+
+    // insert at top of tbody
+    if (tbody.firstChild) {
+      tbody.insertBefore(row, tbody.firstChild);
+    } else {
+      tbody.appendChild(row);
+    }
+  },
 };
 
-document.addEventListener("DOMContentLoaded", () => Dashboard.init());
+// Close Security Alerts
+document.addEventListener("DOMContentLoaded", () => {
+  const closeAlertsBtn = document.getElementById("close-alerts");
+  if (closeAlertsBtn) {
+    closeAlertsBtn.addEventListener("click", () => {
+      const alertCard = closeAlertsBtn.closest(".table-card");
+      if (alertCard) {
+        alertCard.style.animation = "slideDown 0.4s ease-out forwards";
+        setTimeout(() => alertCard.remove(), 400);
+      }
+    });
+  }
+});
+
+// Start Dashboard
+document.addEventListener("DOMContentLoaded", () => {
+  // Check if on dashboard page
+  if (document.getElementById("total-requests")) {
+    Dashboard.init();
+  }
+});
+/**
+ * ml_summary_card.js
+ * المسار: /static/javascript/ml_summary_card.js
+ * ─────────────────────────────────────────────────────────────
+ * يجيب بيانات الـ ML من /api/ml/stats
+ * ويحدث:
+ *   - قيم Accuracy / Precision / F1 في الكارت
+ *   - Mini line chart بتاريخ الأداء (أو generated sparkline لو مفيش history)
+ *   - Status badge
+ * ─────────────────────────────────────────────────────────────
+ * Response shape expected from /api/ml/stats (percent values):
+ * {
+ *   accuracy:  94.12,       // 0–100 scale
+ *   precision: 96.34,
+ *   recall:    98.01,       // new field shown on detailed page
+ *   f1_score:  97.17,
+ *   roc_auc:   0.9923,      // roc_auc remains 0–1
+ *   model_type:   "Random Forest",
+ *   vectorizer:   "TF-IDF",
+ *   // optional — array of {label, accuracy} for chart history (0–100 or 0–1)
+ *   history: [ {label:"Mon", accuracy:95}, ... ]
+ * }
+ * ─────────────────────────────────────────────────────────────
+ */
+
+(function MLSummaryCard() {
+  /* ── helpers ──────────────────────────────────────────────── */
+  const $ = (id) => document.getElementById(id);
+  let miniChart = null;
+
+  function pct(val) {
+    // API now returns percentages (0–100) rather than 0‑1 decimals, so
+    // just format directly.  we keep the helper so the badge logic stays
+    // consistent with the full ML page.
+    return val != null ? `${val.toFixed(2)}%` : "--%";
+  }
+
+  function setVal(id, val) {
+    const el = $(id);
+    if (el) el.textContent = pct(val);
+  }
+
+  /* ── build / update mini chart ──────────────────────────── */
+  function buildMiniChart(history, theme) {
+    const canvas = $("mlpMiniChart");
+    if (!canvas) return;
+
+    const isDark = theme !== "light";
+
+    /* generate fake smooth sparkline if no history provided */
+    let labels, values;
+    if (history && history.length >= 3) {
+      labels = history.map((h) => h.label ?? "");
+      values = history.map((h) => h.accuracy ?? h.value ?? 0);
+    } else {
+      /* synthetic 10-point sparkline around the base accuracy (normalized)
+        if our history has already been converted above it will be <1, else
+         default to 0.94. */
+      const base = history?.[0]?.accuracy ?? 0.94;
+      labels = ["", "", "", "", "", "", "", "", "", ""];
+      values = Array.from({ length: 10 }, (_, i) => {
+        const noise = Math.sin(i * 1.3) * 0.018 + Math.cos(i * 0.7) * 0.012;
+        return Math.min(1, Math.max(0.8, base + noise));
+      });
+    }
+
+    const gridColor = isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.06)";
+    const tickColor = isDark ? "rgba(255,255,255,0.25)" : "rgba(0,0,0,0.3)";
+    const lineColor = "var(--brand-primary)";
+    const areaStart = isDark
+      ? "rgba(168,85,247,0.22)"
+      : "rgba(168,85,247,0.12)";
+    const areaEnd = "rgba(168,85,247,0)";
+
+    const ctx = canvas.getContext("2d");
+
+    /* gradient fill */
+    const grad = ctx.createLinearGradient(0, 0, 0, 140);
+    grad.addColorStop(0, areaStart);
+    grad.addColorStop(1, areaEnd);
+
+    const cfg = {
+      type: "line",
+      data: {
+        labels,
+        datasets: [
+          {
+            data: values,
+            borderColor: lineColor,
+            backgroundColor: grad,
+            borderWidth: 2,
+            pointRadius: 0,
+            pointHoverRadius: 4,
+            pointHoverBackgroundColor: lineColor,
+            tension: 0.45,
+            fill: true,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: { duration: 900, easing: "easeInOutQuart" },
+        interaction: { mode: "nearest", axis: "x", intersect: false },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: isDark ? "#1a0a2e" : "#fff",
+            borderColor: lineColor,
+            borderWidth: 1,
+            titleColor: lineColor,
+            bodyColor: isDark ? "#fff" : "#1f1b2e",
+            padding: 8,
+            callbacks: {
+              label: (ctx) => ` ${(ctx.raw * 100).toFixed(1)}%`,
+            },
+          },
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: { display: false },
+            border: { display: false },
+          },
+          y: {
+            min: Math.max(0, Math.min(...values) - 0.03),
+            max: Math.min(1, Math.max(...values) + 0.02),
+            grid: { color: gridColor },
+            ticks: {
+              color: tickColor,
+              font: { size: 9, family: "JetBrains Mono" },
+              callback: (v) => `${(v * 100).toFixed(0)}%`,
+              maxTicksLimit: 4,
+            },
+            border: { display: false },
+          },
+        },
+      },
+    };
+
+    if (miniChart) {
+      miniChart.data.labels = labels;
+      miniChart.data.datasets[0].data = values;
+      miniChart.update();
+    } else {
+      miniChart = new Chart(ctx, cfg);
+    }
+  }
+
+  /* ── update status badge ────────────────────────────────── */
+  function setStatus(ok) {
+    const badge = $("mlp-summary-status");
+    if (!badge) return;
+    const textEl = badge.querySelector("span:last-child");
+    if (ok) {
+      badge.classList.remove("badge-error");
+      badge.classList.add("badge-online");
+      if (textEl) textEl.textContent = "Active";
+    } else {
+      badge.classList.remove("badge-online");
+      badge.classList.add("badge-error");
+      if (textEl) textEl.textContent = "Offline";
+    }
+  }
+
+  /* ── update model label ─────────────────────────────────── */
+  function setLabel(d) {
+    const el = $("mlp-model-label");
+    if (!el) return;
+    // hide both model and vectorizer information per user request
+    el.textContent = "";
+    el.style.display = "none";
+  }
+
+  /* ── fetch & render ─────────────────────────────────────── */
+  async function load() {
+    if (window.DASHBOARD_CONFIG?.apiEnabled === false) {
+      setStatus(false);
+      buildMiniChart(
+        null,
+        document.documentElement.getAttribute("data-theme") ?? "dark",
+      );
+      return;
+    }
+    try {
+      const res = await fetch("/api/ml/stats?t=" + Date.now());
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const d = await res.json();
+
+      console.log(
+        "[Dashboard ML Summary] API Response accuracy:",
+        d.accuracy,
+        "type:",
+        typeof d.accuracy,
+      );
+      setVal("mlp-s-accuracy", d.accuracy);
+      // include recall so the small dashboard summary matches the full report
+      setVal("mlp-s-recall", d.recall);
+      setVal("mlp-s-f1", d.f1_score);
+      setLabel(d);
+      setStatus(true);
+
+      const theme =
+        document.documentElement.getAttribute("data-theme") ?? "dark";
+
+      /* build history array for chart — use history key if present,
+         otherwise generate a synthetic sparkline from the single value */
+      // make sure history values are normalized to 0‑1 for the sparkline
+      // (older code assumed 0‑1; the API now sends 0‑100).  we'll convert
+      // here so the chart logic can stay mostly unchanged.
+      let history = d.history ?? [{ accuracy: d.accuracy }];
+      if (
+        history.length &&
+        (history[0].accuracy ?? history[0].value ?? 0) > 1
+      ) {
+        history = history.map((h) => ({
+          ...h,
+          accuracy: (h.accuracy ?? h.value ?? 0) / 100,
+          value: (h.value ?? h.accuracy ?? 0) / 100,
+        }));
+      }
+      buildMiniChart(history, theme);
+    } catch (err) {
+      console.warn("MLSummaryCard: could not load data", err);
+      setStatus(false);
+      /* still draw a flat placeholder chart */
+      buildMiniChart(
+        null,
+        document.documentElement.getAttribute("data-theme") ?? "dark",
+      );
+    }
+  }
+
+  /* ── re-render chart on theme switch ────────────────────── */
+  window.addEventListener("themeChanged", (e) => {
+    if (miniChart) {
+      miniChart.destroy();
+      miniChart = null;
+    }
+    load();
+  });
+
+  /* ── init ───────────────────────────────────────────────── */
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", load);
+  } else {
+    load();
+  }
+})();
+
+// Global function for threat details navigation
+function viewThreatDetails(category, ip) {
+  // Navigate to the appropriate threat details page
+  if (category && ip) {
+    window.location.href = `/threats/${encodeURIComponent(category)}?ip=${encodeURIComponent(ip)}`;
+  } else if (category) {
+    window.location.href = `/threats/${encodeURIComponent(category)}`;
+  } else {
+    // Fallback to incidents page
+    window.location.href = "/incidents";
+  }
+}
+
+// Add updateNavbarSecurityScore method to Dashboard object
+Dashboard.updateNavbarSecurityScore = function (score) {
+  const scoreElement = document.getElementById("navbar-score-value");
+  const scoreContainer = document.getElementById("navbar-security-score");
+
+  if (!scoreElement || !scoreContainer) return;
+
+  if (typeof score !== "undefined") {
+    const val = Math.max(0, Math.min(100, score));
+    scoreElement.textContent = Math.round(val) + "/100";
+
+    // Remove existing classes
+    scoreContainer.classList.remove("score-warning", "score-danger");
+
+    // Add appropriate class based on score
+    if (val < 40) {
+      scoreContainer.classList.add("score-danger");
+    } else if (val < 70) {
+      scoreContainer.classList.add("score-warning");
+    }
+  } else {
+    scoreElement.textContent = "--/100";
+  }
+};

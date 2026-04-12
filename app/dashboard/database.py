@@ -164,39 +164,17 @@ def insert_user(username, password_hash, email=None,
 
 
 def update_user(username: str, **kwargs) -> bool:
-    # Strict allowlist — column names are NEVER taken from user input.
-    # Only columns in this set can appear in the SET clause.
-    ALLOWED_COLUMNS = frozenset({
-        "email", "password_hash", "role_id", "department_id",
-        "is_active", "last_login", "updated_at",
-    })
-
-    # Validate every key before it touches SQL
-    fields = {}
-    for k, v in kwargs.items():
-        if k not in ALLOWED_COLUMNS:
-            logger.warning(f"[DB] update_user: rejected unknown column '{k}'")
-            continue
-        fields[k] = v
-
+    allowed = {"email", "password_hash", "role_id", "department_id",
+               "is_active", "last_login", "updated_at"}
+    fields = {k: v for k, v in kwargs.items() if k in allowed}
     if not fields:
         return False
-
     fields["updated_at"] = time.strftime("%Y-%m-%d %H:%M:%S")
-
-    # Build SET clause from validated column names + positional ? placeholders.
-    # Column names come only from the ALLOWED_COLUMNS set — never from raw input.
-    set_clause = ", ".join(f"{col} = ?" for col in fields)   # col ∈ ALLOWED_COLUMNS
-    values = list(fields.values()) + [username]               # username bound as a parameter
-
+    set_clause = ", ".join(f"{k} = ?" for k in fields)
+    values = list(fields.values()) + [username]
     with db_cursor() as cur:
-        # Parameterized query — no user data ever reaches the SQL string itself
-        cur.execute(
-            f"UPDATE users SET {set_clause} WHERE username = ?",  # noqa: S608
-            values
-        )
+        cur.execute(f"UPDATE users SET {set_clause} WHERE username = ?", values)
         return cur.rowcount > 0
-
 
 
 def delete_user(username: str) -> bool:

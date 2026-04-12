@@ -5,24 +5,16 @@
 const API = {
   /**
    * Performs an API fetch and handles common error scenarios
-   * Includes automatic CSRF injection and Token Rotation for 401s
+   * @param {string} endpoint 
+   * @param {RequestInit} options
    */
   async request(endpoint, options = {}) {
     try {
+      // Add standard headers
       const headers = {
         'Accept': 'application/json',
         ...options.headers
       };
-
-      const method = (options.method || 'GET').toUpperCase();
-      const safeMethods = ['GET', 'HEAD', 'OPTIONS', 'TRACE'];
-
-      if (!safeMethods.includes(method)) {
-          const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-          if (csrfToken && !headers['X-CSRF-Token']) {
-              headers['X-CSRF-Token'] = csrfToken;
-          }
-      }
 
       if (options.body && !(options.body instanceof FormData)) {
         headers['Content-Type'] = 'application/json';
@@ -40,34 +32,10 @@ const API = {
 
       clearTimeout(timeoutId);
 
-      // 1. Handle Token Rotation on 401 (Seamless refresh)
-      if (response.status === 401 && !options._isRetry) {
-          const pathName = typeof endpoint === 'string' ? endpoint : (endpoint.url || '');
-          if (!pathName.includes('/api/auth/refresh') && !pathName.includes('/login')) {
-              try {
-                  const refreshResp = await fetch('/api/auth/refresh', {
-                      method: 'POST',
-                      headers: { 'Accept': 'application/json' }
-                  });
-                  
-                  if (refreshResp.ok) {
-                      // Retry original request
-                      return this.request(endpoint, { ...options, _isRetry: true });
-                  } else {
-                      window.location.href = '/login?error=Session+Expired';
-                      throw new Error('Session Expired');
-                  }
-              } catch (e) {
-                  window.location.href = '/login';
-                  throw e;
-              }
-          }
-      }
-
-      // 2. Handle other auth failures
-      if (response.status === 403) {
-        window.location.href = '/login?msg=Permission+denied';
-        throw new Error('Permission denied');
+      // Handle auth failures
+      if (response.status === 401 || response.status === 403) {
+        window.location.href = '/login?msg=Session+expired';
+        throw new Error('Authentication required');
       }
 
       const data = await response.json().catch(() => null);
@@ -77,18 +45,12 @@ const API = {
         throw new Error(errorMsg);
       }
 
-      // Handle standardized structure: {success, data, error}
-      if (data && typeof data === 'object' && 'success' in data && 'data' in data) {
-        if (!data.success) {
-            throw new Error(data.error || 'Request failed');
-        }
-        return data.data;
-      }
-
       return data;
 
     } catch (error) {
-      if (error.name === 'AbortError') throw new Error('Request timed out');
+      if (error.name === 'AbortError') {
+        throw new Error('Request timed out. Please check your connection.');
+      }
       throw error;
     }
   },

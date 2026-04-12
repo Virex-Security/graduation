@@ -1,13 +1,15 @@
 """
-Machine Learning module for detecting security threats
+Machine Learning module for detecting security threats — v2
 """
-from app.ml.inference import ml_detect, ml_analyze, MLDecision, MODEL_LOADED, get_ml_stats
+from app.ml.inference import (
+    ml_detect, ml_analyze, MLDecision,
+    MODEL_LOADED, get_ml_stats,
+)
 
 __all__ = [
-    'ml_detect',
-    'ml_analyze',
-    'MLDecision',
-    'MODEL_LOADED',
-    'get_ml_stats',
+    "ml_detect",
+    "ml_analyze",
+    "MLDecision",
+    "MODEL_LOADED",
+    "get_ml_stats",
 ]
-

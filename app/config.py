@@ -28,9 +28,7 @@ _DEFAULTS = {
     "MAX_CONTENT_LENGTH":    "1048576",
     "SMTP_EMAIL":            "",
     "SMTP_PASSWORD":         "",
-    "REDIS_URL":             "redis://localhost:6379",
 }
-
 
 # ── Insecure default values that must be changed in production ──
 _INSECURE_VALUES = {
@@ -46,54 +44,60 @@ _INSECURE_VALUES = {
 def validate_config(strict: bool = False) -> bool:
     """
     Validate environment configuration.
-    Raises SystemExit(1) if mandatory security requirements are not met.
+
+    Args:
+        strict: If True, also reject insecure default values
+                (use this for production deployments).
+
+    Returns:
+        True if valid. Logs errors and raises SystemExit if not.
     """
     errors = []
     warnings = []
 
-    # 1. Enforce Mandatory SECRET_KEY
-    secret = os.getenv("SECRET_KEY", "").strip()
-    if not secret:
-        errors.append("  ❌ SECRET_KEY is not set")
-    else:
-        # Enforce Minimum Length (Mandatory)
-        if len(secret) < 32:
-            errors.append(f"  ❌ SECRET_KEY is too short ({len(secret)} chars, minimum 32)")
-        
-        # Enforce No Insecure Defaults (Mandatory)
-        if secret in _INSECURE_VALUES.get("SECRET_KEY", []):
-            errors.append(f"  ❌ SECRET_KEY is using a known insecure default value")
-
-    # 2. Check other required variables
+    # Check required vars
     for key in _REQUIRED:
-        if key == "SECRET_KEY": continue # Already checked Above
         val = os.getenv(key, "").strip()
         if not val:
             errors.append(f"  ❌ {key} is not set")
+        elif strict and key in _INSECURE_VALUES:
+            if val in _INSECURE_VALUES[key]:
+                errors.append(f"  ❌ {key} is still using an insecure default value")
 
-    # 3. Warnings for non-critical config
+    # Check insecure values in non-strict mode (warn only)
+    if not strict:
+        for key, bad_values in _INSECURE_VALUES.items():
+            val = os.getenv(key, "").strip()
+            if val in bad_values:
+                warnings.append(f"  ⚠️  {key} is using an insecure default — change before production")
+
+    # Check SMTP config (warn if missing — not required to start)
     if not os.getenv("SMTP_EMAIL") or not os.getenv("SMTP_PASSWORD"):
         warnings.append("  ⚠️  SMTP_EMAIL / SMTP_PASSWORD not set — password reset will not work")
 
     if not cookie_secure():
-        warnings.append("  ⚠️  COOKIE_SECURE is disabled — auth cookies will be sent over HTTP")
+        warnings.append("  ⚠️  COOKIE_SECURE is disabled — auth cookies will be sent over HTTP (insecure in production)")
 
-    # Report results
+    # Check SECRET_KEY minimum length
+    secret = os.getenv("SECRET_KEY", "")
+    if secret and len(secret) < 32:
+        errors.append(f"  ❌ SECRET_KEY is too short ({len(secret)} chars, minimum 32)")
+
+    # Report
     if warnings:
         logger.warning("[CONFIG] Configuration warnings:")
         for w in warnings:
             logger.warning(w)
 
     if errors:
-        logger.error("[CONFIG] ❌ FATAL: Configuration requirements not met — cannot start:")
+        logger.error("[CONFIG] ❌ Configuration errors — cannot start:")
         for e in errors:
             logger.error(e)
-        logger.error("[CONFIG] Ensure SECRET_KEY is at least 32 random characters.")
+        logger.error("[CONFIG] Copy .env.example to .env and fill in all required values.")
         sys.exit(1)
 
-    logger.info("[CONFIG] ✅ Configuration successfully validated")
+    logger.info("[CONFIG] ✅ Configuration validated")
     return True
-
 
 
 def get(key: str) -> str:
@@ -134,8 +138,3 @@ def smtp_email() -> str:
 
 def smtp_password() -> str:
     return os.getenv("SMTP_PASSWORD", "")
-
-
-def redis_url() -> str:
-    return os.getenv("REDIS_URL", _DEFAULTS.get("REDIS_URL", ""))
-
