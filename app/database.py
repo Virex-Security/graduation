@@ -113,46 +113,64 @@ def _seed_users():
 def get_all_users() -> list:
     with db_cursor() as cur:
         cur.execute("""
-            SELECT u.*, r.name as role_name
+            SELECT u.*, r.name as real_role_name
             FROM users u
             LEFT JOIN roles r ON u.role_id = r.role_id
             ORDER BY u.user_id
         """)
-        return [dict(r) for r in cur.fetchall()]
+        users = []
+        for r in cur.fetchall():
+            d = dict(r)
+            d['role_name'] = d.pop('real_role_name', None) or d.get('role_name', 'user')
+            users.append(d)
+        return users
 
 
 def get_user_by_username(username: str) -> dict | None:
     with db_cursor() as cur:
         cur.execute("""
-            SELECT u.*, r.name as role_name
+            SELECT u.*, r.name as real_role_name
             FROM users u
             LEFT JOIN roles r ON u.role_id = r.role_id
             WHERE u.username = ?
         """, (username,))
         row = cur.fetchone()
-        return dict(row) if row else None
+        if not row:
+            return None
+        d = dict(row)
+        d['role_name'] = d.pop('real_role_name', None) or d.get('role_name', 'user')
+        return d
 
 
 def get_user_by_id(user_id) -> dict | None:
     with db_cursor() as cur:
         cur.execute("""
-            SELECT u.*, r.name as role_name
+            SELECT u.*, r.name as real_role_name
             FROM users u
             LEFT JOIN roles r ON u.role_id = r.role_id
             WHERE u.user_id = ?
         """, (user_id,))
         row = cur.fetchone()
-        return dict(row) if row else None
+        if not row:
+            return None
+        d = dict(row)
+        d['role_name'] = d.pop('real_role_name', None) or d.get('role_name', 'user')
+        return d
+        
 def get_user_by_email(email: str) -> dict | None:
     with db_cursor() as cur:
         cur.execute("""
-            SELECT u.*, r.name as role_name
+            SELECT u.*, r.name as real_role_name
             FROM users u
             LEFT JOIN roles r ON u.role_id = r.role_id
             WHERE u.email = ?
         """, (email,))
         row = cur.fetchone()
-        return dict(row) if row else None
+        if not row:
+            return None
+        d = dict(row)
+        d['role_name'] = d.pop('real_role_name', None) or d.get('role_name', 'user')
+        return d
 
 
 
