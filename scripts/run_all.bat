@@ -3,6 +3,8 @@ echo ==========================================
 echo   🛡️ API Security System - Master Launcher
 echo ==========================================
 
+cd /d "%~dp0.."
+
 echo [1/3] Starting Security Dashboard on port 8070...
 start cmd /k "python run_dashboard.py"
 
@@ -14,7 +16,7 @@ start cmd /k "python run_api.py"
 timeout /t 3 /nobreak > nul
 
 echo [3/3] Starting Attack Simulator...
-start cmd /k "python scripts/attack_simulator.py"
+start cmd /k "python attack_simulator.py"
 
 echo ==========================================
 echo   ✅ All systems are launching in separate windows.

@@ -40,7 +40,17 @@ def db_cursor():
 
 
 def init_db():
-    """Ensure DB is ready: seed roles, users, and create performance indexes."""
+    """Ensure DB is ready: create tables, seed roles, users, and create performance indexes."""
+    import subprocess
+    import sys
+    setup_script = PROJECT_ROOT / "setup_db.py"
+    if setup_script.exists():
+        try:
+            subprocess.run([sys.executable, str(setup_script)], check=True, capture_output=True)
+            logger.info("[DB] Setup script executed successfully.")
+        except subprocess.CalledProcessError as e:
+            logger.error(f"[DB] Error running setup_db.py: {e.stderr.decode()}")
+    
     _seed_roles()
     _seed_users()
     ensure_indexes()

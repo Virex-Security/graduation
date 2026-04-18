@@ -4,44 +4,44 @@
 # ============================================================
 
 # --- Web Framework ---
-flask
-flask-cors
-flask-limiter
+flask==2.2.5
+flask-cors==4.0.0
+flask-limiter==3.5.0
 
 # --- Authentication ---
-PyJWT
+PyJWT==2.8.0
 
 # --- AI & Chatbot ---
-google-generativeai
+google-generativeai==0.8.3
 
 # --- Machine Learning (Core) ---
-scikit-learn
-numpy
-pandas
-joblib
-scipy
+scikit-learn==1.3.0
+numpy==1.24.3
+pandas==1.5.3
+joblib==1.3.2
+scipy>=1.9.0
 
 # --- ML v2 Enhancements ---
-xgboost
-lightgbm
-imbalanced-learn
-shap
+xgboost>=1.7.0
+lightgbm>=3.3.0
+imbalanced-learn>=0.10.0
+shap>=0.41.0
 
 # --- ML Training & Evaluation ---
-matplotlib
-seaborn
+matplotlib==3.7.2
+seaborn==0.12.2
 
 # --- HTTP Requests ---
-requests
+requests==2.31.0
 
 # --- Utilities ---
-python-dotenv
-psutil
+python-dotenv==1.0.0
+psutil==5.9.5
 
 # --- Testing ---
-pytest
-pytest-flask
-coverage
+pytest==7.4.0
+pytest-flask==1.2.0
+coverage==7.3.0
 
 # --- Production Server ---
-gunicorn
+gunicorn==21.2.0

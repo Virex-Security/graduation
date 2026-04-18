@@ -4,6 +4,8 @@ REM  Virex Security System — Windows startup script
 REM  Usage: start.bat [api|dashboard|all]
 REM ============================================================
 
+cd /d "%~dp0.."
+
 if not exist .env (
     echo [ERROR] .env not found. Run: copy .env.example .env
     exit /b 1

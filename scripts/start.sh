@@ -6,6 +6,8 @@
 
 set -euo pipefail
 
+cd "$(dirname "$0")/.."
+
 RED='\033[0;31m'; YELLOW='\033[1;33m'; GREEN='\033[0;32m'; NC='\033[0m'
 
 log()  { echo -e "${GREEN}[Virex]${NC} $1"; }

@@ -63,3 +63,5 @@ htmlcov/
 # Logs
 *.log
 siem_audit.json
+
+venv
