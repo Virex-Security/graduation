@@ -10,7 +10,7 @@ title %}Incidents - Virex{% endblock %} {% block stylesheets %}
     <h1>Security Incidents</h1>
     <p>
       {% if user.role == 'admin' %} Manage and respond to detected security
-      threats. {% else %} ملخص الحوادث الأمنية المكتشفة {% endif %}
+      threats. {% else %} Summary of detected security incidents {% endif %}
     </p>
   </header>
 
@@ -176,7 +176,7 @@ title %}Incidents - Virex{% endblock %} {% block stylesheets %}
             >
             {% else %}
             <span style="color: var(--text-secondary); font-size: 0.9rem">
-              {{ incident.category }}
+              Detected attack of type {{ incident.category }}
             </span>
             {% endif %}
           </td>
@@ -242,7 +242,7 @@ title %}Incidents - Virex{% endblock %} {% block stylesheets %}
                       ${
                         isAdmin
                           ? `<a href="/incident/${inc.id}" class="action-link">Investigate</a>`
-                          : `<span style="color: var(--text-secondary); font-size: 0.9rem;">تم اكتشاف هجوم من نوع ${inc.category}</span>`
+                          : `<span style="color: var(--text-secondary); font-size: 0.9rem;">Detected attack of type ${inc.category}</span>`
                       }
                     </td>
                 `;

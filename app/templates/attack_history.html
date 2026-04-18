@@ -134,8 +134,8 @@
 </style>
 {% endblock %}
 
-{% block page_content %}
-<div style="padding: 28px;">
+{% block content %}
+<main class="main-content" style="padding: 28px;">
 
   <div class="page-header">
     <div>
@@ -224,7 +224,7 @@
     </table>
   </div>
 
-</div>
+</main>
 
 <div id="toast"></div>
 {% endblock %}
@@ -271,8 +271,10 @@
 
   async function loadAttacks() {
     try {
-      const res = await fetch(`${API_BASE}/api/my-attacks?user=all`);
-      if (!res.ok) throw new Error('API error');
+      // The API endpoint runs on the same origin (either 5000 directly or via dashboard proxy/routing if they are combined)
+      // Actually since it's the dashboard rendering this page, the endpoint is likely relative
+      const res = await fetch('/api/my-attacks?user=all');
+      if (!res.ok) throw new Error('API error: ' + res.status);
       const data = await res.json();
 
       // Flatten all users into one list

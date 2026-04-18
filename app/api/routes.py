@@ -295,7 +295,27 @@ def create_api_app():
     @token_required
     def get_my_attacks(current_user):   # ← accept injected user from decorator
       user_key = current_user["username"]  # always from verified token
+      
+      # If requested all attacks and user is admin
+      if request.args.get("user") == "all" and current_user["role"] == "admin":
+          from app import database as db
+          attacks = db.get_threat_logs(limit=1000)
+          # Convert 'created_at' to 'timestamp' and 'attack_type' to 'type' for frontend compatibility
+          for a in attacks:
+              if 'created_at' in a and 'timestamp' not in a:
+                  a['timestamp'] = a['created_at']
+              if 'attack_type' in a and 'type' not in a:
+                  a['type'] = a['attack_type']
+          return jsonify({"user": "all", "attacks": attacks})
+          
       attacks = get_user_attacks(user_key)
+      # Convert 'created_at' to 'timestamp' and 'attack_type' to 'type' for frontend compatibility
+      for a in attacks:
+          if 'created_at' in a and 'timestamp' not in a:
+              a['timestamp'] = a['created_at']
+          if 'attack_type' in a and 'type' not in a:
+              a['type'] = a['attack_type']
+              
       return jsonify({"user": user_key, "attacks": attacks})
 
     @app.route("/api/clear-attacks", methods=["DELETE"])

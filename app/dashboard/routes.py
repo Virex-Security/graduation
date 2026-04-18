@@ -1417,6 +1417,34 @@ def create_dashboard_app():
     def attack_history_page(current_user):
         return render_template('attack_history.html', user=current_user)
 
+    @app.route("/api/my-attacks", methods=["GET"])
+    @token_required
+    def get_my_attacks_dashboard(current_user):
+        # We handle this in the dashboard too so the UI can fetch it without CORS issues
+        user_key = current_user["username"]
+        
+        # If requested all attacks and user is admin
+        if request.args.get("user") == "all" and current_user["role"] == "admin":
+            from app import database as db
+            attacks = db.get_threat_logs(limit=1000)
+            # Convert 'created_at' to 'timestamp' and 'attack_type' to 'type' for frontend compatibility
+            for a in attacks:
+                if 'created_at' in a and 'timestamp' not in a:
+                    a['timestamp'] = a['created_at']
+                if 'attack_type' in a and 'type' not in a:
+                    a['type'] = a['attack_type']
+            return jsonify({"user": "all", "attacks": attacks})
+            
+        from app import database as db
+        attacks = db.get_user_attacks(user_key)
+        for a in attacks:
+            if 'created_at' in a and 'timestamp' not in a:
+                a['timestamp'] = a['created_at']
+            if 'attack_type' in a and 'type' not in a:
+                a['type'] = a['attack_type']
+                
+        return jsonify({"user": user_key, "attacks": attacks})
+
     return app
 def calculate_threat_score(threat):
     """Calculate threat score based on multiple factors (0-100)"""

@@ -540,5 +540,5 @@ class SecurityDashboard:
                 filtered.append(l)
         return filtered
     def get_blocked_events(self):
-        """Get list of recent blocked events"""
-        return list(self.blocked_events_queue)
+        """Get list of recent blocked events from the database"""
+        return self.db.get_blocked_events(limit=50)
