@@ -41,22 +41,30 @@ python3 -c "import secrets; print('INTERNAL_API_SECRET=' + secrets.token_hex(32)
 pip install -r requirements.txt
 ```
 
-### 3. Train the ML model (first time only)
+### 3. Initialize Database & Train the ML model (first time only)
 
 ```bash
-python3 scripts/train_model_enhanced.py
+# Setup the database tables and default admin
+python setup_db.py
+
+# Train the initial ML model
+python train_model.py
 ```
 
 ### 4. Start the servers
 
 **Linux / macOS:**
 ```bash
-bash start.sh all
+./scripts/start.sh all
+# or to start all components including the simulator:
+./scripts/run_all.sh
 ```
 
 **Windows:**
 ```cmd
-start.bat all
+scripts\start.bat all
+:: or to start all components including the simulator:
+scripts\run_all.bat
 ```
 
 **Manual:**
@@ -128,7 +136,7 @@ graduation/
 ├── .env.example        # Environment template
 ├── Dockerfile
 ├── docker-compose.yml
-└── start.sh / start.bat
+└── scripts/            # Shell & Batch scripts (start.sh, run_all.bat, etc.)
 ```
 
 ---
