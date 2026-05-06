@@ -82,6 +82,14 @@ def create_api_app():
         if not security.check_rate_limit(client_ip):
             security.blocked_requests += 1
             security._persist_stats()
+            try:
+                from app.api.persistence import append_user_attack
+                append_user_attack(
+                    client_ip, "Rate Limit Exceeded", client_ip,
+                    request.path, request.method, "medium",
+                )
+            except Exception:
+                pass
             return jsonify({"error": "Rate limit exceeded"}), 429
 
         # 3b. Scanner Detection
@@ -98,6 +106,14 @@ def create_api_app():
             )
             security.blocked_requests += 1
             security._persist_stats()
+            try:
+                from app.api.persistence import append_user_attack
+                append_user_attack(
+                    client_ip, "Scanner", client_ip,
+                    request.path, request.method, "medium",
+                )
+            except Exception:
+                pass
             return jsonify({"error": "Not Found"}), 404
 
         # 3c. CSRF
@@ -113,6 +129,14 @@ def create_api_app():
             if _csrf_result["detected"]:
                 security.blocked_requests += 1
                 security._persist_stats()
+                try:
+                    from app.api.persistence import append_user_attack
+                    append_user_attack(
+                        client_ip, "CSRF", client_ip,
+                        request.path, request.method, "high",
+                    )
+                except Exception:
+                    pass
                 return jsonify({"error": "CSRF validation failed",
                                 "reason": _csrf_result["reason"]}), 403
 
@@ -129,6 +153,14 @@ def create_api_app():
             if _ssrf_result["detected"]:
                 security.blocked_requests += 1
                 security._persist_stats()
+                try:
+                    from app.api.persistence import append_user_attack
+                    append_user_attack(
+                        client_ip, "SSRF", client_ip,
+                        request.path, request.method, "high",
+                    )
+                except Exception:
+                    pass
                 return jsonify({"error": "SSRF attempt blocked",
                                 "reason": _ssrf_result["reason"]}), 403
 
@@ -308,7 +340,7 @@ def create_api_app():
                   a['type'] = a['attack_type']
           return jsonify({"user": "all", "attacks": attacks})
           
-      attacks = get_user_attacks(user_key)
+      attacks = db.get_user_attacks(user_key)
       # Convert 'created_at' to 'timestamp' and 'attack_type' to 'type' for frontend compatibility
       for a in attacks:
           if 'created_at' in a and 'timestamp' not in a:

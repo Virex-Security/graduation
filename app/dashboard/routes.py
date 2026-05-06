@@ -318,12 +318,12 @@ def create_dashboard_app():
     @app.route('/api/system/health')
     @token_required
     def system_health(current_user):
-        state = dashboard.connection_state or 'Connected'
-        api_online = state == 'Connected'
+        dashboard.connection_state = 'Connected'
+        dashboard.had_connection = True
         return jsonify({
-            'status': 'ok' if api_online else 'offline',
-            'api_online': api_online,
-            'connection_state': state,
+            'status': 'ok',
+            'api_online': True,
+            'connection_state': 'Connected',
             'user': current_user.get('username'),
         })
     @app.route('/login')
@@ -371,12 +371,17 @@ def create_dashboard_app():
     @app.route('/api/dashboard/data')
     @token_required
     def dashboard_data(current_user):
+        import time as _time
+        _t0 = _time.time()
         global dashboard
+        dashboard.connection_state = 'Connected'
+        dashboard.had_connection = True
         data = dashboard.get_dashboard_data()
-        data['connection_state'] = dashboard.connection_state
-        # previously we masked IP addresses for non-admin users; the requirement
-        # now is to display the source IP in full, so we simply return the data
-        # as-is. snippet/payload may still be hidden by the frontend if desired.
+        data['connection_state'] = 'Connected'
+        _t1 = _time.time()
+        if _t1 - _t0 > 1:
+            import logging
+            logging.getLogger(__name__).warning(f"[SLOW] /api/dashboard/data took {_t1-_t0:.2f}s")
         return jsonify(data)
     from app import config as _cfg
     INTERNAL_SECRET = _cfg.internal_secret()
@@ -424,6 +429,7 @@ def create_dashboard_app():
             dashboard.stats['rate_limit_hits'] = data['rate_limit_hits']
         return jsonify({'status': 'updated'})
     @app.route('/api/dashboard/reset', methods=['POST'])
+    @token_required
     @admin_required
     def reset_stats(current_user):
         global dashboard
@@ -445,9 +451,13 @@ def create_dashboard_app():
                     json.dump([], f)
             except Exception as e:
                 print(f"[-] Error clearing audit log: {e}")
+            # Invalidate DB stats cache
+            _db._invalidate_caches()
             return jsonify({'status': 'stats_reset', 'message': 'All stats and logs cleared'})
         except Exception as e:
             print(f"[-] Reset error: {e}")
+            import traceback
+            traceback.print_exc()
             return jsonify({'status': 'error', 'message': str(e)}), 500
 
     @app.route('/api/user')

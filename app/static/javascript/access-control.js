@@ -101,7 +101,8 @@ const AccessControl = {
     });
 
     // Hide Payload Analysis column
-    const analysisHeaders = document.querySelectorAll("th:contains('Payload')");
+    const analysisHeaders = Array.from(document.querySelectorAll("th"))
+      .filter(th => th.textContent.includes("Payload"));
     analysisHeaders.forEach((th) => {
       const index = Array.from(th.parentElement.children).indexOf(th);
       if (index > -1) {
@@ -232,9 +233,8 @@ const AccessControl = {
    * Setup smart back button that preserves user role
    */
   setupBackButton() {
-    const backButtons = document.querySelectorAll(
-      ".logout-btn[onclick*='location.href = \\'/'], button:contains('Back')",
-    );
+    const backButtons = Array.from(document.querySelectorAll(".logout-btn, button"))
+      .filter(btn => btn.textContent.includes("Back") || btn.innerHTML.includes("arrow-left"));
 
     backButtons.forEach((btn) => {
       if (

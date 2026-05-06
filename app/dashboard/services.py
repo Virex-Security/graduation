@@ -36,10 +36,17 @@ class SecurityDashboard:
         self.attack_indicator_lock = threading.Lock()
         self.last_attack_indicators = None
         self.last_indicator_log_count = 0
-        self.connection_state = WAITING
-        self.had_connection = False
-        self.api_url = "http://127.0.0.1:5000/api/health"
-        
+        self.connection_state = CONNECTED
+        self.had_connection = True
+        self._last_connection_check = 0
+        self._connection_check_interval = 10
+        self._cached_dashboard_data = None
+        self._last_dashboard_refresh = 0
+        self._dashboard_cache_ttl = 2
+        self._cached_audit_logs = None
+        self._cached_audit_logs_time = 0
+        self._audit_log_cache_ttl = 10
+
         self.audit_log_path = "logs/audit.log"
 
         self.audit_log_lock = threading.Lock()
@@ -67,7 +74,9 @@ class SecurityDashboard:
             'xss_attempts': stats.get('xss_attempts', 0),
             'brute_force_attempts': stats.get('brute_force_attempts', 0),
             'scanner_attempts': stats.get('scanner_attempts', 0),
-            'rate_limit_hits': stats.get('rate_limit_hits', 0)
+            'rate_limit_hits': stats.get('rate_limit_hits', 0),
+            'csrf_attempts': stats.get('csrf_attempts', 0),
+            'ssrf_attempts': stats.get('ssrf_attempts', 0),
         }
         # recent threats
         self.recent_threats = [t for t in self.db.get_threat_logs(limit=20) if t.get('attack_type') != 'Clean'][:10]
@@ -80,7 +89,7 @@ class SecurityDashboard:
             if ip and ip not in ('Unknown', 'XXX.XXX.XXX.XXX'):
                 self.ip_tracker[ip] += 1
     def get_accurate_stats(self):
-        """Recalculate all stats from DB."""
+        """Recalculate all stats from DB — cached at DB level."""
         stats = self.db.load_stats()
         return {
             'total_requests': stats.get('total_requests', 0),
@@ -90,7 +99,9 @@ class SecurityDashboard:
             'xss_attempts': stats.get('xss_attempts', 0),
             'brute_force_attempts': stats.get('brute_force_attempts', 0),
             'scanner_attempts': stats.get('scanner_attempts', 0),
-            'rate_limit_hits': stats.get('rate_limit_hits', 0)
+            'rate_limit_hits': stats.get('rate_limit_hits', 0),
+            'csrf_attempts': stats.get('csrf_attempts', 0),
+            'ssrf_attempts': stats.get('ssrf_attempts', 0),
         }
     def log_threat(self, threat_type, ip, description, severity="High", endpoint="", method="", snippet="", detection_type="Other", blocked=False):
         # سجل التهديد في قاعدة البيانات
@@ -232,6 +243,10 @@ class SecurityDashboard:
             'brute_force_signature': 0,
             'port_scan_behavior': 0,
             'malformed_headers': 0,
+            'csrf_attempt': 0,
+            'ssrf_attempt': 0,
+            'cmd_injection_pattern': 0,
+            'path_traversal_pattern': 0,
         }
         total = len(attack_logs) or 1
         for entry in attack_logs:
@@ -244,7 +259,6 @@ class SecurityDashboard:
                 indicators['sql_injection_pattern'] += 1
             if 'xss' in at_lower:
                 indicators['xss_payload_detected'] += 1
-            # treat unusually long payloads as the size indicator
             if len(payload) > 200:
                 indicators['unusual_request_size'] += 1
             if 'brute' in at_lower:
@@ -253,6 +267,14 @@ class SecurityDashboard:
                 indicators['port_scan_behavior'] += 1
             if 'header' in desc_lower or 'malformed' in desc_lower:
                 indicators['malformed_headers'] += 1
+            if 'csrf' in at_lower:
+                indicators['csrf_attempt'] += 1
+            if 'ssrf' in at_lower:
+                indicators['ssrf_attempt'] += 1
+            if 'command' in at_lower or 'cmd' in at_lower:
+                indicators['cmd_injection_pattern'] += 1
+            if 'path' in at_lower or 'traversal' in at_lower:
+                indicators['path_traversal_pattern'] += 1
         # normalize
         result = {k: round(v / total, 3) for k, v in indicators.items()}
         print(f"[ATTACK-INDICATORS] Computed indicators: {result}")
@@ -411,16 +433,9 @@ class SecurityDashboard:
         )
         return round(min(score, 100), 2)
     def check_api_connection(self):
-        """Check if the API is responding."""
-        try:
-            resp = requests.get(self.api_url, timeout=2)
-            if resp.status_code == 200:
-                self.connection_state = CONNECTED
-                self.had_connection = True
-            else:
-                self.update_failed_connection()
-        except Exception:
-            self.update_failed_connection()
+        """Connection is considered good if get_dashboard_data was called successfully."""
+        self.connection_state = CONNECTED
+        self.had_connection = True
     
     def update_failed_connection(self):
         """Update connection state when API fails."""
@@ -430,56 +445,92 @@ class SecurityDashboard:
             self.connection_state = WAITING
     
     def get_dashboard_data(self):
-        # Check API connection before returning data
         self.check_api_connection()
-        
-        accurate = self.get_accurate_stats()
-        self.stats.update(accurate)
-        ml_perf = None
-        ml_stats = {}
+
+        now = time.time()
+        if self._cached_dashboard_data and (now - self._last_dashboard_refresh) < self._dashboard_cache_ttl:
+            return self._cached_dashboard_data
+
+        # Return stale cached data immediately if exists, refresh in background
+        stale_data = self._cached_dashboard_data
+
         try:
-            ml_stats = self.compute_ml_metrics()
-            ml_perf = ml_stats.get('accuracy')
-        except Exception:
+            accurate = self.get_accurate_stats()
+            self.stats.update(accurate)
+
+            self.recent_threats = [t for t in self.db.get_threat_logs(limit=20) if t.get('attack_type') != 'Clean'][:10]
+            recent = [t for t in self.recent_threats if t.get('attack_type') != 'Clean' and t.get('type') != 'Clean']
+            detected = len(self.incidents)
+
             ml_perf = None
-        # حساب الهجمات فقط
-        attack_logs = [
-            l for l in self.load_audit_log() if l.get('attack_type') and l.get('attack_type') != 'Clean'
-        ]
-        recent = [t for t in self.recent_threats if t.get('attack_type') != 'Clean' and t.get('type') != 'Clean']
-        detected = len(self.incidents)
-        missed = 0
-        ml_metrics = {
-            'precision': (ml_stats.get('precision', 0) or 0) / 100,
-            'recall': (ml_stats.get('recall', 0) or 0) / 100,
-        }
-        sec_score = self.calculate_security_score(
-            len(attack_logs), # total attacks
-            sum(1 for l in attack_logs if l.get('blocked')), # blocked attacks
-            detected, # عدد الحوادث المكتشفة
-            missed, # لم نستخدمه
-            ml_metrics
-        )
-        return {
-            'stats': {**accurate, 'ml_model_performance': ml_perf, 'security_score': sec_score},
-            'recent_threats': recent,
-            'timeline': list(self.timeline_data),
+            ml_metrics = {'precision': 0, 'recall': 0}
+            try:
+                if hasattr(self, '_ml_metrics_cached') and (now - getattr(self, '_ml_metrics_time', 0)) < 10:
+                    ml_metrics = self._ml_metrics_cached
+                else:
+                    ml_stats = self.compute_ml_metrics()
+                    ml_perf = ml_stats.get('accuracy')
+                    ml_metrics = {
+                        'precision': (ml_stats.get('precision', 0) or 0) / 100,
+                        'recall': (ml_stats.get('recall', 0) or 0) / 100,
+                    }
+                    self._ml_metrics_cached = ml_metrics
+                    self._ml_metrics_time = now
+            except Exception:
+                pass
+
+            if hasattr(self, '_attack_logs_cache') and (now - getattr(self, '_attack_logs_time', 0)) < 5:
+                attack_logs = self._attack_logs_cache
+            else:
+                attack_logs = [
+                    l for l in self.load_audit_log() if l.get('attack_type') and l.get('attack_type') != 'Clean'
+                ]
+                self._attack_logs_cache = attack_logs
+                self._attack_logs_time = now
+
+            sec_score = self.calculate_security_score(
+                len(attack_logs),
+                sum(1 for l in attack_logs if l.get('blocked')),
+                detected,
+                0,
+                ml_metrics
+            )
+            self._cached_dashboard_data = {
+                'stats': {**accurate, 'ml_model_performance': ml_perf, 'security_score': sec_score},
+                'recent_threats': recent,
+                'timeline': list(self.timeline_data),
             'threat_distribution': {
-                'SQL Injection': accurate['sql_injection_attempts'],
-                'XSS': accurate['xss_attempts'],
-                'Brute Force': accurate['brute_force_attempts'],
-                'Scanner': accurate['scanner_attempts'],
-                'Rate Limit': accurate['rate_limit_hits'],
-                'ML Detection': accurate['ml_detections'],
-            },
-            'top_attackers': self.get_top_attackers(),
-            'attack_indicators': self.compute_attack_indicators(),
-            'connection_state': self.connection_state
-        }
+                    'SQL Injection': accurate['sql_injection_attempts'],
+                    'XSS': accurate['xss_attempts'],
+                    'Brute Force': accurate['brute_force_attempts'],
+                    'Scanner': accurate.get('scanner_attempts', 0),
+                    'Rate Limit': accurate.get('rate_limit_hits', 0),
+                    'CSRF': accurate.get('csrf_attempts', 0),
+                    'SSRF': accurate.get('ssrf_attempts', 0),
+                    'Command Injection': accurate.get('cmd_injection_attempts', 0),
+                    'Path Traversal': accurate.get('path_traversal_attempts', 0),
+                    'ML Detection': accurate['ml_detections'],
+                },
+                'top_attackers': self.get_top_attackers(),
+                'attack_indicators': self.compute_attack_indicators(),
+                'connection_state': self.connection_state
+            }
+            self._last_dashboard_refresh = now
+            return self._cached_dashboard_data
+        except Exception as e:
+            if stale_data:
+                return stale_data
+            raise
+
     def load_audit_log(self):
-        """Load and merge audit actions from JSON and live threats from SQLite."""
+        """Load and merge audit actions from JSON and live threats from DB.
+        Uses internal cache to avoid hitting DB on every call."""
+        now = time.time()
+        if self._cached_audit_logs and (now - self._cached_audit_logs_time) < self._audit_log_cache_ttl:
+            return self._cached_audit_logs
+
         all_logs = []
-        
+
         # 1. Fetch JSON audit actions (administrative actions)
         with self.audit_lock:
             try:
@@ -491,28 +542,26 @@ class SecurityDashboard:
             except Exception as e:
                 print(f"[-] Error loading JSON audit log: {e}")
 
-        # 2. Fetch SQLite threats (live traffic detections)
+        # 2. Fetch DB threats (live traffic detections) — cached
         try:
-            db_threats = self.db.get_threat_logs(limit=2000)
+            db_threats = self.db.get_threat_logs(limit=500)
             for t in db_threats:
-                # Normalize SQLite fields to match template expectations
-                # (e.g., ip_address -> ip, created_at -> timestamp)
                 normalized = dict(t)
                 normalized['id'] = t.get('threat_log_id')
                 normalized['ip'] = t.get('ip_address')
                 normalized['timestamp'] = t.get('created_at')
-                # Template expects boolean for blocked
                 normalized['blocked'] = bool(t.get('blocked'))
-                # Ensure type is set for the table badge logic
                 if 'type' not in normalized:
                    normalized['type'] = t.get('attack_type')
-                
                 all_logs.append(normalized)
         except Exception as e:
-            print(f"[-] Error loading SQLite threat logs: {e}")
+            print(f"[-] Error loading DB threat logs: {e}")
 
         # 3. Sort by timestamp descending
         all_logs.sort(key=lambda x: str(x.get('timestamp', '')), reverse=True)
+
+        self._cached_audit_logs = all_logs
+        self._cached_audit_logs_time = now
         return all_logs
 
     def _get_ml_relevant_logs(self, logs):

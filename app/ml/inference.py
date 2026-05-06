@@ -46,8 +46,9 @@ LOG_PREDICTIONS  = os.getenv("ML_LOG_PREDICTIONS","false").lower()=="true"
 SEVERITY_MAP = {
     "log4shell":"critical","command_injection":"critical",
     "sql_injection":"high","ssrf":"high","xxe":"high","ssti":"high",
-    "xss":"medium","path_traversal":"medium",
-    "brute_force":"low","normal":"none","attack":"medium","unknown":"none",
+    "xss":"medium","path_traversal":"medium","csrf":"high",
+    "scanner":"medium","rate_limit":"low",
+    "brute_force":"low","normal":"none","unknown":"none",
 }
 
 _model=None; _vectorizer=None; _sec_feat=None; _label_enc=None
@@ -204,8 +205,13 @@ def _classify_v1(text):
     if re.search(r"(\.\./|\.\.\\|%2e%2e|etc/passwd|etc/shadow|proc/self)",t): return "path_traversal"
     if re.search(r"\$\{jndi:",t): return "log4shell"
     if re.search(r"(127\.0\.0\.1|localhost|169\.254\.169\.254)",t): return "ssrf"
-    if re.search(r"(password|login|user|admin)",t): return "brute_force"
-    return "attack"
+    if re.search(r"(password|login|user|admin).*?(password|login|user|admin)",t): return "brute_force"
+    if re.search(r"(csrf|token|origin|referer|cross.?site)",t): return "csrf"
+    if re.search(r"(/admin|/wp-|/phpmyadmin|/\.env|/config|/backup|nikto|nmap|scanner)",t): return "scanner"
+    if re.search(r"(rate.?limit|too.?many|throttl|flood|spam)",t): return "rate_limit"
+    if re.search(r"(xxe|<!ENTITY|<!DOCTYPE.*SYSTEM)",t): return "xxe"
+    if re.search(r"(ssti|\{\{.*\}\}|\{%.*%\}|\$\{.*\})",t): return "ssti"
+    return "normal"
 
 def _make_decision(risk_score):
     if risk_score>=THRESHOLD_BLOCK: return "block"
@@ -249,7 +255,15 @@ def ml_analyze(text,async_feedback=True):
         else: risk_score,attack_type,confidence,class_probs=_compute_v1(text_str)
         action=_make_decision(risk_score)
         severity=SEVERITY_MAP.get(attack_type,"medium")
-        if attack_type=="normal" and risk_score>=THRESHOLD_MONITOR: attack_type="attack"; severity="medium"
+        if attack_type=="normal" and risk_score>=THRESHOLD_MONITOR:
+            reclassified=_classify_v1(text_str)
+            if reclassified!="normal":
+                attack_type=reclassified
+                severity=SEVERITY_MAP.get(attack_type,"medium")
+            else:
+                # Model says normal but score is high — treat as allowed
+                action="allow"
+                severity="none"
         attack_class_id=0
         if _label_enc is not None:
             try: attack_class_id=int(list(_label_enc.classes_).index(attack_type))
@@ -268,22 +282,37 @@ def ml_analyze(text,async_feedback=True):
         logger.error(f"[ML] inference error: {e}")
         return MLDecision(0.0,"allow","error",severity="none")
 
+_ml_initialized = False
+
+def _ensure_ml_ready():
+    global _ml_initialized
+    if _ml_initialized:
+        return
+    with _model_lock:
+        if _ml_initialized:
+            return
+        _load_or_train()
+        if MODEL_LOADED and not _using_v2:
+            try:
+                s = _compute_v1("startup check")[0]
+                if not (0.0 <= s <= 1.0):
+                    logger.critical("[ML] out-of-range — retraining...")
+                    _retrain_v1()
+            except Exception as e:
+                logger.critical(f"[ML] startup failed: {e} — retraining...")
+                _retrain_v1()
+        _ml_initialized = True
+        _retrain_thread = threading.Thread(target=_auto_retrain_loop, daemon=True)
+        _retrain_thread.start()
+        logger.info(f"[ML] Ready | version={_model_version} block>={THRESHOLD_BLOCK:.0%} monitor>={THRESHOLD_MONITOR:.0%}")
+
 def ml_detect(text):
     """Backward-compatible: (is_attack: bool, risk_score: float)."""
-    d=ml_analyze(text); return d.should_block,d.risk_score
+    _ensure_ml_ready()
+    d = ml_analyze(text)
+    return d.should_block, d.risk_score
 
 def get_ml_stats():
     return {"model_loaded":MODEL_LOADED,"model_version":_model_version,"using_v2":_using_v2,
             "cache":_cache.stats,"thresholds":{"block":THRESHOLD_BLOCK,"monitor":THRESHOLD_MONITOR},
             "feedback_log":str(FEEDBACK_LOG_PATH)}
-
-_load_or_train()
-if MODEL_LOADED and not _using_v2:
-    try:
-        s=_compute_v1("startup check")[0]
-        if not (0.0<=s<=1.0): logger.critical("[ML] out-of-range — retraining..."); _retrain_v1()
-    except Exception as e: logger.critical(f"[ML] startup failed: {e} — retraining..."); _retrain_v1()
-
-_retrain_thread=threading.Thread(target=_auto_retrain_loop,daemon=True)
-_retrain_thread.start()
-logger.info(f"[ML] Ready | version={_model_version} block>={THRESHOLD_BLOCK:.0%} monitor>={THRESHOLD_MONITOR:.0%}")

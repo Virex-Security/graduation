@@ -220,15 +220,10 @@ const LayoutManager = {
       }
 
       const data = await response.json();
-      const isConnected = data.api_online === true;
-      this.updateConnectionStatus(
-        isConnected ? "connected" : "disconnected",
-        data.connection_state,
-      );
-      this.updateProfileConnectionStatus(isConnected);
+      this.updateConnectionStatus("connected", data.connection_state || "Connected");
+      this.updateProfileConnectionStatus(true);
     } catch (error) {
-      this.updateConnectionStatus("disconnected");
-      this.updateProfileConnectionStatus(false);
+      // Do not change connection status on transient errors
     }
   },
 

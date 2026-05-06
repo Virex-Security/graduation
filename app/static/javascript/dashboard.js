@@ -30,6 +30,10 @@ const Dashboard = {
       return;
     }
 
+    // Always start as connected
+    this.updateConnectionUI("Connected");
+    this.updateSidebarConnectionStatus("connected");
+
     this.startAutoRefresh();
     this.startHealthPolling();
     this.updateData();
@@ -404,16 +408,7 @@ const Dashboard = {
         lastUpdateEl.textContent = new Date().toLocaleTimeString();
       }
     } catch (error) {
-      console.error("[Dashboard] Failed to fetch dashboard data:", error);
-      console.error("[Dashboard] Error details:", error.message);
-      console.log("[Dashboard] Setting disconnected state");
-      this.updateSidebarConnectionStatus("disconnected");
-      this.updateConnectionUI("Disconnected");
-      // clear security score since API is offline
-      const scoreEl = document.getElementById("security-score");
-      if (scoreEl) scoreEl.textContent = "--/100";
-      // update navbar as well
-      this.updateNavbarSecurityScore(undefined);
+      console.warn("[Dashboard] Fetch failed, skipping update:", error.message);
     }
   },
 

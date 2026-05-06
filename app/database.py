@@ -315,6 +315,7 @@ def log_threat(attack_type: str, ip_address: str, endpoint: str,
                severity: str = "Medium", description: str = "",
                blocked: bool = False, ml_detected: bool = False,
                confidence: float = 0.0, detection_type: str = "rule") -> int:
+    _invalidate_caches()
     now = time.strftime("%Y-%m-%d %H:%M:%S")
     with _db() as conn:
         result = conn.execute(text("""
@@ -814,11 +815,53 @@ def get_products(category=None, search=None) -> list:
 # STATS
 # ══════════════════════════════════════════════════════════════
 
+_stats_cache = None
+_stats_cache_time = 0
+_stats_cache_ttl = 10
+
+def _invalidate_caches():
+    global _stats_cache, _stats_cache_time
+    _stats_cache = None
+    _stats_cache_time = 0
+
 def load_stats() -> dict:
+    global _stats_cache, _stats_cache_time
+    now = time.time()
+    if _stats_cache and (now - _stats_cache_time) < _stats_cache_ttl:
+        return _stats_cache
     with _db() as conn:
-        total = conn.execute(text("SELECT COUNT(*) FROM threat_logs")).scalar()
-        blocked = conn.execute(text("SELECT COUNT(*) FROM threat_logs WHERE blocked = TRUE")).scalar()
-        return {"total_requests": total, "blocked_requests": blocked}
+        row = conn.execute(text("""
+            SELECT
+                COUNT(*) AS total,
+                SUM(CASE WHEN blocked = TRUE THEN 1 ELSE 0 END) AS blocked,
+                SUM(CASE WHEN ml_detected = TRUE THEN 1 ELSE 0 END) AS ml,
+                SUM(CASE WHEN attack_type ILIKE '%sql%' THEN 1 ELSE 0 END) AS sqli,
+                SUM(CASE WHEN attack_type ILIKE '%xss%' THEN 1 ELSE 0 END) AS xss,
+                SUM(CASE WHEN attack_type ILIKE '%brute%' THEN 1 ELSE 0 END) AS brute,
+                SUM(CASE WHEN attack_type ILIKE '%scanner%' OR attack_type = 'Scanner' THEN 1 ELSE 0 END) AS scanner,
+                SUM(CASE WHEN attack_type ILIKE '%rate%' OR attack_type = 'Rate Limit Exceeded' THEN 1 ELSE 0 END) AS rate_limit,
+                SUM(CASE WHEN attack_type ILIKE '%csrf%' OR attack_type = 'CSRF' THEN 1 ELSE 0 END) AS csrf,
+                SUM(CASE WHEN attack_type ILIKE '%ssrf%' OR attack_type = 'SSRF' THEN 1 ELSE 0 END) AS ssrf,
+                SUM(CASE WHEN attack_type ILIKE '%command%' OR attack_type ILIKE '%cmd%' THEN 1 ELSE 0 END) AS cmd_injection,
+                SUM(CASE WHEN attack_type ILIKE '%path%' OR attack_type ILIKE '%traversal%' THEN 1 ELSE 0 END) AS path_traversal,
+                SUM(CASE WHEN attack_type ILIKE '%xxe%' THEN 1 ELSE 0 END) AS xxe,
+                SUM(CASE WHEN attack_type ILIKE '%ssti%' THEN 1 ELSE 0 END) AS ssti,
+                SUM(CASE WHEN attack_type ILIKE '%log4shell%' OR attack_type ILIKE '%jndi%' THEN 1 ELSE 0 END) AS log4shell
+            FROM threat_logs
+        """)).fetchone()
+    result = {
+        "total_requests": row[0] or 0, "blocked_requests": row[1] or 0,
+        "ml_detections": row[2] or 0, "sql_injection_attempts": row[3] or 0,
+        "xss_attempts": row[4] or 0, "brute_force_attempts": row[5] or 0,
+        "scanner_attempts": row[6] or 0, "rate_limit_hits": row[7] or 0,
+        "csrf_attempts": row[8] or 0, "ssrf_attempts": row[9] or 0,
+        "cmd_injection_attempts": row[10] or 0, "path_traversal_attempts": row[11] or 0,
+        "xxe_attempts": row[12] or 0, "ssti_attempts": row[13] or 0,
+        "log4shell_attempts": row[14] or 0,
+    }
+    _stats_cache = result
+    _stats_cache_time = now
+    return result
 
 
 def save_stats(total: int, blocked: int):
@@ -831,6 +874,7 @@ def save_stats(total: int, blocked: int):
 
 def append_user_attack(user_key: str, attack_type: str, ip: str,
                        endpoint: str, method: str = "", severity: str = "High"):
+    _invalidate_caches()
     log_threat(
         attack_type=attack_type, ip_address=ip, endpoint=endpoint,
         method=method, severity=severity,

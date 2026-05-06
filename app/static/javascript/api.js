@@ -22,7 +22,7 @@ const API = {
       }
 
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), options.timeout || 15000);
+      const timeoutId = setTimeout(() => controller.abort(), options.timeout || 60000);
 
       const response = await fetch(endpoint, {
         ...options,

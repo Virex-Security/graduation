@@ -212,7 +212,6 @@ function initializeOtpDigitInputs() {
       }
 
       setOtpCodeHiddenValue();
-      await validateOtpBeforePasswordEntry();
     });
 
     input.addEventListener("keydown", (event) => {
@@ -243,7 +242,6 @@ function initializeOtpDigitInputs() {
       if (pasted.length < 6) {
         otpInputs[pasted.length].focus();
       }
-      await validateOtpBeforePasswordEntry();
     });
   }
 }
@@ -303,14 +301,19 @@ document.addEventListener("DOMContentLoaded", () => {
         if (typeof window.showOtpResetModal === "function") {
           window.showOtpResetModal(data.otp, data.expiry);
         } else if (document.getElementById("otp-reset-form")) {
-          // Fallback for forgot_password.html
           document.getElementById("forgot-password-form").style.display =
             "none";
-          document.getElementById("otp-reset-form").style.display = "block";
+          const otpForm = document.getElementById("otp-reset-form");
+          otpForm.style.display = "block";
+          const notifyBox = document.getElementById("otp-notify-message");
+          if (notifyBox) notifyBox.classList.remove("hidden");
           const msgBox2 = document.getElementById("otp-reset-message");
-          msgBox2.className = "success";
-          msgBox2.innerHTML = `<i class='fas fa-check-circle'></i> If the account exists, an OTP has been sent to the registered email.`;
-          msgBox2.classList.remove("hidden");
+          msgBox2.className = "hidden";
+          msgBox2.innerHTML = "";
+          getOtpDigits().forEach((input) => { input.value = ""; });
+          setOtpCodeHiddenValue();
+          const firstOtp = document.getElementById("otp-digit-1");
+          if (firstOtp) firstOtp.focus();
         }
       } else {
         showMessage(msgBox, data.error || "Failed to generate OTP", "error");
@@ -323,11 +326,70 @@ document.addEventListener("DOMContentLoaded", () => {
   window.submitOtpReset = async function () {
     const otp = getOtpCodeFromInputs();
     const msgBox = document.getElementById("otp-reset-message");
+    const btn = document.getElementById("verify-otp-btn");
     if (otp.length !== 6) {
       showMessage(msgBox, "Please enter all 6 OTP digits", "error");
       return;
     }
-    await validateOtpBeforePasswordEntry();
+    if (!otpResetUserId) {
+      showMessage(msgBox, "Request an OTP first", "error");
+      return;
+    }
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
+    otpValidationInProgress = true;
+    showMessage(msgBox, "Verifying OTP...", "success");
+    try {
+      const res = await fetch("/api/verify-reset-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: otpResetUserId, otp }),
+      });
+      let data = {};
+      try {
+        data = await res.json();
+      } catch (parseError) {
+        data = { error: "Server returned an invalid response." };
+      }
+      if (res.ok) {
+        otpVerifiedForReset = true;
+        verifiedOtpCode = otp;
+        setOtpCodeHiddenValue();
+        setOtpInputsDisabled(true);
+        const otpForm = document.getElementById("otp-reset-form");
+        const resetForm = document.getElementById("reset-password-form");
+        if (otpForm) {
+          otpForm.style.display = "none";
+        }
+        if (resetForm) {
+          resetForm.style.display = "block";
+        }
+        const resetMsgBox = document.getElementById("reset-password-message");
+        showMessage(
+          resetMsgBox,
+          "OTP verified. Set your new password.",
+          "success",
+        );
+        const newPasswordInput = document.getElementById("otp-new-password");
+        if (newPasswordInput) {
+          newPasswordInput.focus();
+        }
+      } else {
+        getOtpDigits().forEach((input) => {
+          input.value = "";
+        });
+        setOtpCodeHiddenValue();
+        const firstOtp = document.getElementById("otp-digit-1");
+        if (firstOtp) firstOtp.focus();
+        showMessage(msgBox, data.error || "Invalid OTP", "error");
+      }
+    } catch (e) {
+      showMessage(msgBox, "Network error. Please try again.", "error");
+    } finally {
+      otpValidationInProgress = false;
+      btn.disabled = false;
+      btn.innerHTML = '<span>Verify OTP</span><i class="fas fa-shield-check"></i>';
+    }
   };
 
   window.submitPasswordReset = async function () {
@@ -434,20 +496,21 @@ document.addEventListener("DOMContentLoaded", () => {
       );
     } else if (document.getElementById("otp-reset-form")) {
       document.getElementById("forgot-password-form").style.display = "none";
-      document.getElementById("otp-reset-form").style.display = "block";
+      const otpForm = document.getElementById("otp-reset-form");
+      otpForm.style.display = "block";
       const resetForm = document.getElementById("reset-password-form");
       if (resetForm) {
         resetForm.style.display = "none";
       }
+      const notifyBox = document.getElementById("otp-notify-message");
+      if (notifyBox) notifyBox.classList.remove("hidden");
       getOtpDigits().forEach((input) => {
         input.value = "";
       });
       setOtpCodeHiddenValue();
-      resetOtpStage();
       const msgBox2 = document.getElementById("otp-reset-message");
-      msgBox2.className = "success";
-      msgBox2.innerHTML = `<i class='fas fa-check-circle'></i> If the account exists, an OTP has been sent to the registered email.`;
-      msgBox2.classList.remove("hidden");
+      msgBox2.className = "hidden";
+      msgBox2.innerHTML = "";
       const firstOtp = document.getElementById("otp-digit-1");
       if (firstOtp) firstOtp.focus();
     }
