@@ -189,6 +189,7 @@ def create_dashboard_app():
     SECRET_KEY    = _cfg.secret_key()
 
     otp_request_tracker = {}
+    GENERIC_RESET_MSG = 'If the account exists, an OTP has been sent to the registered email.'
 
     @app.route('/api/request-reset-otp', methods=['POST'])
     def request_reset_otp():
@@ -213,19 +214,22 @@ def create_dashboard_app():
             all_users = user_manager.get_all_users()
             user = next((u for u in all_users if u.get('email','').lower() == identifier.lower()), None)
         if not user:
-            return jsonify({"message": "If that email is registered, a reset link was sent."}), 200
+            return jsonify({
+                'message': GENERIC_RESET_MSG,
+                'user_id': None,
+            }), 200
         user_id = user.get('user_id') or user.get('id')
         email   = user.get('email')
         if not email:
-            return jsonify({"message": "If that email is registered, a reset link was sent."}), 200
+            return jsonify({
+                'message': GENERIC_RESET_MSG,
+                'user_id': None,
+            }), 200
         otp = str(secrets.randbelow(900000) + 100000) 
         import hashlib
         otp_hash = hashlib.sha256(otp.encode()).hexdigest()
         expiry = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time() + 300))
-        with _db.db_cursor() as cur:
-            cur.execute('DELETE FROM password_resets WHERE user_id = ?', (user_id,))
-            cur.execute('INSERT INTO password_resets (user_id, otp, otp_expiry, used) VALUES (?,?,?,0)',
-                        (user_id, otp_hash, expiry))
+        _db.create_password_reset(user_id, otp_hash, expiry)
         try:
             # Simple OTP email sender using smtplib
             def send_otp_email(to_email, otp):
@@ -246,7 +250,9 @@ def create_dashboard_app():
             return jsonify({'error': 'Failed to deliver OTP'}), 500
 
         return jsonify({
-            'message': 'OTP sent to registered email'
+            'message': GENERIC_RESET_MSG,
+            'user_id': user_id,
+            'expiry': expiry,
         }), 200
 
     @app.route('/api/verify-reset-otp', methods=['POST'])
@@ -255,44 +261,38 @@ def create_dashboard_app():
         user_id  = data.get('user_id')
         otp      = data.get('otp', '').strip()
         new_pass = data.get('new_password', '').strip()
-        if not user_id or not otp or not new_pass:
-            return jsonify({'error': 'user_id, otp and new_password required'}), 400
+        if not user_id or not otp:
+            return jsonify({'error': 'user_id and otp required'}), 400
             
-        with _db.db_cursor() as cur:
-            try:
-                cur.execute('ALTER TABLE password_resets ADD COLUMN otp_attempts INTEGER DEFAULT 0')
-            except Exception:
-                pass
-            
-            cur.execute('SELECT * FROM password_resets WHERE user_id = ? AND used = 0', (user_id,))
-            record = cur.fetchone()
-            
+        record = _db.get_active_password_reset(user_id)
         if not record:
             return jsonify({'error': 'No OTP requested for this user'}), 400
-            
-        if record.get('otp_attempts', 0) >= 5:
+
+        if int(record.get('otp_attempts') or 0) >= 5:
             return jsonify({'error': 'Too many attempts. Request a new OTP.'}), 429
-            
+
         import hashlib
         incoming_hash = hashlib.sha256(str(otp).encode()).hexdigest()
         if not hmac.compare_digest(record['otp'], incoming_hash):
-            with _db.db_cursor() as cur:
-                cur.execute('UPDATE password_resets SET otp_attempts = COALESCE(otp_attempts, 0) + 1 WHERE user_id = ?', (user_id,))
+            _db.increment_otp_attempts(user_id)
             return jsonify({'error': 'Invalid OTP'}), 400
-            
-        if time.strftime('%Y-%m-%d %H:%M:%S') > record['otp_expiry']:
-            with _db.db_cursor() as cur:
-                cur.execute('UPDATE password_resets SET otp_attempts = 0 WHERE user_id = ?', (user_id,))
+
+        if time.strftime('%Y-%m-%d %H:%M:%S') > str(record['otp_expiry']):
+            _db.reset_otp_attempts(user_id)
             return jsonify({'error': 'OTP expired'}), 400
-            
+
         user = _db.get_user_by_id(user_id)
         if not user:
             return jsonify({'error': 'User not found'}), 404
+
+        # Step 1: OTP only verification to unlock password fields on the client.
+        if not new_pass:
+            return jsonify({'message': 'OTP verified'}), 200
+
         ok, msg = user_manager.change_password(user['username'], new_pass)
         if not ok:
             return jsonify({'error': msg}), 400
-        with _db.db_cursor() as cur:
-            cur.execute('UPDATE password_resets SET used = 1, otp_attempts = 0 WHERE user_id = ?', (user_id,))
+        _db.mark_password_reset_used(user_id)
         return jsonify({'message': 'Password reset successfully'}), 200
 
     @app.route('/')

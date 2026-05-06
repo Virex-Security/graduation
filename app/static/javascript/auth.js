@@ -84,6 +84,27 @@ const Auth = {
     localStorage.removeItem(this.USER_KEY);
     window.location.href = "/";
   },
+
+  /**
+   * Save remembered username
+   */
+  rememberUsername(username) {
+    localStorage.setItem("remembered_username", username);
+  },
+
+  /**
+   * Get remembered username
+   */
+  getRememberedUsername() {
+    return localStorage.getItem("remembered_username");
+  },
+
+  /**
+   * Clear remembered username
+   */
+  clearRememberedUsername() {
+    localStorage.removeItem("remembered_username");
+  },
 };
 
 // Initialize on load

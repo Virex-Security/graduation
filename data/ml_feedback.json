@@ -1318,5 +1318,1155 @@
     "attack_type": "brute_force",
     "reviewed": false,
     "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T11:55:56Z",
+    "text_hash": "de67b4942a6349519553316ae9c5bbd8",
+    "text_snippet": "lina.mostafa",
+    "risk_score": 0.7034454834900794,
+    "decision": "monitor",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T11:56:23Z",
+    "text_hash": "f3183d5979332246788027dcfafd18d4",
+    "text_snippet": "ahmed.hassan",
+    "risk_score": 0.8422924771857677,
+    "decision": "monitor",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T11:56:35Z",
+    "text_hash": "28f95e8e3b6b52daaa2098337bb32e7a",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T11:56:35Z",
+    "text_hash": "8db9325cb835201dac6473305b387873",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T11:56:38Z",
+    "text_hash": "66dc1b76d8ee0c9f60490613ebc0714f",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T11:56:38Z",
+    "text_hash": "c28d98180b79d02bd6b67442164e86aa",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T11:56:40Z",
+    "text_hash": "d7e78b9dabf0d28eac95c066e0050c07",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T11:56:40Z",
+    "text_hash": "49dcc9652d88c194501b62fabe0484a9",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T11:56:42Z",
+    "text_hash": "abc1ca2420002fc35fcafdba3f0f84ba",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T11:56:42Z",
+    "text_hash": "2e078a9d843e3530573d3dfe6c07c9a5",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.901437420684754,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T11:56:44Z",
+    "text_hash": "eb78eba91c1f12a1f9c93b021a4f43a7",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T11:56:45Z",
+    "text_hash": "bb6d3d37d8ad3aa983f7e85990991e0b",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T11:56:47Z",
+    "text_hash": "a513489eab09f5f1b318ecf64cd37333",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847535,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T11:56:47Z",
+    "text_hash": "73a8781f589092ac4924df636c6c0c69",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T11:56:49Z",
+    "text_hash": "73c953e1bf30baa501e0781227290795",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T11:56:50Z",
+    "text_hash": "8504e5b9eace11f78a09dffb99b21b6b",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T11:56:52Z",
+    "text_hash": "8e7da287174573f26940cf3def59fc93",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T11:56:52Z",
+    "text_hash": "05d5812fe3c39ac3755a91d41038b9cf",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T11:57:23Z",
+    "text_hash": "ec3d6a63d1cc762a7b279a91839ca58a",
+    "text_snippet": "nour.ibrahim",
+    "risk_score": 0.7272763115985293,
+    "decision": "monitor",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T11:58:00Z",
+    "text_hash": "2de349009e43659d4cbdf0f7d7dc7583",
+    "text_snippet": "http://10.0.0.1",
+    "risk_score": 0.9460135064967888,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T11:58:03Z",
+    "text_hash": "37d007a56d816107ce5b52c10342db37",
+    "text_snippet": "http://localhost:8080",
+    "risk_score": 0.9392476979834788,
+    "decision": "block",
+    "attack_type": "ssrf",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:01:31Z",
+    "text_hash": "62d2ec7b082248cf73cb3bd1dcaae6a8",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:01:31Z",
+    "text_hash": "55c7d4105efc30adbb04b9c136212145",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:01:32Z",
+    "text_hash": "dc1c50246bf0c9d112ae426500a49ccd",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:01:32Z",
+    "text_hash": "17657006ac724e800f690e49b6b3d8ed",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:01:34Z",
+    "text_hash": "29599a6da5b8fcbcb36f3154bf100800",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:01:34Z",
+    "text_hash": "8de7dc9140aae5321e2911e7637aff6f",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:01:34Z",
+    "text_hash": "d390b6147dbd9f5430a81407b3c175fe",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:01:34Z",
+    "text_hash": "272ea1f38ab8958c08fdb5721bfda3f1",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:01:36Z",
+    "text_hash": "88a89049748ce183dacade470e67836e",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:01:36Z",
+    "text_hash": "7fe473308a4c7b1d967a1c2b4547dc77",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:01:36Z",
+    "text_hash": "d293c4435642a1a75c96b153f9096750",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:01:37Z",
+    "text_hash": "eef38e827b80a54f92099587b909f9b1",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847535,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:01:38Z",
+    "text_hash": "9ec673f5b35da451c9879550acbd8c69",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847535,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:01:38Z",
+    "text_hash": "625d42262c3656de467e89d622f8008f",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:01:39Z",
+    "text_hash": "e4a72ccdb17365269cae8b0d095c8822",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:01:39Z",
+    "text_hash": "c68811793f001067a564047b22becd6b",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:01:41Z",
+    "text_hash": "f6dbf5767e9def1450d43f79910b319b",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:01:41Z",
+    "text_hash": "30414637c233aeb25198f768efdbef3e",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:01:41Z",
+    "text_hash": "147412e94cf4dff8ad8631e7d1adf608",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:01:41Z",
+    "text_hash": "d279bb37c1d50e8ab78a0e6bcd07ea9b",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:01:43Z",
+    "text_hash": "49ea7f8baf95a70bb9b9f57ad3869b82",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:01:43Z",
+    "text_hash": "46e9386d928c4ad6626c8a8307ec0b14",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:01:43Z",
+    "text_hash": "67f374b10e7f4eb38146467650ffbd52",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847535,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:01:44Z",
+    "text_hash": "30a83621ce5422fbdfdd539777458c78",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:01:45Z",
+    "text_hash": "64cca73a7d188a161ad93c28e35848d0",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:01:45Z",
+    "text_hash": "ca6c8546719be27138df89c24fc08088",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:01:46Z",
+    "text_hash": "48981764a9fa86c1176f679919fa6d34",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:01:46Z",
+    "text_hash": "4274abcbe2970842fc2667d429f816af",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:01:48Z",
+    "text_hash": "4abbd0fe56d11283c7eb8f0ad1a1dd7f",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:01:48Z",
+    "text_hash": "45687c92c8091bca3c3e10eaf3d7c911",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847535,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:01:48Z",
+    "text_hash": "2b6c8b791a19fd9de9dc5aba0ed7bf6d",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:01:48Z",
+    "text_hash": "e7f8ebcd1373c5fd9af4bc8085435700",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:01:50Z",
+    "text_hash": "f3183d5979332246788027dcfafd18d4",
+    "text_snippet": "ahmed.hassan",
+    "risk_score": 0.8422924771857677,
+    "decision": "monitor",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:02:04Z",
+    "text_hash": "de67b4942a6349519553316ae9c5bbd8",
+    "text_snippet": "lina.mostafa",
+    "risk_score": 0.7034454834900794,
+    "decision": "monitor",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:02:16Z",
+    "text_hash": "66bab3774cfd5aca596b1252a3303d0d",
+    "text_snippet": "http://metadata.google.internal",
+    "risk_score": 0.8374232746253198,
+    "decision": "monitor",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:02:19Z",
+    "text_hash": "fff57ce593f2abbebb468d32f24c5171",
+    "text_snippet": "http://192.168.1.1",
+    "risk_score": 0.9528422350802267,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:02:59Z",
+    "text_hash": "ec3d6a63d1cc762a7b279a91839ca58a",
+    "text_snippet": "nour.ibrahim",
+    "risk_score": 0.7272763115985293,
+    "decision": "monitor",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:04:00Z",
+    "text_hash": "2b39512c6fafd434b6461a08e0ba9cdf",
+    "text_snippet": "victim722@mail.com",
+    "risk_score": 0.7028763442428002,
+    "decision": "monitor",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:04:56Z",
+    "text_hash": "f134d440b5362309d5d0697b5c9a014d",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:04:56Z",
+    "text_hash": "8504e5b9eace11f78a09dffb99b21b6b",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:04:56Z",
+    "text_hash": "d36a37136d406826a19f8d222217fcf2",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:04:58Z",
+    "text_hash": "87acbe7855a1088af2d1fb0fe1065b10",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:04:59Z",
+    "text_hash": "6e292d92f493eb04bee376d3490004a9",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:04:59Z",
+    "text_hash": "ace74a97564d05ada7c1e84a45adaf6b",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:05:01Z",
+    "text_hash": "9b87f9171ef7f71c01ba7ca36b16491e",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:05:01Z",
+    "text_hash": "c92c9641743345dbe95ca178609066e1",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:05:01Z",
+    "text_hash": "80e2a06a62d2ad86003a307951f54767",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847535,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:05:03Z",
+    "text_hash": "fb98667f98096de92620b64f46e1c5b5",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:05:03Z",
+    "text_hash": "ec9fcad5373debeacec79d5d7877e6b7",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:05:05Z",
+    "text_hash": "7aacb8b8fb4360fbca248a7885665e44",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:05:06Z",
+    "text_hash": "199868af746271bfdd38e8acae5309ba",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:05:06Z",
+    "text_hash": "9caf6a2e7275e13503fbab41effa1539",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:05:08Z",
+    "text_hash": "f1b063ddeab6d78714a75be650935f75",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:05:08Z",
+    "text_hash": "73e067f29d709b97e2d3d4af56aae8ab",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:05:08Z",
+    "text_hash": "2876f8206740affba3a47fb5b10fce44",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:05:10Z",
+    "text_hash": "efef99689dc094550b44db8ba02643ac",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:05:10Z",
+    "text_hash": "334e41b974c312ce94554ce271f27bc1",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:05:11Z",
+    "text_hash": "525fdb235125f69afb02065c3f8e930e",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:05:12Z",
+    "text_hash": "efca0d1918675bdd1c947322a5a9495c",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:05:13Z",
+    "text_hash": "48a6fe15122174c37455b429ab36bba2",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:05:13Z",
+    "text_hash": "5643b2854e950fe94fb92f320e6f6f4c",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:07:03Z",
+    "text_hash": "f3183d5979332246788027dcfafd18d4",
+    "text_snippet": "ahmed.hassan",
+    "risk_score": 0.8422924771857677,
+    "decision": "monitor",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:07:18Z",
+    "text_hash": "3165078f1b9b74a14060f961d0a4478d",
+    "text_snippet": "http://127.0.0.1/admin",
+    "risk_score": 0.9992584692735107,
+    "decision": "block",
+    "attack_type": "ssrf",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:08:06Z",
+    "text_hash": "de67b4942a6349519553316ae9c5bbd8",
+    "text_snippet": "lina.mostafa",
+    "risk_score": 0.7034454834900794,
+    "decision": "monitor",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:09:19Z",
+    "text_hash": "39e0da4295e48ba604538cf55509f362",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:09:19Z",
+    "text_hash": "471383b5d302524e8f3c4e3970cfe4f5",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:09:21Z",
+    "text_hash": "8dd415f6a3a27df0899c8c6b54ea27ed",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:09:21Z",
+    "text_hash": "83775513220d7a671e7e783e9f59520c",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:09:23Z",
+    "text_hash": "db0e92ba1a7783d6c3c2ebc18940acc3",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:09:23Z",
+    "text_hash": "8de7dc9140aae5321e2911e7637aff6f",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:09:25Z",
+    "text_hash": "15c1dadac47625ff57805cc269c30e61",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:09:26Z",
+    "text_hash": "83bdac29a3f743d6ae8052743a20164e",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:09:28Z",
+    "text_hash": "6c692375eced0b90d504610d73077589",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:09:28Z",
+    "text_hash": "72e91a367e4aab94c74236e3f7ad4b94",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:09:30Z",
+    "text_hash": "17657006ac724e800f690e49b6b3d8ed",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:09:30Z",
+    "text_hash": "9aa4701d1304aab7e02a21a0327c39a9",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847535,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:09:33Z",
+    "text_hash": "6c03bb45a4f36561be456adf63d880b6",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:09:35Z",
+    "text_hash": "29517e17c4206a9d6c8cfff7f10ec873",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:09:35Z",
+    "text_hash": "3c407406bdc02bece33a29539356b3ac",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:09:40Z",
+    "text_hash": "ec3d6a63d1cc762a7b279a91839ca58a",
+    "text_snippet": "nour.ibrahim",
+    "risk_score": 0.7272763115985293,
+    "decision": "monitor",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:11:05Z",
+    "text_hash": "cb3ead3ffb3d928128c57a88ddc023c9",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:11:05Z",
+    "text_hash": "17b374f668d1989f2177e81bfd8096cd",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:11:07Z",
+    "text_hash": "24359e04eefea792396c62fb69cc40bf",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:11:07Z",
+    "text_hash": "0f1ddcfc14dbee319c6902311534c909",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:11:07Z",
+    "text_hash": "452d9db07314b5ddf15d92952e0d8261",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:11:09Z",
+    "text_hash": "95ab2f26fbaf2a914d4e72825019c104",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:11:09Z",
+    "text_hash": "a2f0040c87da0997ac7eb31c9c1a8a60",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847535,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:11:09Z",
+    "text_hash": "bd8d59f5e8800c994446eb8154c9692b",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:11:12Z",
+    "text_hash": "67ab075fe4e13f8ad4b1ac5573dd8e1f",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:11:12Z",
+    "text_hash": "cdd49894fd516685b0173b0f10da00af",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:11:12Z",
+    "text_hash": "2af025ad8c38582afbfa5ee20c78f1f4",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:11:14Z",
+    "text_hash": "b49f8a7a72e7006b5fc946f74ef140a2",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T12:11:14Z",
+    "text_hash": "3ebff3779f59a2eb9d25563e962797e7",
+    "text_snippet": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "risk_score": 0.9014374206847537,
+    "decision": "block",
+    "attack_type": "attack",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-06T15:00:56Z",
+    "text_hash": "0e7517141fb53f21ee439b355b5a1d0a",
+    "text_snippet": "Admin@123",
+    "risk_score": 0.8611363187638013,
+    "decision": "monitor",
+    "attack_type": "brute_force",
+    "reviewed": false,
+    "promoted_to_rule": false
   }
 ]

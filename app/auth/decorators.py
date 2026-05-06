@@ -23,24 +23,16 @@ def _is_jti_valid(jti: str) -> bool:
         from app import database as db
         import logging
         logger = logging.getLogger(__name__)
-        
+
         jti_hash = hashlib.sha256(jti.encode()).hexdigest()
-        with db.db_cursor() as cur:
-            cur.execute(
-                "SELECT is_active FROM user_sessions WHERE jwt_token_hash = ?",
-                (jti_hash,)
-            )
-            row = cur.fetchone()
-            
-        if row is None:
+        active = db.is_session_active(jti_hash)
+
+        if not active:
             logger.warning(f"[AUTH] Unknown or deleted JTI encountered: {jti_hash}. Rejecting token to prevent replay.")
             return False
-            
-        return bool(row["is_active"])
+
+        return True
     except Exception as e:
-        # If DB check fails (e.g., table missing/locked, operational error), default to True.
-        # Trade-off: This is an acceptable availability-over-security risk 
-        # to ensure legitimate users aren't globally locked out during transient DB hiccups.
         import logging
         logging.getLogger(__name__).error(f"[AUTH] DB error verifying JTI: {e}. Allowing token by default.")
         return True

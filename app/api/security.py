@@ -54,7 +54,7 @@ class SimpleSecurityManager:
         from app import database as _db
 
         # Ensure rules table exists and is seeded BEFORE querying
-        _db._seed_rules_table()
+        _db._seed_rules()
 
         db_rules = get_rules(active_only=True)
         logger.debug("[DEBUG] SimpleSecurityManager: loaded {len(db_rules)} rule(s) from DB")

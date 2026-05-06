@@ -31,6 +31,10 @@ shap
 matplotlib
 seaborn
 
+# --- Database ---
+sqlalchemy
+psycopg2-binary
+
 # --- HTTP Requests ---
 requests
 
