@@ -433,9 +433,16 @@ class SecurityDashboard:
         )
         return round(min(score, 100), 2)
     def check_api_connection(self):
-        """Connection is considered good if get_dashboard_data was called successfully."""
-        self.connection_state = CONNECTED
-        self.had_connection = True
+        """Check if API server is reachable by pinging its health endpoint."""
+        try:
+            import requests
+            api_url = os.getenv("API_URL", "http://127.0.0.1:5000")
+            r = requests.get(f"{api_url}/api/health", timeout=2)
+            self.connection_state = CONNECTED if r.status_code == 200 else DISCONNECTED
+            self.had_connection = self.connection_state == CONNECTED
+        except Exception:
+            self.connection_state = DISCONNECTED
+            self.had_connection = False
     
     def update_failed_connection(self):
         """Update connection state when API fails."""

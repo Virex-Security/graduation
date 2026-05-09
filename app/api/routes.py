@@ -16,6 +16,7 @@ from app.api import services
 from app.auth import user_manager
 from app.auth.decorators import admin_required, token_required
 from app.security import new_request_id, is_trivial, is_business_relevant
+from app import config as _cfg
 
 try:
     from detections import detect_csrf, detect_ssrf
@@ -45,6 +46,7 @@ def create_api_app():
     from werkzeug.middleware.proxy_fix import ProxyFix
     app = Flask(__name__)
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1)
+    app.config['SECRET_KEY'] = os.getenv("SECRET_KEY", "")
     from app import database as db
 
 
@@ -76,9 +78,12 @@ def create_api_app():
 
         client_ip = _get_real_ip()
         is_business = is_business_relevant(request)
-        request_blocked = False
 
-        # 3a. Rate Limiting
+        # Count ALL business-relevant requests (blocked or not)
+        if is_business:
+            security.total_requests += 1
+
+        # ── Layer 1: Rate Limiting ────────────────────────────
         if not security.check_rate_limit(client_ip):
             security.blocked_requests += 1
             security._persist_stats()
@@ -86,15 +91,16 @@ def create_api_app():
                 from app.api.persistence import append_user_attack
                 append_user_attack(
                     client_ip, "Rate Limit Exceeded", client_ip,
-                    request.path, request.method, "medium",
+                    request.path, request.method, "Medium",
                 )
             except Exception:
                 pass
             return jsonify({"error": "Rate limit exceeded"}), 429
 
-        # 3b. Scanner Detection
+        # ── Layer 2: Scanner Detection (sensitive paths) ──────
         sensitive_paths = ["/admin", "/wp-admin", "/phpmyadmin", "/.env",
-                           "/config", "/backup", "/etc/passwd"]
+                           "/config", "/backup", "/etc/passwd", "/.git",
+                           "/.svn", "/.htaccess", "/server-status", "/wp-login"]
         normalized_path = request.path.lower()
         if any(normalized_path.startswith(p) for p in sensitive_paths):
             security.log_to_dashboard(
@@ -110,61 +116,13 @@ def create_api_app():
                 from app.api.persistence import append_user_attack
                 append_user_attack(
                     client_ip, "Scanner", client_ip,
-                    request.path, request.method, "medium",
+                    request.path, request.method, "Medium",
                 )
             except Exception:
                 pass
             return jsonify({"error": "Not Found"}), 404
 
-        # 3c. CSRF
-        if _CSRF_SSRF_ENABLED and request.method in ("POST", "PUT", "DELETE", "PATCH"):
-            _csrf_result = detect_csrf({
-                "method": request.method, "path": request.path,
-                "headers": dict(request.headers),
-                "body": request.get_json(silent=True) or {},
-                "query_params": request.args.to_dict(),
-                "cookies": request.cookies.to_dict(),
-                "ip": client_ip, "user_agent": request.user_agent.string,
-            })
-            if _csrf_result["detected"]:
-                security.blocked_requests += 1
-                security._persist_stats()
-                try:
-                    from app.api.persistence import append_user_attack
-                    append_user_attack(
-                        client_ip, "CSRF", client_ip,
-                        request.path, request.method, "high",
-                    )
-                except Exception:
-                    pass
-                return jsonify({"error": "CSRF validation failed",
-                                "reason": _csrf_result["reason"]}), 403
-
-        # 3d. SSRF
-        if _CSRF_SSRF_ENABLED:
-            _ssrf_result = detect_ssrf({
-                "method": request.method, "path": request.path,
-                "headers": dict(request.headers),
-                "body": request.get_json(silent=True) or {},
-                "query_params": request.args.to_dict(),
-                "cookies": request.cookies.to_dict(),
-                "ip": client_ip, "user_agent": request.user_agent.string,
-            })
-            if _ssrf_result["detected"]:
-                security.blocked_requests += 1
-                security._persist_stats()
-                try:
-                    from app.api.persistence import append_user_attack
-                    append_user_attack(
-                        client_ip, "SSRF", client_ip,
-                        request.path, request.method, "high",
-                    )
-                except Exception:
-                    pass
-                return jsonify({"error": "SSRF attempt blocked",
-                                "reason": _ssrf_result["reason"]}), 403
-
-        # 3e. Content Scan — JSON + Form + Files metadata
+        # ── Layer 3: Content Scan (SQLi, XSS, CMDi, Path Traversal + ML) ──
         data_to_scan = {}
         if request.args:
             data_to_scan.update(request.args.to_dict())
@@ -189,9 +147,124 @@ def create_api_app():
                 security._persist_stats()
                 return jsonify({"error": msg}), 400
 
-        if not request_blocked and is_business:
-            security.total_requests += 1
-            security._persist_stats()
+        # ── Layer 4: SSRF Detection (URL patterns in body/params) ──
+        if _CSRF_SSRF_ENABLED and data_to_scan:
+            _ssrf_result = detect_ssrf({
+                "method": request.method, "path": request.path,
+                "headers": dict(request.headers),
+                "body": request.get_json(silent=True) or {},
+                "query_params": request.args.to_dict(),
+                "cookies": request.cookies.to_dict(),
+                "ip": client_ip, "user_agent": request.user_agent.string,
+            })
+            if _ssrf_result["detected"]:
+                security.log_to_dashboard(
+                    "SSRF", client_ip,
+                    f"[SSRF] {_ssrf_result['reason']}",
+                    "Critical", endpoint=request.path, method=request.method,
+                    snippet=str(_ssrf_result.get("payload", ""))[:100],
+                    detection_type="Rule-based", blocked=True,
+                    request_id=getattr(request, "request_id", ""),
+                )
+                security.blocked_requests += 1
+                security._persist_stats()
+                try:
+                    from app.api.persistence import append_user_attack
+                    append_user_attack(
+                        client_ip, "SSRF", client_ip,
+                        request.path, request.method, "Critical",
+                    )
+                except Exception:
+                    pass
+                return jsonify({"error": "SSRF attempt blocked",
+                                "reason": _ssrf_result["reason"]}), 403
+        elif not _CSRF_SSRF_ENABLED and data_to_scan:
+            # SSRF Fallback: basic private IP check in request data
+            import re
+            _ssrf_indicators = False
+            _ssrf_reason = ""
+            _data_str = str(data_to_scan)
+            if re.search(r'(127\.0\.0\.1|localhost|169\.254\.169\.254|192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[01])\.)', _data_str, re.IGNORECASE):
+                _ssrf_indicators = True
+                _ssrf_reason = "Private IP address detected in request (fallback)"
+            if _ssrf_indicators:
+                security.blocked_requests += 1
+                security._persist_stats()
+                try:
+                    from app.api.persistence import append_user_attack
+                    append_user_attack(
+                        client_ip, "SSRF", client_ip,
+                        request.path, request.method, "Critical",
+                    )
+                except Exception:
+                    pass
+                return jsonify({"error": "SSRF attempt blocked (fallback)",
+                                "reason": _ssrf_reason}), 403
+
+        # ── Layer 5: CSRF Detection ───────────────────────────
+        # Only check CSRF for authenticated state-changing requests
+        # that passed all other checks (not already classified as another attack).
+        # Skip if request has auth_token (JWT cookie = SameSite CSRF protection)
+        # or if it's a public/unauthenticated endpoint.
+        if _CSRF_SSRF_ENABLED and request.method in ("POST", "PUT", "DELETE", "PATCH"):
+            has_auth = request.cookies.get("auth_token")
+            # CSRF only matters for authenticated sessions without proper token
+            if has_auth:
+                _csrf_result = detect_csrf({
+                    "method": request.method, "path": request.path,
+                    "headers": dict(request.headers),
+                    "body": request.get_json(silent=True) or {},
+                    "query_params": request.args.to_dict(),
+                    "cookies": request.cookies.to_dict(),
+                    "ip": client_ip, "user_agent": request.user_agent.string,
+                })
+                if _csrf_result["detected"]:
+                    security.log_to_dashboard(
+                        "CSRF", client_ip,
+                        f"[CSRF] {_csrf_result['reason']}",
+                        "High", endpoint=request.path, method=request.method,
+                        detection_type="Rule-based", blocked=True,
+                        request_id=getattr(request, "request_id", ""),
+                    )
+                    security.blocked_requests += 1
+                    security._persist_stats()
+                    try:
+                        from app.api.persistence import append_user_attack
+                        append_user_attack(
+                            client_ip, "CSRF", client_ip,
+                            request.path, request.method, "High",
+                        )
+                    except Exception:
+                        pass
+                    return jsonify({"error": "CSRF validation failed",
+                                    "reason": _csrf_result["reason"]}), 403
+
+        security._persist_stats()
+
+        # ── Layer 5b: CSRF Fallback (when detections module not available) ──
+        if not _CSRF_SSRF_ENABLED and request.method in ("POST", "PUT", "DELETE", "PATCH"):
+            # Basic CSRF token check as fallback
+            token_header = (request.headers.get("X-CSRF-Token", "") or
+                           request.headers.get("X-XSRF-TOKEN", "") or
+                           request.headers.get("X-CSRFToken", "") or
+                           request.headers.get("csrf-token", ""))
+            token_cookie = (request.cookies.get("csrftoken", "") or
+                          request.cookies.get("XSRF-TOKEN", "") or
+                          request.cookies.get("csrf_token", "") or
+                          request.cookies.get("_csrf", ""))
+            if not token_header and not token_cookie:
+                security.blocked_requests += 1
+                security._persist_stats()
+                try:
+                    from app.api.persistence import append_user_attack
+                    append_user_attack(
+                        client_ip, "CSRF", client_ip,
+                        request.path, request.method, "High",
+                    )
+                except Exception:
+                    pass
+                return jsonify({"error": "CSRF validation failed (fallback)",
+                                "reason": "Missing CSRF token"}), 403
 
     @app.after_request
     def after_request(response):
@@ -294,20 +367,28 @@ def create_api_app():
 
         verified_user = user_manager.verify_password(username, password) if username and password else None
         if verified_user:
-          brute_force_tracker[ip] = []
-          # Mint and return JWT — same as dashboard's login_user()
-          token = jwt.encode({
-              "user": username,
-              "role": verified_user["role"],
-              "exp": datetime.utcnow() + timedelta(hours=8),
-              "iat": datetime.utcnow(),
-              "jti": secrets.token_hex(16),   # for revocation
-          }, current_app.config["SECRET_KEY"], algorithm="HS256")
-          resp = make_response(jsonify({"message": "Login successful"}))
-          from app import config as _cfg
-          resp.set_cookie("auth_token", token, httponly=True,
-                        secure=_cfg.cookie_secure(), samesite="Lax", max_age=8*3600)
-          return resp, 200
+            brute_force_tracker[ip] = []
+            # Mint and return JWT — same as dashboard's login_user()
+            jti = secrets.token_hex(16)
+            token = jwt.encode({
+                "user": username,
+                "role": verified_user["role"],
+                "exp": datetime.utcnow() + timedelta(hours=8),
+                "iat": datetime.utcnow(),
+                "jti": jti,
+            }, current_app.config["SECRET_KEY"], algorithm="HS256")
+            # Register session for revocation support
+            try:
+                from app.auth.auth import _register_session
+                user_id = verified_user.get("user_id") or verified_user.get("id")
+                if user_id:
+                    _register_session(user_id, jti)
+            except Exception:
+                pass  # session persistence failure must not block login
+            resp = make_response(jsonify({"message": "Login successful"}))
+            resp.set_cookie("auth_token", token, httponly=True,
+                          secure=_cfg.cookie_secure(), samesite="Lax", max_age=8*3600)
+            return resp, 200
         else:
               # Brute force tracking
               attempts = [t for t in brute_force_tracker[ip]

@@ -318,12 +318,11 @@ def create_dashboard_app():
     @app.route('/api/system/health')
     @token_required
     def system_health(current_user):
-        dashboard.connection_state = 'Connected'
-        dashboard.had_connection = True
+        dashboard.check_api_connection()
         return jsonify({
             'status': 'ok',
-            'api_online': True,
-            'connection_state': 'Connected',
+            'api_online': dashboard.connection_state == 'Connected',
+            'connection_state': dashboard.connection_state,
             'user': current_user.get('username'),
         })
     @app.route('/login')
@@ -429,30 +428,44 @@ def create_dashboard_app():
             dashboard.stats['rate_limit_hits'] = data['rate_limit_hits']
         return jsonify({'status': 'updated'})
     @app.route('/api/dashboard/reset', methods=['POST'])
-    @token_required
     @admin_required
     def reset_stats(current_user):
         global dashboard
         try:
-            log_action(current_user, "Reset Stats", "Cleared all memory stats and audit logs")
-            # Reset in-memory stats
-            for key in dashboard.stats:
-                dashboard.stats[key] = 0
-            dashboard.ip_tracker.clear()
-            dashboard.recent_threats = []
-            dashboard.timeline_data.clear()
-            dashboard.incidents.clear()
-            # Clear the DB threat logs
+            # Clear the DB threat logs FIRST
             from app import database as _db
-            _db.clear_threat_logs()
+            try:
+                _db.clear_threat_logs()
+            except Exception as db_err:
+                print(f"[-] DB clear_threat_logs error: {db_err}")
+                import traceback
+                traceback.print_exc()
             # Clear the JSON audit log
             try:
                 with open(dashboard.audit_log_path, 'w') as f:
                     json.dump([], f)
             except Exception as e:
                 print(f"[-] Error clearing audit log: {e}")
-            # Invalidate DB stats cache
+            # Invalidate ALL caches
             _db._invalidate_caches()
+            for attr in ['_cached_dashboard_data', '_cached_audit_logs', '_attack_logs_cache',
+                         'last_ml_metrics', 'last_attack_indicators']:
+                if hasattr(dashboard, attr):
+                    setattr(dashboard, attr, None)
+            for attr in ['_last_dashboard_refresh', '_cached_audit_logs_time', '_attack_logs_time',
+                         'last_log_count', 'last_indicator_log_count']:
+                if hasattr(dashboard, attr):
+                    setattr(dashboard, attr, 0)
+            # Reset in-memory stats
+            for key in dashboard.stats:
+                dashboard.stats[key] = 0
+            dashboard.ip_tracker.clear()
+            dashboard.recent_threats = []
+            if hasattr(dashboard, 'timeline_data'):
+                dashboard.timeline_data.clear()
+            if hasattr(dashboard, 'incidents'):
+                dashboard.incidents.clear()
+            log_action(current_user, "Reset Stats", "Cleared all memory stats and audit logs")
             return jsonify({'status': 'stats_reset', 'message': 'All stats and logs cleared'})
         except Exception as e:
             print(f"[-] Reset error: {e}")

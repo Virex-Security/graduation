@@ -77,10 +77,17 @@ def _seed_admin():
             return
         from werkzeug.security import generate_password_hash
         now = time.strftime("%Y-%m-%d %H:%M:%S")
+        admin_password = os.getenv("ADMIN_DEFAULT_PASSWORD")
+        if admin_password:
+            logger.warning("[DB] Creating default admin — change password immediately after first login")
+        else:
+            import secrets
+            admin_password = secrets.token_urlsafe(16)
+            logger.info(f"[DB] Auto-generated admin password: {admin_password}")
         conn.execute(text("""
             INSERT INTO users (username, password_hash, email, role_id, is_active, created_at, updated_at)
             VALUES ('admin', :ph, 'admin@virex.local', 1, TRUE, :now, :now)
-        """), {"ph": generate_password_hash("Admin@123"), "now": now})
+        """), {"ph": generate_password_hash(admin_password), "now": now})
         conn.commit()
 
 
@@ -355,6 +362,12 @@ def get_threat_logs(limit: int = 100, attack_type: str = None,
 
 def clear_threat_logs():
     with _db() as conn:
+        # Clear dependent tables first to avoid FK violations
+        conn.execute(text("DELETE FROM incident_actions"))
+        conn.execute(text("DELETE FROM incident_events"))
+        conn.execute(text("DELETE FROM blocked_events"))
+        conn.execute(text("DELETE FROM incidents"))
+        conn.execute(text("DELETE FROM notifications"))
         conn.execute(text("DELETE FROM threat_logs"))
         conn.commit()
 

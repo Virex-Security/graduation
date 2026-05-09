@@ -263,7 +263,7 @@ const Dashboard = {
     this.charts.distribution = new Chart(ctxDistribution, {
       type: "doughnut",
       data: {
-        labels: ["SQLi", "XSS", "Brute Force", "Scanner", "ML", "Rate Limit"],
+        labels: ["SQLi", "XSS", "Brute Force", "Scanner", "ML", "Rate Limit", "CSRF", "SSRF"],
         datasets: [
           {
             data: [0, 0, 0, 0, 0, 0],
@@ -601,6 +601,8 @@ const Dashboard = {
       dist["Scanner"] || 0,
       dist["ML Detection"] || 0,
       dist["Rate Limit"] || 0,
+      dist["CSRF"] || 0,
+      dist["SSRF"] || 0,
     ];
     this.charts.distribution.data.datasets[0].data = values;
     this.charts.distribution.update();
@@ -632,6 +634,10 @@ const Dashboard = {
       return { cls: "threat-badge threat-ml", icon: "fa-brain", label: type };
     if (t.includes("rate"))
       return { cls: "threat-badge threat-rate", icon: "fa-bolt", label: type };
+    if (t.includes("csrf"))
+      return { cls: "threat-badge threat-csrf", icon: "fa-shield-alt", label: type };
+    if (t.includes("ssrf"))
+      return { cls: "threat-badge threat-ssrf", icon: "fa-globe", label: type };
     if (t.includes("block"))
       return {
         cls: "threat-badge threat-blocked",
