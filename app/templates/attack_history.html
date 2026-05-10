@@ -91,6 +91,9 @@
   .badge-cmd      { background: #f5793322; color: #f57933; border: 1px solid #f5793344; }
   .badge-path     { background: #38bdf822; color: #38bdf8; border: 1px solid #38bdf844; }
   .badge-brute    { background: #facc1522; color: #facc15; border: 1px solid #facc1544; }
+  .badge-rate     { background: rgba(6, 182, 212, 0.12); color: #06b6d4; border: 1px solid rgba(6, 182, 212, 0.3); }
+.badge-csrf     { background: rgba(190, 24, 93, 0.12); color: #BE185D; border: 1px solid rgba(190, 24, 93, 0.3); }
+.badge-ssrf     { background: rgba(146, 64, 14, 0.12); color: #92400E; border: 1px solid rgba(146, 64, 14, 0.3); }
   .badge-anomaly  { background: #6b728022; color: #9ca3af; border: 1px solid #6b728044; }
 
   /* Severity */
@@ -240,6 +243,9 @@
     'Command Injection':'badge-cmd',
     'Path Traversal':  'badge-path',
     'Brute Force':     'badge-brute',
+    'Rate Limit':      'badge-rate',
+    'CSRF':            'badge-csrf',
+    'SSRF':            'badge-ssrf',
   };
 
   const SEV_CLASS = {

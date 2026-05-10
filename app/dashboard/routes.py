@@ -318,7 +318,8 @@ def create_dashboard_app():
     @app.route('/api/system/health')
     @token_required
     def system_health(current_user):
-        dashboard.check_api_connection()
+        # We no longer call dashboard.check_api_connection() here synchronously.
+        # The background monitor thread in SecurityDashboard handles this every 10 seconds.
         return jsonify({
             'status': 'ok',
             'api_online': dashboard.connection_state == 'Connected',
@@ -373,10 +374,7 @@ def create_dashboard_app():
         import time as _time
         _t0 = _time.time()
         global dashboard
-        dashboard.connection_state = 'Connected'
-        dashboard.had_connection = True
         data = dashboard.get_dashboard_data()
-        data['connection_state'] = 'Connected'
         _t1 = _time.time()
         if _t1 - _t0 > 1:
             import logging

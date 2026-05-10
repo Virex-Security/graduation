@@ -220,8 +220,17 @@ const LayoutManager = {
       }
 
       const data = await response.json();
-      this.updateConnectionStatus("connected", data.connection_state || "Connected");
-      this.updateProfileConnectionStatus(true);
+      
+      // Determine UI status based on connection_state string from backend
+      let uiStatus = "disconnected";
+      if (data.connection_state === "Connected") {
+        uiStatus = "connected";
+      } else if (data.connection_state === "Waiting for API") {
+        uiStatus = "waiting";
+      }
+      
+      this.updateConnectionStatus(uiStatus, data.connection_state);
+      this.updateProfileConnectionStatus(data.api_online);
     } catch (error) {
       // Do not change connection status on transient errors
     }

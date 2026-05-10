@@ -30,9 +30,9 @@ const Dashboard = {
       return;
     }
 
-    // Always start as connected
-    this.updateConnectionUI("Connected");
-    this.updateSidebarConnectionStatus("connected");
+    // ✅ ابدأ بـ connecting — الـ status الحقيقي هييجي من أول API call
+    this.updateConnectionUI("Connecting...");
+    this.updateSidebarConnectionStatus("connecting");
 
     this.startAutoRefresh();
     this.startHealthPolling();
@@ -86,6 +86,9 @@ const Dashboard = {
     switch (status) {
       case "Connected":
         dot.style.backgroundColor = "var(--success)";
+        break;
+      case "Waiting for API":
+        dot.style.backgroundColor = "var(--warning, #f59e0b)";
         break;
       case "Disconnected":
       default:
@@ -166,12 +169,14 @@ const Dashboard = {
 
   getDistributionColors() {
     return [
-      "#f59e0b", // SQLi (type-sqli)
-      "#38bdf8", // XSS (type-xss)
-      "#f87171", // Brute Force (type-brute)
-      "#22c55e", // Scanner (type-scanner)
-      "#a78bfa", // ML (type-ml)
-      "#fbbf24", // Rate Limit (type-rate)
+      "#D97706", // SQLi
+      "#2563EB", // XSS
+      "#DC2626", // Brute Force
+      "#16A34A", // Scanner
+      "#7C3AED", // ML
+      "#0F766E", // Rate Limit
+      "#BE185D", // CSRF
+      "#92400E", // SSRF
     ];
   },
 
@@ -266,7 +271,7 @@ const Dashboard = {
         labels: ["SQLi", "XSS", "Brute Force", "Scanner", "ML", "Rate Limit", "CSRF", "SSRF"],
         datasets: [
           {
-            data: [0, 0, 0, 0, 0, 0],
+            data: [0, 0, 0, 0, 0, 0, 0, 0],
             backgroundColor: this.getDistributionColors(),
             borderWidth: 0,
           },
@@ -393,22 +398,31 @@ const Dashboard = {
       this.updateRecentThreats(data.recent_threats);
       this.updateTopAttackers(data.top_attackers);
 
-      const connectionState = data.connection_state || "Connected";
-      const effectiveStatus =
-        connectionState === "Connected" ? "Connected" : "Disconnected";
-      this.updateConnectionUI(effectiveStatus);
+      const connectionState = data.connection_state || "Disconnected";
+      let effectiveStatus = "Disconnected";
+      let sidebarStatus = "disconnected";
 
-      const sidebarState =
-        connectionState === "Connected" ? "connected" : "disconnected";
-      console.log("[Dashboard] Setting sidebar state to", sidebarState);
-      this.updateSidebarConnectionStatus(sidebarState);
+      if (connectionState === "Connected") {
+        effectiveStatus = "Connected";
+        sidebarStatus = "connected";
+      } else if (connectionState === "Waiting for API") {
+        effectiveStatus = "Waiting for API";
+        sidebarStatus = "connecting";
+      }
+      
+      this.updateConnectionUI(effectiveStatus);
+      console.log("[Dashboard] Setting sidebar state to", sidebarStatus);
+      this.updateSidebarConnectionStatus(sidebarStatus);
 
       const lastUpdateEl = document.getElementById("last-update");
       if (lastUpdateEl) {
         lastUpdateEl.textContent = new Date().toLocaleTimeString();
       }
     } catch (error) {
-      console.warn("[Dashboard] Fetch failed, skipping update:", error.message);
+      // ✅ لو الـ fetch فشل = الـ API مش شغال → Disconnected
+      console.warn("[Dashboard] Fetch failed:", error.message);
+      this.updateConnectionUI("Disconnected");
+      this.updateSidebarConnectionStatus("disconnected");
     }
   },
 
@@ -469,11 +483,13 @@ const Dashboard = {
 
     // Top Attack Calculation
     const attackStats = [
-      { label: "SQL Injection", val: stats.sql_injection_attempts, icon: "fa-database", color: "#f59e0b" },
-      { label: "XSS Attacks", val: stats.xss_attempts, icon: "fa-code", color: "#38bdf8" },
-      { label: "Brute Force", val: stats.brute_force_attempts, icon: "fa-key", color: "#f87171" },
-      { label: "Scanners", val: stats.scanner_attempts, icon: "fa-eye", color: "#22c55e" },
-      { label: "Rate Limited", val: stats.rate_limit_hits, icon: "fa-bolt", color: "#fbbf24" },
+      { label: "SQL Injection", val: stats.sql_injection_attempts, icon: "fa-database", color: "#D97706" },
+      { label: "XSS Attacks", val: stats.xss_attempts, icon: "fa-code", color: "#2563EB" },
+      { label: "Brute Force", val: stats.brute_force_attempts, icon: "fa-key", color: "#DC2626" },
+      { label: "Scanners", val: stats.scanner_attempts, icon: "fa-eye", color: "#16A34A" },
+      { label: "Rate Limited", val: stats.rate_limit_hits, icon: "fa-bolt", color: "#0F766E" },
+      { label: "CSRF", val: stats.csrf_attempts, icon: "fa-shield-alt", color: "#BE185D" },
+      { label: "SSRF", val: stats.ssrf_attempts, icon: "fa-globe", color: "#92400E" },
     ];
 
     // Find the attack with the highest value

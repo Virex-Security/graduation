@@ -4,11 +4,25 @@ title %}Total Requests - Virex{% endblock %} {% block stylesheets %}
   rel="stylesheet"
   href="{{ url_for('static', filename='css/requests.css') }}"
 />
+<style>
+  /* Forced Override for Unified Colors */
+.t-sqli { background: rgba(245, 158, 11, 0.12) !important; color: #f59e0b !important; border-color: rgba(245, 158, 11, 0.3) !important; }
+.t-xss { background: rgba(56, 189, 248, 0.12) !important; color: #38bdf8 !important; border-color: rgba(56, 189, 248, 0.3) !important; }
+.t-brute { background: rgba(239, 68, 68, 0.12) !important; color: #f87171 !important; border-color: rgba(239, 68, 68, 0.3) !important; }
+.t-scanner { background: rgba(34, 197, 94, 0.12) !important; color: #22c55e !important; border-color: rgba(34, 197, 94, 0.3) !important; }
+.t-ml { background: rgba(167, 139, 250, 0.12) !important; color: #a78bfa !important; border-color: rgba(167, 139, 250, 0.3) !important; }
+.t-rate { background: rgba(6, 182, 212, 0.12) !important; color: #06b6d4 !important; border-color: rgba(6, 182, 212, 0.3) !important; }
+.t-csrf { background: rgba(190, 24, 93, 0.12) !important; color: #BE185D !important; border-color: rgba(190, 24, 93, 0.3) !important; }
+.t-ssrf { background: rgba(146, 64, 14, 0.12) !important; color: #92400E !important; border-color: rgba(146, 64, 14, 0.3) !important; }
+
+.filter-csrf { --btn-color: #BE185D !important; }
+.filter-ssrf { --btn-color: #92400E !important; }
+</style>
 {% endblock %} {% block content %}
 <main class="main-content">
   <header class="section-title">
     <h1>{{ title }}</h1>
-    <p>Complete log of all traffic processed by the system.</p>
+    <p>Complete log of all traffic processed by the system. (v2.2)</p>
   </header>
 
   <!-- Summary Cards -->
@@ -100,6 +114,18 @@ title %}Total Requests - Virex{% endblock %} {% block stylesheets %}
           <i class="fas fa-bolt"></i> Rate Limit
         </button>
         <button
+          class="filter-btn filter-csrf"
+          onclick="filterTable('csrf', this)"
+        >
+          <i class="fas fa-shield-alt"></i> CSRF
+        </button>
+        <button
+          class="filter-btn filter-ssrf"
+          onclick="filterTable('ssrf', this)"
+        >
+          <i class="fas fa-globe"></i> SSRF
+        </button>
+        <button
           class="filter-btn filter-blocked"
           onclick="filterTable('blocked', this)"
         >
@@ -132,8 +158,12 @@ title %}Total Requests - Virex{% endblock %} {% block stylesheets %}
           </tr>
         </thead>
         <tbody id="req-tbody">
-          {% for log in logs %} {% set t = (log.attack_type or log.type or '') |
-          lower %} {% if log.blocked %}{% set row_tint = 'row-blocked-tint' %}
+          {% for log in logs %} 
+          {% set at = log.attack_type|default('')|string|trim|lower %}
+          {% set ty = log.type|default('')|string|trim|lower %}
+          {% set t = at or ty %}
+          
+          {% if log.blocked %}{% set row_tint = 'row-blocked-tint' %}
           {% elif 'clean' in t %}{% set row_tint = 'row-clean-tint' %} {% else
           %}{% set row_tint = 'row-attack-tint' %}{% endif %}
 
@@ -149,42 +179,38 @@ title %}Total Requests - Virex{% endblock %} {% block stylesheets %}
 
             <!-- Type badge -->
             <td>
-              {% if user.role == 'admin' %} {% if 'sql' in t %}<span
-                class="threat-badge t-sqli"
-                ><i class="fas fa-database"></i> {{ log.attack_type }}</span
-              >
-              {% elif 'xss' in t %}<span class="threat-badge t-xss"
-                ><i class="fas fa-code"></i> {{ log.attack_type }}</span
-              >
-              {% elif 'brute' in t %}<span class="threat-badge t-brute"
-                ><i class="fas fa-key"></i> {{ log.attack_type }}</span
-              >
-              {% elif 'scan' in t %}<span class="threat-badge t-scanner"
-                ><i class="fas fa-eye"></i> {{ log.attack_type }}</span
-              >
-              {% elif 'ml' in t or 'anomaly' in t %}<span
-                class="threat-badge t-ml"
-                ><i class="fas fa-brain"></i> {{ log.attack_type }}</span
-              >
-              {% elif 'rate' in t %}<span class="threat-badge t-rate"
-                ><i class="fas fa-bolt"></i> {{ log.attack_type }}</span
-              >
-              {% elif 'clean' in t %}<span class="threat-badge t-clean"
-                ><i class="fas fa-circle-check"></i> Clean</span
-              >
-              {% else %}<span class="threat-badge t-unknown"
-                ><i class="fas fa-circle-question"></i> {{ log.attack_type or
-                '—' }}</span
-              >
-              {% endif %} {% else %} {% if log.attack_type != 'Clean' %}
-              <span class="threat-badge t-unknown"
-                ><i class="fas fa-triangle-exclamation"></i> threats </span
-              >
-              {% else %}
-              <span class="threat-badge t-clean"
-                ><i class="fas fa-circle-check"></i> clean </span
-              >
-              {% endif %} {% endif %}
+              {% if user.role == 'admin' %} 
+                {# High Priority Specific Matches #}
+                {% if 'ssrf' in t or 'server' in t %}
+                  <span class="threat-badge t-ssrf"><i class="fas fa-globe"></i> {{ log.attack_type }}</span>
+                {% elif 'csrf' in t or 'request' in t %}
+                  <span class="threat-badge t-csrf"><i class="fas fa-shield-alt"></i> {{ log.attack_type }}</span>
+                {% elif 'sql' in t or 'injection' in t %}
+                  <span class="threat-badge t-sqli"><i class="fas fa-database"></i> {{ log.attack_type }}</span>
+                {% elif 'xss' in t or 'cross' in t or 'scripting' in t %}
+                  <span class="threat-badge t-xss"><i class="fas fa-code"></i> {{ log.attack_type }}</span>
+                {% elif 'brute' in t or 'auth' in t or 'password' in t %}
+                  <span class="threat-badge t-brute"><i class="fas fa-key"></i> {{ log.attack_type }}</span>
+                {% elif 'scan' in t or 'nmap' in t or 'recon' in t %}
+                  <span class="threat-badge t-scanner"><i class="fas fa-eye"></i> {{ log.attack_type }}</span>
+                {% elif 'ml' in t or 'anomaly' in t or 'brain' in t %}
+                  <span class="threat-badge t-ml"><i class="fas fa-brain"></i> {{ log.attack_type }}</span>
+                {% elif 'rate' in t or 'limit' in t or 'ddos' in t %}
+                  <span class="threat-badge t-rate"><i class="fas fa-bolt"></i> {{ log.attack_type }}</span>
+                {% elif 'clean' in t or t == '' %}
+                  <span class="threat-badge t-clean"><i class="fas fa-circle-check"></i> Clean</span>
+                {% else %}
+                  {# Default - NO QUESTION MARK #}
+                  <span class="threat-badge t-unknown"><i class="fas fa-shield-virus"></i> {{ log.attack_type or 'Threat' }}</span>
+                {% endif %}
+              {% else %} 
+                {# User view #}
+                {% if log.attack_type != 'Clean' %}
+                  <span class="threat-badge t-unknown"><i class="fas fa-triangle-exclamation"></i> Threat</span>
+                {% else %}
+                  <span class="threat-badge t-clean"><i class="fas fa-circle-check"></i> Clean</span>
+                {% endif %} 
+              {% endif %}
             </td>
 
             <!-- Severity -->
@@ -205,19 +231,14 @@ title %}Total Requests - Virex{% endblock %} {% block stylesheets %}
 
             <!-- Status -->
             <td>
-              {% if log.blocked %}<span class="status-badge s-blocked"
-                ><i class="fas fa-ban"></i> Blocked</span
-              >
-              {% elif log.ml_detected %}<span class="status-badge s-ml"
-                ><i class="fas fa-brain"></i> ML Detected</span
-              >
-              {% elif log.attack_type == 'Clean' %}<span
-                class="status-badge s-allowed"
-                ><i class="fas fa-circle-check"></i> Allowed</span
-              >
-              {% else %}<span class="status-badge s-detected"
-                ><i class="fas fa-triangle-exclamation"></i> Detected</span
-              >
+              {% if log.blocked %}
+                <span class="status-badge s-blocked"><i class="fas fa-ban"></i> Blocked</span>
+              {% elif log.ml_detected or (log.detection_type|default('')|string|lower).startswith('ml') %}
+                <span class="status-badge s-ml"><i class="fas fa-brain"></i> ML Detected</span>
+              {% elif log.attack_type != 'Clean' %}
+                <span class="status-badge s-detected"><i class="fas fa-shield-halved"></i> Rule Detected</span>
+              {% else %}
+                <span class="status-badge s-allowed"><i class="fas fa-circle-check"></i> Allowed</span>
               {% endif %}
             </td>
           </tr>
@@ -271,6 +292,8 @@ title %}Total Requests - Virex{% endblock %} {% block stylesheets %}
         else if (activeFilter === "ml")
           show = t.includes("ml") || t.includes("anomaly");
         else if (activeFilter === "rate") show = t.includes("rate");
+        else if (activeFilter === "csrf") show = t.includes("csrf");
+        else if (activeFilter === "ssrf") show = t.includes("ssrf");
       }
 
       if (show && activeSearch) show = search.includes(activeSearch);
