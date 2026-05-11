@@ -2,6 +2,57 @@
  * blocked.js — Extracted from blocked.html inline <script>
  */
 
+// Auto-refresh without page reload
+let blockedRefreshInterval = null;
+
+async function refreshBlockedData() {
+  try {
+    const response = await fetch('/api/dashboard/data');
+    const data = await response.json();
+    
+    if (data.stats) {
+      const stats = data.stats;
+      const totalBlocked = document.querySelector('.stat-box:first-child .stat-box-value');
+      const criticalBlocked = document.querySelector('.stat-value-danger');
+      const uniqueIpsEl = document.querySelectorAll('.stat-box-value')[2];
+      
+      if (totalBlocked) totalBlocked.textContent = stats.blocked_requests || 0;
+      if (criticalBlocked) criticalBlocked.textContent = stats.critical_count || 0;
+      if (uniqueIpsEl) uniqueIpsEl.textContent = stats.unique_ips || 0;
+    }
+    
+    if (data.recent_threats) {
+      const tbody = document.querySelector('.data-table tbody');
+      if (tbody && data.recent_threats.length > 0) {
+        const threats = data.recent_threats
+          .filter(t => t.blocked)
+          .slice(0, 20);
+        tbody.innerHTML = threats.map((t, i) => `
+          <tr class="row-${(t.severity || 'Medium').toLowerCase()}">
+            <td>${t.created_at || t.timestamp || '-'}</td>
+            <td>${t.ip_address || t.ip || 'Unknown'}</td>
+            <td>${t.attack_type || t.type || 'Unknown'}</td>
+            <td class="admin-only"><span class="badge ${t.ml_detected ? 'badge-primary' : 'badge-secondary'}">${t.ml_detected ? 'ML' : 'Rule'}</span></td>
+            <td class="admin-only">${t.endpoint || '-'}</td>
+            <td class="admin-only"><span class="severity-badge severity-${(t.severity || 'Medium').toLowerCase()}">${t.severity || 'Medium'}</span></td>
+            <td class="admin-only">${t.blocked ? '<i class="fas fa-ban text-danger"></i> Blocked' : '<i class="fas fa-check text-success"></i>'}</td>
+          </tr>
+        `).join('');
+      }
+    }
+  } catch (err) {}
+}
+
+function startBlockedRefresh() {
+  if (blockedRefreshInterval) return;
+  blockedRefreshInterval = setInterval(refreshBlockedData, 1000);
+}
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  startBlockedRefresh();
+});
+
 function showDetails(index) {
   var details = document.getElementById("details" + index);
   if (details.style.display === "none" || details.style.display === "") {

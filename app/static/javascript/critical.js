@@ -9,8 +9,8 @@ document.addEventListener("DOMContentLoaded", () => {
   setupSearchAndFilter();
   loadCriticalThreats();
 
-  // Auto-refresh every 10 seconds
-  refreshInterval = setInterval(loadCriticalThreats, 10000);
+  // Auto-refresh every 1 second
+  refreshInterval = setInterval(loadCriticalThreats, 1000);
 });
 
 function loadCriticalThreats() {

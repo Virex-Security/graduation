@@ -8,6 +8,15 @@ import logging
 from collections import defaultdict
 from flask import Flask, current_app, make_response, request, jsonify
 from flask_cors import CORS
+
+os.environ.setdefault("RATE_LIMIT_WINDOW", "10")
+os.environ.setdefault("RATE_LIMIT_MAX", "10")
+
+_total_requests_count = 0
+
+def get_total_requests():
+    global _total_requests_count
+    return _total_requests_count
 from dotenv import load_dotenv
 import jwt
 import secrets
@@ -72,10 +81,13 @@ def create_api_app():
 
     @app.before_request
     def before_request():
+        global _total_requests_count
         request.request_id = new_request_id()
         if is_trivial(request):
             return
 
+        _total_requests_count += 1
+        
         client_ip = _get_real_ip()
         is_business = is_business_relevant(request)
 
@@ -89,9 +101,12 @@ def create_api_app():
             security._persist_stats()
             try:
                 from app.api.persistence import append_user_attack
+                from app.api.security import calculate_severity, should_block_attack, should_block_attack
+                severity = calculate_severity("Rate Limit", endpoint=request.path)
+                should_block = should_block_attack("Rate Limit", endpoint=request.path)
                 append_user_attack(
                     client_ip, "Rate Limit Exceeded", client_ip,
-                    request.path, request.method, "Medium",
+                    request.path, request.method, severity, blocked=should_block,
                 )
             except Exception:
                 pass
@@ -103,9 +118,11 @@ def create_api_app():
                            "/.svn", "/.htaccess", "/server-status", "/wp-login"]
         normalized_path = request.path.lower()
         if any(normalized_path.startswith(p) for p in sensitive_paths):
+            from app.api.security import calculate_severity, should_block_attack
+            severity = calculate_severity("Scanner", endpoint=request.path)
             security.log_to_dashboard(
                 "Scanner", client_ip,
-                f"Sensitive path: {request.path}", "Medium",
+                f"Sensitive path: {request.path}", severity,
                 endpoint=request.path, method=request.method,
                 detection_type="Scanner", blocked=True,
                 request_id=getattr(request, "request_id", ""),
@@ -114,9 +131,12 @@ def create_api_app():
             security._persist_stats()
             try:
                 from app.api.persistence import append_user_attack
+                from app.api.security import calculate_severity, should_block_attack
+                severity = calculate_severity("Scanner", endpoint=request.path)
+                should_block = severity in ("Critical", "High")
                 append_user_attack(
                     client_ip, "Scanner", client_ip,
-                    request.path, request.method, "Medium",
+                    request.path, request.method, severity, blocked=should_block,
                 )
             except Exception:
                 pass
@@ -158,10 +178,12 @@ def create_api_app():
                 "ip": client_ip, "user_agent": request.user_agent.string,
             })
             if _ssrf_result["detected"]:
+                from app.api.security import calculate_severity, should_block_attack
+                severity = calculate_severity("SSRF", endpoint=request.path)
                 security.log_to_dashboard(
                     "SSRF", client_ip,
                     f"[SSRF] {_ssrf_result['reason']}",
-                    "Critical", endpoint=request.path, method=request.method,
+                    severity, endpoint=request.path, method=request.method,
                     snippet=str(_ssrf_result.get("payload", ""))[:100],
                     detection_type="Rule-based", blocked=True,
                     request_id=getattr(request, "request_id", ""),
@@ -170,9 +192,12 @@ def create_api_app():
                 security._persist_stats()
                 try:
                     from app.api.persistence import append_user_attack
+                    from app.api.security import calculate_severity, should_block_attack
+                    severity = calculate_severity("SSRF", endpoint=request.path)
+                    should_block = severity in ("Critical", "High")
                     append_user_attack(
                         client_ip, "SSRF", client_ip,
-                        request.path, request.method, "Critical",
+                        request.path, request.method, severity, blocked=should_block,
                     )
                 except Exception:
                     pass
@@ -192,9 +217,12 @@ def create_api_app():
                 security._persist_stats()
                 try:
                     from app.api.persistence import append_user_attack
+                    from app.api.security import calculate_severity, should_block_attack
+                    severity = calculate_severity("SSRF", endpoint=request.path)
+                    should_block = severity in ("Critical", "High")
                     append_user_attack(
                         client_ip, "SSRF", client_ip,
-                        request.path, request.method, "Critical",
+                        request.path, request.method, severity, blocked=should_block,
                     )
                 except Exception:
                     pass
@@ -202,42 +230,43 @@ def create_api_app():
                                 "reason": _ssrf_reason}), 403
 
         # ── Layer 5: CSRF Detection ───────────────────────────
-        # Only check CSRF for authenticated state-changing requests
-        # that passed all other checks (not already classified as another attack).
-        # Skip if request has auth_token (JWT cookie = SameSite CSRF protection)
-        # or if it's a public/unauthenticated endpoint.
+        # Check CSRF for all state-changing requests (POST/PUT/DELETE/PATCH)
+        # regardless of auth token - CSRF tokens should be present for all
+        # state-changing operations to prevent cross-site request forgery.
         if _CSRF_SSRF_ENABLED and request.method in ("POST", "PUT", "DELETE", "PATCH"):
-            has_auth = request.cookies.get("auth_token")
-            # CSRF only matters for authenticated sessions without proper token
-            if has_auth:
-                _csrf_result = detect_csrf({
-                    "method": request.method, "path": request.path,
-                    "headers": dict(request.headers),
-                    "body": request.get_json(silent=True) or {},
-                    "query_params": request.args.to_dict(),
-                    "cookies": request.cookies.to_dict(),
-                    "ip": client_ip, "user_agent": request.user_agent.string,
-                })
-                if _csrf_result["detected"]:
-                    security.log_to_dashboard(
-                        "CSRF", client_ip,
-                        f"[CSRF] {_csrf_result['reason']}",
-                        "High", endpoint=request.path, method=request.method,
-                        detection_type="Rule-based", blocked=True,
-                        request_id=getattr(request, "request_id", ""),
+            _csrf_result = detect_csrf({
+                "method": request.method, "path": request.path,
+                "headers": dict(request.headers),
+                "body": request.get_json(silent=True) or {},
+                "query_params": request.args.to_dict(),
+                "cookies": request.cookies.to_dict(),
+                "ip": client_ip, "user_agent": request.user_agent.string,
+            })
+            if _csrf_result["detected"]:
+                from app.api.security import calculate_severity, should_block_attack
+                severity = calculate_severity("CSRF", endpoint=request.path)
+                security.log_to_dashboard(
+                    "CSRF", client_ip,
+                    f"[CSRF] {_csrf_result['reason']}",
+                    severity, endpoint=request.path, method=request.method,
+                    detection_type="Rule-based", blocked=True,
+                    request_id=getattr(request, "request_id", ""),
+                )
+                security.blocked_requests += 1
+                security._persist_stats()
+                try:
+                    from app.api.persistence import append_user_attack
+                    from app.api.security import calculate_severity, should_block_attack
+                    severity = calculate_severity("CSRF", endpoint=request.path)
+                    should_block = severity in ("Critical", "High")
+                    append_user_attack(
+                        client_ip, "CSRF", client_ip,
+                        request.path, request.method, severity, blocked=should_block,
                     )
-                    security.blocked_requests += 1
-                    security._persist_stats()
-                    try:
-                        from app.api.persistence import append_user_attack
-                        append_user_attack(
-                            client_ip, "CSRF", client_ip,
-                            request.path, request.method, "High",
-                        )
-                    except Exception:
-                        pass
-                    return jsonify({"error": "CSRF validation failed",
-                                    "reason": _csrf_result["reason"]}), 403
+                except Exception:
+                    pass
+                return jsonify({"error": "CSRF validation failed",
+                                "reason": _csrf_result["reason"]}), 403
 
         security._persist_stats()
 
@@ -257,9 +286,12 @@ def create_api_app():
                 security._persist_stats()
                 try:
                     from app.api.persistence import append_user_attack
+                    from app.api.security import calculate_severity, should_block_attack
+                    severity = calculate_severity("CSRF", endpoint=request.path)
+                    should_block = severity in ("Critical", "High")
                     append_user_attack(
                         client_ip, "CSRF", client_ip,
-                        request.path, request.method, "High",
+                        request.path, request.method, severity, blocked=should_block,
                     )
                 except Exception:
                     pass
@@ -390,19 +422,29 @@ def create_api_app():
                           secure=_cfg.cookie_secure(), samesite="Lax", max_age=8*3600)
             return resp, 200
         else:
-              # Brute force tracking
-              attempts = [t for t in brute_force_tracker[ip]
-              if now - t < BRUTE_FORCE_WINDOW]
-              attempts.append(now)
-              brute_force_tracker[ip] = attempts
-              security.brute_force_count += 1
+            attempts = [t for t in brute_force_tracker[ip] if now - t < BRUTE_FORCE_WINDOW]
+            attempts.append(now)
+            brute_force_tracker[ip] = attempts
+            security.brute_force_count += 1
+            security._persist_stats()
 
-              if len(attempts) >= BRUTE_FORCE_LIMIT:
-                  blocked_ips[ip] = now + BRUTE_FORCE_BLOCK_TIME
-                  save_blocked_ips(blocked_ips)
-                  return jsonify({"error": "Too many attempts. Try later."}), 429
+            if len(attempts) >= BRUTE_FORCE_LIMIT:
+                try:
+                    from app.api.persistence import append_user_attack
+                    from app.api.security import calculate_severity, should_block_attack
+                    severity = calculate_severity("Brute Force", endpoint=request.path, ip_hit_count=len(attempts))
+                    should_block = severity in ("Critical", "High")
+                    append_user_attack(
+                        ip, "Brute Force", ip,
+                        request.path, request.method, severity, blocked=should_block,
+                    )
+                except Exception:
+                    pass
+                blocked_ips[ip] = now + BRUTE_FORCE_BLOCK_TIME
+                save_blocked_ips(blocked_ips)
+                return jsonify({"error": "Too many attempts. Try later."}), 429
 
-              return jsonify({"error": "Invalid credentials"}), 401
+            return jsonify({"error": "Invalid credentials"}), 401
     # ── Attack History Endpoints ──────────────────────────────
     @app.route("/api/my-attacks", methods=["GET"])
     @token_required

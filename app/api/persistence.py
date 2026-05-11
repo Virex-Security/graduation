@@ -49,13 +49,31 @@ def save_blocked_ips(blocked: dict):
 
 
 # ── Attack History ────────────────────────────────────────────
+# Track unique attacks to prevent duplicate entries
+_seen_attacks = {}
+
 def load_user_attacks() -> dict:
     return db.load_user_attacks()
 
 
+def clear_seen_attacks():
+    global _seen_attacks
+    _seen_attacks.clear()
+
+
 def append_user_attack(user_key: str, attack_type: str, ip: str,
-                       endpoint: str, method: str = "", severity: str = "High"):
-    db.append_user_attack(user_key, attack_type, ip, endpoint, method, severity)
+                       endpoint: str, method: str = "", severity: str = "Medium", blocked: bool = False):
+    key = (ip, attack_type, endpoint)
+    
+    if key in _seen_attacks:
+        return
+    
+    _seen_attacks[key] = True
+    
+    # Determine block status based on severity
+    should_block = severity in ("Critical", "High")
+    
+    db.append_user_attack(user_key, attack_type, ip, endpoint, method, severity, blocked=should_block)
 
 
 def get_user_attacks(user_key: str) -> list:

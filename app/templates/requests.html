@@ -259,6 +259,52 @@ title %}Total Requests - Virex{% endblock %} {% block stylesheets %}
   let activeFilter = "all";
   let activeSearch = "";
 
+  // Auto-refresh without page reload
+  async function refreshRequestsData() {
+    try {
+      const response = await fetch('/api/dashboard/data');
+      const data = await response.json();
+      
+      if (data.stats) {
+        const stats = data.stats;
+        const totalEl = document.querySelector('.card-total .req-card-value');
+        const attacksEl = document.querySelector('.card-attacks .req-card-value');
+        const blockedEl = document.querySelector('.card-blocked .req-card-value');
+        
+        if (totalEl) totalEl.textContent = stats.total_requests;
+        if (attacksEl) attacksEl.textContent = stats.total_requests;
+        if (blockedEl) blockedEl.textContent = stats.blocked_requests;
+      }
+      
+      if (data.recent_threats) {
+        const tbody = document.getElementById('req-tbody');
+        if (tbody && data.recent_threats.length > 0) {
+          const threats = data.recent_threats;
+          tbody.innerHTML = threats.map((t, i) => {
+            const type = (t.attack_type || t.type || 'clean').toLowerCase();
+            const blocked = t.blocked ? 'true' : 'false';
+            const search = `${t.attack_type || ''} ${t.endpoint || ''} ${t.ip_address || ''}`.toLowerCase();
+            const isML = t.ml_detected;
+            const statusText = t.blocked ? 'Blocked' : (isML ? 'ML' : 'Rule');
+            return `<tr data-type="${type}" data-blocked="${blocked}" data-search="${search}">
+              <td>${t.threat_log_id || i+1}</td>
+              <td>${t.created_at || t.timestamp || '-'}</td>
+              <td class="admin-only">${t.ip_address || t.ip || '-'}</td>
+              <td><span class="threat-badge t-${type.includes('sql') ? 'sqli' : type.includes('xss') ? 'xss' : type.includes('csrf') ? 'csrf' : type.includes('ssrf') ? 'ssrf' : type.includes('brute') ? 'brute' : type.includes('scan') ? 'scanner' : type.includes('rate') ? 'rate' : 'ml'}">${t.attack_type || t.type || 'Clean'}</span></td>
+              <td><span class="sev-badge sev-${(t.severity || 'clean').toLowerCase()}">${t.severity || 'Clean'}</span></td>
+              <td class="admin-only">${t.method || '-'}</td>
+              <td class="admin-only">${t.endpoint || '-'}</td>
+              <td class="admin-only">${t.payload || t.description || t.snippet || '-'}</td>
+              <td>${t.blocked ? '<span class="text-danger"><i class="fas fa-ban"></i> Blocked</span>' : (isML ? '<span class="text-primary">ML</span>' : '<span class="text-secondary">Rule</span>')}</td>
+            </tr>`;
+          }).join('');
+        }
+      }
+    } catch (err) {}
+  }
+  
+  setInterval(refreshRequestsData, 1000);
+
   function filterTable(type, btn) {
     activeFilter = type;
     document

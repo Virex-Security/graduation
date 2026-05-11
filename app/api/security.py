@@ -18,6 +18,57 @@ load_dotenv()
 logger = logging.getLogger(__name__)
 
 
+def calculate_severity(attack_type: str, ml_confidence: float = 0.0,
+                       endpoint: str = "", ip_hit_count: int = 1) -> str:
+    base_scores = {
+        "command_injection": 10,
+        "sql_injection": 9,
+        "ssrf": 9,
+        "xss": 8,
+        "csrf": 8,
+        "path_traversal": 7,
+        "brute force": 7,
+        "brute_force": 7,
+        "scanner": 5,
+        "rate limit": 5,
+        "rate limit exceeded": 5,
+    }
+    at_lower = attack_type.lower().replace("_", " ")
+    score = base_scores.get(at_lower, 5)
+
+    if ml_confidence >= 0.90:
+        score += 3
+    elif ml_confidence >= 0.70:
+        score += 2
+    elif ml_confidence > 0:
+        score += 1
+
+    sensitive = ["/login", "/admin", "/api/users", "/api/auth", "/reset", "/wp-admin", "/phpmyadmin", "/.env", "/config"]
+    if any(s in endpoint for s in sensitive):
+        score += 2
+
+    if ip_hit_count > 5:
+        score += 3
+    elif ip_hit_count > 2:
+        score += 1
+
+    # Threshold for blocking
+    if score >= 8:
+        return "Critical"
+    elif score >= 5:
+        return "High"
+    elif score >= 3:
+        return "Medium"
+    else:
+        return "Low"
+
+
+def should_block_attack(attack_type: str, ml_confidence: float = 0.0,
+                        endpoint: str = "", ip_hit_count: int = 1) -> bool:
+    severity = calculate_severity(attack_type, ml_confidence, endpoint, ip_hit_count)
+    return severity in ("Critical", "High")
+
+
 class SimpleSecurityManager:
     """Security manager with DB-rules (Layer 1) + ML Risk Score (Layer 2)."""
 
@@ -39,6 +90,7 @@ class SimpleSecurityManager:
         self.rate_limit_storage   = defaultdict(deque)
         self.start_time           = time.time()
         self.dashboard_url        = os.getenv("DASHBOARD_URL", "http://127.0.0.1:8070")
+        self.internal_secret      = os.getenv("INTERNAL_API_SECRET")
         self._stats_lock          = threading.Lock()
 
         # ── Load WAF rules from DB ────────────────────────────
@@ -122,15 +174,17 @@ class SimpleSecurityManager:
             "severity": severity, "endpoint": endpoint, "method": method,
             "snippet": snippet, "detection_type": detection_type,
             "blocked": blocked, "request_id": request_id,
+            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
         }
         if risk_score is not None:
             payload["risk_score"] = round(risk_score * 100, 1)
 
         def send():
             try:
+                headers = {"X-Internal-Token": self.internal_secret} if self.internal_secret else {}
                 requests.post(
                     f"{self.dashboard_url}/api/dashboard/threat",
-                    json=payload, timeout=2
+                    json=payload, timeout=2, headers=headers
                 )
             except Exception:
                 pass
@@ -254,8 +308,9 @@ class SimpleSecurityManager:
             q.popleft()
         if len(q) >= limit:
             self.rate_limit_hits += 1
+            severity = calculate_severity("Rate Limit", endpoint=request.path)
             self.log_to_dashboard(
-                "Rate Limit", ip, "Rate limit exceeded", "Medium",
+                "Rate Limit", ip, "Rate limit exceeded", severity,
                 endpoint=request.path, method=request.method,
                 detection_type="Rule-based", blocked=True,
                 request_id=getattr(request, "request_id", ""),
@@ -295,10 +350,15 @@ class SimpleSecurityManager:
                     f"[ML-BLOCK] {decision.attack_type} ip={ip} "
                     f"score={decision.risk_score:.2%}"
                 )
+                severity = calculate_severity(
+                    decision.attack_type,
+                    ml_confidence=decision.risk_score,
+                    endpoint=request.path
+                )
                 self.log_to_dashboard(
                     decision.attack_type, ip,
                     f"[ML] Blocked score={decision.risk_score:.0%}: {text[:60]}",
-                    "High", endpoint=request.path, method=request.method,
+                    severity, endpoint=request.path, method=request.method,
                     snippet=text[:100], detection_type="ML Model",
                     blocked=True, request_id=getattr(request, "request_id", ""),
                     risk_score=decision.risk_score,
@@ -306,9 +366,14 @@ class SimpleSecurityManager:
                 try:
                     from app.api.persistence import append_user_attack, log_ml_detection
                     user_key = getattr(request, "current_username", ip)
+                    severity = calculate_severity(
+                        decision.attack_type,
+                        ml_confidence=decision.risk_score,
+                        endpoint=request.path
+                    )
                     append_user_attack(
                         user_key, decision.attack_type, ip,
-                        request.path, request.method, "High"
+                        request.path, request.method, severity
                     )
                     log_ml_detection(
                         text[:120], decision.risk_score, "block",
@@ -324,10 +389,15 @@ class SimpleSecurityManager:
                     f"[ML-MONITOR] {decision.attack_type} ip={ip} "
                     f"score={decision.risk_score:.2%}"
                 )
+                severity = calculate_severity(
+                    decision.attack_type,
+                    ml_confidence=decision.risk_score,
+                    endpoint=request.path
+                )
                 self.log_to_dashboard(
                     decision.attack_type, ip,
                     f"[ML-MONITOR] score={decision.risk_score:.0%}: {text[:60]}",
-                    "Medium", endpoint=request.path, method=request.method,
+                    severity, endpoint=request.path, method=request.method,
                     snippet=text[:100], detection_type="ML Model",
                     blocked=False, request_id=getattr(request, "request_id", ""),
                     risk_score=decision.risk_score,

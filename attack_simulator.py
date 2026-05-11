@@ -267,5 +267,11 @@ class AttackSimulator:
 
 
 if __name__ == "__main__":
-    simulator = AttackSimulator()
-    simulator.run()
+    import sys
+    sim = AttackSimulator()
+    if len(sys.argv) > 1:
+        sim.brute_force_login(15)
+        sim.csrf_attacks(15)
+        sim.ssrf_attacks(15)
+    else:
+        sim.run()

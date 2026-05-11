@@ -850,16 +850,20 @@ def load_stats() -> dict:
                 SUM(CASE WHEN ml_detected = TRUE THEN 1 ELSE 0 END) AS ml,
                 SUM(CASE WHEN attack_type ILIKE '%sql%' THEN 1 ELSE 0 END) AS sqli,
                 SUM(CASE WHEN attack_type ILIKE '%xss%' THEN 1 ELSE 0 END) AS xss,
-                SUM(CASE WHEN attack_type ILIKE '%brute%' THEN 1 ELSE 0 END) AS brute,
-                SUM(CASE WHEN attack_type ILIKE '%scanner%' OR attack_type = 'Scanner' THEN 1 ELSE 0 END) AS scanner,
-                SUM(CASE WHEN attack_type ILIKE '%rate%' OR attack_type = 'Rate Limit Exceeded' THEN 1 ELSE 0 END) AS rate_limit,
-                SUM(CASE WHEN attack_type ILIKE '%csrf%' OR attack_type = 'CSRF' THEN 1 ELSE 0 END) AS csrf,
-                SUM(CASE WHEN attack_type ILIKE '%ssrf%' OR attack_type = 'SSRF' THEN 1 ELSE 0 END) AS ssrf,
-                SUM(CASE WHEN attack_type ILIKE '%command%' OR attack_type ILIKE '%cmd%' THEN 1 ELSE 0 END) AS cmd_injection,
+                SUM(CASE WHEN attack_type ILIKE '%brute%' OR attack_type ILIKE '%auth%' THEN 1 ELSE 0 END) AS brute,
+                SUM(CASE WHEN attack_type ILIKE '%scanner%' OR attack_type ILIKE '%recon%' OR attack_type = 'Scanner' THEN 1 ELSE 0 END) AS scanner,
+                SUM(CASE WHEN attack_type ILIKE '%rate%' OR attack_type ILIKE '%limit%' OR attack_type = 'Rate Limit Exceeded' THEN 1 ELSE 0 END) AS rate_limit,
+                SUM(CASE WHEN attack_type ILIKE '%csrf%' OR attack_type ILIKE '%cross%site%request%' OR attack_type = 'CSRF' THEN 1 ELSE 0 END) AS csrf,
+                SUM(CASE WHEN attack_type ILIKE '%ssrf%' OR attack_type ILIKE '%server%side%' OR attack_type = 'SSRF' THEN 1 ELSE 0 END) AS ssrf,
+                SUM(CASE WHEN attack_type ILIKE '%command%' OR attack_type ILIKE '%cmd%' OR attack_type ILIKE '%injection%' AND attack_type NOT ILIKE '%sql%' THEN 1 ELSE 0 END) AS cmd_injection,
                 SUM(CASE WHEN attack_type ILIKE '%path%' OR attack_type ILIKE '%traversal%' THEN 1 ELSE 0 END) AS path_traversal,
                 SUM(CASE WHEN attack_type ILIKE '%xxe%' THEN 1 ELSE 0 END) AS xxe,
                 SUM(CASE WHEN attack_type ILIKE '%ssti%' THEN 1 ELSE 0 END) AS ssti,
-                SUM(CASE WHEN attack_type ILIKE '%log4shell%' OR attack_type ILIKE '%jndi%' THEN 1 ELSE 0 END) AS log4shell
+                SUM(CASE WHEN attack_type ILIKE '%log4shell%' OR attack_type ILIKE '%jndi%' THEN 1 ELSE 0 END) AS log4shell,
+                SUM(CASE WHEN UPPER(severity) = 'CRITICAL' THEN 1 ELSE 0 END) AS critical_count,
+                SUM(CASE WHEN UPPER(severity) = 'HIGH' THEN 1 ELSE 0 END) AS high_count,
+                SUM(CASE WHEN UPPER(severity) = 'MEDIUM' THEN 1 ELSE 0 END) AS medium_count,
+                SUM(CASE WHEN UPPER(severity) = 'LOW' THEN 1 ELSE 0 END) AS low_count
             FROM threat_logs
         """)).fetchone()
     result = {
@@ -871,6 +875,8 @@ def load_stats() -> dict:
         "cmd_injection_attempts": row[10] or 0, "path_traversal_attempts": row[11] or 0,
         "xxe_attempts": row[12] or 0, "ssti_attempts": row[13] or 0,
         "log4shell_attempts": row[14] or 0,
+        "critical_count": row[15] or 0, "high_count": row[16] or 0,
+        "medium_count": row[17] or 0, "low_count": row[18] or 0,
     }
     _stats_cache = result
     _stats_cache_time = now
@@ -886,11 +892,11 @@ def save_stats(total: int, blocked: int):
 # ══════════════════════════════════════════════════════════════
 
 def append_user_attack(user_key: str, attack_type: str, ip: str,
-                       endpoint: str, method: str = "", severity: str = "High"):
+                       endpoint: str, method: str = "", severity: str = "High", blocked: bool = True):
     _invalidate_caches()
     log_threat(
         attack_type=attack_type, ip_address=ip, endpoint=endpoint,
-        method=method, severity=severity,
+        method=method, severity=severity, blocked=blocked,
         description=f"user_key={user_key}", detection_type="rule",
     )
 

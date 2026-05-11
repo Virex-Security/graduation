@@ -122,6 +122,10 @@ class SecurityDashboard:
             'rate_limit_hits': stats.get('rate_limit_hits', 0),
             'csrf_attempts': stats.get('csrf_attempts', 0),
             'ssrf_attempts': stats.get('ssrf_attempts', 0),
+            'critical_count': stats.get('critical_count', 0),
+            'high_count': stats.get('high_count', 0),
+            'medium_count': stats.get('medium_count', 0),
+            'low_count': stats.get('low_count', 0),
         }
 
     def log_threat(self, threat_type, ip, description, severity="High", endpoint="", method="", snippet="", detection_type="Other", blocked=False):
@@ -152,20 +156,30 @@ class SecurityDashboard:
                 self.ip_tracker[ip_db] += 1
         # Group into Incidents (in-memory, can be improved to DB)
         incident_key = f"{ip}_{threat_type}"
+        now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        initial_event = {
+            'timestamp': now_str,
+            'severity': severity,
+            'type': threat_type,
+            'ip': ip,
+            'endpoint': endpoint,
+            'method': method
+        }
+        
         if incident_key not in self.incidents:
-            new_incident = Incident(threat_type, ip, dict(), detection_type)
+            new_incident = Incident(threat_type, ip, initial_event, detection_type)
             self.incidents[new_incident.id] = new_incident
         else:
             found = False
             for inc in self.incidents.values():
                 if inc.source_ip == ip and inc.category == threat_type and inc.status != "Closed":
-                    inc.events.append({})
-                    inc.last_seen = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    inc.events.append(initial_event)
+                    inc.last_seen = now_str
                     inc.severity = severity
                     found = True
                     break
             if not found:
-                new_incident = Incident(threat_type, ip, dict(), detection_type)
+                new_incident = Incident(threat_type, ip, initial_event, detection_type)
                 self.incidents[new_incident.id] = new_incident
 
     def perform_action(self, incident_id, action, actor, comment=""):
@@ -414,21 +428,28 @@ class SecurityDashboard:
         return metrics
 
     def calculate_security_score(self, total_attacks, blocked_attacks, detected, missed, ml_metrics):
-        """Calculate security score based on attack detection and blocking rates."""
-        DETECT_WEIGHT = 0.33
-        BLOCK_WEIGHT = 0.33
-        ML_WEIGHT = 0.33
+        """
+        Calculate security score based on:
+        - Detection Effectiveness (40%): How many attacks were discovered
+        - Prevention Effectiveness (40%): How many discovered attacks were blocked
+        - ML Reliability (20%): F1 Score of the ML model
+        """
+        DETECT_WEIGHT = 0.40
+        PREVENT_WEIGHT = 0.40
+        ML_WEIGHT = 0.20
         if total_attacks == 0:
-            return 10.0
+            return 100.0
         if self.connection_state != CONNECTED:
             return "--"
-        detected_rate = detected / total_attacks
-        block_rate = blocked_attacks / total_attacks
-        ml_score = (ml_metrics.get('precision', 0) + ml_metrics.get('recall', 0)) / 2
+        detection_rate = detected / total_attacks if total_attacks > 0 else 0
+        prevention_rate = blocked_attacks / detected if detected > 0 else 0
+        precision = ml_metrics.get('precision', 0)
+        recall = ml_metrics.get('recall', 0)
+        ml_f1 = 2 * (precision * recall) / (precision + recall) if (precision + recall) > 0 else 0
         score = 100 * (
-            detected_rate * DETECT_WEIGHT +
-            block_rate * BLOCK_WEIGHT +
-            ml_score * ML_WEIGHT
+            detection_rate * DETECT_WEIGHT +
+            prevention_rate * PREVENT_WEIGHT +
+            ml_f1 * ML_WEIGHT
         )
         return round(min(score, 100), 2)
 
@@ -478,7 +499,6 @@ class SecurityDashboard:
 
             self.recent_threats = [t for t in self.db.get_threat_logs(limit=20) if t.get('attack_type') != 'Clean'][:10]
             recent = [t for t in self.recent_threats if t.get('attack_type') != 'Clean' and t.get('type') != 'Clean']
-            detected = len(self.incidents)
 
             ml_perf = None
             ml_metrics = {'precision': 0, 'recall': 0}
@@ -508,10 +528,12 @@ class SecurityDashboard:
                 self._attack_logs_cache = attack_logs
                 self._attack_logs_time = now
 
+            total_attacks = len(attack_logs)
+            blocked_attacks = sum(1 for l in attack_logs if l.get('blocked'))
             sec_score = self.calculate_security_score(
-                len(attack_logs),
-                sum(1 for l in attack_logs if l.get('blocked')),
-                detected,
+                total_attacks,
+                blocked_attacks,
+                total_attacks,
                 0,
                 ml_metrics
             )
@@ -571,6 +593,8 @@ class SecurityDashboard:
                 normalized['blocked'] = bool(t.get('blocked'))
                 if 'type' not in normalized:
                     normalized['type'] = t.get('attack_type')
+                if 'severity' not in normalized or not normalized.get('severity'):
+                    normalized['severity'] = t.get('severity') or 'Medium'
                 all_logs.append(normalized)
         except Exception as e:
             print(f"[-] Error loading DB threat logs: {e}")
