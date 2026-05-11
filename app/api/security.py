@@ -21,20 +21,19 @@ logger = logging.getLogger(__name__)
 def calculate_severity(attack_type: str, ml_confidence: float = 0.0,
                        endpoint: str = "", ip_hit_count: int = 1) -> str:
     base_scores = {
-        "command_injection": 10,
-        "sql_injection": 9,
-        "ssrf": 9,
-        "xss": 8,
-        "csrf": 8,
-        "path_traversal": 7,
-        "brute force": 7,
-        "brute_force": 7,
-        "scanner": 5,
-        "rate limit": 5,
-        "rate limit exceeded": 5,
+        "command injection": 9, "command_injection": 9,
+        "sql injection": 8, "sql_injection": 8,
+        "ssrf": 7,
+        "xss": 7,
+        "csrf": 7,
+        "path traversal": 6, "path_traversal": 6,
+        "brute force": 5, "brute_force": 5,
+        "scanner": 4,
+        "rate limit": 3,
+        "rate limit exceeded": 3,
     }
     at_lower = attack_type.lower().replace("_", " ")
-    score = base_scores.get(at_lower, 5)
+    score = base_scores.get(at_lower, 4)
 
     if ml_confidence >= 0.90:
         score += 3
@@ -53,9 +52,9 @@ def calculate_severity(attack_type: str, ml_confidence: float = 0.0,
         score += 1
 
     # Threshold for blocking
-    if score >= 8:
+    if score >= 9:
         return "Critical"
-    elif score >= 5:
+    elif score >= 6:
         return "High"
     elif score >= 3:
         return "Medium"
@@ -234,16 +233,6 @@ class SimpleSecurityManager:
                         f"rule='{rule_name}' — {text[:80]}"
                     )
 
-                    self.log_to_dashboard(
-                        display_name, ip,
-                        f"[RULE] {rule_name}: {text[:60]}",
-                        severity,
-                        endpoint=request.path, method=request.method,
-                        snippet=text[:100], detection_type="Signature-based",
-                        blocked=(action == "block"),
-                        request_id=getattr(request, "request_id", ""),
-                    )
-
                     # Persist to threat_logs / user_attacks
                     try:
                         from app.api.persistence import append_user_attack
@@ -308,13 +297,6 @@ class SimpleSecurityManager:
             q.popleft()
         if len(q) >= limit:
             self.rate_limit_hits += 1
-            severity = calculate_severity("Rate Limit", endpoint=request.path)
-            self.log_to_dashboard(
-                "Rate Limit", ip, "Rate limit exceeded", severity,
-                endpoint=request.path, method=request.method,
-                detection_type="Rule-based", blocked=True,
-                request_id=getattr(request, "request_id", ""),
-            )
             return False
         q.append(now)
         return True
@@ -350,19 +332,6 @@ class SimpleSecurityManager:
                     f"[ML-BLOCK] {decision.attack_type} ip={ip} "
                     f"score={decision.risk_score:.2%}"
                 )
-                severity = calculate_severity(
-                    decision.attack_type,
-                    ml_confidence=decision.risk_score,
-                    endpoint=request.path
-                )
-                self.log_to_dashboard(
-                    decision.attack_type, ip,
-                    f"[ML] Blocked score={decision.risk_score:.0%}: {text[:60]}",
-                    severity, endpoint=request.path, method=request.method,
-                    snippet=text[:100], detection_type="ML Model",
-                    blocked=True, request_id=getattr(request, "request_id", ""),
-                    risk_score=decision.risk_score,
-                )
                 try:
                     from app.api.persistence import append_user_attack, log_ml_detection
                     user_key = getattr(request, "current_username", ip)
@@ -389,21 +358,18 @@ class SimpleSecurityManager:
                     f"[ML-MONITOR] {decision.attack_type} ip={ip} "
                     f"score={decision.risk_score:.2%}"
                 )
-                severity = calculate_severity(
-                    decision.attack_type,
-                    ml_confidence=decision.risk_score,
-                    endpoint=request.path
-                )
-                self.log_to_dashboard(
-                    decision.attack_type, ip,
-                    f"[ML-MONITOR] score={decision.risk_score:.0%}: {text[:60]}",
-                    severity, endpoint=request.path, method=request.method,
-                    snippet=text[:100], detection_type="ML Model",
-                    blocked=False, request_id=getattr(request, "request_id", ""),
-                    risk_score=decision.risk_score,
-                )
                 try:
-                    from app.api.persistence import log_ml_detection
+                    from app.api.persistence import append_user_attack, log_ml_detection
+                    user_key = getattr(request, "current_username", ip)
+                    severity = calculate_severity(
+                        decision.attack_type,
+                        ml_confidence=decision.risk_score,
+                        endpoint=request.path
+                    )
+                    append_user_attack(
+                        user_key, decision.attack_type, ip,
+                        request.path, request.method, severity
+                    )
                     log_ml_detection(
                         text[:120], decision.risk_score, "monitor",
                         decision.attack_type, ip, request.path

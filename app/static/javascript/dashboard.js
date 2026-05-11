@@ -488,8 +488,8 @@ const Dashboard = {
       { label: "Brute Force", val: stats.brute_force_attempts, icon: "fa-key", color: "#DC2626" },
       { label: "Scanners", val: stats.scanner_attempts, icon: "fa-eye", color: "#16A34A" },
       { label: "Rate Limited", val: stats.rate_limit_hits, icon: "fa-bolt", color: "#0F766E" },
-      { label: "CSRF", val: stats.csrf_attempts, icon: "fa-shield-alt", color: "#BE185D" },
-      { label: "SSRF", val: stats.ssrf_attempts, icon: "fa-globe", color: "#92400E" },
+      { label: "CSRF", val: stats.csrf_attempts, icon: "fa-crosshairs", color: "#BE185D" },
+      { label: "SSRF", val: stats.ssrf_attempts, icon: "fa-server", color: "#92400E" },
     ];
 
     // Find the attack with the highest value
@@ -651,9 +651,9 @@ const Dashboard = {
     if (t.includes("rate"))
       return { cls: "threat-badge threat-rate", icon: "fa-bolt", label: type };
     if (t.includes("csrf"))
-      return { cls: "threat-badge threat-csrf", icon: "fa-shield-alt", label: type };
+      return { cls: "threat-badge threat-csrf", icon: "fa-crosshairs", label: type };
     if (t.includes("ssrf"))
-      return { cls: "threat-badge threat-ssrf", icon: "fa-globe", label: type };
+      return { cls: "threat-badge threat-ssrf", icon: "fa-server", label: type };
     if (t.includes("block"))
       return {
         cls: "threat-badge threat-blocked",

@@ -79,6 +79,21 @@ def create_api_app():
     from app.api.persistence import load_blocked_ips, save_blocked_ips
     blocked_ips = load_blocked_ips()
 
+    # ── In-memory IP block cache ──────────────────────────────
+    ip_cache = {}
+    BLOCK_CACHE_DURATION = 180  # 3 minutes
+
+    def _block_ip(ip):
+        ip_cache[ip] = time.time()
+
+    def _is_ip_blocked(ip):
+        if ip in ip_cache:
+            elapsed = time.time() - ip_cache[ip]
+            if elapsed < BLOCK_CACHE_DURATION:
+                return True
+            del ip_cache[ip]
+        return False
+
     @app.before_request
     def before_request():
         global _total_requests_count
@@ -86,9 +101,14 @@ def create_api_app():
         if is_trivial(request):
             return
 
-        _total_requests_count += 1
-        
         client_ip = _get_real_ip()
+
+        # ── Layer 0: In-memory IP block check ──────────────
+        if _is_ip_blocked(client_ip):
+            return jsonify({"error": "IP blocked"}), 429
+
+        _total_requests_count += 1
+
         is_business = is_business_relevant(request)
 
         # Count ALL business-relevant requests (blocked or not)
@@ -110,6 +130,7 @@ def create_api_app():
                 )
             except Exception:
                 pass
+            _block_ip(client_ip)
             return jsonify({"error": "Rate limit exceeded"}), 429
 
         # ── Layer 2: Scanner Detection (sensitive paths) ──────
@@ -120,26 +141,19 @@ def create_api_app():
         if any(normalized_path.startswith(p) for p in sensitive_paths):
             from app.api.security import calculate_severity, should_block_attack
             severity = calculate_severity("Scanner", endpoint=request.path)
-            security.log_to_dashboard(
-                "Scanner", client_ip,
-                f"Sensitive path: {request.path}", severity,
-                endpoint=request.path, method=request.method,
-                detection_type="Scanner", blocked=True,
-                request_id=getattr(request, "request_id", ""),
-            )
             security.blocked_requests += 1
             security._persist_stats()
             try:
                 from app.api.persistence import append_user_attack
-                from app.api.security import calculate_severity, should_block_attack
-                severity = calculate_severity("Scanner", endpoint=request.path)
                 should_block = severity in ("Critical", "High")
                 append_user_attack(
                     client_ip, "Scanner", client_ip,
                     request.path, request.method, severity, blocked=should_block,
+                    description=f"Sensitive path: {request.path}",
                 )
             except Exception:
                 pass
+            _block_ip(client_ip)
             return jsonify({"error": "Not Found"}), 404
 
         # ── Layer 3: Content Scan (SQLi, XSS, CMDi, Path Traversal + ML) ──
@@ -165,6 +179,7 @@ def create_api_app():
             if not safe:
                 security.blocked_requests += 1
                 security._persist_stats()
+                _block_ip(client_ip)
                 return jsonify({"error": msg}), 400
 
         # ── Layer 4: SSRF Detection (URL patterns in body/params) ──
@@ -180,27 +195,19 @@ def create_api_app():
             if _ssrf_result["detected"]:
                 from app.api.security import calculate_severity, should_block_attack
                 severity = calculate_severity("SSRF", endpoint=request.path)
-                security.log_to_dashboard(
-                    "SSRF", client_ip,
-                    f"[SSRF] {_ssrf_result['reason']}",
-                    severity, endpoint=request.path, method=request.method,
-                    snippet=str(_ssrf_result.get("payload", ""))[:100],
-                    detection_type="Rule-based", blocked=True,
-                    request_id=getattr(request, "request_id", ""),
-                )
                 security.blocked_requests += 1
                 security._persist_stats()
                 try:
                     from app.api.persistence import append_user_attack
-                    from app.api.security import calculate_severity, should_block_attack
-                    severity = calculate_severity("SSRF", endpoint=request.path)
                     should_block = severity in ("Critical", "High")
                     append_user_attack(
                         client_ip, "SSRF", client_ip,
                         request.path, request.method, severity, blocked=should_block,
+                        description=f"[SSRF] {_ssrf_result['reason']}",
                     )
                 except Exception:
                     pass
+                _block_ip(client_ip)
                 return jsonify({"error": "SSRF attempt blocked",
                                 "reason": _ssrf_result["reason"]}), 403
         elif not _CSRF_SSRF_ENABLED and data_to_scan:
@@ -226,6 +233,7 @@ def create_api_app():
                     )
                 except Exception:
                     pass
+                _block_ip(client_ip)
                 return jsonify({"error": "SSRF attempt blocked (fallback)",
                                 "reason": _ssrf_reason}), 403
 
@@ -245,26 +253,19 @@ def create_api_app():
             if _csrf_result["detected"]:
                 from app.api.security import calculate_severity, should_block_attack
                 severity = calculate_severity("CSRF", endpoint=request.path)
-                security.log_to_dashboard(
-                    "CSRF", client_ip,
-                    f"[CSRF] {_csrf_result['reason']}",
-                    severity, endpoint=request.path, method=request.method,
-                    detection_type="Rule-based", blocked=True,
-                    request_id=getattr(request, "request_id", ""),
-                )
                 security.blocked_requests += 1
                 security._persist_stats()
                 try:
                     from app.api.persistence import append_user_attack
-                    from app.api.security import calculate_severity, should_block_attack
-                    severity = calculate_severity("CSRF", endpoint=request.path)
                     should_block = severity in ("Critical", "High")
                     append_user_attack(
                         client_ip, "CSRF", client_ip,
                         request.path, request.method, severity, blocked=should_block,
+                        description=f"[CSRF] {_csrf_result['reason']}",
                     )
                 except Exception:
                     pass
+                _block_ip(client_ip)
                 return jsonify({"error": "CSRF validation failed",
                                 "reason": _csrf_result["reason"]}), 403
 
@@ -295,6 +296,7 @@ def create_api_app():
                     )
                 except Exception:
                     pass
+                _block_ip(client_ip)
                 return jsonify({"error": "CSRF validation failed (fallback)",
                                 "reason": "Missing CSRF token"}), 403
 
@@ -442,6 +444,7 @@ def create_api_app():
                     pass
                 blocked_ips[ip] = now + BRUTE_FORCE_BLOCK_TIME
                 save_blocked_ips(blocked_ips)
+                _block_ip(ip)
                 return jsonify({"error": "Too many attempts. Try later."}), 429
 
             return jsonify({"error": "Invalid credentials"}), 401

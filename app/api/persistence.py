@@ -29,6 +29,9 @@ _ml_lock = threading.Lock()
 # ── كل العمليات الحقيقية بتروح للـ DB ─────────────────────────
 from app import database as db
 
+# Dedup window: 5 seconds – allows same IP+attack+endpoint to be logged again after expiry
+_ATTACK_DEDUP_SECONDS = 5
+
 
 # ── Stats ─────────────────────────────────────────────────────
 def load_stats() -> dict:
@@ -62,18 +65,27 @@ def clear_seen_attacks():
 
 
 def append_user_attack(user_key: str, attack_type: str, ip: str,
-                       endpoint: str, method: str = "", severity: str = "Medium", blocked: bool = False):
+                       endpoint: str, method: str = "", severity: str = "Medium",
+                       blocked: bool = False, description: str = None):
     key = (ip, attack_type, endpoint)
+    now = time.time()
     
     if key in _seen_attacks:
-        return
+        if now - _seen_attacks[key] < _ATTACK_DEDUP_SECONDS:
+            return
     
-    _seen_attacks[key] = True
+    _seen_attacks[key] = now
+    
+    # Prevent memory leak: trim expired entries when dict grows too large
+    if len(_seen_attacks) > 500:
+        expiry = now - _ATTACK_DEDUP_SECONDS
+        _seen_attacks = {k: v for k, v in _seen_attacks.items() if v >= expiry}
     
     # Determine block status based on severity
     should_block = severity in ("Critical", "High")
     
-    db.append_user_attack(user_key, attack_type, ip, endpoint, method, severity, blocked=should_block)
+    db.append_user_attack(user_key, attack_type, ip, endpoint, method, severity,
+                          blocked=should_block, description=description)
 
 
 def get_user_attacks(user_key: str) -> list:

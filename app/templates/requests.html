@@ -22,7 +22,7 @@ title %}Total Requests - Virex{% endblock %} {% block stylesheets %}
 <main class="main-content">
   <header class="section-title">
     <h1>{{ title }}</h1>
-    <p>Complete log of all traffic processed by the system. (v2.2)</p>
+    <p>Complete log of all traffic processed by the system </p>
   </header>
 
   <!-- Summary Cards -->
@@ -33,7 +33,7 @@ title %}Total Requests - Virex{% endblock %} {% block stylesheets %}
 
   <div class="req-summary">
     <div class="req-card card-total">
-      <div class="req-card-icon"><i class="fas fa-globe"></i></div>
+      <div class="req-card-icon"><i class="fas fa-server"></i></div>
       <div class="req-card-label">Total Requests</div>
       <div class="req-card-value">{{ total }}</div>
     </div>
@@ -117,13 +117,13 @@ title %}Total Requests - Virex{% endblock %} {% block stylesheets %}
           class="filter-btn filter-csrf"
           onclick="filterTable('csrf', this)"
         >
-          <i class="fas fa-shield-alt"></i> CSRF
+          <i class="fas fa-crosshairs"></i> CSRF
         </button>
         <button
           class="filter-btn filter-ssrf"
           onclick="filterTable('ssrf', this)"
         >
-          <i class="fas fa-globe"></i> SSRF
+          <i class="fas fa-server"></i> SSRF
         </button>
         <button
           class="filter-btn filter-blocked"
@@ -182,9 +182,9 @@ title %}Total Requests - Virex{% endblock %} {% block stylesheets %}
               {% if user.role == 'admin' %} 
                 {# High Priority Specific Matches #}
                 {% if 'ssrf' in t or 'server' in t %}
-                  <span class="threat-badge t-ssrf"><i class="fas fa-globe"></i> {{ log.attack_type }}</span>
+                  <span class="threat-badge t-ssrf"><i class="fas fa-server"></i> {{ log.attack_type }}</span>
                 {% elif 'csrf' in t or 'request' in t %}
-                  <span class="threat-badge t-csrf"><i class="fas fa-shield-alt"></i> {{ log.attack_type }}</span>
+                  <span class="threat-badge t-csrf"><i class="fas fa-crosshairs"></i> {{ log.attack_type }}</span>
                 {% elif 'sql' in t or 'injection' in t %}
                   <span class="threat-badge t-sqli"><i class="fas fa-database"></i> {{ log.attack_type }}</span>
                 {% elif 'xss' in t or 'cross' in t or 'scripting' in t %}
