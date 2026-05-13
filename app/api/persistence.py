@@ -67,6 +67,7 @@ def clear_seen_attacks():
 def append_user_attack(user_key: str, attack_type: str, ip: str,
                        endpoint: str, method: str = "", severity: str = "Medium",
                        blocked: bool = False, description: str = None):
+    global _seen_attacks
     key = (ip, attack_type, endpoint)
     now = time.time()
     

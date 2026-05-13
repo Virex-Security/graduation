@@ -163,19 +163,22 @@ def _seed_rules():
             return
         now = time.strftime("%Y-%m-%d %H:%M:%S")
         default_rules = [
-            ("SQL Injection - UNION",       "sql_injection",    r"UNION\s+SELECT",                              "high",     "block"),
-            ("SQL Injection - Keywords",    "sql_injection",    r"(SELECT|INSERT|UPDATE|DELETE|DROP|ALTER)",    "high",     "block"),
-            ("SQL Injection - Comment",     "sql_injection",    r"(--|#|/\*|;|@@)",                             "high",     "block"),
-            ("SQL Injection - OR/AND",      "sql_injection",    r"(\bOR\b|\bAND\b).+(=|LIKE|IN)",              "high",     "block"),
-            ("XSS - Script Tag",            "xss",              r"<script.*?>.*?</script>",                     "high",     "block"),
-            ("XSS - JavaScript Protocol",   "xss",              r"javascript:",                                 "high",     "block"),
-            ("XSS - Event Handler",         "xss",              r"(onerror|onload|onclick)\s*=",                "high",     "block"),
-            ("XSS - Alert",                 "xss",              r"alert\(.*\)",                                 "medium",   "block"),
-            ("Command Injection - Pipe",    "command_injection", r"(;|\|{1,2}|&&|`)[\s\S]*(cat|ls|rm|wget|curl|nc|bash|sh)", "critical","block"),
-            ("Command Injection - Subshell","command_injection", r"\$\(.*\)",                                   "critical", "block"),
-            ("Path Traversal - Dotdot",     "path_traversal",   r"\.\.[/\\]",                                  "high",     "block"),
-            ("Path Traversal - Encoded",    "path_traversal",   r"%2e%2e[%2f%5c]",                             "high",     "block"),
+            ("SQL Injection - UNION",       "sql_injection",    r"UNION\s+ALL?\s+SELECT",                       "critical", "block"),
+            ("SQL Injection - OR 1=1",      "sql_injection",    r"'\s+OR\s+['\d]+\s*=\s*['\d]+",               "critical", "block"),
+            ("SQL Injection - Sleep",       "sql_injection",    r"SLEEP\s*\(",                                  "high",     "block"),
+            ("SQL Injection - Exec/CMDSHELL","sql_injection",   r"(EXEC\s+|xp_cmdshell|exec\s*\(|\bWAITFOR\b)", "critical", "block"),
+            ("SQL Injection - Drop/Alter",  "sql_injection",    r"\b(DROP\s+TABLE|ALTER\s+TABLE)\s",            "critical", "block"),
+            ("XSS - Full Script Tag",       "xss",              r"<script[\s>][\s\S]*?</script>",               "high",     "block"),
+            ("XSS - JavaScript Protocol",   "xss",              r"(href|src)=[\"']?\s*javascript:",            "high",     "block"),
+            ("XSS - Event Handler",         "xss",              r"\b(onerror|onload|onclick)\s*=\s*['\"]*[\"'()]", "high", "block"),
+            ("XSS - Cookie Steal",          "xss",              r"document\.cookie",                            "high",     "block"),
+            ("Command Injection - Pipe+CMD","command_injection", r"(;|\||`)\s*(cat|rm|wget|curl|nc|bash|sh|python)\s", "critical","block"),
+            ("Command Injection - Subshell","command_injection", r"\$\(.*\)\s*",                                "critical", "block"),
+            ("Path Traversal - Dotdot",     "path_traversal",   r"\.\.[/\\]|%2e%2e[/\\%]",                     "high",     "block"),
             ("Path Traversal - Sensitive",  "path_traversal",   r"(etc/passwd|etc/shadow|windows/system32)",   "critical", "block"),
+            ("Log4Shell - JNDI",            "log4shell",        r"\$\{jndi:(ldap|rmi|dns|http)",              "critical", "block"),
+            ("SSRF - Cloud Metadata",       "ssrf",             r"169\.254\.169\.254",                          "high",     "block"),
+            ("XXE - External Entity",       "xxe",              r"<!ENTITY\s+\w+\s+SYSTEM\s+[\"'](file|http)",  "high",     "block"),
         ]
         for name, rtype, pattern, severity, action in default_rules:
             conn.execute(text("""

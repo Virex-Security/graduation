@@ -22,15 +22,18 @@ def calculate_severity(attack_type: str, ml_confidence: float = 0.0,
                        endpoint: str = "", ip_hit_count: int = 1) -> str:
     base_scores = {
         "command injection": 9, "command_injection": 9,
+        "log4shell": 9,
         "sql injection": 8, "sql_injection": 8,
+        "ssti": 8,
         "ssrf": 7,
         "xss": 7,
         "csrf": 7,
+        "xxe": 7,
         "path traversal": 6, "path_traversal": 6,
         "brute force": 5, "brute_force": 5,
-        "scanner": 4,
-        "rate limit": 3,
-        "rate limit exceeded": 3,
+        "scanner": 2,
+        "rate limit": 2,
+        "rate limit exceeded": 2,
     }
     at_lower = attack_type.lower().replace("_", " ")
     score = base_scores.get(at_lower, 4)
@@ -79,6 +82,10 @@ class SimpleSecurityManager:
         self.blocked_requests     = _s.get("blocked_requests", 0)
 
         self.sql_injection_count  = 0
+        self.ssrf_count           = 0
+        self.xxe_count            = 0
+        self.ssti_count           = 0
+        self.log4shell_count      = 0
         self.ml_detections        = 0
         self.ml_monitor_count     = 0
         self.xss_count            = 0
@@ -139,6 +146,10 @@ class SimpleSecurityManager:
             "xss":               "xss_count",
             "command_injection": "cmd_injection_count",
             "path_traversal":    "path_traversal_count",
+            "ssrf":              "ssrf_count",
+            "xxe":               "xxe_count",
+            "ssti":              "ssti_count",
+            "log4shell":         "log4shell_count",
         }
 
         # DB type -> human-readable display name
@@ -147,6 +158,10 @@ class SimpleSecurityManager:
             "xss":               "XSS",
             "command_injection": "Command Injection",
             "path_traversal":    "Path Traversal",
+            "ssrf":              "SSRF",
+            "xxe":               "XXE",
+            "ssti":              "SSTI",
+            "log4shell":         "Log4Shell",
         }
 
         total_patterns = sum(len(v) for v in self._compiled_db_rules.values())

@@ -45,10 +45,10 @@ LOG_PREDICTIONS  = os.getenv("ML_LOG_PREDICTIONS","false").lower()=="true"
 
 SEVERITY_MAP = {
     "log4shell":"critical","command_injection":"critical",
-    "sql_injection":"high","ssrf":"high","xxe":"high","ssti":"high",
-    "xss":"medium","path_traversal":"medium","csrf":"high",
-    "scanner":"medium","rate_limit":"low",
-    "brute_force":"low","normal":"none","unknown":"none",
+    "sql_injection":"critical","ssrf":"high","xxe":"high","ssti":"critical",
+    "xss":"high","path_traversal":"high","csrf":"high",
+    "scanner":"low","rate_limit":"low",
+    "brute_force":"medium","normal":"none","unknown":"none",
 }
 
 _model=None; _vectorizer=None; _sec_feat=None; _label_enc=None
@@ -240,6 +240,7 @@ class MLDecision:
                 "from_cache":self.from_cache,"model_version":self.model_version}
 
 def ml_analyze(text,async_feedback=True):
+    _ensure_ml_ready()
     if not MODEL_LOADED: return MLDecision(0.0,"allow","unknown",severity="none")
     text_str=str(text)
     if len(text_str)<=3: return MLDecision(0.0,"allow","normal",severity="none")

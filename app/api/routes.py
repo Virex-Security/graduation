@@ -9,8 +9,8 @@ from collections import defaultdict
 from flask import Flask, current_app, make_response, request, jsonify
 from flask_cors import CORS
 
-os.environ.setdefault("RATE_LIMIT_WINDOW", "10")
-os.environ.setdefault("RATE_LIMIT_MAX", "10")
+os.environ.setdefault("RATE_LIMIT_WINDOW", "60")
+os.environ.setdefault("RATE_LIMIT_MAX", "100")
 
 _total_requests_count = 0
 
@@ -81,7 +81,7 @@ def create_api_app():
 
     # ── In-memory IP block cache ──────────────────────────────
     ip_cache = {}
-    BLOCK_CACHE_DURATION = 180  # 3 minutes
+    BLOCK_CACHE_DURATION = 30  # 30 seconds
 
     def _block_ip(ip):
         ip_cache[ip] = time.time()
@@ -134,8 +134,8 @@ def create_api_app():
             return jsonify({"error": "Rate limit exceeded"}), 429
 
         # ── Layer 2: Scanner Detection (sensitive paths) ──────
-        sensitive_paths = ["/admin", "/wp-admin", "/phpmyadmin", "/.env",
-                           "/config", "/backup", "/etc/passwd", "/.git",
+        sensitive_paths = ["/wp-admin", "/phpmyadmin", "/.env",
+                           "/etc/passwd", "/.git",
                            "/.svn", "/.htaccess", "/server-status", "/wp-login"]
         normalized_path = request.path.lower()
         if any(normalized_path.startswith(p) for p in sensitive_paths):
@@ -145,15 +145,13 @@ def create_api_app():
             security._persist_stats()
             try:
                 from app.api.persistence import append_user_attack
-                should_block = severity in ("Critical", "High")
                 append_user_attack(
                     client_ip, "Scanner", client_ip,
-                    request.path, request.method, severity, blocked=should_block,
-                    description=f"Sensitive path: {request.path}",
+                    request.path, request.method, "Low", blocked=False,
+                    description=f"Sensitive path probe: {request.path}",
                 )
             except Exception:
                 pass
-            _block_ip(client_ip)
             return jsonify({"error": "Not Found"}), 404
 
         # ── Layer 3: Content Scan (SQLi, XSS, CMDi, Path Traversal + ML) ──
@@ -179,7 +177,6 @@ def create_api_app():
             if not safe:
                 security.blocked_requests += 1
                 security._persist_stats()
-                _block_ip(client_ip)
                 return jsonify({"error": msg}), 400
 
         # ── Layer 4: SSRF Detection (URL patterns in body/params) ──
@@ -207,7 +204,6 @@ def create_api_app():
                     )
                 except Exception:
                     pass
-                _block_ip(client_ip)
                 return jsonify({"error": "SSRF attempt blocked",
                                 "reason": _ssrf_result["reason"]}), 403
         elif not _CSRF_SSRF_ENABLED and data_to_scan:
@@ -233,7 +229,6 @@ def create_api_app():
                     )
                 except Exception:
                     pass
-                _block_ip(client_ip)
                 return jsonify({"error": "SSRF attempt blocked (fallback)",
                                 "reason": _ssrf_reason}), 403
 
@@ -241,7 +236,9 @@ def create_api_app():
         # Check CSRF for all state-changing requests (POST/PUT/DELETE/PATCH)
         # regardless of auth token - CSRF tokens should be present for all
         # state-changing operations to prevent cross-site request forgery.
-        if _CSRF_SSRF_ENABLED and request.method in ("POST", "PUT", "DELETE", "PATCH"):
+        # Skip CSRF check for requests with JWT Bearer token (API clients).
+        _auth_header = request.headers.get("Authorization", "") or request.headers.get("X-API-Key", "")
+        if _CSRF_SSRF_ENABLED and request.method in ("POST", "PUT", "DELETE", "PATCH") and not _auth_header.startswith("Bearer "):
             _csrf_result = detect_csrf({
                 "method": request.method, "path": request.path,
                 "headers": dict(request.headers),
@@ -265,14 +262,13 @@ def create_api_app():
                     )
                 except Exception:
                     pass
-                _block_ip(client_ip)
                 return jsonify({"error": "CSRF validation failed",
                                 "reason": _csrf_result["reason"]}), 403
 
         security._persist_stats()
 
         # ── Layer 5b: CSRF Fallback (when detections module not available) ──
-        if not _CSRF_SSRF_ENABLED and request.method in ("POST", "PUT", "DELETE", "PATCH"):
+        if not _CSRF_SSRF_ENABLED and request.method in ("POST", "PUT", "DELETE", "PATCH") and not _auth_header.startswith("Bearer "):
             # Basic CSRF token check as fallback
             token_header = (request.headers.get("X-CSRF-Token", "") or
                            request.headers.get("X-XSRF-TOKEN", "") or
@@ -296,7 +292,6 @@ def create_api_app():
                     )
                 except Exception:
                     pass
-                _block_ip(client_ip)
                 return jsonify({"error": "CSRF validation failed (fallback)",
                                 "reason": "Missing CSRF token"}), 403
 
