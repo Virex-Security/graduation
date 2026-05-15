@@ -285,7 +285,9 @@ title %}Total Requests - Virex{% endblock %} {% block stylesheets %}
             const blocked = t.blocked ? 'true' : 'false';
             const search = `${t.attack_type || ''} ${t.endpoint || ''} ${t.ip_address || ''}`.toLowerCase();
             const isML = t.ml_detected;
-            const statusText = t.blocked ? 'Blocked' : (isML ? 'ML' : 'Rule');
+            const statusText = t.blocked ? 'Blocked' : (isML ? 'ML Detected' : 'Rule Detected');
+            const statusClass = t.blocked ? 's-blocked' : (isML ? 's-ml' : 's-detected');
+            const statusIcon = t.blocked ? 'fa-ban' : (isML ? 'fa-brain' : 'fa-shield-halved');
             return `<tr data-type="${type}" data-blocked="${blocked}" data-search="${search}">
               <td>${t.threat_log_id || i+1}</td>
               <td>${t.created_at || t.timestamp || '-'}</td>
@@ -295,7 +297,7 @@ title %}Total Requests - Virex{% endblock %} {% block stylesheets %}
               <td class="admin-only">${t.method || '-'}</td>
               <td class="admin-only">${t.endpoint || '-'}</td>
               <td class="admin-only">${t.payload || t.description || t.snippet || '-'}</td>
-              <td>${t.blocked ? '<span class="text-danger"><i class="fas fa-ban"></i> Blocked</span>' : (isML ? '<span class="text-primary">ML</span>' : '<span class="text-secondary">Rule</span>')}</td>
+              <td><span class="status-badge ${statusClass}"><i class="fas ${statusIcon}"></i> ${statusText}</span></td>
             </tr>`;
           }).join('');
         }

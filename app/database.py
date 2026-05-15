@@ -896,9 +896,9 @@ def save_stats(total: int, blocked: int):
 
 def append_user_attack(user_key: str, attack_type: str, ip: str,
                        endpoint: str, method: str = "", severity: str = "High",
-                       blocked: bool = True, description: str = None):
+                       blocked: bool = True, description: str = None) -> int | None:
     _invalidate_caches()
-    log_threat(
+    return log_threat(
         attack_type=attack_type, ip_address=ip, endpoint=endpoint,
         method=method, severity=severity, blocked=blocked,
         description=description or f"user_key={user_key}",

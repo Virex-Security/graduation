@@ -27,26 +27,31 @@ async function refreshBlockedData() {
         const threats = data.recent_threats
           .filter(t => t.blocked)
           .slice(0, 20);
-        tbody.innerHTML = threats.map((t, i) => `
-          <tr class="row-${(t.severity || 'Medium').toLowerCase()}">
+        tbody.innerHTML = threats.map((t) => {
+          const sev = t.severity || 'Medium';
+          const att = t.attack_type || t.type || 'Unknown';
+          const ipAddr = t.ip_address || t.ip || '';
+          return `<tr class="event-row row-${sev.toLowerCase()}" data-severity="${sev}" data-attack-type="${att}" data-ip="${ipAddr}">
             <td>${t.created_at || t.timestamp || '-'}</td>
-            <td>${t.ip_address || t.ip || 'Unknown'}</td>
-            <td>${t.attack_type || t.type || 'Unknown'}</td>
+            <td><span class="font-mono font-semibold">${ipAddr}</span></td>
+            <td><span class="attack-type-label">${att}</span></td>
             <td class="admin-only"><span class="badge ${t.ml_detected ? 'badge-primary' : 'badge-secondary'}">${t.ml_detected ? 'ML' : 'Rule'}</span></td>
             <td class="admin-only">${t.endpoint || '-'}</td>
-            <td class="admin-only"><span class="severity-badge severity-${(t.severity || 'Medium').toLowerCase()}">${t.severity || 'Medium'}</span></td>
-            <td class="admin-only">${t.blocked ? '<i class="fas fa-ban text-danger"></i> Blocked' : '<i class="fas fa-check text-success"></i>'}</td>
-          </tr>
-        `).join('');
+            <td class="admin-only"><span class="severity-badge severity-${sev.toLowerCase()}">${sev}</span></td>
+            <td class="admin-only"><span class="text-danger"><i class="fas fa-ban"></i> Blocked</span></td>
+          </tr>`;
+        }).join('');
       }
     }
+    
+    // Re-apply any active filters
+    if (typeof applyFilters === 'function') applyFilters();
   } catch (err) {}
 }
 
 function startBlockedRefresh() {
   if (blockedRefreshInterval) return;
   blockedRefreshInterval = setInterval(refreshBlockedData, 1000);
-}
 }
 
 document.addEventListener('DOMContentLoaded', () => {

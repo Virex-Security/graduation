@@ -85,8 +85,38 @@ def append_user_attack(user_key: str, attack_type: str, ip: str,
     # Determine block status based on severity
     should_block = severity in ("Critical", "High")
     
-    db.append_user_attack(user_key, attack_type, ip, endpoint, method, severity,
-                          blocked=should_block, description=description)
+    threat_log_id = db.append_user_attack(
+        user_key, attack_type, ip, endpoint, method, severity,
+        blocked=should_block, description=description
+    )
+    
+    # ── إنشاء blocked_event عشان يظهر في جرس التنبيهات (SSE) ──
+    if threat_log_id:
+        try:
+            db.log_blocked_event(
+                ip_address=ip, attack_type=attack_type, severity=severity,
+                ml_detected=False, confidence=0.0,
+                threat_log_id=threat_log_id
+            )
+        except Exception as e:
+            logger.warning(f"Failed to log blocked_event: {e}")
+    
+    # ── إنشاء إشعار لكل مشرف/محلل ────────────────────────────
+    try:
+        users = db.get_all_users()
+        admin_analyst_ids = [
+            u["user_id"] for u in users
+            if u.get("role_name") in ("admin", "analyst")
+        ]
+        message = f"تنبيه: {attack_type}"
+        for uid in admin_analyst_ids:
+            try:
+                db.create_notification(uid, message, notif_type="threat",
+                                       threat_log_id=threat_log_id)
+            except Exception:
+                pass
+    except Exception as e:
+        logger.warning(f"Failed to create notifications: {e}")
 
 
 def get_user_attacks(user_key: str) -> list:

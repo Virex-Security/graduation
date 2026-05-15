@@ -9,8 +9,8 @@ from collections import defaultdict
 from flask import Flask, current_app, make_response, request, jsonify
 from flask_cors import CORS
 
-os.environ.setdefault("RATE_LIMIT_WINDOW", "60")
-os.environ.setdefault("RATE_LIMIT_MAX", "100")
+os.environ.setdefault("RATE_LIMIT_WINDOW", "10")
+os.environ.setdefault("RATE_LIMIT_MAX", "5")
 
 _total_requests_count = 0
 
@@ -81,7 +81,7 @@ def create_api_app():
 
     # ── In-memory IP block cache ──────────────────────────────
     ip_cache = {}
-    BLOCK_CACHE_DURATION = 30  # 30 seconds
+    BLOCK_CACHE_DURATION = 120  # 120 seconds
 
     def _block_ip(ip):
         ip_cache[ip] = time.time()

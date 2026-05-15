@@ -23,47 +23,61 @@ const SecurityAlerts = {
   unreadCount: 0,
   dropdownOpen: false,
 
-  // Color mapping by attack type
+  // Color mapping by attack type — indicator=icon, bg=card, text=title
   colorMap: {
     "SQL Injection": {
-      indicator: "var(--text-secondary)",
-      bg: "#FEFCE8",
-      text: "var(--text-secondary)",
+      indicator: "#DC2626",
+      bg: "linear-gradient(135deg, rgba(220,38,38,0.08), transparent)",
+      border: "#DC2626",
+      text: "#DC2626",
     },
     XSS: {
-      indicator: "var(--text-secondary)",
-      bg: "#FEF3C7",
-      text: "var(--text-secondary)",
+      indicator: "#F59E0B",
+      bg: "linear-gradient(135deg, rgba(245,158,11,0.08), transparent)",
+      border: "#F59E0B",
+      text: "#D97706",
     },
     "ML Detection": {
-      indicator: "var(--brand-primary)",
-      bg: "var(--brand-primary)",
-      text: "var(--brand-primary)",
+      indicator: "#8B5CF6",
+      bg: "linear-gradient(135deg, rgba(139,92,246,0.08), transparent)",
+      border: "#8B5CF6",
+      text: "#7C3AED",
     },
     "Brute Force": {
-      indicator: "var(--text-secondary)",
-      bg: "#FEE2E2",
-      text: "var(--text-secondary)",
+      indicator: "#EF4444",
+      bg: "linear-gradient(135deg, rgba(239,68,68,0.08), transparent)",
+      border: "#EF4444",
+      text: "#DC2626",
     },
     "Rate Limit": {
-      indicator: "var(--text-secondary)",
-      bg: "#FEE2E2",
-      text: "var(--text-secondary)",
-    },
-    "Access Violation": {
-      indicator: "var(--text-secondary)",
-      bg: "var(--text-secondary)",
-      text: "#0C2340",
+      indicator: "#F97316",
+      bg: "linear-gradient(135deg, rgba(249,115,22,0.08), transparent)",
+      border: "#F97316",
+      text: "#EA580C",
     },
     Scanner: {
       indicator: "#6B7280",
-      bg: "#F3F4F6",
-      text: "#1F2937",
+      bg: "linear-gradient(135deg, rgba(107,114,128,0.08), transparent)",
+      border: "#6B7280",
+      text: "#4B5563",
+    },
+    SSRF: {
+      indicator: "#7C3AED",
+      bg: "linear-gradient(135deg, rgba(124,58,237,0.08), transparent)",
+      border: "#7C3AED",
+      text: "#6D28D9",
+    },
+    CSRF: {
+      indicator: "#DC2626",
+      bg: "linear-gradient(135deg, rgba(220,38,38,0.08), transparent)",
+      border: "#DC2626",
+      text: "#B91C1C",
     },
     default: {
       indicator: "#9CA3AF",
-      bg: "#F9FAFB",
-      text: "#374151",
+      bg: "linear-gradient(135deg, rgba(156,163,175,0.08), transparent)",
+      border: "#9CA3AF",
+      text: "#6B7280",
     },
   },
 
@@ -448,18 +462,8 @@ const SecurityAlerts = {
     // Don't show alerts for Clean/normal requests
     if (event.attack_type === "Clean" || event.type === "Clean") return false;
 
-    // Show if request is blocked
-    if (event.blocked) return true;
-
-    // Show if high/critical severity
-    if (event.severity === "High" || event.severity === "Critical") return true;
-
-    // Show if high ML confidence (≥ 0.85)
-    if (event.ml_detected && event.confidence && event.confidence >= 0.85) {
-      return true;
-    }
-
-    return false;
+    // Show ALL non-Clean attacks (user wants every vulnerability)
+    return true;
   },
 
   /**
@@ -498,17 +502,18 @@ const SecurityAlerts = {
       align-items: flex-start;
       gap: 10px;
       border-bottom: 1px solid var(--border-dim);
+      border-left: 3px solid ${colors.border};
       transition: all 0.2s ease;
       cursor: pointer;
-      background: var(--bg-main);
+      background: ${colors.bg};
     `;
 
     alert.addEventListener("mouseover", () => {
-      alert.style.background = "rgba(224,70,186, 0.05)";
+      alert.style.background = `linear-gradient(135deg, ${colors.border}22, transparent)`;
     });
 
     alert.addEventListener("mouseout", () => {
-      alert.style.background = "var(--bg-main)";
+      alert.style.background = colors.bg;
     });
 
     // Icon indicator
@@ -627,6 +632,8 @@ const SecurityAlerts = {
       "Rate Limit": "fa-bolt",
       "Access Violation": "fa-lock",
       Scanner: "fa-eye",
+      SSRF: "fa-globe",
+      CSRF: "fa-shield-halved",
       default: "fa-exclamation-triangle",
     };
     return icons[type] || icons.default;

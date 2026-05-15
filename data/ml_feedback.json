@@ -4828,5 +4828,15 @@
     "attack_type": "ssrf",
     "reviewed": false,
     "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-15T15:48:03Z",
+    "text_hash": "37d007a56d816107ce5b52c10342db37",
+    "text_snippet": "http://localhost:8080",
+    "risk_score": 0.9392476979834788,
+    "decision": "block",
+    "attack_type": "ssrf",
+    "reviewed": false,
+    "promoted_to_rule": false
   }
 ]

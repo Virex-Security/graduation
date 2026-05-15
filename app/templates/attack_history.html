@@ -1,230 +1,160 @@
 {% extends "sidebar_layout.html" %}
+{% set active_page = 'attack-history' %}
 
 {% block title %}Attack History — VIREX{% endblock %}
 
 {% block stylesheets %}
+<link rel="stylesheet" href="/static/css/requests.css" />
+<link rel="stylesheet" href="/static/css/blocked.css" />
 <style>
-  :root {
-    --pink:   #ff4ecb;
-    --purple: #a855f7;
-    --grad:   linear-gradient(90deg, #ff4ecb, #a855f7);
-  }
-
-  .page-header {
-    display: flex; align-items: center; justify-content: space-between;
-    margin-bottom: 28px; flex-wrap: wrap; gap: 12px;
-  }
-  .page-title {
-    font-size: 22px; font-weight: 700;
-    background: var(--grad); -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent; background-clip: text;
-  }
-  .page-subtitle { font-size: 13px; color: #888; margin-top: 4px; }
-
-  /* Stats bar */
-  .stats-bar {
-    display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-    gap: 14px; margin-bottom: 28px;
-  }
-  .stat-card {
-    background: #111; border: 1px solid #222; border-radius: 12px;
-    padding: 16px 18px; position: relative; overflow: hidden;
-  }
-  .stat-card::before {
-    content: ''; position: absolute; top: 0; left: 0; right: 0;
-    height: 2px; background: var(--grad);
-  }
-  .stat-label { font-size: 11px; color: #777; text-transform: uppercase; letter-spacing: .06em; }
-  .stat-value { font-size: 26px; font-weight: 700; color: #fff; margin-top: 4px; }
-
-  /* Controls */
-  .controls { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 20px; }
-  .search-input {
-    flex: 1; min-width: 200px;
-    background: #111; border: 1px solid #333; border-radius: 8px;
-    padding: 9px 14px; color: #fff; font-size: 13px; outline: none;
-    transition: border-color .2s;
-  }
-  .search-input:focus { border-color: var(--purple); }
-  .filter-select {
-    background: #111; border: 1px solid #333; border-radius: 8px;
-    padding: 9px 14px; color: #ccc; font-size: 13px; outline: none; cursor: pointer;
+  .ah-container {
+    padding: 2.5rem;
+    max-width: 1600px;
+    margin: 0 auto;
+    width: 100%;
   }
   .btn-clear {
-    background: transparent; border: 1px solid #ff4ecb;
-    color: #ff4ecb; border-radius: 8px;
-    padding: 9px 18px; font-size: 13px; cursor: pointer;
-    transition: background .2s, color .2s;
-    display: flex; align-items: center; gap: 6px;
+    background: transparent;
+    border: 1px solid var(--danger);
+    color: var(--danger);
+    border-radius: 8px;
+    padding: 9px 18px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background .2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
   }
-  .btn-clear:hover { background: #ff4ecb22; }
+  .btn-clear:hover { background: rgba(239, 68, 68, 0.15); }
+  .ah-loading {
+    text-align: center;
+    padding: 3rem;
+    color: var(--text-muted);
+  }
+  .ah-empty {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--text-muted);
+    display: none;
+  }
+  .ah-empty-icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
 
-  /* Table */
-  .table-wrap {
-    background: #0d0d0d; border: 1px solid #1e1e1e; border-radius: 14px;
-    overflow: hidden;
-  }
-  table { width: 100%; border-collapse: collapse; }
-  thead { background: #111; }
-  th {
-    padding: 13px 16px; text-align: left;
-    font-size: 11px; font-weight: 600;
-    color: #666; text-transform: uppercase; letter-spacing: .08em;
-    border-bottom: 1px solid #1e1e1e;
-  }
-  td {
-    padding: 13px 16px; font-size: 13px; color: #ccc;
-    border-bottom: 1px solid #141414;
-    vertical-align: middle;
-  }
-  tr:last-child td { border-bottom: none; }
-  tr:hover td { background: #111; }
-
-  /* Attack type badges */
-  .badge {
-    display: inline-flex; align-items: center; gap: 5px;
-    padding: 3px 10px; border-radius: 20px;
-    font-size: 11px; font-weight: 600; white-space: nowrap;
-  }
-  .badge-sqli     { background: #ff4ecb22; color: #ff4ecb; border: 1px solid #ff4ecb44; }
-  .badge-xss      { background: #a855f722; color: #a855f7; border: 1px solid #a855f744; }
-  .badge-cmd      { background: #f5793322; color: #f57933; border: 1px solid #f5793344; }
-  .badge-path     { background: #38bdf822; color: #38bdf8; border: 1px solid #38bdf844; }
-  .badge-brute    { background: #facc1522; color: #facc15; border: 1px solid #facc1544; }
-  .badge-rate     { background: rgba(6, 182, 212, 0.12); color: #06b6d4; border: 1px solid rgba(6, 182, 212, 0.3); }
-.badge-csrf     { background: rgba(190, 24, 93, 0.12); color: #BE185D; border: 1px solid rgba(190, 24, 93, 0.3); }
-.badge-ssrf     { background: rgba(146, 64, 14, 0.12); color: #92400E; border: 1px solid rgba(146, 64, 14, 0.3); }
-  .badge-anomaly  { background: #6b728022; color: #9ca3af; border: 1px solid #6b728044; }
-
-  /* Severity */
-  .sev { font-size: 11px; font-weight: 600; }
-  .sev-critical { color: #ff2e2e; }
-  .sev-high     { color: #ff4ecb; }
-  .sev-medium   { color: #facc15; }
-  .sev-low      { color: #4ade80; }
-
-  /* Empty state */
-  .empty {
-    text-align: center; padding: 60px 20px;
-    color: #555; display: none;
-  }
-  .empty-icon { font-size: 40px; margin-bottom: 12px; }
-
-  /* Toast */
+  /* Toast notification */
   #toast {
     position: fixed; bottom: 24px; right: 24px;
-    background: #1a1a1a; border: 1px solid #333;
+    background: var(--card-bg); border: 1px solid var(--border-color);
     border-radius: 10px; padding: 12px 20px;
-    color: #fff; font-size: 13px;
-    box-shadow: 0 4px 24px #0008;
+    color: var(--text-primary); font-size: 13px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.5);
     transform: translateY(60px); opacity: 0;
     transition: all .3s; z-index: 9999;
-    display: flex; align-items: center; gap: 8px;
   }
   #toast.show { transform: translateY(0); opacity: 1; }
-  #toast.success { border-color: #a855f7; }
-  #toast.error   { border-color: #ff4ecb; }
-
-  /* Glow effect on header */
-  .glow-line {
-    height: 1px; width: 100%;
-    background: var(--grad);
-    box-shadow: 0 0 12px 1px #ff4ecb55, 0 0 24px 2px #a855f733;
-    margin-bottom: 28px;
-  }
-
-  .loading { text-align: center; padding: 40px; color: #666; font-size: 14px; }
+  #toast.success { border-color: var(--success); }
+  #toast.error   { border-color: var(--danger); }
 </style>
 {% endblock %}
 
 {% block content %}
-<main class="main-content" style="padding: 28px;">
-
-  <div class="page-header">
-    <div>
-      <div class="page-title">
-        <i class="fas fa-shield-virus" style="font-size:18px;"></i>
-        Attack History
+<main class="ah-container">
+  <header class="overview-header">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+      <div>
+        <h1>Attack History</h1>
+        <p style="color:var(--text-secondary);font-size:1.05rem;">Real-time log of all detected threats</p>
       </div>
-      <div class="page-subtitle">Real-time log of all detected threats</div>
+      <button class="btn-clear" onclick="confirmClear()">
+        <i class="fas fa-trash-alt"></i> Clear History
+      </button>
     </div>
-    <button class="btn-clear" onclick="confirmClear()">
-      <i class="fas fa-trash-alt"></i>
-      Clear History
-    </button>
+  </header>
+
+  <section class="stats-section" style="margin-bottom:1.5rem;">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;">
+      <div class="stat-card card type-total">
+        <div class="stat-header"><i class="fas fa-shield-virus"></i><h3>Total Attacks</h3></div>
+        <div class="stat-value" id="stat-total">—</div>
+      </div>
+      <div class="stat-card card type-sqli">
+        <div class="stat-header"><i class="fas fa-database" style="color:var(--warning)"></i><h3>SQL Injection</h3></div>
+        <div class="stat-value" id="stat-sqli">—</div>
+      </div>
+      <div class="stat-card card type-xss">
+        <div class="stat-header"><i class="fas fa-code" style="color:var(--info)"></i><h3>XSS</h3></div>
+        <div class="stat-value" id="stat-xss">—</div>
+      </div>
+      <div class="stat-card card type-brute">
+        <div class="stat-header"><i class="fas fa-key" style="color:var(--danger)"></i><h3>Brute Force</h3></div>
+        <div class="stat-value" id="stat-brute">—</div>
+      </div>
+      <div class="stat-card card type-scanner">
+        <div class="stat-header"><i class="fas fa-eye" style="color:var(--success)"></i><h3>Other</h3></div>
+        <div class="stat-value" id="stat-other">—</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="filters-bar">
+    <div class="filters-group">
+      <label class="filters-label" for="filter-severity">Severity</label>
+      <select id="filter-severity" class="filters-select">
+        <option value="all">All</option>
+        <option value="Critical">Critical</option>
+        <option value="High">High</option>
+        <option value="Medium">Medium</option>
+        <option value="Low">Low</option>
+      </select>
+    </div>
+    <div class="filters-group">
+      <label class="filters-label" for="filter-attack-type">Attack Type</label>
+      <select id="filter-attack-type" class="filters-select">
+        <option value="all">All Types</option>
+        <option value="SQL Injection">SQL Injection</option>
+        <option value="XSS">XSS</option>
+        <option value="Command Injection">Command Injection</option>
+        <option value="Path Traversal">Path Traversal</option>
+        <option value="Brute Force">Brute Force</option>
+        <option value="Rate Limit">Rate Limit</option>
+        <option value="CSRF">CSRF</option>
+        <option value="SSRF">SSRF</option>
+        <option value="Scanner">Scanner</option>
+      </select>
+    </div>
+    <div class="filters-group">
+      <label class="filters-label" for="filter-ip">IP / Endpoint</label>
+      <input id="filter-ip" class="filters-input" type="text" placeholder="Search by IP or endpoint...">
+    </div>
+    <div class="filters-actions">
+      <button id="filter-apply" class="filters-btn filters-btn-primary" type="button">Search</button>
+      <button id="filter-reset" class="filters-btn filters-btn-secondary" type="button">Reset</button>
+    </div>
   </div>
 
-  <div class="glow-line"></div>
-
-  <!-- Stats Bar -->
-  <div class="stats-bar">
-    <div class="stat-card">
-      <div class="stat-label">Total Attacks</div>
-      <div class="stat-value" id="stat-total">—</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">SQL Injection</div>
-      <div class="stat-value" id="stat-sqli">—</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">XSS</div>
-      <div class="stat-value" id="stat-xss">—</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">Brute Force</div>
-      <div class="stat-value" id="stat-brute">—</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">Other</div>
-      <div class="stat-value" id="stat-other">—</div>
-    </div>
-  </div>
-
-  <!-- Controls -->
-  <div class="controls">
-    <input class="search-input" type="text" id="search"
-           placeholder="Search by IP, endpoint, type..."
-           oninput="filterTable()">
-    <select class="filter-select" id="type-filter" onchange="filterTable()">
-      <option value="">All Types</option>
-      <option value="SQL Injection">SQL Injection</option>
-      <option value="XSS">XSS</option>
-      <option value="Command Injection">Command Injection</option>
-      <option value="Path Traversal">Path Traversal</option>
-      <option value="Brute Force">Brute Force</option>
-      <option value="Anomaly">Anomaly</option>
-    </select>
-    <select class="filter-select" id="sev-filter" onchange="filterTable()">
-      <option value="">All Severity</option>
-      <option value="Critical">Critical</option>
-      <option value="High">High</option>
-      <option value="Medium">Medium</option>
-    </select>
-  </div>
-
-  <!-- Table -->
-  <div class="table-wrap">
-    <div class="loading" id="loading">
+  <div class="table-card">
+    <div class="ah-loading" id="loading">
       <i class="fas fa-circle-notch fa-spin"></i> Loading attacks...
     </div>
-    <div class="empty" id="empty">
-      <div class="empty-icon">🛡️</div>
+    <div class="ah-empty" id="empty">
+      <div class="ah-empty-icon">🛡️</div>
       <div>No attacks found</div>
     </div>
-    <table id="attacks-table" style="display:none;">
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>Type</th>
-          <th>IP</th>
-          <th>Endpoint</th>
-          <th>Method</th>
-          <th>Severity</th>
-          <th>Time</th>
-        </tr>
-      </thead>
-      <tbody id="attacks-tbody"></tbody>
-    </table>
+    <div class="req-table-wrap">
+      <table class="req-table" id="attacks-table" style="display:none;">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Type</th>
+            <th>IP</th>
+            <th>Endpoint</th>
+            <th>Method</th>
+            <th>Severity</th>
+            <th>Time</th>
+          </tr>
+        </thead>
+        <tbody id="attacks-tbody"></tbody>
+      </table>
+    </div>
   </div>
 
 </main>
@@ -237,16 +167,22 @@
   const API_BASE = 'http://127.0.0.1:5000';
   let allAttacks = [];
 
-  const BADGE = {
-    'SQL Injection':    'badge-sqli',
-    'XSS':             'badge-xss',
-    'Command Injection':'badge-cmd',
-    'Path Traversal':  'badge-path',
-    'Brute Force':     'badge-brute',
-    'Rate Limit':      'badge-rate',
-    'CSRF':            'badge-csrf',
-    'SSRF':            'badge-ssrf',
+  // Map attack types to project threat-badge classes + icons
+  const BADGE_INFO = {
+    'SQL Injection':     { cls: 't-sqli',  icon: 'fa-database' },
+    'XSS':               { cls: 't-xss',   icon: 'fa-code' },
+    'Command Injection': { cls: 't-brute', icon: 'fa-key' },
+    'Path Traversal':    { cls: 't-scanner', icon: 'fa-eye' },
+    'Brute Force':       { cls: 't-brute', icon: 'fa-key' },
+    'Rate Limit':        { cls: 't-rate',  icon: 'fa-bolt' },
+    'CSRF':              { cls: 't-csrf',  icon: 'fa-crosshairs' },
+    'SSRF':              { cls: 't-ssrf',  icon: 'fa-server' },
   };
+
+  function badgeHTML(type) {
+    const info = BADGE_INFO[type] || { cls: 't-ml', icon: 'fa-brain' };
+    return `<span class="threat-badge ${info.cls}"><i class="fas ${info.icon}"></i> ${type || 'Unknown'}</span>`;
+  }
 
   const SEV_CLASS = {
     'Critical': 'sev-critical',
@@ -254,10 +190,6 @@
     'Medium':   'sev-medium',
     'Low':      'sev-low',
   };
-
-  function badgeClass(type) {
-    return BADGE[type] || 'badge-anomaly';
-  }
 
   function formatTime(iso) {
     if (!iso) return '—';
@@ -298,6 +230,8 @@
       allAttacks = attacks;
       renderTable(attacks);
       updateStats(attacks);
+      // Re-apply any active filters after refresh
+      if (typeof applyFilters === 'function') applyFilters();
     } catch (e) {
       document.getElementById('loading').innerHTML =
         '<i class="fas fa-exclamation-triangle"></i> Could not load attacks. Is the API running?';
@@ -334,34 +268,52 @@
 
     tbody.innerHTML = attacks.map((a, i) => `
       <tr>
-        <td style="color:#555;font-size:11px;">${i + 1}</td>
-        <td><span class="badge ${badgeClass(a.type)}">${a.type || 'Unknown'}</span></td>
-        <td style="font-family:monospace;font-size:12px;">${a.ip || '—'}</td>
-        <td style="font-family:monospace;font-size:12px;color:#888;">${a.endpoint || '—'}</td>
-        <td style="font-size:11px;color:#666;">${a.method || '—'}</td>
-        <td><span class="sev ${SEV_CLASS[a.severity] || ''}">${a.severity || '—'}</span></td>
-        <td style="font-size:11px;color:#666;">${formatTime(a.timestamp)}</td>
+        <td class="mono" style="color:var(--text-muted);font-size:11px;">${i + 1}</td>
+        <td>${badgeHTML(a.type)}</td>
+        <td class="mono">${a.ip || '—'}</td>
+        <td class="mono" style="color:var(--text-muted);">${a.endpoint || '—'}</td>
+        <td class="mono" style="font-size:11px;color:var(--text-muted);">${a.method || '—'}</td>
+        <td><span class="sev-badge sev-${(a.severity || 'low').toLowerCase()}">${a.severity || '—'}</span></td>
+        <td class="mono" style="font-size:11px;color:var(--text-muted);">${formatTime(a.timestamp)}</td>
       </tr>
     `).join('');
   }
 
-  function filterTable() {
-    const search = document.getElementById('search').value.toLowerCase();
-    const type   = document.getElementById('type-filter').value;
-    const sev    = document.getElementById('sev-filter').value;
+  function normalize(s) {
+    return (s || '').toString().trim().toLowerCase();
+  }
+
+  function applyFilters() {
+    const sev = document.getElementById('filter-severity')?.value || 'all';
+    const typ = document.getElementById('filter-attack-type')?.value || 'all';
+    const ipq = document.getElementById('filter-ip')?.value || '';
+
+    const sevN = normalize(sev);
+    const typN = normalize(typ);
+    const ipN  = normalize(ipq);
 
     const filtered = allAttacks.filter(a => {
-      const matchSearch = !search ||
-        (a.type     || '').toLowerCase().includes(search) ||
-        (a.ip       || '').toLowerCase().includes(search) ||
-        (a.endpoint || '').toLowerCase().includes(search);
-      const matchType = !type || a.type === type;
-      const matchSev  = !sev  || a.severity === sev;
-      return matchSearch && matchType && matchSev;
+      const matchSev = sevN === 'all' || normalize(a.severity) === sevN;
+      const matchTyp = typN === 'all' || normalize(a.type) === typN;
+      const matchIP  = !ipN ||
+        normalize(a.ip).includes(ipN) ||
+        normalize(a.endpoint).includes(ipN) ||
+        normalize(a.type).includes(ipN);
+      return matchSev && matchTyp && matchIP;
     });
 
     renderTable(filtered);
     updateStats(filtered);
+  }
+
+  function resetFilters() {
+    const s = document.getElementById('filter-severity');
+    const t = document.getElementById('filter-attack-type');
+    const i = document.getElementById('filter-ip');
+    if (s) s.value = 'all';
+    if (t) t.value = 'all';
+    if (i) i.value = '';
+    applyFilters();
   }
 
   function confirmClear() {
@@ -382,6 +334,20 @@
       toast('Failed to clear history', 'error');
     }
   }
+
+  // Filter button event listeners
+  document.addEventListener('DOMContentLoaded', () => {
+    const a = document.getElementById('filter-apply');
+    const r = document.getElementById('filter-reset');
+    const ip = document.getElementById('filter-ip');
+    if (a) a.addEventListener('click', applyFilters);
+    if (r) r.addEventListener('click', resetFilters);
+    if (ip) {
+      ip.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); applyFilters(); }
+      });
+    }
+  });
 
   // Load on page load + auto-refresh every 30s
   loadAttacks();

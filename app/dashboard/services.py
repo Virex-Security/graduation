@@ -43,6 +43,8 @@ class SecurityDashboard:
 
         self._last_connection_check = 0
         self._connection_check_interval = 10
+        self._failed_checks = 0
+        self._required_failures = 2  # Hysteresis: switch to DISCONNECTED only after N consecutive failures
         self._cached_dashboard_data = None
         self._last_dashboard_refresh = 0
         self._dashboard_cache_ttl = 2
@@ -454,22 +456,23 @@ class SecurityDashboard:
         return round(min(score, 100), 2)
 
     def check_api_connection(self):
-        """Check if API server is reachable by pinging its health endpoint."""
+        """Check if API server is reachable — with hysteresis (requires N consecutive failures)."""
         try:
             api_url = os.getenv("API_URL", "http://127.0.0.1:5000")
             r = requests.get(f"{api_url}/api/health", timeout=2)
             if r.status_code == 200:
                 body = r.json()
                 if body.get("connected") is True and body.get("status") == "healthy":
+                    self._failed_checks = 0
                     self.connection_state = CONNECTED
                     self.had_connection = True
-                else:
-                    self.connection_state = DISCONNECTED
-                    self.had_connection = False
-            else:
-                self.connection_state = DISCONNECTED
-                self.had_connection = False
+                    return
         except Exception:
+            pass
+
+        # Failure path — use hysteresis
+        self._failed_checks += 1
+        if self._failed_checks >= self._required_failures:
             if self.had_connection:
                 self.connection_state = DISCONNECTED
             else:
