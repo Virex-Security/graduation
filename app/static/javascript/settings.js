@@ -67,6 +67,11 @@ async function apiFetch(url, options = {}) {
    LOAD SETTINGS & PROFILE
 ───────────────────────────────────────────── */
 async function loadSettings() {
+  const hasUserPrefs = document.getElementById('user-email-alerts') !== null;
+  if (hasUserPrefs) {
+    loadUserPrefs();
+    return;
+  }
   try {
     const data = await apiFetch(CONFIG.endpoints.getSettings);
     state.settings = data;
@@ -246,6 +251,15 @@ async function saveSettings() {
   const btn = document.getElementById('save-settings-btn');
   if (!btn) return;
 
+  const userPrefs = {
+    email_alerts: getChecked('user-email-alerts'),
+    dashboard_notifs: getChecked('user-dashboard-notifs'),
+    language: getValue('user-language'),
+    time_format: getValue('user-time-format'),
+  };
+
+  const hasUserPrefs = document.getElementById('user-email-alerts') !== null;
+
   const settings = {
     general: {
       site_name: getValue('site-name'),
@@ -278,10 +292,15 @@ async function saveSettings() {
 
   setLoading(btn, true);
   try {
-    await apiFetch(CONFIG.endpoints.updateSettings, {
-      method: 'POST',
-      body: JSON.stringify(settings),
-    });
+    if (hasUserPrefs) {
+      localStorage.setItem('virex_user_prefs', JSON.stringify(userPrefs));
+    }
+    if (!hasUserPrefs) {
+      await apiFetch(CONFIG.endpoints.updateSettings, {
+        method: 'POST',
+        body: JSON.stringify(settings),
+      });
+    }
     state.settings = settings;
     state.hasChanges = false;
     toast('Settings saved successfully', 'success');
@@ -289,6 +308,21 @@ async function saveSettings() {
     toast(err.message || 'Failed to save settings', 'error');
   } finally {
     setLoading(btn, false);
+  }
+}
+
+function loadUserPrefs() {
+  try {
+    const saved = localStorage.getItem('virex_user_prefs');
+    if (saved) {
+      const prefs = JSON.parse(saved);
+      setChecked('user-email-alerts', prefs.email_alerts);
+      setChecked('user-dashboard-notifs', prefs.dashboard_notifs);
+      setValue('user-language', prefs.language);
+      setValue('user-time-format', prefs.time_format);
+    }
+  } catch (e) {
+    // ignore
   }
 }
 

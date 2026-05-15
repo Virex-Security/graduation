@@ -206,89 +206,89 @@ const Dashboard = {
    * Initialize Charts using Chart.js
    */
   initCharts() {
-    const ctxTimeline = document
-      .getElementById("timelineChart")
-      .getContext("2d");
-    const ctxDistribution = document
-      .getElementById("distributionChart")
-      .getContext("2d");
+    const timelineCanvas = document.getElementById("timelineChart");
+    const distributionCanvas = document.getElementById("distributionChart");
 
-    // Timeline Chart
-    this.charts.timeline = new Chart(ctxTimeline, {
-      type: "line",
-      data: {
-        labels: [],
-        datasets: [
-          {
-            label: "Total Requests",
-            borderColor: "var(--brand-primary)",
-            backgroundColor: "rgba(124, 58, 237, 0.1)",
-            data: [],
-            tension: 0.4,
-            fill: true,
+    if (timelineCanvas) {
+      const ctxTimeline = timelineCanvas.getContext("2d");
+      this.charts.timeline = new Chart(ctxTimeline, {
+        type: "line",
+        data: {
+          labels: [],
+          datasets: [
+            {
+              label: "Total Requests",
+              borderColor: "var(--brand-primary)",
+              backgroundColor: "rgba(124, 58, 237, 0.1)",
+              data: [],
+              tension: 0.4,
+              fill: true,
+            },
+            {
+              label: "Blocked Requests",
+              borderColor: "var(--text-secondary)",
+              backgroundColor: "rgba(239, 68, 68, 0.1)",
+              data: [],
+              tension: 0.4,
+              fill: true,
+            },
+            {
+              label: "Rate Limited",
+              borderColor: "var(--text-secondary)",
+              backgroundColor: "rgba(245, 158, 11, 0.1)",
+              data: [],
+              tension: 0.4,
+              fill: true,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: {
+              grid: { color: "rgba(255,255,255,0.05)" },
+              ticks: { color: "#9CA3AF" },
+            },
+            y: {
+              grid: { color: "rgba(255,255,255,0.05)" },
+              ticks: { color: "#9CA3AF" },
+            },
           },
-          {
-            label: "Blocked Requests",
-            borderColor: "var(--text-secondary)",
-            backgroundColor: "rgba(239, 68, 68, 0.1)",
-            data: [],
-            tension: 0.4,
-            fill: true,
-          },
-          {
-            label: "Rate Limited",
-            borderColor: "var(--text-secondary)",
-            backgroundColor: "rgba(245, 158, 11, 0.1)",
-            data: [],
-            tension: 0.4,
-            fill: true,
-          },
-        ],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-          x: {
-            grid: { color: "rgba(255,255,255,0.05)" },
-            ticks: { color: "#9CA3AF" },
-          },
-          y: {
-            grid: { color: "rgba(255,255,255,0.05)" },
-            ticks: { color: "#9CA3AF" },
+          plugins: {
+            legend: { display: false },
           },
         },
-        plugins: {
-          legend: { display: false },
-        },
-      },
-    });
+      });
+    }
 
-    // Distribution Chart (Pie)
-    this.charts.distribution = new Chart(ctxDistribution, {
-      type: "doughnut",
-      data: {
-        labels: ["SQLi", "XSS", "Brute Force", "Scanner", "ML", "Rate Limit", "CSRF", "SSRF"],
-        datasets: [
-          {
-            data: [0, 0, 0, 0, 0, 0, 0, 0],
-            backgroundColor: this.getDistributionColors(),
-            borderWidth: 0,
-          },
-        ],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            position: "bottom",
-            labels: { color: "#9CA3AF", padding: 20 },
-          },
+    if (distributionCanvas) {
+      const ctxDistribution = distributionCanvas.getContext("2d");
+      this.charts.distribution = new Chart(ctxDistribution, {
+        type: "doughnut",
+        data: {
+          labels: ["SQLi", "XSS", "Brute Force", "Scanner", "ML", "Rate Limit", "CSRF", "SSRF"],
+          datasets: [
+            {
+              data: [0, 0, 0, 0, 0, 0, 0, 0],
+              backgroundColor: this.getDistributionColors(),
+              borderWidth: 0,
+            },
+          ],
         },
-        cutout: "70%",
-      },
-    });
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: "bottom",
+              labels: { color: "#9CA3AF", padding: 20 },
+            },
+          },
+          cutout: "70%",
+        },
+      });
+    }
   },
 
   /**
@@ -388,7 +388,6 @@ const Dashboard = {
       return;
     }
     try {
-      console.log("[Dashboard] Fetching /api/dashboard/data");
       const data = await API.get("/api/dashboard/data");
       console.log("[Dashboard] Data received successfully");
 
@@ -398,20 +397,21 @@ const Dashboard = {
       this.updateRecentThreats(data.recent_threats);
       this.updateTopAttackers(data.top_attackers);
 
-      const connectionState = data.connection_state || "Disconnected";
-      let effectiveStatus = "Disconnected";
-      let sidebarStatus = "disconnected";
-
-      if (connectionState === "Connected") {
-        effectiveStatus = "Connected";
-        sidebarStatus = "connected";
-      } else if (connectionState === "Waiting for API") {
-        effectiveStatus = "Waiting for API";
-        sidebarStatus = "connecting";
+      // Verify real API status via the health endpoint
+      let apiOnline = false;
+      try {
+        const healthRes = await API.get("/api/system/health");
+        apiOnline = healthRes.api_online === true;
+      } catch {
+        apiOnline = false;
       }
+
+      const connectionState = apiOnline ? "Connected" : "Disconnected";
+      let effectiveStatus = connectionState;
+      let sidebarStatus = connectionState === "Connected" ? "connected" : "disconnected";
       
       this.updateConnectionUI(effectiveStatus);
-      console.log("[Dashboard] Setting sidebar state to", sidebarStatus);
+      console.log("[Dashboard] Setting sidebar state to", sidebarStatus, "(apiOnline:", apiOnline, ")");
       this.updateSidebarConnectionStatus(sidebarStatus);
 
       const lastUpdateEl = document.getElementById("last-update");
@@ -419,7 +419,6 @@ const Dashboard = {
         lastUpdateEl.textContent = new Date().toLocaleTimeString();
       }
     } catch (error) {
-      // ✅ لو الـ fetch فشل = الـ API مش شغال → Disconnected
       console.warn("[Dashboard] Fetch failed:", error.message);
       this.updateConnectionUI("Disconnected");
       this.updateSidebarConnectionStatus("disconnected");
@@ -481,6 +480,70 @@ const Dashboard = {
       }
     }
 
+    // User-specific stats
+    const totalThreatsEl = document.getElementById("total-threats");
+    if (totalThreatsEl) {
+      const threats = (stats.sql_injection_attempts || 0) + (stats.xss_attempts || 0) + (stats.brute_force_attempts || 0) + (stats.scanner_attempts || 0) + (stats.rate_limit_hits || 0) + (stats.csrf_attempts || 0) + (stats.ssrf_attempts || 0) + (stats.ml_detections || 0);
+      this.animateNumber(totalThreatsEl, threats);
+    }
+
+    const incidentsResolvedEl = document.getElementById("incidents-resolved");
+    if (incidentsResolvedEl) {
+      this.animateNumber(incidentsResolvedEl, stats.blocked_requests || 0);
+    }
+
+    const protectionStatusEl = document.getElementById("protection-status");
+    if (protectionStatusEl) {
+      protectionStatusEl.textContent = (stats.total_requests || 0) > 0 ? "Active" : "Active";
+    }
+
+    const systemHealthEl = document.getElementById("system-health");
+    if (systemHealthEl) {
+      const total = stats.total_requests || 0;
+      const blocked = stats.blocked_requests || 0;
+      const health = total > 0 && (blocked / total) < 0.5 ? "Secure" : "Monitoring";
+      systemHealthEl.textContent = health;
+    }
+
+    // User security score
+    const userScoreEl = document.getElementById("user-security-score");
+    if (userScoreEl) {
+      const score = stats.security_score || 0;
+      userScoreEl.textContent = score > 0 ? Math.round(score) + '/100' : '--';
+      const scoreVal = parseInt(score);
+      userScoreEl.style.color = scoreVal >= 80 ? '#22c55e' : scoreVal >= 50 ? '#f59e0b' : '#ef4444';
+    }
+
+    // User threat breakdown table
+    const breakdownBody = document.getElementById("user-threat-breakdown");
+    if (breakdownBody) {
+      const items = [
+        { label: 'SQL Injection', val: stats.sql_injection_attempts || 0 },
+        { label: 'XSS', val: stats.xss_attempts || 0 },
+        { label: 'Brute Force', val: stats.brute_force_attempts || 0 },
+        { label: 'Scanner', val: stats.scanner_attempts || 0 },
+        { label: 'Rate Limit', val: stats.rate_limit_hits || 0 },
+        { label: 'ML Detections', val: stats.ml_detections || 0 },
+      ];
+      const active = items.filter(i => i.val > 0);
+      if (active.length === 0) {
+        breakdownBody.innerHTML = '<tr><td colspan="2" style="text-align:center;color:var(--text-muted)">No threats detected</td></tr>';
+      } else {
+        breakdownBody.innerHTML = active.map(i => `
+          <tr>
+            <td><span class="attack-type-label">${i.label}</span></td>
+            <td><strong>${i.val}</strong></td>
+          </tr>
+        `).join('');
+      }
+    }
+
+    // User last update
+    const userLastUpdate = document.getElementById("user-last-update");
+    if (userLastUpdate) {
+      userLastUpdate.textContent = new Date().toLocaleTimeString();
+    }
+
     // Top Attack Calculation
     const attackStats = [
       { label: "SQL Injection", val: stats.sql_injection_attempts, icon: "fa-database", color: "#D97706" },
@@ -501,15 +564,19 @@ const Dashboard = {
     const topAttackIconEl = document.getElementById("top-attack-icon");
 
     if (topAttackCard && topAttackValEl && topAttackLabelEl && topAttackIconEl) {
+      const user = Auth.getUser();
+      const isUser = user && user.role === 'user';
       if (topAttack.val > 0) {
-        // Show the name of the attack instead of the count
         topAttackValEl.textContent = topAttack.label.toUpperCase();
         topAttackValEl.style.fontSize = topAttack.label.length > 12 ? "1.5rem" : "2rem";
         topAttackLabelEl.textContent = "Top Attack";
         topAttackIconEl.className = `fas ${topAttack.icon}`;
         topAttackIconEl.style.color = topAttack.color;
         topAttackCard.style.setProperty("--card-accent", topAttack.color);
-        topAttackCard.onclick = () => location.href = '/threats-overview';
+        if (!isUser) {
+          topAttackCard.classList.add('clickable');
+          topAttackCard.onclick = () => location.href = '/threats-overview';
+        }
       } else {
         topAttackValEl.textContent = "No Attacks";
         topAttackValEl.style.fontSize = "1.8rem";
@@ -517,7 +584,10 @@ const Dashboard = {
         topAttackIconEl.className = "fas fa-triangle-exclamation";
         topAttackIconEl.style.color = "var(--text-secondary)";
         topAttackCard.style.setProperty("--card-accent", "var(--brand-primary)");
-        topAttackCard.onclick = () => location.href = '/threats-overview';
+        if (!isUser) {
+          topAttackCard.classList.add('clickable');
+          topAttackCard.onclick = () => location.href = '/threats-overview';
+        }
       }
     }
 
@@ -588,6 +658,7 @@ const Dashboard = {
    * Update Timeline Chart
    */
   updateTimeline(timeline) {
+    if (!this.charts.timeline) return;
     const labels = timeline.map((t) =>
       new Date(t.timestamp * 1000).toLocaleTimeString([], {
         hour: "2-digit",
@@ -610,6 +681,7 @@ const Dashboard = {
    * Update Threat Distribution Pie
    */
   updateDistribution(dist) {
+    if (!this.charts.distribution) return;
     const values = [
       dist["SQL Injection"] || 0,
       dist["XSS"] || 0,

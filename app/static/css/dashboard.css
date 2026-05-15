@@ -422,8 +422,12 @@ body::after {
 .stat-card {
   --card-accent: var(--brand-primary);
   min-height: 160px;
-  cursor: pointer;
+  cursor: default;
   justify-content: space-between;
+}
+
+.stat-card.clickable {
+  cursor: pointer;
 }
 
 .stat-card::before {
@@ -563,6 +567,14 @@ body::after {
   line-height: 1;
   color: var(--text-primary);
   text-shadow: 0 0 5px color-mix(in srgb, var(--card-accent) 35%, transparent);
+}
+
+.stat-footer {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-top: 0.6rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 
 @media (max-width: 1400px) {

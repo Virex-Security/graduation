@@ -10,7 +10,9 @@ title %}Incidents - Virex{% endblock %} {% block stylesheets %}
     <h1>Security Incidents</h1>
     <p>
       {% if user.role == 'admin' %} Manage and respond to detected security
-      threats. {% else %} Summary of detected security incidents {% endif %}
+      threats. {% elif user.role == 'analyst' %} Investigate and resolve security
+      incidents. {% elif user.role == 'manager' %} Summary of detected security incidents.
+      {% else %} Security incident overview {% endif %}
     </p>
   </header>
 
@@ -75,14 +77,14 @@ title %}Incidents - Virex{% endblock %} {% block stylesheets %}
     </div>
   </div>
 
+  {% if user.role in ['admin','analyst'] %}
   <div class="table-card" style="margin-bottom: 2rem">
     <h2>Detection Type Distribution</h2>
     <div
       id="distribution-report"
       style="display: flex; gap: 2rem; padding: 1rem; flex-wrap: wrap"
     >
-      {% if distribution %} {% for detection_type, count in distribution.items()
-      %}
+      {% if distribution %} {% for detection_type, count in distribution.items() %}
       <div
         style="
           background: var(--bg-color);
@@ -119,6 +121,7 @@ title %}Incidents - Virex{% endblock %} {% block stylesheets %}
       {% endif %}
     </div>
   </div>
+  {% endif %}
 
   <div class="table-card" style="width: 100%">
     <h2>All Incidents ({{ total_incidents }})</h2>
@@ -127,12 +130,18 @@ title %}Incidents - Virex{% endblock %} {% block stylesheets %}
         <tr>
           <th scope="col">Incident ID</th>
           <th scope="col">Status</th>
+          {% if user.role in ['admin','analyst'] %}
           <th scope="col" class="admin-only">Detection</th>
+          {% endif %}
           <th scope="col">Category</th>
+          {% if user.role in ['admin','analyst'] %}
           <th scope="col" class="admin-only">Source IP</th>
+          {% endif %}
           <th scope="col">Severity</th>
+          {% if user.role in ['admin','analyst'] %}
           <th scope="col" class="admin-only">Events</th>
           <th scope="col" class="admin-only">Last Seen</th>
+          {% endif %}
           <th scope="col">Actions</th>
         </tr>
       </thead>
@@ -145,10 +154,17 @@ title %}Incidents - Virex{% endblock %} {% block stylesheets %}
             {{ incident.id }}
           </td>
           <td>
+            {% if user.role in ['admin','analyst'] %}
             <span class="status-badge status-{{ incident.status.lower() }}"
               >{{ incident.status }}</span
             >
+            {% else %}
+            <span class="status-badge status-{{ incident.status.lower() }}"
+              >{{ incident.status }}</span
+            >
+            {% endif %}
           </td>
+          {% if user.role in ['admin','analyst'] %}
           <td class="admin-only">
             <span
               class="badge"
@@ -159,24 +175,29 @@ title %}Incidents - Virex{% endblock %} {% block stylesheets %}
               >{{ incident.detection_type }}</span
             >
           </td>
+          {% endif %}
           <td>{{ incident.category }}</td>
+          {% if user.role in ['admin','analyst'] %}
           <td class="admin-only">{{ incident.source_ip }}</td>
+          {% endif %}
           <td>
             <span
               class="severity-badge severity-{{ incident.severity.lower() }}"
               >{{ incident.severity }}</span
             >
           </td>
+          {% if user.role in ['admin','analyst'] %}
           <td class="admin-only">{{ incident.events|length }}</td>
           <td class="admin-only">{{ incident.last_seen }}</td>
+          {% endif %}
           <td>
-            {% if user.role == 'admin' %}
+            {% if user.role in ['admin','analyst'] %}
             <a href="/incident/{{ incident.id }}" class="action-link"
               >Investigate</a
             >
             {% else %}
             <span style="color: var(--text-secondary); font-size: 0.9rem">
-              Detected attack of type {{ incident.category }}
+              {{ incident.category }} detected
             </span>
             {% endif %}
           </td>
@@ -199,7 +220,6 @@ title %}Incidents - Virex{% endblock %} {% block stylesheets %}
 <script>
   let allIncidents = JSON.parse("{{ incidents|tojson | safe }}");
 
-  // Re-render table based on current filter state
   function renderTableFromState() {
     const tbody = document.getElementById("incidents-table-body");
     const catFilter = document.getElementById("filter-category").value;
@@ -213,6 +233,9 @@ title %}Incidents - Virex{% endblock %} {% block stylesheets %}
     tbody.innerHTML = "";
 
     let filteredCount = 0;
+    const role = "{{ user.role }}";
+    const isAnalystOrAdmin = role === 'admin' || role === 'analyst';
+
     allIncidents.forEach((inc) => {
       if (catFilter !== "all" && inc.category !== catFilter) return;
       if (statFilter !== "all" && inc.status !== statFilter) return;
@@ -227,25 +250,28 @@ title %}Incidents - Virex{% endblock %} {% block stylesheets %}
       filteredCount++;
       const tr = document.createElement("tr");
       const statusClass = `status-${inc.status.toLowerCase()}`;
-      const isAdmin = "{{ user.role }}" === "admin";
 
-      tr.innerHTML = `
-                    <td style="font-family: 'JetBrains Mono'; font-size: 0.85rem;">${inc.id}</td>
-                    <td><span class="status-badge ${statusClass}">${inc.status}</span></td>
-                    ${isAdmin ? `<td><span class="badge" style="background: rgba(124, 58, 237, 0.1); color: var(--brand-primary);">${inc.detection_type}</span></td>` : ""}
-                    <td>${inc.category}</td>
-                    ${isAdmin ? `<td>${inc.source_ip}</td>` : ""}
-                    <td><span class="severity-badge severity-${inc.severity.toLowerCase()}">${inc.severity}</span></td>
-                    ${isAdmin ? `<td>${inc.events.length}</td>` : ""}
-                    ${isAdmin ? `<td>${inc.last_seen}</td>` : ""}
-                    <td>
-                      ${
-                        isAdmin
-                          ? `<a href="/incident/${inc.id}" class="action-link">Investigate</a>`
-                          : `<span style="color: var(--text-secondary); font-size: 0.9rem;">Detected attack of type ${inc.category}</span>`
-                      }
-                    </td>
-                `;
+      let cols = `<td style="font-family: 'JetBrains Mono'; font-size: 0.85rem;">${inc.id}</td>`;
+      cols += `<td><span class="status-badge ${statusClass}">${inc.status}</span></td>`;
+      if (isAnalystOrAdmin) {
+        cols += `<td><span class="badge" style="background: rgba(124, 58, 237, 0.1); color: var(--brand-primary);">${inc.detection_type}</span></td>`;
+      }
+      cols += `<td>${inc.category}</td>`;
+      if (isAnalystOrAdmin) {
+        cols += `<td>${inc.source_ip}</td>`;
+      }
+      cols += `<td><span class="severity-badge severity-${inc.severity.toLowerCase()}">${inc.severity}</span></td>`;
+      if (isAnalystOrAdmin) {
+        cols += `<td>${inc.events.length}</td>`;
+        cols += `<td>${inc.last_seen}</td>`;
+      }
+      if (isAnalystOrAdmin) {
+        cols += `<td><a href="/incident/${inc.id}" class="action-link">Investigate</a></td>`;
+      } else {
+        cols += `<td><span style="color: var(--text-secondary); font-size: 0.9rem;">${inc.category} detected</span></td>`;
+      }
+
+      tr.innerHTML = cols;
       tbody.appendChild(tr);
     });
 
@@ -257,12 +283,10 @@ title %}Incidents - Virex{% endblock %} {% block stylesheets %}
     }
   }
 
-  // Filter by severity and re-render
   function filterTableBySeverity() {
     renderTableFromState();
   }
 
-  // Fetch latest incidents and update
   async function refreshIncidents() {
     try {
       const response = await fetch("/api/incidents");
@@ -274,7 +298,6 @@ title %}Incidents - Virex{% endblock %} {% block stylesheets %}
   }
 
   window.onload = () => {
-    // Apply URL parameters to filters if present
     const urlParams = new URLSearchParams(window.location.search);
     const cat = urlParams.get("category");
     const ip = urlParams.get("ip");
@@ -285,7 +308,6 @@ title %}Incidents - Virex{% endblock %} {% block stylesheets %}
     if (stat) document.getElementById("filter-status").value = stat;
     if (sev) document.getElementById("filter-severity").value = sev;
 
-    // Bind filter listeners
     document
       .querySelectorAll('.filters-bar select, .filters-bar input[type="date"]')
       .forEach((el) => {
@@ -295,10 +317,7 @@ title %}Incidents - Virex{% endblock %} {% block stylesheets %}
       .getElementById("filter-ip")
       .addEventListener("keyup", renderTableFromState);
 
-    // Initial render with Jinja data
     renderTableFromState();
-
-    // Refresh incidents every 10 seconds
     setInterval(refreshIncidents, 10000);
   };
 </script>

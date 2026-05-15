@@ -8,6 +8,7 @@ title %}Dashboard - Virex{% endblock %} {% block stylesheets %}
   <span class="score-value" id="navbar-score-value">--/100</span>
 </div>
 
+{% if user.role == 'admin' %}
 <a
   href="/settings"
   class="btn-icon"
@@ -17,6 +18,7 @@ title %}Dashboard - Virex{% endblock %} {% block stylesheets %}
 >
   <i class="fas fa-sliders"></i>
 </a>
+{% endif %}
 
 <button
   class="btn-icon notification-bell"
@@ -76,13 +78,12 @@ title %}Dashboard - Virex{% endblock %} {% block stylesheets %}
     </div>
   </header>
 
+  {# ────── ADMIN DASHBOARD ────── #}
+  {% if user.role == 'admin' %}
   <section class="stats-section">
     <div>
       <div class="stats-grid">
-        <div
-          class="stat-card card type-total clickable"
-          onclick="location.href = '/requests'"
-        >
+        <div class="stat-card card type-total clickable" onclick="location.href = '/requests'">
           <div class="stat-header">
             <i class="fas fa-globe"></i>
             <h3>Total Requests</h3>
@@ -90,10 +91,7 @@ title %}Dashboard - Virex{% endblock %} {% block stylesheets %}
           <div class="stat-value" id="total-requests">0</div>
         </div>
 
-        <div
-          class="stat-card card type-blocked clickable"
-          onclick="location.href = '/blocked_page'"
-        >
+        <div class="stat-card card type-blocked clickable" onclick="location.href = '/blocked_page'">
           <div class="stat-header">
             <i class="fas fa-hand" style="color: red"></i>
             <h3>Blocked</h3>
@@ -101,10 +99,7 @@ title %}Dashboard - Virex{% endblock %} {% block stylesheets %}
           <div class="stat-value" id="blocked-requests">0</div>
         </div>
 
-        <div
-          class="stat-card card type-ml clickable"
-          onclick="location.href = '/ml-detections'"
-        >
+        <div class="stat-card card type-ml clickable" onclick="location.href = '/ml-detections'">
           <div class="stat-header">
             <i class="fas fa-brain" style="color: var(--brand-secondary)"></i>
             <h3>ML Detections</h3>
@@ -112,17 +107,15 @@ title %}Dashboard - Virex{% endblock %} {% block stylesheets %}
           <div class="stat-value" id="ml-detections">0</div>
         </div>
 
-        <div
-          class="stat-card card type-top-attack clickable"
-          id="top-attack-card"
-          onclick="location.href = '/threats-overview'"
-        >
+        <div class="stat-card card type-top-attack clickable" id="top-attack-card" onclick="location.href = '/threats-overview'">
           <div class="stat-header">
             <i class="fas fa-triangle-exclamation" id="top-attack-icon"></i>
             <h3 id="top-attack-label">Top Attack</h3>
           </div>
           <div class="stat-value" id="top-attack-value" style="font-size: 1.2rem;">No Attacks</div>
         </div>
+
+
       </div>
     </div>
   </section>
@@ -131,23 +124,15 @@ title %}Dashboard - Virex{% endblock %} {% block stylesheets %}
     <div class="charts-grid charts-grid-3col">
       <div class="chart-card card">
         <h2>Traffic Analysis (Real-time)</h2>
-        <div style="height: 300px">
-          <canvas id="timelineChart"></canvas>
-        </div>
+        <div style="height: 300px"><canvas id="timelineChart"></canvas></div>
       </div>
 
       <div class="chart-card card">
         <h2>Threat Distribution</h2>
-        <div style="height: 300px">
-          <canvas id="distributionChart"></canvas>
-        </div>
+        <div style="height: 300px"><canvas id="distributionChart"></canvas></div>
       </div>
 
-      <div
-        class="chart-card card mlp-summary-card"
-        onclick="location.href = '/ml-performance'"
-        title="View Full ML Report"
-      >
+      <div class="chart-card card mlp-summary-card" onclick="location.href = '/ml-performance'" title="View Full ML Report">
         <div class="mlp-summary-header">
           <div class="mlp-summary-title-group">
             <div class="mlp-summary-icon"><i class="fas fa-brain"></i></div>
@@ -157,43 +142,18 @@ title %}Dashboard - Virex{% endblock %} {% block stylesheets %}
             </div>
           </div>
           <div class="mlp-summary-badge" id="mlp-summary-status">
-            <span class="mlp-summary-dot"></span>
-            <span>Active</span>
+            <span class="mlp-summary-dot"></span><span>Active</span>
           </div>
         </div>
-
-        <div class="mlp-chart-wrap">
-          <canvas id="mlpMiniChart"></canvas>
-        </div>
-
+        <div class="mlp-chart-wrap"><canvas id="mlpMiniChart"></canvas></div>
         <div class="mlp-summary-metrics">
-          <div class="mlp-summary-metric">
-            <span class="mlp-summary-val mlp-col-green" id="mlp-s-accuracy"
-              >--%</span
-            >
-            <span class="mlp-summary-lbl">Accuracy</span>
-          </div>
+          <div class="mlp-summary-metric"><span class="mlp-summary-val mlp-col-green" id="mlp-s-accuracy">--%</span><span class="mlp-summary-lbl">Accuracy</span></div>
           <div class="mlp-summary-sep"></div>
-          <div class="mlp-summary-metric">
-            <span class="mlp-summary-val mlp-col-yellow" id="mlp-s-recall"
-              >--%</span
-            >
-            <span class="mlp-summary-lbl">Recall</span>
-          </div>
+          <div class="mlp-summary-metric"><span class="mlp-summary-val mlp-col-yellow" id="mlp-s-recall">--%</span><span class="mlp-summary-lbl">Recall</span></div>
           <div class="mlp-summary-sep"></div>
-          <div class="mlp-summary-metric">
-            <span class="mlp-summary-val mlp-col-purple" id="mlp-s-f1"
-              >--%</span
-            >
-            <span class="mlp-summary-lbl">F1-Score</span>
-          </div>
+          <div class="mlp-summary-metric"><span class="mlp-summary-val mlp-col-purple" id="mlp-s-f1">--%</span><span class="mlp-summary-lbl">F1-Score</span></div>
         </div>
-
-        <button class="mlp-report-btn">
-          <i class="fas fa-chart-bar"></i>
-          View Full Report
-          <i class="fas fa-arrow-right mlp-arrow"></i>
-        </button>
+        <button class="mlp-report-btn"><i class="fas fa-chart-bar"></i>View Full Report<i class="fas fa-arrow-right mlp-arrow"></i></button>
       </div>
     </div>
   </section>
@@ -201,20 +161,10 @@ title %}Dashboard - Virex{% endblock %} {% block stylesheets %}
   <section class="data-section">
     <div class="info-grid">
       <div class="table-card card">
-        <div class="alert-header">
-          <h2>Recent Security Alerts</h2>
-        </div>
+        <div class="alert-header"><h2>Recent Security Alerts</h2></div>
         <div class="table-responsive">
           <table class="data-table">
-            <thead>
-              <tr>
-                <th>Timestamp</th>
-                <th>Threat Type</th>
-                <th>Source IP</th>
-                <th>Severity</th>
-                <th>Details</th>
-              </tr>
-            </thead>
+            <thead><tr><th>Timestamp</th><th>Threat Type</th><th>Source IP</th><th>Severity</th><th>Details</th></tr></thead>
             <tbody id="threats-table-body"></tbody>
           </table>
         </div>
@@ -226,45 +176,223 @@ title %}Dashboard - Virex{% endblock %} {% block stylesheets %}
       </div>
     </div>
   </section>
+
+  {# ────── ANALYST DASHBOARD ────── #}
+  {% elif user.role == 'analyst' %}
+  <section class="stats-section">
+    <div>
+      <div class="stats-grid">
+        <div class="stat-card card type-total clickable" onclick="location.href = '/requests'">
+          <div class="stat-header"><i class="fas fa-globe"></i><h3>Total Requests</h3></div>
+          <div class="stat-value" id="total-requests">0</div>
+        </div>
+        <div class="stat-card card type-blocked clickable" onclick="location.href = '/blocked_page'">
+          <div class="stat-header"><i class="fas fa-hand" style="color: red"></i><h3>Blocked</h3></div>
+          <div class="stat-value" id="blocked-requests">0</div>
+        </div>
+        <div class="stat-card card type-ml clickable" onclick="location.href = '/ml-detections'">
+          <div class="stat-header"><i class="fas fa-brain" style="color: var(--brand-secondary)"></i><h3>ML Detections</h3></div>
+          <div class="stat-value" id="ml-detections">0</div>
+        </div>
+        <div class="stat-card card type-top-attack clickable" id="top-attack-card" onclick="location.href = '/threats-overview'">
+          <div class="stat-header"><i class="fas fa-triangle-exclamation" id="top-attack-icon"></i><h3 id="top-attack-label">Top Attack</h3></div>
+          <div class="stat-value" id="top-attack-value" style="font-size: 1.2rem;">No Attacks</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="charts-section">
+    <div class="charts-grid charts-grid-3col">
+      <div class="chart-card card">
+        <h2>Traffic Analysis</h2>
+        <div style="height: 300px"><canvas id="timelineChart"></canvas></div>
+      </div>
+      <div class="chart-card card">
+        <h2>Threat Distribution</h2>
+        <div style="height: 300px"><canvas id="distributionChart"></canvas></div>
+      </div>
+      <div class="chart-card card">
+        <h2>ML Confidence</h2>
+        <div style="height: 300px"><canvas id="mlpMiniChart"></canvas></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="data-section">
+    <div class="info-grid">
+      <div class="table-card card">
+        <div class="alert-header"><h2>Recent Threats</h2></div>
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead><tr><th>Timestamp</th><th>Threat Type</th><th>Severity</th></tr></thead>
+            <tbody id="threats-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="table-card card">
+        <div class="alert-header"><h2>Recent Incidents</h2></div>
+        <div id="recent-incidents"></div>
+      </div>
+    </div>
+  </section>
+
+  {# ────── MANAGER DASHBOARD ────── #}
+  {% elif user.role == 'manager' %}
+  <section class="stats-section">
+    <div>
+      <div class="stats-grid">
+        <div class="stat-card card type-total">
+          <div class="stat-header"><i class="fas fa-chart-line"></i><h3>Total Threats This Week</h3></div>
+          <div class="stat-value" id="weekly-threats">--</div>
+        </div>
+        <div class="stat-card card type-blocked">
+          <div class="stat-header"><i class="fas fa-check-circle" style="color: #22c55e"></i><h3>Incidents Resolved</h3></div>
+          <div class="stat-value" id="resolved-percent">--%</div>
+        </div>
+        <div class="stat-card card type-ml">
+          <div class="stat-header"><i class="fas fa-chart-bar" style="color: var(--brand-primary)"></i><h3>ML Accuracy</h3></div>
+          <div class="stat-value" id="ml-accuracy">--%</div>
+        </div>
+        <div class="stat-card card type-top-attack">
+          <div class="stat-header"><i class="fas fa-heart" style="color: #22c55e"></i><h3>System Health</h3></div>
+          <div class="stat-value" id="system-health">Good</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="charts-section">
+    <div class="charts-grid charts-grid-2col">
+      <div class="chart-card card">
+        <h2>Team Activity</h2>
+        <div style="height: 300px"><canvas id="timelineChart"></canvas></div>
+      </div>
+      <div class="chart-card card">
+        <h2>Incidents Overview</h2>
+        <div style="height: 300px"><canvas id="distributionChart"></canvas></div>
+      </div>
+    </div>
+  </section>
+
+  {# ────── USER DASHBOARD ────── #}
+  {% elif user.role == 'user' %}
+  <section class="stats-section">
+    <div>
+      <div class="stats-grid" style="grid-template-columns: repeat(3, 1fr); max-width: 1000px; margin: 0 auto;">
+        <div class="stat-card card">
+          <div class="stat-header">
+            <i class="fas fa-shield-virus" style="color: var(--brand-primary)"></i>
+            <h3>Total Threats Detected</h3>
+          </div>
+          <div class="stat-value" id="total-threats">--</div>
+          <div class="stat-footer">All time</div>
+        </div>
+        <div class="stat-card card">
+          <div class="stat-header">
+            <i class="fas fa-check-circle" style="color: #22c55e"></i>
+            <h3>Protection Status</h3>
+          </div>
+          <div class="stat-value" id="protection-status" style="font-size: 1.2rem; color: #22c55e">Active</div>
+          <div class="stat-footer">Real-time monitoring</div>
+        </div>
+        <div class="stat-card card">
+          <div class="stat-header">
+            <i class="fas fa-check-double" style="color: #3b82f6"></i>
+            <h3>Incidents Resolved</h3>
+          </div>
+          <div class="stat-value" id="incidents-resolved">--</div>
+          <div class="stat-footer">Successfully handled</div>
+        </div>
+        <div class="stat-card card">
+          <div class="stat-header">
+            <i class="fas fa-heart" style="color: #22c55e"></i>
+            <h3>System Health</h3>
+          </div>
+          <div class="stat-value" id="system-health" style="font-size: 1.2rem; color: #22c55e">Secure</div>
+          <div class="stat-footer">All systems operational</div>
+        </div>
+        <div class="stat-card card type-top-attack" id="top-attack-card">
+          <div class="stat-header">
+            <i class="fas fa-triangle-exclamation" id="top-attack-icon" style="color: var(--brand-secondary)"></i>
+            <h3 id="top-attack-label">Top Attack</h3>
+          </div>
+          <div class="stat-value" id="top-attack-value" style="font-size: 1.2rem;">No Attacks</div>
+          <div class="stat-footer">Most frequent threat type</div>
+        </div>
+        <div class="stat-card card">
+          <div class="stat-header">
+            <i class="fas fa-shield" style="color: #8b5cf6"></i>
+            <h3>Security Score</h3>
+          </div>
+          <div class="stat-value" id="user-security-score" style="font-size: 1.8rem; color: #22c55e">--</div>
+          <div class="stat-footer">Overall system rating</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="data-section">
+    <div class="info-grid" style="grid-template-columns: 1fr 1fr; max-width: 1000px; margin: 0 auto;">
+      <div class="table-card card">
+        <div class="alert-header">
+          <h2><i class="fas fa-chart-pie"></i> Threat Breakdown</h2>
+        </div>
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead><tr><th>Threat Type</th><th>Count</th></tr></thead>
+            <tbody id="user-threat-breakdown">
+              <tr><td colspan="2" style="text-align:center;color:var(--text-muted)">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="table-card card">
+        <div class="alert-header">
+          <h2><i class="fas fa-clock"></i> Recent Activity</h2>
+        </div>
+        <div id="user-recent-activity">
+          <div style="padding:1rem;text-align:center;color:var(--text-muted)">
+            <i class="fas fa-circle-check" style="color:#22c55e"></i> System monitoring active<br>
+            <span style="font-size:0.85rem">Last updated: <span id="user-last-update">--:--:--</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  {% endif %}
 </main>
 
+{% if user.role == 'admin' %}
 <div id="reset-confirm-modal" class="modal-overlay" style="display: none">
   <div class="modal-dialog">
     <div class="modal-header">
-      <i
-        class="fas fa-exclamation-triangle"
-        style="color: var(--text-secondary); font-size: 2rem"
-      ></i>
+      <i class="fas fa-exclamation-triangle" style="color: var(--text-secondary); font-size: 2rem"></i>
       <h3>Reset Statistics</h3>
     </div>
     <div class="modal-body">
       <p>Are you sure you want to reset all statistics?</p>
-      <p class="modal-warning">
-        This action will clear all logs, incidents, and metrics. This cannot be
-        undone.
-      </p>
+      <p class="modal-warning">This action will clear all logs, incidents, and metrics. This cannot be undone.</p>
     </div>
     <div class="modal-footer">
-      <button class="modal-btn modal-btn-cancel" id="reset-cancel-btn">
-        Cancel
-      </button>
-      <button class="modal-btn modal-btn-confirm" id="reset-confirm-btn">
-        Reset
-      </button>
+      <button class="modal-btn modal-btn-cancel" id="reset-cancel-btn">Cancel</button>
+      <button class="modal-btn modal-btn-confirm" id="reset-confirm-btn">Reset</button>
     </div>
   </div>
 </div>
+{% endif %}
 
 <div id="notification-container"></div>
 {% endblock %} {% block scripts %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
   window.DASHBOARD_CONFIG = {
-    // Wrap Jinja variable in single quotes and parse it to prevent IDE syntax errors
     apiEnabled: JSON.parse('{{ dashboard_api_enabled | tojson | safe }}')
   };
 </script>
 <script src="/static/javascript/dashboard.js"></script>
+{% if user.role in ['admin','analyst'] %}
 <script src="/static/javascript/ml_stats.js"></script>
+{% endif %}
 <script src="/static/javascript/ramadan.js"></script>
 {% endblock %}

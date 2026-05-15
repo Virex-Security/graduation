@@ -4808,5 +4808,25 @@
     "attack_type": "ssrf",
     "reviewed": false,
     "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-15T13:49:00Z",
+    "text_hash": "3165078f1b9b74a14060f961d0a4478d",
+    "text_snippet": "http://127.0.0.1/admin",
+    "risk_score": 1.0,
+    "decision": "block",
+    "attack_type": "ssrf",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-15T13:49:07Z",
+    "text_hash": "66bab3774cfd5aca596b1252a3303d0d",
+    "text_snippet": "http://metadata.google.internal",
+    "risk_score": 0.86,
+    "decision": "monitor",
+    "attack_type": "ssrf",
+    "reviewed": false,
+    "promoted_to_rule": false
   }
 ]

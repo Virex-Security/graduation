@@ -1,0 +1,40 @@
+{% extends "sidebar_layout.html" %} {% set active_page = 'notifications' %} {% block
+title %}Notifications - Virex{% endblock %} {% block content %}
+<main class="main-content">
+  <header class="section-title">
+    <h1>Notifications</h1>
+    <p>Your personal notifications</p>
+  </header>
+
+  <div class="table-card">
+    <div id="notifications-list">
+      <p style="color: var(--text-secondary); text-align: center; padding: 2rem;">
+        <i class="fas fa-spinner fa-spin"></i> Loading notifications...
+      </p>
+    </div>
+  </div>
+</main>
+{% endblock %} {% block scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', async () => {
+    try {
+      const resp = await fetch('/api/notifications');
+      const data = await resp.json();
+      const container = document.getElementById('notifications-list');
+      const notifs = data.notifications || [];
+      if (notifs.length === 0) {
+        container.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 2rem;">No notifications.</p>';
+        return;
+      }
+      container.innerHTML = '<ul style="list-style: none; padding: 0;">' +
+        notifs.map(n => `<li style="padding: 1rem; border-bottom: 1px solid var(--border-dim); display: flex; align-items: center; gap: 1rem;">
+          <i class="fas fa-bell" style="color: var(--brand-primary);"></i>
+          <div><p>${n.message}</p><small style="color: var(--text-secondary);">${n.created_at}</small></div>
+        </li>`).join('') + '</ul>';
+    } catch (e) {
+      document.getElementById('notifications-list').innerHTML =
+        '<p style="color: var(--danger); text-align: center; padding: 2rem;">Failed to load notifications.</p>';
+    }
+  });
+</script>
+{% endblock %}

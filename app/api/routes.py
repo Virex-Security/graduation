@@ -23,7 +23,7 @@ import secrets
 from app.api.security import SimpleSecurityManager
 from app.api import services
 from app.auth import user_manager
-from app.auth.decorators import admin_required, token_required
+from app.auth.decorators import admin_only, login_required
 from app.security import new_request_id, is_trivial, is_business_relevant
 from app import config as _cfg
 
@@ -315,8 +315,7 @@ def create_api_app():
         return jsonify({"status": "healthy"}), 200
 
     @app.route("/health/detailed")
-    @token_required
-    @admin_required
+    @admin_only
     def health_detailed(current_user):
         return {"status": "healthy", "uptime": time.time() - security.start_time,
                 "total_requests": security.total_requests,
@@ -333,15 +332,14 @@ def create_api_app():
 
     # ── Data Routes ───────────────────────────────────────────
     @app.route("/api/users", methods=["GET"])
-    @token_required
-    @admin_required
+    @admin_only
     def get_users_route(current_user):
       q = request.args.get("search", "")
       results = services.get_users(q if q else None)
       return jsonify({"users": results})
 
     @app.route("/api/orders", methods=["GET"])
-    @token_required
+    @login_required
     def get_orders_route(current_user):
         user_filter = request.args.get("user", "")
         results = services.get_orders(current_user["username"])
@@ -349,7 +347,7 @@ def create_api_app():
         return jsonify({"orders": results, "total": len(results)})
 
     @app.route("/api/products", methods=["GET"])
-    @token_required
+    @login_required
     def get_products_route(current_user):
         cat = request.args.get("category", "")
         q   = request.args.get("search", "")
@@ -358,7 +356,7 @@ def create_api_app():
         return jsonify({"products": results, "total": len(results)})
 
     @app.route("/api/orders", methods=["POST"])
-    @token_required
+    @login_required
     def create_order_route(current_user):
         data = request.get_json() or {}
         new_order = services.create_order(
@@ -369,8 +367,7 @@ def create_api_app():
         return jsonify({"order": new_order}), 201
 
     @app.route("/api/logs", methods=["GET"])
-    @token_required
-    @admin_required
+    @admin_only
     def get_logs_route(current_user):
         logs = services.get_request_logs()
         return jsonify({"logs": logs, "total": len(logs)})
@@ -445,7 +442,7 @@ def create_api_app():
             return jsonify({"error": "Invalid credentials"}), 401
     # ── Attack History Endpoints ──────────────────────────────
     @app.route("/api/my-attacks", methods=["GET"])
-    @token_required
+    @login_required
     def get_my_attacks(current_user):   # ← accept injected user from decorator
       user_key = current_user["username"]  # always from verified token
       
@@ -472,8 +469,7 @@ def create_api_app():
       return jsonify({"user": user_key, "attacks": attacks})
 
     @app.route("/api/clear-attacks", methods=["DELETE"])
-    @token_required
-    @admin_required
+    @admin_only
     def clear_attacks(current_user):
         from app.api.persistence import clear_all_attacks, clear_user_attacks
         if request.args.get("all") == "true":
@@ -487,8 +483,7 @@ def create_api_app():
 
     # ── Security Stats ────────────────────────────────────────
     @app.route("/api/security/stats", methods=["GET"])
-    @token_required
-    @admin_required
+    @admin_only
     def get_security_stats(current_user):
         from app.ml.inference import get_ml_stats
         return jsonify({
@@ -507,8 +502,7 @@ def create_api_app():
         })
 
     @app.route("/api/security/ml/feedback", methods=["GET"])
-    @token_required
-    @admin_required
+    @admin_only
     def get_ml_feedback(current_user):
         from app.api.persistence import get_ml_detections
         data = get_ml_detections(limit=100)

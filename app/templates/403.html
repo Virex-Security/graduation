@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>403 Forbidden - VIREX Security</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body {
+        font-family: 'Inter', sans-serif;
+        background: #0a0a0f;
+        color: #e2e8f0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        overflow: hidden;
+      }
+      .forbidden-container {
+        text-align: center;
+        padding: 2rem;
+        max-width: 500px;
+      }
+      .forbidden-icon {
+        font-size: 4rem;
+        color: #e046ba;
+        margin-bottom: 1.5rem;
+        opacity: 0.8;
+      }
+      .forbidden-code {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 6rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #e046ba, #792b9d);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        line-height: 1;
+        margin-bottom: 1rem;
+      }
+      h1 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 0.75rem;
+        color: #f1f5f9;
+      }
+      p {
+        color: #94a3b8;
+        font-size: 1rem;
+        line-height: 1.6;
+        margin-bottom: 2rem;
+      }
+      .btn-dashboard {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        background: linear-gradient(135deg, #9a277d, #792b9d);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        font-family: 'Inter', sans-serif;
+        font-size: 0.95rem;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        transition: opacity 0.2s;
+      }
+      .btn-dashboard:hover {
+        opacity: 0.9;
+      }
+      .bg-grid {
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background-image:
+          linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+        background-size: 40px 40px;
+        z-index: -1;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="bg-grid"></div>
+    <div class="forbidden-container">
+      <div class="forbidden-icon">
+        <i class="fas fa-shield-halved"></i>
+      </div>
+      <div class="forbidden-code">403</div>
+      <h1>Access Restricted</h1>
+      <p>You don't have access to this page.</p>
+      <a href="/dashboard" class="btn-dashboard">
+        <i class="fas fa-home"></i>
+        Go to my Dashboard
+      </a>
+    </div>
+  </body>
+</html>

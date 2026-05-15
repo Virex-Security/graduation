@@ -1,5 +1,6 @@
 """
 Authentication helpers — login / logout with secure cookie handling.
+JWT payload includes user_id, username, role_name, department_id, exp.
 """
 import hashlib
 import secrets
@@ -12,16 +13,18 @@ from app.auth.models import user_manager
 from app import config
 
 
-def _mint_token(username: str, role: str) -> tuple[str, str]:
+def _mint_token(username: str, role: str, user_id: int = None, department_id: int = None) -> tuple[str, str]:
     """
     Create a signed JWT and return (token, jti).
-    The jti (JWT ID) is used for revocation.
+    Payload includes user_id, username, role_name, department_id, exp.
     """
     jti = secrets.token_hex(16)
     token = jwt.encode(
         {
-            "user": username,
-            "role": role,
+            "user_id": user_id,
+            "username": username,
+            "role_name": role,
+            "department_id": department_id,
             "exp": datetime.utcnow() + timedelta(hours=8),
             "iat": datetime.utcnow(),
             "jti": jti,
@@ -51,21 +54,23 @@ def login_user(username: str, password: str):
     if not user:
         return jsonify({"message": "Invalid credentials"}), 401
 
-    token, jti = _mint_token(username, user["role"])
-
-    # Persist jti for revocation support
     user_id = user.get("user_id") or user.get("id")
+    role = user.get("role_name") or user.get("role", "user")
+    department_id = user.get("department_id")
+
+    token, jti = _mint_token(username, role, user_id, department_id)
+
     if user_id:
         _register_session(user_id, jti)
 
     resp = make_response(
-        jsonify({"message": "Logged in successfully", "role": user["role"]})
+        jsonify({"message": "Logged in successfully", "role": role})
     )
     resp.set_cookie(
         "auth_token",
         token,
         httponly=True,
-        secure=config.cookie_secure(),   # ← env-driven, not hardcoded False
+        secure=config.cookie_secure(),
         samesite="Lax",
         max_age=8 * 3600,
     )
@@ -81,7 +86,7 @@ def logout_user():
                 token,
                 current_app.config["SECRET_KEY"],
                 algorithms=["HS256"],
-                options={"verify_exp": False},   # still process expired tokens on logout
+                options={"verify_exp": False},
             )
             jti = data.get("jti", "")
             if jti:
@@ -89,7 +94,7 @@ def logout_user():
                 jti_hash = hashlib.sha256(jti.encode()).hexdigest()
                 db.invalidate_session(jti_hash)
         except Exception:
-            pass  # always clear the cookie regardless
+            pass
 
     resp = make_response(jsonify({"message": "Logged out successfully"}))
     resp.set_cookie("auth_token", "", expires=0, httponly=True,

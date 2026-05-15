@@ -29,15 +29,16 @@
       <span class="modern-sidebar__role_sub"
         >{{ user.role if user and user.role else 'admin' }}</span
       >
-      <span class="modern-sidebar__status-text status-disconnected" id="sidebar-connection-status">
-        <span class="status-dot"></span> Disconnected
+      <span class="modern-sidebar__status-text status-waiting" id="sidebar-connection-status">
+        <span class="status-dot"></span> Checking...
       </span>
     </div>
   </div>
 
   <nav class="modern-sidebar__nav" aria-label="Primary" id="sidebar-nav">
-    <div class="nav-heading">OVERVIEW </div>
+    <div class="nav-heading">OVERVIEW</div>
 
+    {# All authenticated users see Dashboard #}
     <a
       href="/dashboard"
       class="modern-sidebar__item {% if active_page == 'dashboard' %}active{% endif %}"
@@ -46,6 +47,8 @@
       <span class="modern-sidebar__label">Dashboard</span>
     </a>
 
+    {# Manager, Analyst, Admin see Incidents #}
+    {% if user.role in ['admin','analyst','manager'] %}
     <a
       href="/incidents"
       class="modern-sidebar__item {% if active_page == 'incidents' %}active{% endif %}"
@@ -55,7 +58,20 @@
       ></span>
       <span class="modern-sidebar__label">Incidents</span>
     </a>
+    {% endif %}
 
+    {# Analyst and Admin see Threat Logs and Blocked IPs #}
+    {% if user.role in ['admin','analyst'] %}
+    <a
+      href="/threats-overview"
+      class="modern-sidebar__item {% if active_page == 'threats-overview' %}active{% endif %}"
+    >
+      <span class="modern-sidebar__icon"><i class="fas fa-shield-alt"></i></span>
+      <span class="modern-sidebar__label">Threat Logs</span>
+    </a>
+    {% endif %}
+
+    {% if user.role in ['admin','analyst'] %}
     <a
       href="/attack-history"
       class="modern-sidebar__item {% if active_page == 'attack-history' %}active{% endif %}"
@@ -65,8 +81,27 @@
       ></span>
       <span class="modern-sidebar__label">Attack History</span>
     </a>
+    {% endif %}
 
-    <!-- Security Dropdown -->
+    {% if user.role == 'user' %}
+    <a
+      href="/notifications"
+      class="modern-sidebar__item {% if active_page == 'notifications' %}active{% endif %}"
+    >
+      <span class="modern-sidebar__icon"><i class="fas fa-bell"></i></span>
+      <span class="modern-sidebar__label">Notifications</span>
+    </a>
+    <a
+      href="/settings"
+      class="modern-sidebar__item {% if active_page == 'settings' %}active{% endif %}"
+    >
+      <span class="modern-sidebar__icon"><i class="fas fa-sliders"></i></span>
+      <span class="modern-sidebar__label">Settings</span>
+    </a>
+    {% endif %}
+
+    {# Security Dropdown - Analyst and Admin #}
+    {% if user.role in ['admin','analyst'] %}
     <div class="modern-sidebar__dropdown-expanded-group {% if active_page in ['ml-detections', 'blocked', 'critical', 'blacklist'] %}is-expanded{% endif %}">
       <button
         type="button"
@@ -85,20 +120,23 @@
           <i class="fas fa-brain"></i> ML Detections
         </a>
         <a href="/blocked_page" class="modern-sidebar__submenu-item {% if active_page == 'blocked' %}active{% endif %}">
-          <i class="fas fa-hand"></i> Blocked
+          <i class="fas fa-hand"></i> Blocked IPs
         </a>
         <a href="/critical" class="modern-sidebar__submenu-item {% if active_page == 'critical' %}active{% endif %}">
           <i class="fas fa-radiation"></i> Critical
         </a>
-        {% if user and user.role == 'admin' %}
+        {# Admin only: Blacklist #}
+        {% if user.role == 'admin' %}
         <a href="/blacklist" class="modern-sidebar__submenu-item {% if active_page == 'blacklist' %}active{% endif %}">
           <i class="fas fa-ban"></i> Blacklist
         </a>
         {% endif %}
       </div>
     </div>
+    {% endif %}
 
-    <!-- Management Dropdown -->
+    {# Management Dropdown - visible based on role #}
+    {% if user.role in ['admin','analyst','manager'] %}
     <div class="modern-sidebar__dropdown-expanded-group {% if active_page in ['requests', 'user-manager', 'settings'] %}is-expanded{% endif %}">
       <button
         type="button"
@@ -113,24 +151,32 @@
       </button>
 
       <div class="modern-sidebar__submenu" id="submenu-management">
+        {# Analyst and admin see ML stats #}
+        {% if user.role in ['admin','analyst'] %}
+        <a href="/ml-performance" class="modern-sidebar__submenu-item {% if active_page == 'ml-performance' %}active{% endif %}">
+          <i class="fas fa-brain"></i> ML Engine
+        </a>
+        {% endif %}
+
+        {# Admin only below here #}
+        {% if user.role == 'admin' %}
         <a href="/requests" class="modern-sidebar__submenu-item {% if active_page == 'requests' %}active{% endif %}">
           <i class="fas fa-globe"></i> All Requests
         </a>
-        {% if user and user.role == 'admin' %}
         <a href="/user-manager" class="modern-sidebar__submenu-item {% if active_page == 'user-manager' %}active{% endif %}">
-          <i class="fas fa-users-gear"></i> User Manager
+          <i class="fas fa-users-gear"></i> User Management
         </a>
-        {% endif %}
         <a href="/settings" class="modern-sidebar__submenu-item {% if active_page == 'settings' %}active{% endif %}">
           <i class="fas fa-sliders"></i> Settings
         </a>
-        {% if user and user.role == 'admin' %}
         <button type="button" class="modern-sidebar__submenu-item" id="sidebar-reset-btn">
           <i class="fas fa-arrows-rotate"></i> Reset Stats
         </button>
         {% endif %}
       </div>
     </div>
+    {% endif %}
+
   </nav>
 
   <div class="modern-sidebar__footer">
@@ -141,7 +187,6 @@
       <span class="modern-sidebar__label">Logout</span>
     </button>
   </div>
-
 
 </aside>
 

@@ -459,20 +459,20 @@ class SecurityDashboard:
             api_url = os.getenv("API_URL", "http://127.0.0.1:5000")
             r = requests.get(f"{api_url}/api/health", timeout=2)
             if r.status_code == 200:
-                # ✅ API شغال — CONNECTED
-                self.connection_state = CONNECTED
-                self.had_connection = True
+                body = r.json()
+                if body.get("connected") is True and body.get("status") == "healthy":
+                    self.connection_state = CONNECTED
+                    self.had_connection = True
+                else:
+                    self.connection_state = DISCONNECTED
+                    self.had_connection = False
             else:
-                # ✅ API بيرد بس برسالة غلط
                 self.connection_state = DISCONNECTED
                 self.had_connection = False
         except Exception:
-            # ✅ API مش موجود أصلاً
             if self.had_connection:
-                # كان شغال وبعدين وقع
                 self.connection_state = DISCONNECTED
             else:
-                # لسه معرفناش نتوصل خالص
                 self.connection_state = WAITING
             self.had_connection = False
 

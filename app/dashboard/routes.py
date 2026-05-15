@@ -21,7 +21,7 @@ from app.dashboard.services import SecurityDashboard
 from app.dashboard.services import SecurityDashboard
 from app.dashboard.metrics import calculate_threat_score, is_recent, determine_threat_status, run_timeline_updates
 from app.chatbot import SecurityChatbot
-from app.auth import login_user, logout_user, user_manager, Role, token_required, admin_required, require_role
+from app.auth import login_user, logout_user, user_manager, Role, login_required, admin_only, analyst_and_above, manager_and_above
 
 # Dashboard services and chatbot initialization
 dashboard = SecurityDashboard()
@@ -50,6 +50,22 @@ def create_dashboard_app():
                 template_folder=template_folder,
                 static_folder=static_folder)
     app.config['SECRET_KEY'] = dashboard.secret_key
+
+    # ── Context processor: inject current_user into all templates ──
+    @app.context_processor
+    def inject_user():
+        return dict(current_user=g.get('current_user'))
+
+    # ── Forbidden page route ──
+    @app.route('/forbidden')
+    def forbidden_page():
+        return render_template('403.html'), 403
+
+    # ── Error handlers ──
+    @app.errorhandler(403)
+    def handle_403(e):
+        return render_template('403.html'), 403
+
     def log_action(current_user, action, details=""):
         """Centralized logging for role-based actions"""
         log_entry = {
@@ -101,6 +117,8 @@ def create_dashboard_app():
         if status == 200:
             user = user_manager.get_user(auth.get('username'))
             from app.database import log_audit
+            user_data = user_manager.get_user(auth.get('username'))
+            role = user_data.get('role_name') or user_data.get('role', 'user') if user_data else 'user'
             user_id = user.get('id') if user else None
             ip = request.headers.get('X-Forwarded-For', request.remote_addr) or 'Unknown'
             ip = ip.split(',')[0].strip()
@@ -306,7 +324,7 @@ def create_dashboard_app():
                 return render_template('landing.html')
         return render_template('landing.html')
     @app.route('/dashboard')
-    @token_required
+    @login_required
     def dashboard_page(current_user):
         api_flag = os.getenv('DASHBOARD_API_ENABLED', 'true').strip().lower()
         dashboard_api_enabled = api_flag in ('1', 'true', 'yes', 'on')
@@ -316,10 +334,10 @@ def create_dashboard_app():
             dashboard_api_enabled=dashboard_api_enabled,
         )
     @app.route('/api/system/health')
-    @token_required
+    @login_required
     def system_health(current_user):
-        # We no longer call dashboard.check_api_connection() here synchronously.
-        # The background monitor thread in SecurityDashboard handles this every 10 seconds.
+        # Always verify API connection live before returning
+        dashboard.check_api_connection()
         return jsonify({
             'status': 'ok',
             'api_online': dashboard.connection_state == 'Connected',
@@ -369,7 +387,7 @@ def create_dashboard_app():
     def support_page():
         return render_template('support.html')
     @app.route('/api/dashboard/data')
-    @token_required
+    @login_required
     def dashboard_data(current_user):
         import time as _time
         _t0 = _time.time()
@@ -426,7 +444,7 @@ def create_dashboard_app():
             dashboard.stats['rate_limit_hits'] = data['rate_limit_hits']
         return jsonify({'status': 'updated'})
     @app.route('/api/dashboard/reset', methods=['POST'])
-    @admin_required
+    @admin_only
     def reset_stats(current_user):
         global dashboard
         try:
@@ -472,7 +490,7 @@ def create_dashboard_app():
             return jsonify({'status': 'error', 'message': str(e)}), 500
 
     @app.route('/api/user')
-    @token_required
+    @login_required
     def get_current_user(current_user):
         """Return current user information for permission checks"""
         return jsonify({
@@ -481,7 +499,7 @@ def create_dashboard_app():
             'email': current_user.get('email', '')
         })
     @app.route('/api/ml/stats')
-    @admin_required
+    @analyst_and_above
     def ml_stats(current_user):
         """
         ML performance metrics built DIRECTLY from siem_audit.json (live traffic).
@@ -513,7 +531,7 @@ def create_dashboard_app():
             }), 200
     @app.route('/incidents')
     @app.route('/incidents_list')
-    @token_required
+    @manager_and_above
     def incidents_page(current_user):
         global dashboard
         incidents_list = []
@@ -541,7 +559,7 @@ def create_dashboard_app():
                             user=current_user,
                             active_page='incidents')
     @app.route('/incident/<id>')
-    @admin_required
+    @admin_only
     def incident_details_page(current_user, id):
         global dashboard
         if id not in dashboard.incidents:
@@ -561,7 +579,7 @@ def create_dashboard_app():
         }
         return render_template('incident_details.html', incident=incident_data, user=current_user)
     @app.route('/api/incidents')
-    @admin_required
+    @manager_and_above
     def get_incidents(current_user):
         global dashboard
         incidents_data = []
@@ -569,14 +587,14 @@ def create_dashboard_app():
             incidents_data.append(inc.__dict__)
         return jsonify(incidents_data)
     @app.route('/api/incident/<id>')
-    @admin_required
+    @admin_only
     def get_incident_details(current_user, id):
         global dashboard
         if id not in dashboard.incidents:
             return jsonify({'error': 'Not found'}), 404
         return jsonify(dashboard.incidents[id].__dict__)
     @app.route('/api/incident/<id>/action', methods=['POST'])
-    @admin_required
+    @analyst_and_above
     def incident_action(current_user, id):
         global dashboard
         data = request.get_json()
@@ -587,14 +605,14 @@ def create_dashboard_app():
         success, message = dashboard.perform_action(id, action, actor, comment)
         return jsonify({'status': 'success' if success else 'error', 'message': message})
     @app.route('/api/incident/<id>/export')
-    @admin_required
+    @admin_only
     def export_incident(current_user, id):
         global dashboard
         if id not in dashboard.incidents:
             return jsonify({'error': 'Not found'}), 404
         return jsonify(dashboard.incidents[id].__dict__)
     @app.route('/api/reports/distribution')
-    @token_required
+    @manager_and_above
     def report_distribution(current_user):
         global dashboard
         start_date = request.args.get('start_date')
@@ -608,13 +626,13 @@ def create_dashboard_app():
             dist[inc.detection_type] += 1
         return jsonify(dist)
     @app.route('/requests')
-    @token_required
+    @admin_only
     def requests_page(current_user):
         logs = dashboard.load_audit_log()
         logs.sort(key=lambda x: x.get('timestamp', ''), reverse=True)
         return render_template('requests.html', logs=logs, title="Total Requests", user=current_user)
     @app.route('/api/blocked-events')
-    @admin_required
+    @analyst_and_above
     def blocked_events_stream(current_user):
         def generate():
             last_count = 0
@@ -679,7 +697,7 @@ def create_dashboard_app():
             "unique_ips": unique_ips,
         }
     @app.route('/threats/<category>')
-    @token_required
+    @analyst_and_above
     def threats_page(current_user, category):
         logs = getattr(g, "logs", dashboard.load_audit_log())
         stats = getattr(g, "global_stats", compute_global_stats(logs))
@@ -755,7 +773,7 @@ def create_dashboard_app():
           user=current_user
   )
     @app.route('/threats-overview')
-    @token_required
+    @analyst_and_above
     def threats_overview_page(current_user):
         logs = getattr(g, "logs", dashboard.load_audit_log())
         stats = dashboard.get_dashboard_data().get('stats', {})
@@ -779,7 +797,7 @@ def create_dashboard_app():
         )
 
     @app.route('/pricing')
-    @token_required
+    @login_required
     def pricing_page(current_user):
         return render_template(
             'pricing.html',
@@ -788,7 +806,7 @@ def create_dashboard_app():
         )
 
     @app.route('/payment')
-    @token_required
+    @login_required
     def payment_page(current_user):
         plan = request.args.get('plan', 'Pro')
         price = request.args.get('price', '29')
@@ -801,7 +819,7 @@ def create_dashboard_app():
         )
 
     @app.route('/api/subscription/upgrade', methods=['POST'])
-    @token_required
+    @login_required
     def upgrade_subscription(current_user):
         data = request.get_json()
         new_plan = data.get('plan')
@@ -814,7 +832,7 @@ def create_dashboard_app():
 
     @app.route('/blocked_page')
     @app.route('/blocked')
-    @token_required
+    @analyst_and_above
     def blocked_page(current_user):
         logs = getattr(g, "logs", dashboard.load_audit_log())
         stats = getattr(g, "global_stats", compute_global_stats(logs))
@@ -835,23 +853,23 @@ def create_dashboard_app():
         )
 
     @app.route('/ml-detections')
-    @admin_required
+    @analyst_and_above
     def ml_detections_page(current_user):
         # Keep this URL for compatibility, but render the exact same page
         # and layout used by /threats/sql-injection.
         return redirect(url_for('threats_page', category='ml-detection'))
     @app.route('/ml-performance')
-    @admin_required
+    @analyst_and_above
     def ml_performance_page(current_user):
         """Dedicated ML Model Performance Dashboard"""
         return render_template('ml_performance.html', user=current_user)
     @app.route('/profile')
-    @token_required
+    @login_required
     def profile_page(current_user):
         # Render dedicated profile page
         return render_template('profile.html', user=current_user)
     @app.route('/api/profile')
-    @token_required
+    @login_required
     def get_profile_data(current_user):
         """Return user profile data for profile page"""
         return jsonify({
@@ -872,8 +890,13 @@ def create_dashboard_app():
                 'avatar_url': current_user.get('avatar_url')
             }
         })
+    @app.route('/notifications')
+    @login_required
+    def notifications_page(current_user):
+        return render_template('notifications.html', user=current_user)
+
     @app.route('/api/profile/activity')
-    @token_required
+    @login_required
     def get_profile_activity(current_user):
         """Return user activity data"""
         # Mock activity data - replace with real data from your logs
@@ -892,7 +915,7 @@ def create_dashboard_app():
             ]
         })
     @app.route('/api/profile/sessions')
-    @token_required
+    @login_required
     def get_profile_sessions(current_user):
         """Return user active sessions"""
         # Mock session data - replace with real session data
@@ -911,7 +934,7 @@ def create_dashboard_app():
             ]
         })
     @app.route('/api/profile/update', methods=['POST'])
-    @token_required
+    @login_required
     def update_profile(current_user):
         """Update user profile"""
         data = request.get_json()
@@ -940,7 +963,7 @@ def create_dashboard_app():
         else:
             return jsonify({'status': 'error', 'message': message or 'Failed to update profile'}), 400
     @app.route('/api/profile/change-password', methods=['POST'])
-    @token_required
+    @login_required
     def change_password_profile(current_user):
         """Change user password"""
         data = request.get_json() or {}
@@ -961,7 +984,7 @@ def create_dashboard_app():
         log_action(current_user, "Password Changed", "User changed their password")
         return jsonify({'status': 'success', 'message': message})
     @app.route('/api/profile/logout-session', methods=['POST'])
-    @token_required
+    @login_required
     def logout_session(current_user):
         """Logout a specific session"""
         session_id = request.get_json().get('session_id')
@@ -969,7 +992,7 @@ def create_dashboard_app():
         return jsonify({'status': 'success', 'message': 'Session revoked successfully'})
 
     @app.route('/api/profile/avatar', methods=['POST'])
-    @token_required
+    @login_required
     def upload_avatar(current_user):
         import imghdr
         ALLOWED_EXTS  = {'.png', '.jpg', '.jpeg', '.gif', '.bmp'}
@@ -1002,13 +1025,13 @@ def create_dashboard_app():
     # SETTINGS PAGE
     # ============================================================
     @app.route('/settings')
-    @admin_required
+    @login_required
     def settings_page(current_user):
         """Settings page for system configuration"""
         return render_template('settings.html', user=current_user)
     
     @app.route('/api/settings', methods=['GET'])
-    @admin_required
+    @admin_only
     def get_settings(current_user):
         """Get current system settings"""
         # Load settings from a config file or database
@@ -1044,7 +1067,7 @@ def create_dashboard_app():
         return jsonify(settings)
     
     @app.route('/api/settings', methods=['POST'])
-    @admin_required
+    @admin_only
     def update_settings(current_user):
         """Update system settings (Admin only)"""
         data = request.get_json()
@@ -1056,13 +1079,13 @@ def create_dashboard_app():
     # USER MANAGER (Admin Only)
     # ============================================================
     @app.route('/user-manager')
-    @admin_required
+    @admin_only
     def user_manager_page(current_user):
         """User management page for admins"""
         return render_template('user_manager.html', user=current_user)
     
     @app.route('/api/users', methods=['GET'])
-    @admin_required
+    @admin_only
     def get_users(current_user):
         """Get all users with their activity"""
         users = user_manager.get_all_users()
@@ -1110,7 +1133,7 @@ def create_dashboard_app():
         return jsonify({'users': users_with_activity})
     
     @app.route('/api/users/<user_id>', methods=['GET'])
-    @admin_required
+    @admin_only
     def get_user_details(current_user, user_id):
         """Get detailed information about a specific user"""
         user = user_manager.get_user_by_id(user_id)
@@ -1127,7 +1150,7 @@ def create_dashboard_app():
         })
     
     @app.route('/api/users/<user_id>/toggle-status', methods=['POST'])
-    @admin_required
+    @admin_only
     def toggle_user_status(current_user, user_id):
         """Activate or deactivate a user"""
         user = user_manager.get_user_by_id(user_id)
@@ -1142,7 +1165,7 @@ def create_dashboard_app():
         return jsonify({'status': 'success', 'new_status': new_status})
     
     @app.route('/api/users/<user_id>/change-role', methods=['POST'])
-    @admin_required
+    @admin_only
     def change_user_role(current_user, user_id):
         """Change user role"""
         data = request.get_json()
@@ -1163,7 +1186,7 @@ def create_dashboard_app():
         return jsonify({'status': 'success', 'new_role': new_role})
     
     @app.route('/api/users/<user_id>', methods=['DELETE'])
-    @admin_required
+    @admin_only
     def delete_user(current_user, user_id):
         """Delete a user"""
         user = user_manager.get_user_by_id(user_id)
@@ -1180,7 +1203,7 @@ def create_dashboard_app():
         return jsonify({'status': 'success', 'message': 'User deleted successfully'})
     
     @app.route('/api/users', methods=['POST'])
-    @admin_required
+    @admin_only
     def create_user(current_user):
         """Create a new user"""
         try:
@@ -1218,12 +1241,12 @@ def create_dashboard_app():
             return jsonify({'error': str(e)}), 500
 
     @app.route('/critical')
-    @token_required
+    @analyst_and_above
     def critical_page(current_user):
         return render_template('critical.html', user=current_user)
     
     @app.route('/api/high-threats')
-    @token_required
+    @analyst_and_above
     def get_high_threats(current_user):
         """Get critical severity threats from database"""
         critical_threats = []
@@ -1263,7 +1286,7 @@ def create_dashboard_app():
             'threats': critical_threats
         })
     @app.route('/api/chat', methods=['POST'])
-    @token_required
+    @login_required
     def chat(current_user):
         data = request.get_json()
         message = data.get('message', '')
@@ -1273,7 +1296,7 @@ def create_dashboard_app():
         if not message:
             return jsonify({'error': 'Message required'}), 400
         print(f"[NLP] Chat request from {current_user['username']} ({current_user['role']}): {message}")
-        response_text = security_bot.generate_response(message, incident_id, page_context, history, role=current_user['role'])
+        response_text = security_bot.generate_response(message, incident_id, page_context, history, role=current_user['role'], username=current_user['username'])
         return jsonify({
             'response': response_text,
             'timestamp': datetime.now().strftime("%H:%M")
@@ -1283,13 +1306,13 @@ def create_dashboard_app():
     # BLACKLIST MANAGEMENT (Admin Only)
     # ============================================================
     @app.route('/blacklist')
-    @admin_required
+    @admin_only
     def blacklist_page(current_user):
         """Blacklist management page for admins"""
         return render_template('blacklist.html', user=current_user)
     
     @app.route('/api/blacklist', methods=['GET'])
-    @admin_required
+    @admin_only
     def get_blacklist(current_user):
         """Get all blacklist entries"""
         try:
@@ -1307,7 +1330,7 @@ def create_dashboard_app():
             return jsonify({'blacklist': []})
     
     @app.route('/api/blacklist', methods=['POST'])
-    @admin_required
+    @admin_only
     def add_blacklist(current_user):
         """Add new entry to blacklist"""
         try:
@@ -1358,7 +1381,7 @@ def create_dashboard_app():
             return jsonify({'error': str(e)}), 500
     
     @app.route('/api/blacklist/<int:entry_id>', methods=['PUT'])
-    @admin_required
+    @admin_only
     def update_blacklist(current_user, entry_id):
         """Update blacklist entry"""
         try:
@@ -1399,7 +1422,7 @@ def create_dashboard_app():
             return jsonify({'error': str(e)}), 500
     
     @app.route('/api/blacklist/<int:entry_id>', methods=['DELETE'])
-    @admin_required
+    @admin_only
     def delete_blacklist(current_user, entry_id):
         """Delete blacklist entry"""
         try:
@@ -1432,12 +1455,12 @@ def create_dashboard_app():
 
     # ── Attack History Page ───────────────────────────────────
     @app.route('/attack-history')
-    @token_required
+    @login_required
     def attack_history_page(current_user):
         return render_template('attack_history.html', user=current_user)
 
     @app.route("/api/my-attacks", methods=["GET"])
-    @token_required
+    @login_required
     def get_my_attacks_dashboard(current_user):
         # We handle this in the dashboard too so the UI can fetch it without CORS issues
         user_key = current_user["username"]
@@ -1463,6 +1486,269 @@ def create_dashboard_app():
                 a['type'] = a['attack_type']
                 
         return jsonify({"user": user_key, "attacks": attacks})
+
+    # ══════════════════════════════════════════════════════════════
+    # RBAC-REQUIRED API ROUTES
+    # ══════════════════════════════════════════════════════════════
+
+    # ── WAF Rules (GET: analyst+, POST/PUT/DELETE: admin) ────────
+    @app.route('/api/rules', methods=['GET'])
+    @analyst_and_above
+    def api_rules_list(current_user):
+        from app import database as db
+        rules = db.get_rules(active_only=False)
+        return jsonify({"rules": rules})
+
+    @app.route('/api/rules', methods=['POST'])
+    @admin_only
+    def api_rules_create(current_user):
+        data = request.get_json() or {}
+        name = data.get('name')
+        rtype = data.get('type', 'custom')
+        pattern = data.get('pattern')
+        severity = data.get('severity', 'medium')
+        action = data.get('action', 'block')
+        if not name or not pattern:
+            return jsonify({"error": "Name and pattern required"}), 400
+        now = time.strftime("%Y-%m-%d %H:%M:%S")
+        from app import database as db
+        with db.engine.connect() as conn:
+            result = conn.execute(db.text("""
+                INSERT INTO rules (name, type, pattern, severity, action, is_active, created_at)
+                VALUES (:name, :type, :pattern, :sev, :act, TRUE, :now)
+                RETURNING rule_id
+            """), {"name": name, "type": rtype, "pattern": pattern, "sev": severity, "act": action, "now": now})
+            conn.commit()
+            rule_id = result.scalar()
+        return jsonify({"rule_id": rule_id, "message": "Rule created"}), 201
+
+    @app.route('/api/rules/<int:rule_id>', methods=['PUT'])
+    @admin_only
+    def api_rules_update(current_user, rule_id):
+        data = request.get_json() or {}
+        allowed = {"name", "type", "pattern", "severity", "action", "is_active"}
+        fields = {k: v for k, v in data.items() if k in allowed}
+        if not fields:
+            return jsonify({"error": "No valid fields to update"}), 400
+        sets = ", ".join(f"{k} = :{k}" for k in fields)
+        params = dict(fields, rule_id=rule_id)
+        from app import database as db
+        with db.engine.connect() as conn:
+            conn.execute(db.text(f"UPDATE rules SET {sets} WHERE rule_id = :rule_id"), params)
+            conn.commit()
+        return jsonify({"message": "Rule updated"})
+
+    @app.route('/api/rules/<int:rule_id>', methods=['DELETE'])
+    @admin_only
+    def api_rules_delete(current_user, rule_id):
+        from app import database as db
+        with db.engine.connect() as conn:
+            conn.execute(db.text("DELETE FROM rules WHERE rule_id = :id"), {"id": rule_id})
+            conn.commit()
+        return jsonify({"message": "Rule deleted"})
+
+    # ── Blocked IPs (GET+POST: analyst+, DELETE: admin) ─────────
+    @app.route('/api/blocked-ips', methods=['GET'])
+    @analyst_and_above
+    def api_blocked_ips_list(current_user):
+        from app import database as db
+        with db.engine.connect() as conn:
+            rows = conn.execute(db.text("""
+                SELECT b.*, u.username AS blocked_by_name
+                FROM blocked_ips b
+                LEFT JOIN users u ON b.blocked_by = u.user_id
+                ORDER BY b.blocked_at DESC
+            """)).mappings().all()
+        return jsonify({"blocked_ips": [dict(r) for r in rows]})
+
+    @app.route('/api/blocked-ips', methods=['POST'])
+    @analyst_and_above
+    def api_blocked_ips_add(current_user):
+        data = request.get_json() or {}
+        ip = data.get('ip_address')
+        if not ip:
+            return jsonify({"error": "ip_address required"}), 400
+        reason = data.get('reason', 'manual block')
+        from app import database as db
+        db.block_ip(ip, reason=reason, blocked_by=current_user.get('user_id'), is_permanent=True)
+        return jsonify({"message": "IP blocked"}), 201
+
+    @app.route('/api/blocked-ips/<ip_address>', methods=['DELETE'])
+    @admin_only
+    def api_blocked_ips_delete(current_user, ip_address):
+        from app import database as db
+        db.unblock_ip(ip_address)
+        return jsonify({"message": "IP unblocked"})
+
+    # ── ML Training (admin only) ────────────────────────────────
+    @app.route('/api/ml/train', methods=['POST'])
+    @admin_only
+    def api_ml_train(current_user):
+        try:
+            from train_model import train_and_save_model
+            result = train_and_save_model()
+            return jsonify({"message": "Training started", "result": str(result)})
+        except Exception as e:
+            return jsonify({"error": f"Training failed: {e}"}), 500
+
+    @app.route('/api/ml/activate/<int:model_id>', methods=['PUT'])
+    @admin_only
+    def api_ml_activate(current_user, model_id):
+        from app import database as db
+        with db.engine.connect() as conn:
+            conn.execute(db.text("UPDATE ml_model_runs SET is_active = FALSE WHERE is_active = TRUE"))
+            conn.execute(db.text("UPDATE ml_model_runs SET is_active = TRUE WHERE run_id = :id"), {"id": model_id})
+            conn.commit()
+        return jsonify({"message": "Model activated"})
+
+    # ── Attack Simulator (admin only) ───────────────────────────
+    @app.route('/api/simulator/run', methods=['POST'])
+    @admin_only
+    def api_simulator_run(current_user):
+        data = request.get_json() or {}
+        attack_type = data.get('attack_type', 'sql_injection')
+        target = data.get('target', '/')
+        try:
+            from attack_simulator import run_attack
+            result = run_attack(attack_type, target)
+            return jsonify({"message": "Simulation run", "result": str(result)})
+        except Exception as e:
+            return jsonify({"error": f"Simulation failed: {e}"}), 500
+
+    # ── Audit Logs (admin only) ─────────────────────────────────
+    @app.route('/api/audit-logs', methods=['GET'])
+    @admin_only
+    def api_audit_logs(current_user):
+        from app import database as db
+        limit = request.args.get('limit', 100, type=int)
+        logs = db.get_audit_logs(limit=limit)
+        return jsonify({"audit_logs": logs})
+
+    # ── Dashboard Stats (manager+) ──────────────────────────────
+    @app.route('/api/dashboard/stats', methods=['GET'])
+    @manager_and_above
+    def api_dashboard_stats(current_user):
+        data = dashboard.get_dashboard_data()
+        stats = data.get('stats', {})
+        return jsonify(stats)
+
+    # ── Reports (manager+) ──────────────────────────────────────
+    @app.route('/api/reports', methods=['GET'])
+    @manager_and_above
+    def api_reports_list(current_user):
+        from app import database as db
+        incidents = db.get_incidents(limit=500)
+        threats = db.get_threat_logs(limit=500)
+        return jsonify({"incidents": incidents, "threats": threats})
+
+    @app.route('/api/reports/export', methods=['POST'])
+    @manager_and_above
+    def api_reports_export(current_user):
+        data = request.get_json() or {}
+        fmt = data.get('format', 'json')
+        from app import database as db
+        report_data = {
+            "incidents": db.get_incidents(limit=1000),
+            "threats": db.get_threat_logs(limit=1000),
+            "exported_by": current_user.get('username'),
+            "exported_at": time.strftime("%Y-%m-%d %H:%M:%S"),
+        }
+        if fmt == 'json':
+            return jsonify(report_data)
+        return jsonify(report_data)
+
+    # ── Users List (manager+) ───────────────────────────────────
+    @app.route('/api/users/list', methods=['GET'])
+    @manager_and_above
+    def api_users_list(current_user):
+        from app import database as db
+        users = db.get_all_users()
+        safe_users = []
+        for u in users:
+            safe_users.append({
+                "user_id": u.get("user_id"),
+                "username": u.get("username"),
+                "role_name": u.get("role_name"),
+                "email": u.get("email"),
+            })
+        return jsonify({"users": safe_users})
+
+    # ── Threats API (analyst+) ──────────────────────────────────
+    @app.route('/api/threats', methods=['GET'])
+    @analyst_and_above
+    def api_threats_list(current_user):
+        from app import database as db
+        limit = request.args.get('limit', 100, type=int)
+        attack_type = request.args.get('attack_type')
+        severity = request.args.get('severity')
+        threats = db.get_threat_logs(limit=limit, attack_type=attack_type, severity=severity)
+        return jsonify({"threats": threats})
+
+    @app.route('/api/threats/<int:threat_id>', methods=['GET'])
+    @analyst_and_above
+    def api_threats_detail(current_user, threat_id):
+        from app import database as db
+        with db.engine.connect() as conn:
+            row = conn.execute(db.text("SELECT * FROM threat_logs WHERE threat_log_id = :id"), {"id": threat_id}).mappings().fetchone()
+        if not row:
+            return jsonify({"error": "Not found"}), 404
+        return jsonify({"threat": dict(row)})
+
+    # ── Notifications (all authenticated) ───────────────────────
+    @app.route('/api/notifications', methods=['GET'])
+    @login_required
+    def api_notifications(current_user):
+        from app import database as db
+        user_id = current_user.get('user_id')
+        if not user_id:
+            return jsonify({"notifications": []})
+        unread_only = request.args.get('unread_only', 'false').lower() == 'true'
+        notifs = db.get_notifications(user_id, unread_only=unread_only)
+        return jsonify({"notifications": notifs})
+
+    # ── Chatbot Message (all authenticated) ─────────────────────
+    @app.route('/api/chatbot/message', methods=['POST'])
+    @login_required
+    def api_chatbot_message(current_user):
+        data = request.get_json() or {}
+        message = data.get('message', '')
+        if not message:
+            return jsonify({"error": "Message required"}), 400
+        return jsonify({"response": "Message received", "echo": message})
+
+    # ── Profile Password (all authenticated) ────────────────────
+    @app.route('/api/profile/password', methods=['PUT'])
+    @login_required
+    def api_profile_password(current_user):
+        data = request.get_json() or {}
+        new_password = data.get('new_password')
+        if not new_password:
+            return jsonify({"error": "new_password required"}), 400
+        username = current_user.get('username')
+        success, message = user_manager.change_password(username, new_password)
+        if not success:
+            return jsonify({"error": message}), 400
+        return jsonify({"message": "Password changed"})
+
+    # ── User Role Change (admin only) ───────────────────────────
+    @app.route('/api/users/<int:target_user_id>/role', methods=['PUT'])
+    @admin_only
+    def api_user_role_change(current_user, target_user_id):
+        data = request.get_json() or {}
+        new_role = data.get('role')
+        valid_roles = ['admin', 'analyst', 'manager', 'user']
+        if not new_role or new_role not in valid_roles:
+            return jsonify({"error": f"Invalid role. Must be one of: {', '.join(valid_roles)}"}), 400
+        from app import database as db
+        role_row = db.get_all_roles()
+        role_map = {r["name"]: r["role_id"] for r in role_row}
+        if new_role not in role_map:
+            return jsonify({"error": "Role not found"}), 404
+        with db.engine.connect() as conn:
+            conn.execute(db.text("UPDATE users SET role_id = :rid WHERE user_id = :uid"),
+                        {"rid": role_map[new_role], "uid": target_user_id})
+            conn.commit()
+        return jsonify({"message": "Role updated"})
 
     return app
 def calculate_threat_score(threat):
