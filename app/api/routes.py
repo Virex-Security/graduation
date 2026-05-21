@@ -233,12 +233,21 @@ def create_api_app():
                                 "reason": _ssrf_reason}), 403
 
         # ── Layer 5: CSRF Detection ───────────────────────────
-        # Check CSRF for all state-changing requests (POST/PUT/DELETE/PATCH)
-        # regardless of auth token - CSRF tokens should be present for all
-        # state-changing operations to prevent cross-site request forgery.
-        # Skip CSRF check for requests with JWT Bearer token (API clients).
+        # CSRF only applies to authenticated browser sessions.
+        # Skip if: Bearer token (API client), missing auth cookie (unauthenticated),
+        # or the endpoint is a public API endpoint (login, products, etc.)
         _auth_header = request.headers.get("Authorization", "") or request.headers.get("X-API-Key", "")
-        if _CSRF_SSRF_ENABLED and request.method in ("POST", "PUT", "DELETE", "PATCH") and not _auth_header.startswith("Bearer "):
+        _has_session = bool(request.cookies.get("session")) or _auth_header.startswith("Bearer ")
+        _is_public_endpoint = any(request.path.startswith(p) for p in (
+            "/api/login", "/api/products", "/api/register", "/api/health",
+        ))
+        if (
+            _CSRF_SSRF_ENABLED
+            and request.method in ("POST", "PUT", "DELETE", "PATCH")
+            and _has_session
+            and not _auth_header.startswith("Bearer ")
+            and not _is_public_endpoint
+        ):
             _csrf_result = detect_csrf({
                 "method": request.method, "path": request.path,
                 "headers": dict(request.headers),
@@ -268,7 +277,7 @@ def create_api_app():
         security._persist_stats()
 
         # ── Layer 5b: CSRF Fallback (when detections module not available) ──
-        if not _CSRF_SSRF_ENABLED and request.method in ("POST", "PUT", "DELETE", "PATCH") and not _auth_header.startswith("Bearer "):
+        if not _CSRF_SSRF_ENABLED and request.method in ("POST", "PUT", "DELETE", "PATCH") and _has_session and not _auth_header.startswith("Bearer ") and not _is_public_endpoint:
             # Basic CSRF token check as fallback
             token_header = (request.headers.get("X-CSRF-Token", "") or
                            request.headers.get("X-XSRF-TOKEN", "") or

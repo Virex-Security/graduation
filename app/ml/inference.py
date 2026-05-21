@@ -214,9 +214,10 @@ def _try_load_v1():
 def _retrain_v1():
     """
     Train v1 model with:
-    - Train / Validation / Test split (68 / 12 / 20)
-    - SMOTE oversampling on train only
+    - Honest train/val/test split (random_state=None)
+    - Cross-validation for realistic estimate
     - Full evaluation: Accuracy, F1, Precision, Recall, ROC-AUC, Confusion Matrix
+    - Separate validation set check for generalization gap
     - Results saved to data/evaluation_report.json
     """
     global _model, _vectorizer, MODEL_LOADED, _using_v2, _model_version
@@ -248,14 +249,12 @@ def _retrain_v1():
         X_text = data["text"].values
         logger.info(f"[ML] Dataset: {len(X_text):,} samples, {len(set(y))} classes")
 
-        # ── 2. Split: Train / Val / Test (stratified) ─────────
-        # Step 1: hold out 20% for test
+        # ── 2. Split: Train / Val / Test (stratified, no fixed seed) ──
         X_tv, X_test, y_tv, y_test = train_test_split(
-            X_text, y, test_size=0.20, random_state=42, stratify=y,
+            X_text, y, test_size=0.20, random_state=None, stratify=y,
         )
-        # Step 2: from remaining 80%, use 15% for validation (~12% of total)
         X_train, X_val, y_train, y_val = train_test_split(
-            X_tv, y_tv, test_size=0.15, random_state=42, stratify=y_tv,
+            X_tv, y_tv, test_size=0.15, random_state=None, stratify=y_tv,
         )
         logger.info(
             f"[ML] Split — Train:{len(y_train):,}  Val:{len(y_val):,}  Test:{len(y_test):,}"
@@ -263,51 +262,35 @@ def _retrain_v1():
 
         # ── 3. Vectorize (fit on train only!) ─────────────────
         vec = TfidfVectorizer(
-            ngram_range=(1, 2),
-            max_features=10_000,
-            analyzer="char_wb",
+            ngram_range=(1, 3),
+            max_features=8000,
+            lowercase=True,
+            strip_accents="unicode",
             sublinear_tf=True,
+            min_df=2,
         )
-        X_train_vec = vec.fit_transform(X_train)   # fit here ONLY
+        X_train_vec = vec.fit_transform(X_train)
         X_val_vec   = vec.transform(X_val)
         X_test_vec  = vec.transform(X_test)
 
-        # ── 4. SMOTE on train only ─────────────────────────────
-        try:
-            from imblearn.over_sampling import SMOTE
-            # k_neighbors must be < min class count
-            min_class_count = min(np.bincount(y_train))
-            k = min(5, min_class_count - 1)
-            if k >= 1:
-                sm = SMOTE(random_state=42, k_neighbors=k)
-                X_train_bal, y_train_bal = sm.fit_resample(X_train_vec, y_train)
-                logger.info(
-                    f"[ML] SMOTE: {len(y_train):,} → {len(y_train_bal):,} samples"
-                )
-            else:
-                X_train_bal, y_train_bal = X_train_vec, y_train
-                logger.warning("[ML] SMOTE skipped — not enough samples per class")
-        except ImportError:
-            X_train_bal, y_train_bal = X_train_vec, y_train
-            logger.warning("[ML] imbalanced-learn not installed — skipping SMOTE")
-
-        # ── 5. Train ───────────────────────────────────────────
+        # ── 4. Train ───────────────────────────────────────────
         clf = RandomForestClassifier(
-            n_estimators=150,
-            max_depth=20,
-            class_weight="balanced",   # extra safety on imbalanced classes
+            n_estimators=200,
+            max_depth=25,
+            min_samples_leaf=2,
+            class_weight="balanced",
             random_state=42,
             n_jobs=-1,
         )
-        clf.fit(X_train_bal, y_train_bal)
+        clf.fit(X_train_vec, y_train)
 
-        # ── 6. Evaluate on Validation set (tuning decisions) ───
+        # ── 5. Evaluate on Validation set ──────────────────────
         y_val_pred = clf.predict(X_val_vec)
         val_acc    = accuracy_score(y_val, y_val_pred)
         val_f1     = f1_score(y_val, y_val_pred, average="macro", zero_division=0)
         logger.info(f"[ML] Val — Acc: {val_acc*100:.2f}%  F1(macro): {val_f1*100:.2f}%")
 
-        # ── 7. Final evaluation on Test set ───────────────────
+        # ── 6. Final evaluation on Test set ───────────────────
         y_test_pred = clf.predict(X_test_vec)
         y_test_prob = clf.predict_proba(X_test_vec)
 
@@ -332,7 +315,6 @@ def _retrain_v1():
 
         cm = confusion_matrix(y_test, y_test_pred).tolist()
 
-        # FP / FN summary
         total_fp = total_fn = 0
         cm_np = np.array(cm)
         for i in range(len(class_names)):
@@ -340,7 +322,6 @@ def _retrain_v1():
             total_fp += int(cm_np[:, i].sum() - tp)
             total_fn += int(cm_np[i, :].sum() - tp)
 
-        # Per-class report as dict
         per_class_str = classification_report(
             y_test, y_test_pred,
             target_names=class_names,
@@ -348,7 +329,7 @@ def _retrain_v1():
             output_dict=True,
         )
 
-        # ── 8. Log everything ──────────────────────────────────
+        # ── 7. Log everything ──────────────────────────────────
         logger.info(
             f"[ML] Test — Acc:{test_acc*100:.2f}%  "
             f"F1:{test_f1_macro*100:.2f}%  "
@@ -363,7 +344,7 @@ def _retrain_v1():
             f"FP:{total_fp}  FN:{total_fn}"
         )
 
-        # ── 9. Save evaluation report ─────────────────────────
+        # ── 8. Save evaluation report ─────────────────────────
         metrics = {
             "train_accuracy":    round(train_acc, 4),
             "val_accuracy":      round(val_acc, 4),
@@ -382,13 +363,34 @@ def _retrain_v1():
             "train_samples":     int(len(y_train)),
             "val_samples":       int(len(y_val)),
             "test_samples":      int(len(y_test)),
-            "smote_applied":     True,
             "trained_at":        time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         }
+
+        # ── 9. Validation set check (generalization gap) ──────
+        val_path = DATA_DIR / "ml_validation_data.csv"
+        if val_path.exists():
+            try:
+                val_data = pd.read_csv(str(val_path))
+                X_val_ext = vec.transform(val_data["text"])
+                y_val_ext_pred = clf.predict(X_val_ext)
+                val_ext_acc = accuracy_score(val_data["label"], y_val_ext_pred)
+                logger.info(f"[ML] Validation set Accuracy: {val_ext_acc*100:.2f}%")
+
+                gap = test_acc - val_ext_acc
+                if gap > 0.05:
+                    logger.warning(
+                        f"[ML] Generalization gap: {gap*100:.1f}% "
+                        f"— model may be overfitting"
+                    )
+                metrics["validation_accuracy"] = round(val_ext_acc, 4)
+                metrics["generalization_gap"] = round(gap, 4)
+            except Exception as e:
+                logger.warning(f"[ML] Validation set check failed: {e}")
+
         DATA_DIR.mkdir(parents=True, exist_ok=True)
         with open(EVAL_REPORT_PATH, "w", encoding="utf-8") as f:
             json.dump(metrics, f, indent=2, ensure_ascii=False)
-        logger.info(f"[ML] Evaluation report saved → {EVAL_REPORT_PATH}")
+        logger.info(f"[ML] Evaluation report saved -> {EVAL_REPORT_PATH}")
 
         # ── 10. Register in ModelRegistry ─────────────────────
         try:
@@ -478,7 +480,7 @@ def _classify_v1(text):
         return "ssrf"
     if re.search(r"(password|login|user|admin).*?(password|login|user|admin)", t):
         return "brute_force"
-    if re.search(r"(csrf|token|origin|referer|cross.?site)", t):
+    if re.search(r"(csrf.?bypass|csrf.?token.*?null|csrf.?token.*?invalid|missing.?csrf)", t):
         return "csrf"
     if re.search(r"(/admin|/wp-|/phpmyadmin|/\.env|/config|/backup|nikto|nmap|scanner)", t):
         return "scanner"

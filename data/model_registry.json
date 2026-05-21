@@ -1,0 +1,239 @@
+{
+  "active_version": "v1.0-auto",
+  "models": {
+    "v1.0-auto": {
+      "version": "v1.0-auto",
+      "model_path": "D:\\University\\forth year\\security_project\\data\\model.pkl",
+      "registered_at": "2026-05-21T11:38:07Z",
+      "metrics": {
+        "train_accuracy": 0.9463,
+        "val_accuracy": 0.9395,
+        "test_accuracy": 0.9487,
+        "f1_macro": 0.9556,
+        "f1_weighted": 0.9485,
+        "precision_macro": 0.9762,
+        "recall_macro": 0.9394,
+        "roc_auc_macro": 0.998,
+        "overfitting_gap": -0.0024,
+        "total_false_positives": 544,
+        "total_false_negatives": 544,
+        "confusion_matrix": [
+          [
+            591,
+            0,
+            0,
+            9,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            822,
+            1,
+            172,
+            0,
+            0,
+            5,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            398,
+            2,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            3000,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            23,
+            0,
+            87,
+            890,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            48,
+            0,
+            116,
+            0,
+            1436,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            8,
+            0,
+            0,
+            592,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            16,
+            0,
+            55,
+            0,
+            2,
+            0,
+            327,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1600,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            400
+          ]
+        ],
+        "class_names": [
+          "brute_force",
+          "command_injection",
+          "log4shell",
+          "normal",
+          "path_traversal",
+          "sql_injection",
+          "ssrf",
+          "ssti",
+          "xss",
+          "xxe"
+        ],
+        "per_class_report": {
+          "brute_force": {
+            "precision": 1.0,
+            "recall": 0.985,
+            "f1-score": 0.9924433249370278,
+            "support": 600.0
+          },
+          "command_injection": {
+            "precision": 0.9042904290429042,
+            "recall": 0.822,
+            "f1-score": 0.861183865898376,
+            "support": 1000.0
+          },
+          "log4shell": {
+            "precision": 0.9974937343358395,
+            "recall": 0.995,
+            "f1-score": 0.9962453066332916,
+            "support": 400.0
+          },
+          "normal": {
+            "precision": 0.8698173383589446,
+            "recall": 1.0,
+            "f1-score": 0.930376802605055,
+            "support": 3000.0
+          },
+          "path_traversal": {
+            "precision": 1.0,
+            "recall": 0.89,
+            "f1-score": 0.9417989417989417,
+            "support": 1000.0
+          },
+          "sql_injection": {
+            "precision": 0.9986091794158554,
+            "recall": 0.8975,
+            "f1-score": 0.945358788676761,
+            "support": 1600.0
+          },
+          "ssrf": {
+            "precision": 0.9916247906197655,
+            "recall": 0.9866666666666667,
+            "f1-score": 0.9891395154553049,
+            "support": 600.0
+          },
+          "ssti": {
+            "precision": 1.0,
+            "recall": 0.8175,
+            "f1-score": 0.8995873452544705,
+            "support": 400.0
+          },
+          "xss": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 1600.0
+          },
+          "xxe": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 400.0
+          },
+          "accuracy": 0.9486792452830188,
+          "macro avg": {
+            "precision": 0.976183547177331,
+            "recall": 0.9393666666666667,
+            "f1-score": 0.9556133891259229,
+            "support": 10600.0
+          },
+          "weighted avg": {
+            "precision": 0.9533480659708775,
+            "recall": 0.9486792452830188,
+            "f1-score": 0.9484877398477174,
+            "support": 10600.0
+          }
+        },
+        "train_samples": 36040,
+        "val_samples": 6360,
+        "test_samples": 10600,
+        "trained_at": "2026-05-21T11:38:07Z",
+        "validation_accuracy": 0.0652,
+        "generalization_gap": 0.8835
+      },
+      "active": false
+    }
+  }
+}
