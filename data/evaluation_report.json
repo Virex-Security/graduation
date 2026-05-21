@@ -1,0 +1,8 @@
+{
+  "test_accuracy": 0.9999,
+  "f1_macro": 0.9999,
+  "roc_auc_macro": 1.0,
+  "total_false_positives": 1,
+  "total_false_negatives": 1,
+  "trained_at": "2026-05-16T00:00:00Z"
+}

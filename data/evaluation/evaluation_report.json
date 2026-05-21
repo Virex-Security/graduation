@@ -1,0 +1,31 @@
+{
+  "train_accuracy": 0.9997,
+  "val_accuracy": 0.9994,
+  "test_accuracy": 0.9999,
+  "f1_macro": 0.9999,
+  "f1_weighted": 0.9999,
+  "precision_macro": 1.0,
+  "recall_macro": 0.9999,
+  "roc_auc_macro": 1.0,
+  "overfitting_gap": -0.0002,
+  "total_false_positives": 1,
+  "total_false_negatives": 1,
+  "class_names": [
+    "brute_force",
+    "command_injection",
+    "log4shell",
+    "normal",
+    "path_traversal",
+    "sql_injection",
+    "ssrf",
+    "ssti",
+    "xss",
+    "xxe"
+  ],
+  "train_samples": 36040,
+  "val_samples": 6360,
+  "test_samples": 10600,
+  "smote_applied": true,
+  "model_type": "v2_tfidf_secfeatures",
+  "trained_at": "2026-05-15T22:11:38Z"
+}

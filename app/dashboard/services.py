@@ -339,7 +339,8 @@ class SecurityDashboard:
         y_prob = []
         for l in real_logs:
             is_attack = l.get('attack_type', 'Clean') not in ('Clean', '', None)
-            ml_flagged = (l.get('ml_detected') is True or l.get('detection_type') == 'ML')
+            blocked = l.get('blocked') is True or str(l.get('blocked')).lower() == 'true' or l.get('blocked') == 1
+            ml_flagged = (blocked or l.get('ml_detected') is True or l.get('detection_type') == 'ML')
             confidence = l.get('confidence', 0.0)
             y_true.append(1 if is_attack else 0)
             y_prob.append(confidence if ml_flagged else 0.0)

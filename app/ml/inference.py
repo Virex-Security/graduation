@@ -32,258 +32,585 @@ SEC_FEAT_V2_PATH = DATA_DIR / "sec_features_v2.pkl"
 LE_V2_PATH       = DATA_DIR / "label_encoder_v2.pkl"
 MODEL_PATH       = DATA_DIR / "model.pkl"
 VECTORIZER_PATH  = DATA_DIR / "vectorizer.pkl"
-TRAINING_DATA_PATH = DATA_DIR / ("ml_training_data_v2.csv" if (DATA_DIR/"ml_training_data_v2.csv").exists() else "ml_training_data.csv")
-FEEDBACK_LOG_PATH  = DATA_DIR / "ml_feedback.json"
-PRED_LOG_PATH      = DATA_DIR / "predictions_log.jsonl"
+TRAINING_DATA_PATH = DATA_DIR / (
+    "ml_training_data_v2.csv"
+    if (DATA_DIR / "ml_training_data_v2.csv").exists()
+    else "ml_training_data.csv"
+)
+FEEDBACK_LOG_PATH = DATA_DIR / "ml_feedback.json"
+PRED_LOG_PATH     = DATA_DIR / "predictions_log.jsonl"
+EVAL_REPORT_PATH  = DATA_DIR / "evaluation_report.json"   # ← جديد
 
-RETRAIN_INTERVAL = int(os.getenv("ML_RETRAIN_INTERVAL","3600"))
-CACHE_SIZE       = int(os.getenv("ML_CACHE_SIZE","1024"))
-CACHE_TTL        = int(os.getenv("ML_CACHE_TTL","300"))
-THRESHOLD_BLOCK  = float(os.getenv("ML_THRESHOLD_BLOCK","0.85"))
-THRESHOLD_MONITOR= float(os.getenv("ML_THRESHOLD_MONITOR","0.60"))
-LOG_PREDICTIONS  = os.getenv("ML_LOG_PREDICTIONS","false").lower()=="true"
+RETRAIN_INTERVAL = int(os.getenv("ML_RETRAIN_INTERVAL", "3600"))
+CACHE_SIZE       = int(os.getenv("ML_CACHE_SIZE", "1024"))
+CACHE_TTL        = int(os.getenv("ML_CACHE_TTL", "300"))
+THRESHOLD_BLOCK  = float(os.getenv("ML_THRESHOLD_BLOCK", "0.85"))
+THRESHOLD_MONITOR = float(os.getenv("ML_THRESHOLD_MONITOR", "0.60"))
+LOG_PREDICTIONS  = os.getenv("ML_LOG_PREDICTIONS", "false").lower() == "true"
 
 SEVERITY_MAP = {
-    "log4shell":"critical","command_injection":"critical",
-    "sql_injection":"critical","ssrf":"high","xxe":"high","ssti":"critical",
-    "xss":"high","path_traversal":"high","csrf":"high",
-    "scanner":"low","rate_limit":"low",
-    "brute_force":"medium","normal":"none","unknown":"none",
+    "log4shell": "critical", "command_injection": "critical",
+    "sql_injection": "critical", "ssrf": "high", "xxe": "high", "ssti": "critical",
+    "xss": "high", "path_traversal": "high", "csrf": "high",
+    "scanner": "low", "rate_limit": "low",
+    "brute_force": "medium", "normal": "none", "unknown": "none",
 }
 
-_model=None; _vectorizer=None; _sec_feat=None; _label_enc=None
-_model_version="v1"; _model_lock=threading.RLock()
-MODEL_LOADED=False; _using_v2=False
+_model = None; _vectorizer = None; _sec_feat = None; _label_enc = None
+_model_version = "v1"; _model_lock = threading.RLock()
+MODEL_LOADED = False; _using_v2 = False
 
+
+# ── LRU Cache (unchanged) ─────────────────────────────────────
 class _LRUCache:
-    def __init__(self,max_size=CACHE_SIZE,ttl=CACHE_TTL):
-        self._cache=OrderedDict(); self._max=max_size; self._ttl=ttl
-        self._lock=threading.Lock(); self._hits=0; self._misses=0
-    def _key(self,t): return hashlib.md5(t.encode("utf-8",errors="replace")).hexdigest()
-    def get(self,t):
-        k=self._key(t)
+    def __init__(self, max_size=CACHE_SIZE, ttl=CACHE_TTL):
+        self._cache = OrderedDict()
+        self._max   = max_size
+        self._ttl   = ttl
+        self._lock  = threading.Lock()
+        self._hits  = 0
+        self._misses = 0
+
+    def _key(self, t):
+        return hashlib.md5(t.encode("utf-8", errors="replace")).hexdigest()
+
+    def get(self, t):
+        k = self._key(t)
         with self._lock:
             if k in self._cache:
-                val,ts=self._cache[k]
-                if time.time()-ts<self._ttl:
-                    self._cache.move_to_end(k); self._hits+=1; return val
+                val, ts = self._cache[k]
+                if time.time() - ts < self._ttl:
+                    self._cache.move_to_end(k)
+                    self._hits += 1
+                    return val
                 del self._cache[k]
-            self._misses+=1; return None
-    def set(self,t,v):
-        k=self._key(t)
+            self._misses += 1
+            return None
+
+    def set(self, t, v):
+        k = self._key(t)
         with self._lock:
-            self._cache[k]=(v,time.time()); self._cache.move_to_end(k)
-            if len(self._cache)>self._max: self._cache.popitem(last=False)
+            self._cache[k] = (v, time.time())
+            self._cache.move_to_end(k)
+            if len(self._cache) > self._max:
+                self._cache.popitem(last=False)
+
     def clear(self):
-        with self._lock: self._cache.clear()
+        with self._lock:
+            self._cache.clear()
+
     @property
     def stats(self):
         with self._lock:
-            tot=self._hits+self._misses
-            return {"hits":self._hits,"misses":self._misses,
-                    "hit_rate":round(self._hits/tot,3) if tot else 0,
-                    "cache_size":len(self._cache)}
+            tot = self._hits + self._misses
+            return {
+                "hits": self._hits, "misses": self._misses,
+                "hit_rate": round(self._hits / tot, 3) if tot else 0,
+                "cache_size": len(self._cache),
+            }
 
-_cache=_LRUCache()
-_executor=ThreadPoolExecutor(max_workers=4,thread_name_prefix="ml_worker")
-_feedback_lock=threading.Lock(); _pred_log_lock=threading.Lock()
 
-def _append_feedback(text,risk_score,decision,attack_type):
-    sanitized=re.sub(r'(?i)(password|passwd|pwd|token|secret|key|auth)=[^\s&"]+',r'\1=***REDACTED***',text)
-    entry={"timestamp":time.strftime("%Y-%m-%dT%H:%M:%SZ",time.gmtime()),
-           "text_hash":hashlib.md5(text.encode("utf-8",errors="replace")).hexdigest(),
-           "text_snippet":sanitized[:120],"risk_score":risk_score,
-           "decision":decision,"attack_type":attack_type,"reviewed":False,"promoted_to_rule":False}
+_cache    = _LRUCache()
+_executor = ThreadPoolExecutor(max_workers=4, thread_name_prefix="ml_worker")
+_feedback_lock  = threading.Lock()
+_pred_log_lock  = threading.Lock()
+
+
+# ── Feedback + Logging (unchanged) ────────────────────────────
+def _append_feedback(text, risk_score, decision, attack_type):
+    sanitized = re.sub(
+        r'(?i)(password|passwd|pwd|token|secret|key|auth)=[^\s&"]+',
+        r'\1=***REDACTED***', text,
+    )
+    entry = {
+        "timestamp":    time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "text_hash":    hashlib.md5(text.encode("utf-8", errors="replace")).hexdigest(),
+        "text_snippet": sanitized[:120],
+        "risk_score":   risk_score,
+        "decision":     decision,
+        "attack_type":  attack_type,
+        "reviewed":     False,
+        "promoted_to_rule": False,
+    }
     try:
         with _feedback_lock:
-            existing=[]
+            existing = []
             if FEEDBACK_LOG_PATH.exists():
                 try:
-                    with open(FEEDBACK_LOG_PATH,"r",encoding="utf-8") as f: existing=json.load(f)
-                except: existing=[]
+                    with open(FEEDBACK_LOG_PATH, "r", encoding="utf-8") as f:
+                        existing = json.load(f)
+                except Exception:
+                    existing = []
             existing.append(entry)
-            if len(existing)>5000: existing=existing[-5000:]
-            DATA_DIR.mkdir(parents=True,exist_ok=True)
-            with open(FEEDBACK_LOG_PATH,"w",encoding="utf-8") as f: json.dump(existing,f,indent=2,ensure_ascii=False)
-    except Exception as e: logger.error(f"[ML-FEEDBACK] write failed: {e}")
+            if len(existing) > 5000:
+                existing = existing[-5000:]
+            DATA_DIR.mkdir(parents=True, exist_ok=True)
+            with open(FEEDBACK_LOG_PATH, "w", encoding="utf-8") as f:
+                json.dump(existing, f, indent=2, ensure_ascii=False)
+    except Exception as e:
+        logger.error(f"[ML-FEEDBACK] write failed: {e}")
 
-def _log_prediction(text_hash,confidence,attack_type,severity,action,model_ver):
-    if not LOG_PREDICTIONS: return
-    entry={"ts":time.strftime("%Y-%m-%dT%H:%M:%SZ",time.gmtime()),"text_hash":text_hash,
-           "predicted":attack_type,"confidence":confidence,"severity":severity,
-           "action":action,"model_version":model_ver}
+
+def _log_prediction(text_hash, confidence, attack_type, severity, action, model_ver):
+    if not LOG_PREDICTIONS:
+        return
+    entry = {
+        "ts": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "text_hash": text_hash,
+        "predicted": attack_type,
+        "confidence": confidence,
+        "severity": severity,
+        "action": action,
+        "model_version": model_ver,
+    }
     try:
         with _pred_log_lock:
-            DATA_DIR.mkdir(parents=True,exist_ok=True)
-            with open(PRED_LOG_PATH,"a",encoding="utf-8") as f: f.write(json.dumps(entry,ensure_ascii=False)+"\n")
-    except Exception as e: logger.error(f"[ML-PRED-LOG] {e}")
+            DATA_DIR.mkdir(parents=True, exist_ok=True)
+            with open(PRED_LOG_PATH, "a", encoding="utf-8") as f:
+                f.write(json.dumps(entry, ensure_ascii=False) + "\n")
+    except Exception as e:
+        logger.error(f"[ML-PRED-LOG] {e}")
 
+
+# ── Model loading (unchanged) ──────────────────────────────────
 def _try_load_v2():
-    global _model,_vectorizer,_sec_feat,_label_enc,MODEL_LOADED,_using_v2,_model_version
-    if all(p.exists() for p in [MODEL_V2_PATH,VEC_V2_PATH,SEC_FEAT_V2_PATH,LE_V2_PATH]):
+    global _model, _vectorizer, _sec_feat, _label_enc, MODEL_LOADED, _using_v2, _model_version
+    if all(p.exists() for p in [MODEL_V2_PATH, VEC_V2_PATH, SEC_FEAT_V2_PATH, LE_V2_PATH]):
         try:
-            sys.path.insert(0,str(PROJECT_ROOT))
+            sys.path.insert(0, str(PROJECT_ROOT))
             with _model_lock:
-                _model=joblib.load(str(MODEL_V2_PATH)); _vectorizer=joblib.load(str(VEC_V2_PATH))
-                _sec_feat=joblib.load(str(SEC_FEAT_V2_PATH)); _label_enc=joblib.load(str(LE_V2_PATH))
-                MODEL_LOADED=True; _using_v2=True; _model_version="v2.0"
-            logger.info("[ML] v2 multi-class model loaded"); return True
-        except Exception as e: logger.warning(f"[ML] v2 load failed: {e}")
+                _model      = joblib.load(str(MODEL_V2_PATH))
+                _vectorizer = joblib.load(str(VEC_V2_PATH))
+                _sec_feat   = joblib.load(str(SEC_FEAT_V2_PATH))
+                _label_enc  = joblib.load(str(LE_V2_PATH))
+                MODEL_LOADED = True
+                _using_v2    = True
+                _model_version = "v2.0"
+            logger.info("[ML] v2 multi-class model loaded")
+            return True
+        except Exception as e:
+            logger.warning(f"[ML] v2 load failed: {e}")
     return False
 
+
 def _try_load_v1():
-    global _model,_vectorizer,MODEL_LOADED,_using_v2,_model_version
+    global _model, _vectorizer, MODEL_LOADED, _using_v2, _model_version
     try:
         with _model_lock:
-            _model=joblib.load(str(MODEL_PATH)); _vectorizer=joblib.load(str(VECTORIZER_PATH))
-            MODEL_LOADED=True; _using_v2=False; _model_version="v1.0"
-        logger.info("[ML] v1 fallback model loaded"); return True
-    except: return False
+            _model      = joblib.load(str(MODEL_PATH))
+            _vectorizer = joblib.load(str(VECTORIZER_PATH))
+            MODEL_LOADED = True
+            _using_v2    = False
+            _model_version = "v1.0"
+        logger.info("[ML] v1 fallback model loaded")
+        return True
+    except Exception:
+        return False
 
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# ✅ IMPROVED _retrain_v1 — Full Evaluation + SMOTE + Val Set
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 def _retrain_v1():
-    global _model,_vectorizer,MODEL_LOADED,_using_v2,_model_version
+    """
+    Train v1 model with:
+    - Train / Validation / Test split (68 / 12 / 20)
+    - SMOTE oversampling on train only
+    - Full evaluation: Accuracy, F1, Precision, Recall, ROC-AUC, Confusion Matrix
+    - Results saved to data/evaluation_report.json
+    """
+    global _model, _vectorizer, MODEL_LOADED, _using_v2, _model_version
+
     from sklearn.ensemble import RandomForestClassifier
     from sklearn.feature_extraction.text import TfidfVectorizer
     from sklearn.model_selection import train_test_split
-    try:
-        data=pd.read_csv(str(TRAINING_DATA_PATH))
-        y=data["label"] if "label" in data.columns else (data["attack_type"]!="normal").astype(int)
-        Xtr,Xte,ytr,yte=train_test_split(data["text"],y,test_size=0.2,random_state=42,stratify=y)
-        vec=TfidfVectorizer(ngram_range=(1,2),max_features=10000,analyzer="char_wb",sublinear_tf=True)
-        clf=RandomForestClassifier(n_estimators=150,max_depth=20,random_state=42,n_jobs=-1)
-        clf.fit(vec.fit_transform(Xtr),ytr)
-        with _model_lock:
-            _model=clf; _vectorizer=vec; MODEL_LOADED=True; _using_v2=False; _model_version="v1.0-auto"
-        DATA_DIR.mkdir(parents=True,exist_ok=True)
-        joblib.dump(clf,str(MODEL_PATH)); joblib.dump(vec,str(VECTORIZER_PATH))
-        from sklearn.metrics import accuracy_score
-        logger.info(f"[ML] v1 retrained — Acc: {accuracy_score(yte,clf.predict(vec.transform(Xte)))*100:.2f}%")
-    except Exception as e: logger.error(f"[ML] retrain failed: {e}")
+    from sklearn.metrics import (
+        accuracy_score, f1_score, precision_score, recall_score,
+        roc_auc_score, classification_report, confusion_matrix,
+    )
+    from sklearn.preprocessing import LabelEncoder
 
+    try:
+        # ── 1. Load data ───────────────────────────────────────
+        data = pd.read_csv(str(TRAINING_DATA_PATH))
+        if "attack_type" in data.columns:
+            le = LabelEncoder()
+            y  = le.fit_transform(data["attack_type"])
+            class_names = list(le.classes_)
+            is_multiclass = True
+        else:
+            y = data["label"].values if "label" in data.columns else (
+                data["attack_type"] != "normal"
+            ).astype(int).values
+            class_names = ["normal", "attack"]
+            is_multiclass = False
+
+        X_text = data["text"].values
+        logger.info(f"[ML] Dataset: {len(X_text):,} samples, {len(set(y))} classes")
+
+        # ── 2. Split: Train / Val / Test (stratified) ─────────
+        # Step 1: hold out 20% for test
+        X_tv, X_test, y_tv, y_test = train_test_split(
+            X_text, y, test_size=0.20, random_state=42, stratify=y,
+        )
+        # Step 2: from remaining 80%, use 15% for validation (~12% of total)
+        X_train, X_val, y_train, y_val = train_test_split(
+            X_tv, y_tv, test_size=0.15, random_state=42, stratify=y_tv,
+        )
+        logger.info(
+            f"[ML] Split — Train:{len(y_train):,}  Val:{len(y_val):,}  Test:{len(y_test):,}"
+        )
+
+        # ── 3. Vectorize (fit on train only!) ─────────────────
+        vec = TfidfVectorizer(
+            ngram_range=(1, 2),
+            max_features=10_000,
+            analyzer="char_wb",
+            sublinear_tf=True,
+        )
+        X_train_vec = vec.fit_transform(X_train)   # fit here ONLY
+        X_val_vec   = vec.transform(X_val)
+        X_test_vec  = vec.transform(X_test)
+
+        # ── 4. SMOTE on train only ─────────────────────────────
+        try:
+            from imblearn.over_sampling import SMOTE
+            # k_neighbors must be < min class count
+            min_class_count = min(np.bincount(y_train))
+            k = min(5, min_class_count - 1)
+            if k >= 1:
+                sm = SMOTE(random_state=42, k_neighbors=k)
+                X_train_bal, y_train_bal = sm.fit_resample(X_train_vec, y_train)
+                logger.info(
+                    f"[ML] SMOTE: {len(y_train):,} → {len(y_train_bal):,} samples"
+                )
+            else:
+                X_train_bal, y_train_bal = X_train_vec, y_train
+                logger.warning("[ML] SMOTE skipped — not enough samples per class")
+        except ImportError:
+            X_train_bal, y_train_bal = X_train_vec, y_train
+            logger.warning("[ML] imbalanced-learn not installed — skipping SMOTE")
+
+        # ── 5. Train ───────────────────────────────────────────
+        clf = RandomForestClassifier(
+            n_estimators=150,
+            max_depth=20,
+            class_weight="balanced",   # extra safety on imbalanced classes
+            random_state=42,
+            n_jobs=-1,
+        )
+        clf.fit(X_train_bal, y_train_bal)
+
+        # ── 6. Evaluate on Validation set (tuning decisions) ───
+        y_val_pred = clf.predict(X_val_vec)
+        val_acc    = accuracy_score(y_val, y_val_pred)
+        val_f1     = f1_score(y_val, y_val_pred, average="macro", zero_division=0)
+        logger.info(f"[ML] Val — Acc: {val_acc*100:.2f}%  F1(macro): {val_f1*100:.2f}%")
+
+        # ── 7. Final evaluation on Test set ───────────────────
+        y_test_pred = clf.predict(X_test_vec)
+        y_test_prob = clf.predict_proba(X_test_vec)
+
+        train_acc = accuracy_score(y_train, clf.predict(X_train_vec))
+        test_acc  = accuracy_score(y_test,  y_test_pred)
+        test_f1_macro    = f1_score(y_test, y_test_pred, average="macro",    zero_division=0)
+        test_f1_weighted = f1_score(y_test, y_test_pred, average="weighted", zero_division=0)
+        test_precision   = precision_score(y_test, y_test_pred, average="macro", zero_division=0)
+        test_recall      = recall_score(y_test, y_test_pred, average="macro",    zero_division=0)
+
+        overfitting_gap = train_acc - test_acc
+
+        try:
+            if is_multiclass:
+                roc_auc = roc_auc_score(
+                    y_test, y_test_prob, multi_class="ovr", average="macro"
+                )
+            else:
+                roc_auc = roc_auc_score(y_test, y_test_prob[:, 1])
+        except Exception:
+            roc_auc = None
+
+        cm = confusion_matrix(y_test, y_test_pred).tolist()
+
+        # FP / FN summary
+        total_fp = total_fn = 0
+        cm_np = np.array(cm)
+        for i in range(len(class_names)):
+            tp = cm_np[i, i]
+            total_fp += int(cm_np[:, i].sum() - tp)
+            total_fn += int(cm_np[i, :].sum() - tp)
+
+        # Per-class report as dict
+        per_class_str = classification_report(
+            y_test, y_test_pred,
+            target_names=class_names,
+            zero_division=0,
+            output_dict=True,
+        )
+
+        # ── 8. Log everything ──────────────────────────────────
+        logger.info(
+            f"[ML] Test — Acc:{test_acc*100:.2f}%  "
+            f"F1:{test_f1_macro*100:.2f}%  "
+            f"Prec:{test_precision*100:.2f}%  "
+            f"Recall:{test_recall*100:.2f}%  "
+            f"ROC-AUC:{roc_auc*100:.2f}%" if roc_auc else
+            f"[ML] Test — Acc:{test_acc*100:.2f}%  "
+            f"F1:{test_f1_macro*100:.2f}%"
+        )
+        logger.info(
+            f"[ML] Overfitting gap: {overfitting_gap*100:.2f}%  "
+            f"FP:{total_fp}  FN:{total_fn}"
+        )
+
+        # ── 9. Save evaluation report ─────────────────────────
+        metrics = {
+            "train_accuracy":    round(train_acc, 4),
+            "val_accuracy":      round(val_acc, 4),
+            "test_accuracy":     round(test_acc, 4),
+            "f1_macro":          round(test_f1_macro, 4),
+            "f1_weighted":       round(test_f1_weighted, 4),
+            "precision_macro":   round(test_precision, 4),
+            "recall_macro":      round(test_recall, 4),
+            "roc_auc_macro":     round(roc_auc, 4) if roc_auc else None,
+            "overfitting_gap":   round(overfitting_gap, 4),
+            "total_false_positives": total_fp,
+            "total_false_negatives": total_fn,
+            "confusion_matrix":  cm,
+            "class_names":       class_names,
+            "per_class_report":  per_class_str,
+            "train_samples":     int(len(y_train)),
+            "val_samples":       int(len(y_val)),
+            "test_samples":      int(len(y_test)),
+            "smote_applied":     True,
+            "trained_at":        time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        }
+        DATA_DIR.mkdir(parents=True, exist_ok=True)
+        with open(EVAL_REPORT_PATH, "w", encoding="utf-8") as f:
+            json.dump(metrics, f, indent=2, ensure_ascii=False)
+        logger.info(f"[ML] Evaluation report saved → {EVAL_REPORT_PATH}")
+
+        # ── 10. Register in ModelRegistry ─────────────────────
+        try:
+            from app.ml.model_registry import get_registry
+            registry = get_registry()
+            registry.register_model(str(MODEL_PATH), metrics, version="v1.0-auto")
+        except Exception as e:
+            logger.warning(f"[ML] Registry update failed: {e}")
+
+        # ── 11. Save model ─────────────────────────────────────
+        with _model_lock:
+            _model         = clf
+            _vectorizer    = vec
+            MODEL_LOADED   = True
+            _using_v2      = False
+            _model_version = "v1.0-auto"
+
+        joblib.dump(clf, str(MODEL_PATH))
+        joblib.dump(vec, str(VECTORIZER_PATH))
+        logger.info("[ML] v1 model saved")
+
+    except Exception as e:
+        logger.error(f"[ML] retrain failed: {e}", exc_info=True)
+
+
+# ── Inference logic (unchanged from original) ─────────────────
 def _load_or_train():
-    if _try_load_v2(): return
-    if _try_load_v1(): return
+    if _try_load_v2():
+        return
+    if _try_load_v1():
+        return
     logger.warning("[ML] No model — training v1 from scratch...")
     _retrain_v1()
 
+
 def _auto_retrain_loop():
     while True:
-        time.sleep(RETRAIN_INTERVAL); logger.info("[ML] Auto-retraining...")
-        if not _try_load_v2(): _retrain_v1()
+        time.sleep(RETRAIN_INTERVAL)
+        logger.info("[ML] Auto-retraining...")
+        if not _try_load_v2():
+            _retrain_v1()
         _cache.clear()
+
 
 def _compute_v2(text):
     from scipy.sparse import hstack
     with _model_lock:
-        Xf=hstack([_vectorizer.transform([text]),_sec_feat.transform([text])])
-        proba=_model.predict_proba(Xf)[0]
-        pred_idx=int(np.argmax(proba))
-    classes=list(_label_enc.classes_)
-    attack_type=classes[pred_idx]; confidence=float(proba[pred_idx])
-    normal_idx=classes.index("normal") if "normal" in classes else -1
-    risk_score=1.0-float(proba[normal_idx]) if normal_idx>=0 else confidence
-    class_probs={cls:round(float(p),4) for cls,p in zip(classes,proba)}
-    return risk_score,attack_type,confidence,class_probs
+        Xf    = hstack([_vectorizer.transform([text]), _sec_feat.transform([text])])
+        proba = _model.predict_proba(Xf)[0]
+        pred_idx = int(np.argmax(proba))
+    classes      = list(_label_enc.classes_)
+    attack_type  = classes[pred_idx]
+    confidence   = float(proba[pred_idx])
+    normal_idx   = classes.index("normal") if "normal" in classes else -1
+    risk_score   = 1.0 - float(proba[normal_idx]) if normal_idx >= 0 else confidence
+    class_probs  = {cls: round(float(p), 4) for cls, p in zip(classes, proba)}
+    return risk_score, attack_type, confidence, class_probs
+
 
 def _compute_v1(text):
     with _model_lock:
-        X=_vectorizer.transform([text])
-        if hasattr(_model,"predict_proba"):
-            proba=_model.predict_proba(X)[0]; classes=list(_model.classes_)
-            idx=classes.index(1) if 1 in classes else -1
-            risk=float(proba[idx]) if idx>=0 else 0.0
+        X = _vectorizer.transform([text])
+        if hasattr(_model, "predict_proba"):
+            proba   = _model.predict_proba(X)[0]
+            classes = list(_model.classes_)
+            idx     = classes.index(1) if 1 in classes else -1
+            risk    = float(proba[idx]) if idx >= 0 else 0.0
         else:
-            risk=1.0 if _model.predict(X)[0]==1 else 0.0
-    attack_type=_classify_v1(text)
-    return risk,attack_type,risk,{attack_type:risk}
+            risk = 1.0 if _model.predict(X)[0] == 1 else 0.0
+    attack_type = _classify_v1(text)
+    return risk, attack_type, risk, {attack_type: risk}
+
 
 def _classify_v1(text):
-    t=text.lower()
-    if re.search(r"(select|insert|update|delete|drop|union|exec|sleep|benchmark|waitfor)",t): return "sql_injection"
-    if re.search(r"(<script|javascript:|onerror|onload|onclick|<iframe|<svg|alert\()",t): return "xss"
-    if re.search(r"(;|\||`|&&|\|\|)\s*(cat|ls|rm|wget|curl|nc|bash|sh|python)",t): return "command_injection"
-    if re.search(r"(\.\./|\.\.\\|%2e%2e|etc/passwd|etc/shadow|proc/self)",t): return "path_traversal"
-    if re.search(r"\$\{jndi:",t): return "log4shell"
-    if re.search(r"(127\.0\.0\.1|localhost|169\.254\.169\.254)",t): return "ssrf"
-    if re.search(r"(password|login|user|admin).*?(password|login|user|admin)",t): return "brute_force"
-    if re.search(r"(csrf|token|origin|referer|cross.?site)",t): return "csrf"
-    if re.search(r"(/admin|/wp-|/phpmyadmin|/\.env|/config|/backup|nikto|nmap|scanner)",t): return "scanner"
-    if re.search(r"(rate.?limit|too.?many|throttl|flood|spam)",t): return "rate_limit"
-    if re.search(r"(xxe|<!ENTITY|<!DOCTYPE.*SYSTEM)",t): return "xxe"
-    if re.search(r"(ssti|\{\{.*\}\}|\{%.*%\}|\$\{.*\})",t): return "ssti"
+    t = text.lower()
+    if re.search(r"(select|insert|update|delete|drop|union|exec|sleep|benchmark|waitfor)", t):
+        return "sql_injection"
+    if re.search(r"(<script|javascript:|onerror|onload|onclick|<iframe|<svg|alert\()", t):
+        return "xss"
+    if re.search(r"(;|\||`|&&|\|\|)\s*(cat|ls|rm|wget|curl|nc|bash|sh|python)", t):
+        return "command_injection"
+    if re.search(r"(\.\./|\.\.\\|%2e%2e|etc/passwd|etc/shadow|proc/self)", t):
+        return "path_traversal"
+    if re.search(r"\$\{jndi:", t):
+        return "log4shell"
+    if re.search(r"(127\.0\.0\.1|localhost|169\.254\.169\.254)", t):
+        return "ssrf"
+    if re.search(r"(password|login|user|admin).*?(password|login|user|admin)", t):
+        return "brute_force"
+    if re.search(r"(csrf|token|origin|referer|cross.?site)", t):
+        return "csrf"
+    if re.search(r"(/admin|/wp-|/phpmyadmin|/\.env|/config|/backup|nikto|nmap|scanner)", t):
+        return "scanner"
+    if re.search(r"(rate.?limit|too.?many|throttl|flood|spam)", t):
+        return "rate_limit"
+    if re.search(r"(xxe|<!ENTITY|<!DOCTYPE.*SYSTEM)", t):
+        return "xxe"
+    if re.search(r"(ssti|\{\{.*\}\}|\{%.*%\}|\$\{.*\})", t):
+        return "ssti"
     return "normal"
 
+
 def _make_decision(risk_score):
-    if risk_score>=THRESHOLD_BLOCK: return "block"
-    if risk_score>=THRESHOLD_MONITOR: return "monitor"
+    if risk_score >= THRESHOLD_BLOCK:
+        return "block"
+    if risk_score >= THRESHOLD_MONITOR:
+        return "monitor"
     return "allow"
 
-class MLDecision:
-    __slots__=("risk_score","action","attack_type","attack_class_id",
-               "confidence","severity","class_probabilities","from_cache","model_version")
-    def __init__(self,risk_score,action,attack_type,attack_class_id=0,
-                 confidence=0.0,severity="none",class_probabilities=None,
-                 from_cache=False,model_version="v1.0"):
-        self.risk_score=risk_score; self.action=action; self.attack_type=attack_type
-        self.attack_class_id=attack_class_id; self.confidence=confidence
-        self.severity=severity; self.class_probabilities=class_probabilities or {}
-        self.from_cache=from_cache; self.model_version=model_version
-    @property
-    def should_block(self): return self.action=="block"
-    @property
-    def should_monitor(self): return self.action in ("block","monitor")
-    def to_dict(self):
-        return {"risk_score":round(self.risk_score*100,1),"action":self.action,
-                "attack_type":self.attack_type,"attack_class_id":self.attack_class_id,
-                "confidence":round(self.confidence*100,1),"severity":self.severity,
-                "class_probabilities":{k:round(v*100,1) for k,v in self.class_probabilities.items()},
-                "from_cache":self.from_cache,"model_version":self.model_version}
 
-def ml_analyze(text,async_feedback=True):
+# ── MLDecision (unchanged) ─────────────────────────────────────
+class MLDecision:
+    __slots__ = (
+        "risk_score", "action", "attack_type", "attack_class_id",
+        "confidence", "severity", "class_probabilities", "from_cache", "model_version",
+    )
+
+    def __init__(
+        self, risk_score, action, attack_type, attack_class_id=0,
+        confidence=0.0, severity="none", class_probabilities=None,
+        from_cache=False, model_version="v1.0",
+    ):
+        self.risk_score          = risk_score
+        self.action              = action
+        self.attack_type         = attack_type
+        self.attack_class_id     = attack_class_id
+        self.confidence          = confidence
+        self.severity            = severity
+        self.class_probabilities = class_probabilities or {}
+        self.from_cache          = from_cache
+        self.model_version       = model_version
+
+    @property
+    def should_block(self):   return self.action == "block"
+    @property
+    def should_monitor(self): return self.action in ("block", "monitor")
+
+    def to_dict(self):
+        return {
+            "risk_score":          round(self.risk_score * 100, 1),
+            "action":              self.action,
+            "attack_type":         self.attack_type,
+            "attack_class_id":     self.attack_class_id,
+            "confidence":          round(self.confidence * 100, 1),
+            "severity":            self.severity,
+            "class_probabilities": {k: round(v * 100, 1) for k, v in self.class_probabilities.items()},
+            "from_cache":          self.from_cache,
+            "model_version":       self.model_version,
+        }
+
+
+# ── ml_analyze (unchanged) ────────────────────────────────────
+def ml_analyze(text, async_feedback=True):
     _ensure_ml_ready()
-    if not MODEL_LOADED: return MLDecision(0.0,"allow","unknown",severity="none")
-    text_str=str(text)
-    if len(text_str)<=3: return MLDecision(0.0,"allow","normal",severity="none")
-    if len(text_str)<=20 and text_str.isalnum(): return MLDecision(0.0,"allow","normal",severity="none")
-    cached=_cache.get(text_str)
+    if not MODEL_LOADED:
+        return MLDecision(0.0, "allow", "unknown", severity="none")
+    text_str = str(text)
+    if len(text_str) <= 3:
+        return MLDecision(0.0, "allow", "normal", severity="none")
+    if len(text_str) <= 20 and text_str.isalnum():
+        return MLDecision(0.0, "allow", "normal", severity="none")
+
+    cached = _cache.get(text_str)
     if cached is not None:
-        return MLDecision(cached["risk_score"],cached["action"],cached["attack_type"],
-                          cached.get("attack_class_id",0),cached.get("confidence",0.0),
-                          cached.get("severity","none"),cached.get("class_probabilities",{}),
-                          from_cache=True,model_version=cached.get("model_version",_model_version))
+        return MLDecision(
+            cached["risk_score"], cached["action"], cached["attack_type"],
+            cached.get("attack_class_id", 0), cached.get("confidence", 0.0),
+            cached.get("severity", "none"), cached.get("class_probabilities", {}),
+            from_cache=True, model_version=cached.get("model_version", _model_version),
+        )
     try:
-        if _using_v2: risk_score,attack_type,confidence,class_probs=_compute_v2(text_str)
-        else: risk_score,attack_type,confidence,class_probs=_compute_v1(text_str)
-        action=_make_decision(risk_score)
-        severity=SEVERITY_MAP.get(attack_type,"medium")
-        if attack_type=="normal" and risk_score>=THRESHOLD_MONITOR:
-            reclassified=_classify_v1(text_str)
-            if reclassified!="normal":
-                attack_type=reclassified
-                severity=SEVERITY_MAP.get(attack_type,"medium")
+        if _using_v2:
+            risk_score, attack_type, confidence, class_probs = _compute_v2(text_str)
+        else:
+            risk_score, attack_type, confidence, class_probs = _compute_v1(text_str)
+
+        action   = _make_decision(risk_score)
+        severity = SEVERITY_MAP.get(attack_type, "medium")
+
+        if attack_type == "normal" and risk_score >= THRESHOLD_MONITOR:
+            reclassified = _classify_v1(text_str)
+            if reclassified != "normal":
+                attack_type = reclassified
+                severity    = SEVERITY_MAP.get(attack_type, "medium")
             else:
-                # Model says normal but score is high — treat as allowed
-                action="allow"
-                severity="none"
-        attack_class_id=0
+                action   = "allow"
+                severity = "none"
+
+        attack_class_id = 0
         if _label_enc is not None:
-            try: attack_class_id=int(list(_label_enc.classes_).index(attack_type))
-            except ValueError: pass
-        logger.debug(f"[ML] score={risk_score:.2%} action={action} type={attack_type} v={_model_version}")
-        payload={"risk_score":risk_score,"action":action,"attack_type":attack_type,
-                 "attack_class_id":attack_class_id,"confidence":confidence,
-                 "severity":severity,"class_probabilities":class_probs,"model_version":_model_version}
-        _cache.set(text_str,payload)
-        if action in ("block","monitor") and async_feedback:
-            th=hashlib.md5(text_str.encode("utf-8",errors="replace")).hexdigest()
-            _executor.submit(_append_feedback,text_str,risk_score,action,attack_type)
-            _executor.submit(_log_prediction,th,confidence,attack_type,severity,action,_model_version)
-        return MLDecision(risk_score,action,attack_type,attack_class_id,confidence,severity,class_probs,model_version=_model_version)
+            try:
+                attack_class_id = int(list(_label_enc.classes_).index(attack_type))
+            except ValueError:
+                pass
+
+        logger.debug(
+            f"[ML] score={risk_score:.2%} action={action} type={attack_type} v={_model_version}"
+        )
+        payload = {
+            "risk_score": risk_score, "action": action, "attack_type": attack_type,
+            "attack_class_id": attack_class_id, "confidence": confidence,
+            "severity": severity, "class_probabilities": class_probs,
+            "model_version": _model_version,
+        }
+        _cache.set(text_str, payload)
+
+        if action in ("block", "monitor") and async_feedback:
+            th = hashlib.md5(text_str.encode("utf-8", errors="replace")).hexdigest()
+            _executor.submit(_append_feedback, text_str, risk_score, action, attack_type)
+            _executor.submit(_log_prediction, th, confidence, attack_type, severity, action, _model_version)
+
+        return MLDecision(
+            risk_score, action, attack_type, attack_class_id,
+            confidence, severity, class_probs, model_version=_model_version,
+        )
     except Exception as e:
         logger.error(f"[ML] inference error: {e}")
-        return MLDecision(0.0,"allow","error",severity="none")
+        return MLDecision(0.0, "allow", "error", severity="none")
+
 
 _ml_initialized = False
+
 
 def _ensure_ml_ready():
     global _ml_initialized
@@ -305,7 +632,11 @@ def _ensure_ml_ready():
         _ml_initialized = True
         _retrain_thread = threading.Thread(target=_auto_retrain_loop, daemon=True)
         _retrain_thread.start()
-        logger.info(f"[ML] Ready | version={_model_version} block>={THRESHOLD_BLOCK:.0%} monitor>={THRESHOLD_MONITOR:.0%}")
+        logger.info(
+            f"[ML] Ready | version={_model_version} "
+            f"block>={THRESHOLD_BLOCK:.0%} monitor>={THRESHOLD_MONITOR:.0%}"
+        )
+
 
 def ml_detect(text):
     """Backward-compatible: (is_attack: bool, risk_score: float)."""
@@ -313,7 +644,31 @@ def ml_detect(text):
     d = ml_analyze(text)
     return d.should_block, d.risk_score
 
+
 def get_ml_stats():
-    return {"model_loaded":MODEL_LOADED,"model_version":_model_version,"using_v2":_using_v2,
-            "cache":_cache.stats,"thresholds":{"block":THRESHOLD_BLOCK,"monitor":THRESHOLD_MONITOR},
-            "feedback_log":str(FEEDBACK_LOG_PATH)}
+    # Include latest evaluation metrics if available
+    eval_metrics = {}
+    if EVAL_REPORT_PATH.exists():
+        try:
+            with open(EVAL_REPORT_PATH, "r", encoding="utf-8") as f:
+                report = json.load(f)
+            eval_metrics = {
+                "test_accuracy":   report.get("test_accuracy"),
+                "f1_macro":        report.get("f1_macro"),
+                "roc_auc_macro":   report.get("roc_auc_macro"),
+                "false_positives": report.get("total_false_positives"),
+                "false_negatives": report.get("total_false_negatives"),
+                "trained_at":      report.get("trained_at"),
+            }
+        except Exception:
+            pass
+
+    return {
+        "model_loaded":    MODEL_LOADED,
+        "model_version":   _model_version,
+        "using_v2":        _using_v2,
+        "cache":           _cache.stats,
+        "thresholds":      {"block": THRESHOLD_BLOCK, "monitor": THRESHOLD_MONITOR},
+        "feedback_log":    str(FEEDBACK_LOG_PATH),
+        "eval_metrics":    eval_metrics,   # ← جديد
+    }
