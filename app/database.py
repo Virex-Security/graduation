@@ -123,37 +123,73 @@ def _seed_roles():
 
 
 def _seed_users():
+    """Seed users from users.json or create default admin from environment"""
     import json
+    from werkzeug.security import generate_password_hash
+    
     users_file = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "users.json")
-    if not os.path.exists(users_file):
-        return
-    with open(users_file, encoding="utf-8") as f:
-        users_json = json.load(f)
+    
     with _db() as conn:
-        for username, u in users_json.items():
-            exists = conn.execute(
-                text("SELECT user_id FROM users WHERE username = :u"), {"u": username}
-            ).fetchone()
-            if exists:
-                continue
-            role_name = u.get("role", "user")
-            role_row = conn.execute(
-                text("SELECT role_id FROM roles WHERE name = :n"), {"n": role_name}
-            ).fetchone()
-            role_id = role_row[0] if role_row else 2
+        # Check if admin already exists
+        admin_exists = conn.execute(
+            text("SELECT user_id FROM users WHERE username = 'admin'")
+        ).fetchone()
+        
+        if not admin_exists:
+            # Get admin password from environment or generate random one
+            admin_password = os.getenv("ADMIN_PASSWORD")
+            if not admin_password:
+                import secrets
+                import string
+                # Generate secure random password
+                alphabet = string.ascii_letters + string.digits + "!@#$%^&*"
+                admin_password = ''.join(secrets.choice(alphabet) for _ in range(16))
+                print("\n" + "="*60)
+                print("  ⚠️  WARNING: No ADMIN_PASSWORD in .env")
+                print(f"  Generated random password: {admin_password}")
+                print("  Add this to your .env file: ADMIN_PASSWORD={admin_password}")
+                print("="*60 + "\n")
+            
             now = time.strftime("%Y-%m-%d %H:%M:%S")
             conn.execute(text("""
-                INSERT INTO users
-                    (username, password_hash, email, role_id, is_active, created_at, updated_at)
-                VALUES (:username, :ph, :email, :role_id, TRUE, :now, :now)
-            """), {
-                "username": username,
-                "ph": u.get("password_hash", ""),
-                "email": u.get("email", f"{username}@example.com"),
-                "role_id": role_id,
-                "now": now,
-            })
-        conn.commit()
+                INSERT INTO users (username, password_hash, email, role_id, is_active, created_at, updated_at)
+                VALUES ('admin', :ph, 'admin@virex.local', 1, TRUE, :now, :now)
+            """), {"ph": generate_password_hash(admin_password), "now": now})
+            conn.commit()
+        
+        # Load additional users from users.json if exists
+        if os.path.exists(users_file):
+            with open(users_file, encoding="utf-8") as f:
+                users_json = json.load(f)
+            
+            for username, u in users_json.items():
+                if username == "admin":  # Skip admin, already handled
+                    continue
+                    
+                exists = conn.execute(
+                    text("SELECT user_id FROM users WHERE username = :u"), {"u": username}
+                ).fetchone()
+                if exists:
+                    continue
+                    
+                role_name = u.get("role", "user")
+                role_row = conn.execute(
+                    text("SELECT role_id FROM roles WHERE name = :n"), {"n": role_name}
+                ).fetchone()
+                role_id = role_row[0] if role_row else 2
+                now = time.strftime("%Y-%m-%d %H:%M:%S")
+                conn.execute(text("""
+                    INSERT INTO users
+                        (username, password_hash, email, role_id, is_active, created_at, updated_at)
+                    VALUES (:username, :ph, :email, :role_id, TRUE, :now, :now)
+                """), {
+                    "username": username,
+                    "ph": u.get("password_hash", ""),
+                    "email": u.get("email", f"{username}@example.com"),
+                    "role_id": role_id,
+                    "now": now,
+                })
+            conn.commit()
 
 
 def _seed_rules():
@@ -163,21 +199,38 @@ def _seed_rules():
             return
         now = time.strftime("%Y-%m-%d %H:%M:%S")
         default_rules = [
+            # SQL Injection
             ("SQL Injection - UNION",       "sql_injection",    r"UNION\s+ALL?\s+SELECT",                       "critical", "block"),
             ("SQL Injection - OR 1=1",      "sql_injection",    r"'\s+OR\s+['\d]+\s*=\s*['\d]+",               "critical", "block"),
             ("SQL Injection - Sleep",       "sql_injection",    r"SLEEP\s*\(",                                  "high",     "block"),
             ("SQL Injection - Exec/CMDSHELL","sql_injection",   r"(EXEC\s+|xp_cmdshell|exec\s*\(|\bWAITFOR\b)", "critical", "block"),
             ("SQL Injection - Drop/Alter",  "sql_injection",    r"\b(DROP\s+TABLE|ALTER\s+TABLE)\s",            "critical", "block"),
+            
+            # XSS
             ("XSS - Full Script Tag",       "xss",              r"<script[\s>][\s\S]*?</script>",               "high",     "block"),
             ("XSS - JavaScript Protocol",   "xss",              r"(href|src)=[\"']?\s*javascript:",            "high",     "block"),
             ("XSS - Event Handler",         "xss",              r"\b(onerror|onload|onclick)\s*=\s*['\"]*[\"'()]", "high", "block"),
             ("XSS - Cookie Steal",          "xss",              r"document\.cookie",                            "high",     "block"),
+            
+            # Command Injection
             ("Command Injection - Pipe+CMD","command_injection", r"(;|\||`)\s*(cat|rm|wget|curl|nc|bash|sh|python)\s", "critical","block"),
             ("Command Injection - Subshell","command_injection", r"\$\(.*\)\s*",                                "critical", "block"),
+            
+            # Path Traversal
             ("Path Traversal - Dotdot",     "path_traversal",   r"\.\.[/\\]|%2e%2e[/\\%]",                     "high",     "block"),
             ("Path Traversal - Sensitive",  "path_traversal",   r"(etc/passwd|etc/shadow|windows/system32)",   "critical", "block"),
+            
+            # Log4Shell
             ("Log4Shell - JNDI",            "log4shell",        r"\$\{jndi:(ldap|rmi|dns|http)",              "critical", "block"),
+            
+            # SSRF
             ("SSRF - Cloud Metadata",       "ssrf",             r"169\.254\.169\.254",                          "high",     "block"),
+            ("SSRF - Localhost Bypass",     "ssrf",             r"(localhost|127\.0\.0\.1|0\.0\.0\.0|::1)",    "high",     "monitor"),
+            ("SSRF - Internal IP",          "ssrf",             r"(10\.|172\.(1[6-9]|2[0-9]|3[01])\.|192\.168\.)", "medium", "monitor"),
+            
+            # CSRF
+            ("CSRF - Missing Origin",       "csrf",             r"^POST|PUT|DELETE|PATCH",                      "medium",   "monitor"),
+            ("CSRF - Suspicious Referer",   "csrf",             r"Referer:\s*(https?://[^/]+)",                "medium",   "monitor"),
             ("XXE - External Entity",       "xxe",              r"<!ENTITY\s+\w+\s+SYSTEM\s+[\"'](file|http)",  "high",     "block"),
         ]
         for name, rtype, pattern, severity, action in default_rules:

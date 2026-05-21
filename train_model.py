@@ -1,116 +1,183 @@
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.pipeline import Pipeline
 from sklearn.model_selection import train_test_split, StratifiedKFold, cross_val_score
-from sklearn.metrics import classification_report, accuracy_score, confusion_matrix, roc_auc_score
+from sklearn.metrics import classification_report, accuracy_score, confusion_matrix, roc_auc_score, precision_recall_fscore_support
 import joblib
 import numpy as np
 from pathlib import Path
+import warnings
+
+warnings.filterwarnings('ignore')
 
 DATA_DIR = Path("data")
-MODEL_PATH = DATA_DIR / "model.pkl"
-VECTORIZER_PATH = DATA_DIR / "vectorizer.pkl"
+MODEL_PATH = DATA_DIR / "model_pipeline.pkl"  # Save as pipeline
 
 
 def train_and_evaluate():
+    """Train ML model with proper pipeline and validation"""
+    
+    # Load training data
     train_data = pd.read_csv(DATA_DIR / "ml_training_data.csv")
 
-    val_path = DATA_DIR / "ml_validation_data.csv"
-    has_validation = val_path.exists()
+    print("="*60)
+    print("  ML Model Training - Virex Security")
+    print("="*60)
+    print(f"\n📊 Training samples: {len(train_data)}")
+    print(f"   Normal:  {(train_data['label']==0).sum()} ({(train_data['label']==0).sum()/len(train_data)*100:.1f}%)")
+    print(f"   Attacks: {(train_data['label']==1).sum()} ({(train_data['label']==1).sum()/len(train_data)*100:.1f}%)")
+    
+    # Check class balance
+    attack_ratio = (train_data['label']==1).sum() / len(train_data)
+    if attack_ratio < 0.3 or attack_ratio > 0.7:
+        print(f"\n⚠️  WARNING: Imbalanced dataset (attacks: {attack_ratio*100:.1f}%)")
+        print("   Consider balancing classes for better performance")
 
-    print(f"Training samples: {len(train_data)}")
-    print(f"Normal:  {(train_data['label']==0).sum()}")
-    print(f"Attacks: {(train_data['label']==1).sum()}")
-
-    X_train, X_dev, y_train, y_dev = train_test_split(
+    # Split data
+    X_train, X_test, y_train, y_test = train_test_split(
         train_data["text"],
         train_data["label"],
-        test_size=0.15,
-        random_state=None,
+        test_size=0.2,
+        random_state=42,
         stratify=train_data["label"],
     )
 
-    print("\nVectorizing...")
-    vectorizer = TfidfVectorizer(
-        ngram_range=(1, 3),
-        max_features=8000,
-        lowercase=True,
-        strip_accents="unicode",
-        sublinear_tf=True,
-        min_df=2,
-    )
+    print(f"\n📦 Split: {len(X_train)} train, {len(X_test)} test")
 
-    X_train_vec = vectorizer.fit_transform(X_train)
-    X_dev_vec = vectorizer.transform(X_dev)
+    # Create Pipeline (prevents data leakage)
+    print("\n🔧 Building ML Pipeline...")
+    pipeline = Pipeline([
+        ('vectorizer', TfidfVectorizer(
+            ngram_range=(1, 3),
+            max_features=5000,  # Reduced to prevent overfitting
+            lowercase=True,
+            strip_accents="unicode",
+            sublinear_tf=True,
+            min_df=3,  # Increased to reduce noise
+            max_df=0.8,  # Ignore very common terms
+        )),
+        ('classifier', RandomForestClassifier(
+            n_estimators=100,  # Reduced from 200
+            max_depth=15,  # Reduced from 25 to prevent overfitting
+            min_samples_split=10,  # Increased
+            min_samples_leaf=5,  # Increased from 2
+            class_weight="balanced",
+            random_state=42,
+            n_jobs=-1,
+        ))
+    ])
 
-    print("Training Random Forest...")
-    model = RandomForestClassifier(
-        n_estimators=200,
-        max_depth=25,
-        min_samples_leaf=2,
-        class_weight="balanced",
-        random_state=42,
-        n_jobs=-1,
-    )
-    model.fit(X_train_vec, y_train)
+    # Train model
+    print("🎯 Training Random Forest...")
+    pipeline.fit(X_train, y_train)
 
-    print("\nRunning 5-fold cross-validation...")
-    cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=None)
-    X_all_vec = vectorizer.transform(train_data["text"])
+    # Cross-validation on training set
+    print("\n🔄 Running 5-fold cross-validation...")
+    cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
     cv_scores = cross_val_score(
-        model, X_all_vec, train_data["label"],
+        pipeline, X_train, y_train,
         cv=cv, scoring="f1", n_jobs=-1
     )
 
-    print(f"CV F1: {cv_scores.mean():.3f} +/- {cv_scores.std():.3f}")
-    if cv_scores.std() > 0.05:
-        print("WARNING: High variance detected - model may be overfitting")
-
-    y_pred = model.predict(X_dev_vec)
-    y_prob = model.predict_proba(X_dev_vec)[:, 1]
-
-    dev_accuracy = accuracy_score(y_dev, y_pred)
-    dev_auc = roc_auc_score(y_dev, y_prob)
-    cm = confusion_matrix(y_dev, y_pred)
-
-    print(f"\nDev Set Results:")
-    print(f"  Accuracy: {dev_accuracy*100:.2f}%")
-    print(f"  ROC-AUC:  {dev_auc:.4f}")
-    print(f"\n{classification_report(y_dev, y_pred, target_names=['Normal', 'Attack'])}")
-
-    if dev_accuracy > 0.98:
-        print("WARNING: Accuracy > 98% on dev set.")
-        print("   This may indicate overfitting or data leakage.")
-
-    if has_validation:
-        print("\n--- Validation Set (unseen data) ---")
-        val_data = pd.read_csv(val_path)
-        X_val_vec = vectorizer.transform(val_data["text"])
-        y_val_pred = model.predict(X_val_vec)
-        y_val_prob = model.predict_proba(X_val_vec)[:, 1]
-
-        val_accuracy = accuracy_score(val_data["label"], y_val_pred)
-        val_auc = roc_auc_score(val_data["label"], y_val_prob)
-
-        print(f"  Accuracy: {val_accuracy*100:.2f}%")
-        print(f"  ROC-AUC:  {val_auc:.4f}")
-        print(f"\n{classification_report(val_data['label'], y_val_pred, target_names=['Normal', 'Attack'])}")
-
-        gap = dev_accuracy - val_accuracy
-        if gap > 0.05:
-            print(f"WARNING: Generalization gap: {gap*100:.1f}%")
-            print("   Model performs significantly worse on unseen data.")
+    print(f"   CV F1 Score: {cv_scores.mean():.3f} ± {cv_scores.std():.3f}")
+    
+    if cv_scores.std() > 0.08:
+        print("   ⚠️  High variance - model may be unstable")
     else:
-        print("\nNo validation set found at data/ml_validation_data.csv")
-        print("   Run: python scripts/generate_real_training_data.py")
+        print("   ✅ Low variance - model is stable")
 
+    # Evaluate on test set
+    print("\n📈 Test Set Evaluation:")
+    y_pred = pipeline.predict(X_test)
+    y_prob = pipeline.predict_proba(X_test)[:, 1]
+
+    test_accuracy = accuracy_score(y_test, y_pred)
+    test_auc = roc_auc_score(y_test, y_prob)
+    
+    print(f"   Accuracy: {test_accuracy*100:.2f}%")
+    print(f"   ROC-AUC:  {test_auc:.4f}")
+    
+    # Detailed metrics
+    precision, recall, f1, _ = precision_recall_fscore_support(y_test, y_pred, average='binary')
+    print(f"   Precision: {precision:.3f}")
+    print(f"   Recall:    {recall:.3f}")
+    print(f"   F1-Score:  {f1:.3f}")
+    
+    # Confusion matrix
+    cm = confusion_matrix(y_test, y_pred)
+    tn, fp, fn, tp = cm.ravel()
+    print(f"\n   Confusion Matrix:")
+    print(f"   TN: {tn:4d}  FP: {fp:4d}")
+    print(f"   FN: {fn:4d}  TP: {tp:4d}")
+    
+    # False positive rate (important for security)
+    fpr = fp / (fp + tn) if (fp + tn) > 0 else 0
+    print(f"\n   False Positive Rate: {fpr*100:.2f}%")
+    if fpr > 0.05:
+        print("   ⚠️  High FPR - may block legitimate requests")
+    else:
+        print("   ✅ Low FPR - good for production")
+    
+    # Overfitting check
+    train_pred = pipeline.predict(X_train)
+    train_accuracy = accuracy_score(y_train, train_pred)
+    gap = train_accuracy - test_accuracy
+    
+    print(f"\n🔍 Overfitting Analysis:")
+    print(f"   Train Accuracy: {train_accuracy*100:.2f}%")
+    print(f"   Test Accuracy:  {test_accuracy*100:.2f}%")
+    print(f"   Gap:            {gap*100:.2f}%")
+    
+    if gap > 0.10:
+        print("   ⚠️  OVERFITTING DETECTED!")
+        print("   Model memorized training data")
+        print("   Recommendation: Use more diverse data or reduce model complexity")
+    elif gap > 0.05:
+        print("   ⚠️  Slight overfitting")
+        print("   Model may not generalize well")
+    else:
+        print("   ✅ Good generalization")
+    
+    # Realistic accuracy check
+    if test_accuracy > 0.95:
+        print(f"\n⚠️  WARNING: Test accuracy ({test_accuracy*100:.1f}%) is suspiciously high")
+        print("   This may indicate:")
+        print("   - Data leakage")
+        print("   - Overly simple patterns")
+        print("   - Not enough diversity in data")
+        print("\n   Recommendation: Test on real-world data")
+
+    # Classification report
+    print(f"\n📊 Detailed Classification Report:")
+    print(classification_report(y_test, y_pred, target_names=['Normal', 'Attack'], digits=3))
+
+    # Save pipeline
     DATA_DIR.mkdir(exist_ok=True)
-    joblib.dump(model, MODEL_PATH)
-    joblib.dump(vectorizer, VECTORIZER_PATH)
-    print(f"\nModel saved to {MODEL_PATH}")
-    print(f"Vectorizer saved to {VECTORIZER_PATH}")
+    joblib.dump(pipeline, MODEL_PATH)
+    print(f"\n💾 Model pipeline saved to: {MODEL_PATH}")
+    print(f"   Size: {MODEL_PATH.stat().st_size / 1024:.1f} KB")
+    
+    # Feature importance (top 20)
+    print(f"\n🔝 Top 20 Important Features:")
+    vectorizer = pipeline.named_steps['vectorizer']
+    classifier = pipeline.named_steps['classifier']
+    feature_names = vectorizer.get_feature_names_out()
+    importances = classifier.feature_importances_
+    
+    top_indices = np.argsort(importances)[-20:][::-1]
+    for i, idx in enumerate(top_indices, 1):
+        print(f"   {i:2d}. {feature_names[idx]:30s} ({importances[idx]:.4f})")
 
-    return model, vectorizer
+    print("\n" + "="*60)
+    print("✅ Training Complete!")
+    print("="*60)
+    print("\n🚀 Next steps:")
+    print("   1. Test model: python -c \"from app.ml.inference import ml_analyze; print(ml_analyze('SELECT * FROM users'))\"")
+    print("   2. Start dashboard: python run_dashboard.py")
+    print("   3. Monitor false positives in production")
+    
+    return pipeline
 
 
 if __name__ == "__main__":

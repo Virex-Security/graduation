@@ -35,6 +35,46 @@ function initSidebarComponent(root = document) {
   });
 }
 
+function checkAPIConnection() {
+  const statusElement = document.querySelector('.modern-sidebar__status-text');
+  if (!statusElement) return;
+  
+  // Set initial state to "Checking..."
+  statusElement.textContent = 'Checking...';
+  statusElement.className = 'modern-sidebar__status-text status-waiting';
+  
+  // Create AbortController for timeout
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 5000);
+  
+  fetch('/api/health', { 
+    signal: controller.signal,
+    method: 'GET',
+    headers: { 'Accept': 'application/json' }
+  })
+    .then(response => {
+      clearTimeout(timeoutId);
+      if (response.ok) {
+        statusElement.textContent = 'Connected';
+        statusElement.className = 'modern-sidebar__status-text status-connected';
+      } else {
+        statusElement.textContent = 'Disconnected';
+        statusElement.className = 'modern-sidebar__status-text status-disconnected';
+      }
+    })
+    .catch(error => {
+      clearTimeout(timeoutId);
+      statusElement.textContent = 'Disconnected';
+      statusElement.className = 'modern-sidebar__status-text status-disconnected';
+    });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   initSidebarComponent();
+  
+  // Check API connection on load
+  checkAPIConnection();
+  
+  // Check API connection every 10 seconds
+  setInterval(checkAPIConnection, 10000);
 });
