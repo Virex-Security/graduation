@@ -57,6 +57,27 @@ def _sanitize_list(rows: list) -> list:
 def init_db():
     """Seed roles/users into PostgreSQL."""
     try:
+        # Create rate_limits and system_stats tables
+        with _db() as conn:
+            conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS rate_limits (
+                    id SERIAL PRIMARY KEY,
+                    ip_address VARCHAR(45) NOT NULL,
+                    timestamp DOUBLE PRECISION NOT NULL
+                );
+            """))
+            conn.execute(text("""
+                CREATE INDEX IF NOT EXISTS idx_rate_limits_ip_ts ON rate_limits(ip_address, timestamp);
+            """))
+            conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS system_stats (
+                    metric_name VARCHAR(100) PRIMARY KEY,
+                    metric_value BIGINT NOT NULL,
+                    updated_at TIMESTAMP DEFAULT NOW()
+                );
+            """))
+            conn.commit()
+
         _seed_roles()
         _seed_admin()
         _seed_users()
@@ -399,6 +420,48 @@ def log_threat(attack_type: str, ip_address: str, endpoint: str,
         return result.scalar()
 
 
+def log_normal_request(ip_address: str, endpoint: str, method: str = "") -> int | None:
+    """
+    Log a normal/clean request to system_stats and threat_logs.
+    """
+    _invalidate_caches()
+    now = time.strftime("%Y-%m-%d %H:%M:%S")
+    try:
+        with _db() as conn:
+            # 1. Update system_stats for normal_requests_count
+            conn.execute(text("""
+                INSERT INTO system_stats (metric_name, metric_value, updated_at)
+                VALUES ('normal_requests_count', 1, :now)
+                ON CONFLICT (metric_name)
+                DO UPDATE SET metric_value = system_stats.metric_value + 1, updated_at = EXCLUDED.updated_at
+            """), {"now": now})
+
+            # 2. Update total_requests in system_stats
+            conn.execute(text("""
+                INSERT INTO system_stats (metric_name, metric_value, updated_at)
+                VALUES ('total_requests', 1, :now)
+                ON CONFLICT (metric_name)
+                DO UPDATE SET metric_value = system_stats.metric_value + 1, updated_at = EXCLUDED.updated_at
+            """), {"now": now})
+
+            # 3. Log to threat_logs
+            result = conn.execute(text("""
+                INSERT INTO threat_logs
+                    (attack_type, ip_address, endpoint, method, payload, severity,
+                     description, blocked, ml_detected, confidence, detection_type, created_at)
+                VALUES ('Clean', :ip, :ep, :method, '', 'Low',
+                        'Normal Request validated', FALSE, FALSE, 0.0, 'clean', :now)
+                RETURNING threat_log_id
+            """), {
+                "ip": ip_address, "ep": endpoint, "method": method, "now": now
+            })
+            conn.commit()
+            return result.scalar()
+    except Exception as e:
+        logger.error(f"Failed to log normal request: {e}")
+        return None
+
+
 def get_threat_logs(limit: int = 100, attack_type: str = None,
                     severity: str = None) -> list:
     sql = "SELECT * FROM threat_logs WHERE 1=1"
@@ -425,6 +488,7 @@ def clear_threat_logs():
         conn.execute(text("DELETE FROM incidents"))
         conn.execute(text("DELETE FROM notifications"))
         conn.execute(text("DELETE FROM threat_logs"))
+        conn.execute(text("DELETE FROM system_stats"))
         conn.commit()
 
 
@@ -899,9 +963,14 @@ def load_stats() -> dict:
     if _stats_cache and (now - _stats_cache_time) < _stats_cache_ttl:
         return _stats_cache
     with _db() as conn:
+        # 1. Fetch values from system_stats
+        sys_rows = conn.execute(text("SELECT metric_name, metric_value FROM system_stats")).fetchall()
+        sys_stats = {r[0]: r[1] for r in sys_rows} if sys_rows else {}
+
+        # 2. Exclude 'Clean' and 'Normal' when querying threat metrics from threat_logs
         row = conn.execute(text("""
             SELECT
-                COUNT(*) AS total,
+                COUNT(*) AS total_threats,
                 SUM(CASE WHEN blocked = TRUE THEN 1 ELSE 0 END) AS blocked,
                 SUM(CASE WHEN ml_detected = TRUE THEN 1 ELSE 0 END) AS ml,
                 SUM(CASE WHEN attack_type ILIKE '%sql%' THEN 1 ELSE 0 END) AS sqli,
@@ -921,26 +990,83 @@ def load_stats() -> dict:
                 SUM(CASE WHEN UPPER(severity) = 'MEDIUM' THEN 1 ELSE 0 END) AS medium_count,
                 SUM(CASE WHEN UPPER(severity) = 'LOW' THEN 1 ELSE 0 END) AS low_count
             FROM threat_logs
+            WHERE attack_type != 'Clean' AND attack_type != 'Normal'
         """)).fetchone()
+
+    total_reqs = sys_stats.get("total_requests")
+    if total_reqs is None:
+        total_reqs = row[0] or 0
+
+    blocked_reqs = sys_stats.get("blocked_requests")
+    if blocked_reqs is None:
+        blocked_reqs = row[1] or 0
+
+    normal_reqs = sys_stats.get("normal_requests_count")
+    if normal_reqs is None:
+        normal_reqs = max(0, total_reqs - blocked_reqs)
+
     result = {
-        "total_requests": row[0] or 0, "blocked_requests": row[1] or 0,
-        "ml_detections": row[2] or 0, "sql_injection_attempts": row[3] or 0,
-        "xss_attempts": row[4] or 0, "brute_force_attempts": row[5] or 0,
-        "scanner_attempts": row[6] or 0, "rate_limit_hits": row[7] or 0,
-        "csrf_attempts": row[8] or 0, "ssrf_attempts": row[9] or 0,
-        "cmd_injection_attempts": row[10] or 0, "path_traversal_attempts": row[11] or 0,
-        "xxe_attempts": row[12] or 0, "ssti_attempts": row[13] or 0,
+        "total_requests": total_reqs,
+        "blocked_requests": blocked_reqs,
+        "normal_requests_count": normal_reqs,
+        "ml_detections": row[2] or 0,
+        "sql_injection_attempts": row[3] or 0,
+        "xss_attempts": row[4] or 0,
+        "brute_force_attempts": row[5] or 0,
+        "scanner_attempts": row[6] or 0,
+        "rate_limit_hits": row[7] or 0,
+        "csrf_attempts": row[8] or 0,
+        "ssrf_attempts": row[9] or 0,
+        "cmd_injection_attempts": row[10] or 0,
+        "path_traversal_attempts": row[11] or 0,
+        "xxe_attempts": row[12] or 0,
+        "ssti_attempts": row[13] or 0,
         "log4shell_attempts": row[14] or 0,
-        "critical_count": row[15] or 0, "high_count": row[16] or 0,
-        "medium_count": row[17] or 0, "low_count": row[18] or 0,
+        "critical_count": row[15] or 0,
+        "high_count": row[16] or 0,
+        "medium_count": row[17] or 0,
+        "low_count": row[18] or 0,
     }
     _stats_cache = result
     _stats_cache_time = now
     return result
 
 
-def save_stats(total: int, blocked: int):
-    pass
+def save_stats(stats_data=None, *args, **kwargs):
+    """
+    Save stats/metrics persistently using an SQL UPSERT (ON CONFLICT DO UPDATE).
+    Supports stats_data as a dictionary of metrics, or positional args (total, blocked).
+    """
+    metrics = {}
+    if isinstance(stats_data, dict):
+        metrics = stats_data
+    elif len(args) >= 1 or (stats_data is not None and not isinstance(stats_data, dict)):
+        # Handle save_stats(total, blocked)
+        total = stats_data
+        blocked = args[0] if args else kwargs.get("blocked", 0)
+        metrics = {
+            "total_requests": total,
+            "blocked_requests": blocked
+        }
+    
+    # Add any keyword arguments
+    for k, v in kwargs.items():
+        if isinstance(v, (int, float)):
+            metrics[k] = v
+
+    if not metrics:
+        return
+
+    now = time.strftime("%Y-%m-%d %H:%M:%S")
+    with _db() as conn:
+        for name, value in sorted(metrics.items()):
+            conn.execute(text("""
+                INSERT INTO system_stats (metric_name, metric_value, updated_at)
+                VALUES (:name, :val, :now)
+                ON CONFLICT (metric_name) 
+                DO UPDATE SET metric_value = EXCLUDED.metric_value, updated_at = EXCLUDED.updated_at
+            """), {"name": name, "val": int(value), "now": now})
+        conn.commit()
 
 
 # ══════════════════════════════════════════════════════════════

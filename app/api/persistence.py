@@ -38,8 +38,8 @@ def load_stats() -> dict:
     return db.load_stats()
 
 
-def save_stats(total: int, blocked: int):
-    db.save_stats(total, blocked)
+def save_stats(total: int, blocked: int, normal_requests_count: int = 0):
+    db.save_stats(total, blocked, normal_requests_count=normal_requests_count)
 
 
 # ── Blocked IPs ───────────────────────────────────────────────
@@ -67,7 +67,6 @@ def clear_seen_attacks():
 def append_user_attack(user_key: str, attack_type: str, ip: str,
                        endpoint: str, method: str = "", severity: str = "Medium",
                        blocked: bool = False, description: str = None):
-    global _seen_attacks
     key = (ip, attack_type, endpoint)
     now = time.time()
     
@@ -80,7 +79,9 @@ def append_user_attack(user_key: str, attack_type: str, ip: str,
     # Prevent memory leak: trim expired entries when dict grows too large
     if len(_seen_attacks) > 500:
         expiry = now - _ATTACK_DEDUP_SECONDS
-        _seen_attacks = {k: v for k, v in _seen_attacks.items() if v >= expiry}
+        expired_keys = [k for k, v in _seen_attacks.items() if v < expiry]
+        for k in expired_keys:
+            del _seen_attacks[k]
     
     # Determine block status based on severity
     should_block = severity in ("Critical", "High")

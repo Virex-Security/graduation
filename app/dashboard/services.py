@@ -90,6 +90,7 @@ class SecurityDashboard:
         self.stats = {
             'total_requests': stats.get('total_requests', 0),
             'blocked_requests': stats.get('blocked_requests', 0),
+            'normal_requests_count': stats.get('normal_requests_count', 0),
             'ml_detections': stats.get('ml_detections', 0),
             'sql_injection_attempts': stats.get('sql_injection_attempts', 0),
             'xss_attempts': stats.get('xss_attempts', 0),
@@ -98,6 +99,7 @@ class SecurityDashboard:
             'rate_limit_hits': stats.get('rate_limit_hits', 0),
             'csrf_attempts': stats.get('csrf_attempts', 0),
             'ssrf_attempts': stats.get('ssrf_attempts', 0),
+            'path_traversal_attempts': stats.get('path_traversal_attempts', 0),
         }
         # recent threats
         self.recent_threats = [t for t in self.db.get_threat_logs(limit=20) if t.get('attack_type') != 'Clean'][:10]
@@ -116,6 +118,7 @@ class SecurityDashboard:
         return {
             'total_requests': stats.get('total_requests', 0),
             'blocked_requests': stats.get('blocked_requests', 0),
+            'normal_requests_count': stats.get('normal_requests_count', 0),
             'ml_detections': stats.get('ml_detections', 0),
             'sql_injection_attempts': stats.get('sql_injection_attempts', 0),
             'xss_attempts': stats.get('xss_attempts', 0),
@@ -124,6 +127,7 @@ class SecurityDashboard:
             'rate_limit_hits': stats.get('rate_limit_hits', 0),
             'csrf_attempts': stats.get('csrf_attempts', 0),
             'ssrf_attempts': stats.get('ssrf_attempts', 0),
+            'path_traversal_attempts': stats.get('path_traversal_attempts', 0),
             'critical_count': stats.get('critical_count', 0),
             'high_count': stats.get('high_count', 0),
             'medium_count': stats.get('medium_count', 0),
@@ -241,7 +245,8 @@ class SecurityDashboard:
                 'timestamp': current_time,
                 'total_requests': self.stats['total_requests'],
                 'blocked_requests': self.stats['blocked_requests'],
-                'rate_limit_hits': self.stats['rate_limit_hits']
+                'rate_limit_hits': self.stats['rate_limit_hits'],
+                'normal_requests_count': self.stats.get('normal_requests_count', 0)
             })
 
     def get_top_attackers(self, limit=5):
@@ -504,6 +509,20 @@ class SecurityDashboard:
             self.recent_threats = [t for t in self.db.get_threat_logs(limit=20) if t.get('attack_type') != 'Clean'][:10]
             recent = [t for t in self.recent_threats if t.get('attack_type') != 'Clean' and t.get('type') != 'Clean']
 
+            db_recent = self.db.get_threat_logs(limit=50)
+            recent_requests = []
+            for t in db_recent:
+                normalized = dict(t)
+                normalized['id'] = t.get('threat_log_id')
+                normalized['ip'] = t.get('ip_address')
+                normalized['timestamp'] = t.get('created_at')
+                normalized['blocked'] = bool(t.get('blocked'))
+                if 'type' not in normalized:
+                    normalized['type'] = t.get('attack_type')
+                if 'severity' not in normalized or not normalized.get('severity'):
+                    normalized['severity'] = t.get('severity') or 'Medium'
+                recent_requests.append(normalized)
+
             ml_perf = None
             ml_metrics = {'precision': 0, 'recall': 0}
             try:
@@ -544,6 +563,7 @@ class SecurityDashboard:
             self._cached_dashboard_data = {
                 'stats': {**accurate, 'ml_model_performance': ml_perf, 'security_score': sec_score},
                 'recent_threats': recent,
+                'recent_requests': recent_requests,
                 'timeline': list(self.timeline_data),
                 'threat_distribution': {
                     'SQL Injection': accurate['sql_injection_attempts'],

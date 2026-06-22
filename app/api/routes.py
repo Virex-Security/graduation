@@ -1,22 +1,22 @@
 """
 API Routes - Flask application and route handlers
+
+This module implements a 7-layer inline reverse proxy WAF.
+Clean requests are proxied to TARGET_EXTERNAL_SITE; attacks are blocked.
 """
 from datetime import datetime, timedelta
 import time
 import os
 import logging
 from collections import defaultdict
-from flask import Flask, current_app, make_response, request, jsonify
+from urllib.parse import urljoin
+
+from flask import Flask, Response, current_app, make_response, request, jsonify
 from flask_cors import CORS
 
 os.environ.setdefault("RATE_LIMIT_WINDOW", "10")
 os.environ.setdefault("RATE_LIMIT_MAX", "5")
 
-_total_requests_count = 0
-
-def get_total_requests():
-    global _total_requests_count
-    return _total_requests_count
 from dotenv import load_dotenv
 import jwt
 import secrets
@@ -24,7 +24,7 @@ from app.api.security import SimpleSecurityManager
 from app.api import services
 from app.auth import user_manager
 from app.auth.decorators import admin_only, login_required
-from app.security import new_request_id, is_trivial, is_business_relevant
+from app.security import new_request_id, is_trivial
 from app import config as _cfg
 
 try:
@@ -94,26 +94,79 @@ def create_api_app():
             del ip_cache[ip]
         return False
 
+    app.security_manager = security
+    app.block_ip_fn = _block_ip
+
+    from app.auth.routes import auth_bp
+    app.register_blueprint(auth_bp)
+
+    # ── White-listed local management routes ─────────────────
+    # These paths bypass WAF scanning and proxying entirely.
+    # Flask handles them locally (health checks, dashboard,
+    # auth endpoints, static assets, and the root index).
+    _LOCAL_ROUTES = (
+        "/api/", "/health", "/api/dashboard/",
+        "/dashboard", "/auth", "/static",
+    )
+
     @app.before_request
     def before_request():
-        global _total_requests_count
+        global _total_requests_count, _normal_requests_count
         request.request_id = new_request_id()
+
+        # ══════════════════════════════════════════════════════
+        # STEP 0: Skip trivial noise (health probes, static
+        #         assets, dashboard internals).  These are NOT
+        #         counted in any metric — they are monitoring
+        #         overhead, not real traffic.
+        # ══════════════════════════════════════════════════════
         if is_trivial(request):
             return
 
+        # ══════════════════════════════════════════════════════
+        # STEP 1 — IMMEDIATE TOTAL INCREMENT (before anything)
+        #
+        # Every single hit on port 5000 that isn't monitoring
+        # noise is counted here.  This runs BEFORE IP-block,
+        # rate-limit, WAF, or proxy logic — guaranteeing the
+        # SIEM "Total Requests" counter is always accurate.
+        # ══════════════════════════════════════════════════════
+        _total_requests_count += 1
+        security.total_requests += 1
+
+        request.is_attack = False
         client_ip = _get_real_ip()
 
-        # ── Layer 0: In-memory IP block check ──────────────
+        actual_path = request.headers.get("X-Original-URI", request.path).split('?')[0]
+        actual_method = request.headers.get("X-Original-Method", request.method)
+
+        # ══════════════════════════════════════════════════════
+        # STEP 2 — WHITE-LISTED LOCAL ROUTE BYPASS
+        #
+        # Management/API routes served by Flask itself.
+        # They skip WAF content scanning AND proxying,
+        # eliminating false-positives on internal traffic.
+        # The root "/" is also handled locally.
+        # ══════════════════════════════════════════════════════
+        if actual_path == "/" or any(
+            actual_path.startswith(p) for p in _LOCAL_ROUTES
+        ):
+            # Let Flask dispatch to its own route handlers.
+            # Metrics are already incremented above.
+            return
+
+        # ──────────────────────────────────────────────────────
+        # Everything below is EXTERNAL traffic headed for the
+        # upstream target site.  It must survive ALL security
+        # layers before being proxied.
+        # ──────────────────────────────────────────────────────
+
+        # ── Layer 0: In-memory IP block check ─────────────────
         if _is_ip_blocked(client_ip):
+            request.is_attack = True
+            security.blocked_requests += 1
+            security._persist_stats()
             return jsonify({"error": "IP blocked"}), 429
-
-        _total_requests_count += 1
-
-        is_business = is_business_relevant(request)
-
-        # Count ALL business-relevant requests (blocked or not)
-        if is_business:
-            security.total_requests += 1
 
         # ── Layer 1: Rate Limiting ────────────────────────────
         if not security.check_rate_limit(client_ip):
@@ -121,12 +174,12 @@ def create_api_app():
             security._persist_stats()
             try:
                 from app.api.persistence import append_user_attack
-                from app.api.security import calculate_severity, should_block_attack, should_block_attack
-                severity = calculate_severity("Rate Limit", endpoint=request.path)
-                should_block = should_block_attack("Rate Limit", endpoint=request.path)
+                from app.api.security import calculate_severity, should_block_attack
+                severity = calculate_severity("Rate Limit", endpoint=actual_path)
+                should_block = should_block_attack("Rate Limit", endpoint=actual_path)
                 append_user_attack(
                     client_ip, "Rate Limit Exceeded", client_ip,
-                    request.path, request.method, severity, blocked=should_block,
+                    actual_path, actual_method, severity, blocked=should_block,
                 )
             except Exception:
                 pass
@@ -137,52 +190,115 @@ def create_api_app():
         sensitive_paths = ["/wp-admin", "/phpmyadmin", "/.env",
                            "/etc/passwd", "/.git",
                            "/.svn", "/.htaccess", "/server-status", "/wp-login"]
-        normalized_path = request.path.lower()
+        normalized_path = actual_path.lower()
         if any(normalized_path.startswith(p) for p in sensitive_paths):
+            request.is_attack = True
             from app.api.security import calculate_severity, should_block_attack
-            severity = calculate_severity("Scanner", endpoint=request.path)
+            severity = calculate_severity("Scanner", endpoint=actual_path)
             security.blocked_requests += 1
             security._persist_stats()
             try:
                 from app.api.persistence import append_user_attack
                 append_user_attack(
                     client_ip, "Scanner", client_ip,
-                    request.path, request.method, "Low", blocked=False,
-                    description=f"Sensitive path probe: {request.path}",
+                    actual_path, actual_method, "Low", blocked=False,
+                    description=f"Sensitive path probe: {actual_path}",
                 )
             except Exception:
                 pass
             return jsonify({"error": "Not Found"}), 404
 
-        # ── Layer 3: Content Scan (SQLi, XSS, CMDi, Path Traversal + ML) ──
+        # ══════════════════════════════════════════════════════
+        # Layer 3: FULL Content Scan  (SQLi, XSS, CMDi,
+        #          Path Traversal + ML Model)
+        #
+        # CRITICAL: Extract from ALL attack surfaces and
+        # ALWAYS run the scan — never skip on empty data.
+        # ══════════════════════════════════════════════════════
+
+        # ── 3a. Exhaustive data extraction ────────────────────
         data_to_scan = {}
+
+        # Query parameters  (?search=payload)
+        # Auth subrequest might not forward args by default unless passed
+        # But we extract raw query anyway
         if request.args:
             data_to_scan.update(request.args.to_dict())
+
+        # JSON body  (Content-Type: application/json)
         if request.is_json:
             try:
                 j = request.get_json(silent=True)
                 if j and isinstance(j, dict):
                     data_to_scan.update(j)
+                elif j and isinstance(j, list):
+                    for idx, item in enumerate(j):
+                        data_to_scan[f"_json_array_{idx}"] = item
             except Exception:
                 pass
+
+        # Form-encoded body
         if request.form:
             data_to_scan.update(request.form.to_dict())
+
+        # File uploads  (filename + MIME type can carry payloads)
         if request.files:
             for field, fobj in request.files.items():
                 data_to_scan[f"_file_name_{field}"]     = fobj.filename or ""
                 data_to_scan[f"_file_mimetype_{field}"] = fobj.content_type or ""
 
-        if data_to_scan:
-            safe, msg = security.check_request_security(data_to_scan, client_ip)
-            if not safe:
-                security.blocked_requests += 1
-                security._persist_stats()
-                return jsonify({"error": msg}), 400
+        # URL path itself  (/products/' UNION SELECT ...)
+        if actual_path and actual_path != "/":
+            data_to_scan["_url_path"] = request.headers.get("X-Original-URI", request.path)
 
-        # ── Layer 4: SSRF Detection (URL patterns in body/params) ──
-        if _CSRF_SSRF_ENABLED and data_to_scan:
+        # Raw query string  (catches payloads not parsed as key=value)
+        # Use X-Original-URI to extract raw query if Nginx didn't pass it in subrequest
+        original_uri = request.headers.get("X-Original-URI", "")
+        if "?" in original_uri:
+            data_to_scan["_raw_query"] = original_uri.split("?", 1)[1]
+        elif request.query_string:
+            data_to_scan["_raw_query"] = request.query_string.decode(
+                "utf-8", errors="replace"
+            )
+
+        # Security-sensitive headers
+        _SCAN_HEADERS = ("User-Agent", "Referer", "Cookie", "Origin", "X-Forwarded-For")
+        for hdr in _SCAN_HEADERS:
+            val = request.headers.get(hdr)
+            if val:
+                data_to_scan[f"_header_{hdr}"] = val
+
+        # Raw body fallback  (non-JSON, non-form POST/PUT bodies)
+        if (
+            actual_method in ("POST", "PUT", "PATCH")
+            and not request.is_json
+            and not request.form
+        ):
+            try:
+                raw = request.get_data(as_text=True)
+                if raw and len(raw) < 10_000:
+                    data_to_scan["_raw_body"] = raw
+            except Exception:
+                pass
+
+        # ── 3b. Run WAF scan unconditionally ──────────────────
+        safe, msg = security.check_request_security(data_to_scan, client_ip)
+        if not safe:
+            request.is_attack = True
+            security.blocked_requests += 1
+            security._persist_stats()
+            logger.warning(
+                f"[WAF-BLOCK] {client_ip} → {actual_method} {actual_path} | {msg}"
+            )
+            return jsonify({
+                "error": "Malicious content detected",
+                "blocked": True,
+            }), 400
+
+        # ── Layer 4: SSRF Detection ───────────────────────────
+        if _CSRF_SSRF_ENABLED:
             _ssrf_result = detect_ssrf({
-                "method": request.method, "path": request.path,
+                "method": actual_method, "path": actual_path,
                 "headers": dict(request.headers),
                 "body": request.get_json(silent=True) or {},
                 "query_params": request.args.to_dict(),
@@ -190,8 +306,9 @@ def create_api_app():
                 "ip": client_ip, "user_agent": request.user_agent.string,
             })
             if _ssrf_result["detected"]:
+                request.is_attack = True
                 from app.api.security import calculate_severity, should_block_attack
-                severity = calculate_severity("SSRF", endpoint=request.path)
+                severity = calculate_severity("SSRF", endpoint=actual_path)
                 security.blocked_requests += 1
                 security._persist_stats()
                 try:
@@ -199,57 +316,27 @@ def create_api_app():
                     should_block = severity in ("Critical", "High")
                     append_user_attack(
                         client_ip, "SSRF", client_ip,
-                        request.path, request.method, severity, blocked=should_block,
+                        actual_path, actual_method, severity, blocked=should_block,
                         description=f"[SSRF] {_ssrf_result['reason']}",
                     )
                 except Exception:
                     pass
                 return jsonify({"error": "SSRF attempt blocked",
                                 "reason": _ssrf_result["reason"]}), 403
-        elif not _CSRF_SSRF_ENABLED and data_to_scan:
-            # SSRF Fallback: basic private IP check in request data
-            import re
-            _ssrf_indicators = False
-            _ssrf_reason = ""
-            _data_str = str(data_to_scan)
-            if re.search(r'(127\.0\.0\.1|localhost|169\.254\.169\.254|192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[01])\.)', _data_str, re.IGNORECASE):
-                _ssrf_indicators = True
-                _ssrf_reason = "Private IP address detected in request (fallback)"
-            if _ssrf_indicators:
-                security.blocked_requests += 1
-                security._persist_stats()
-                try:
-                    from app.api.persistence import append_user_attack
-                    from app.api.security import calculate_severity, should_block_attack
-                    severity = calculate_severity("SSRF", endpoint=request.path)
-                    should_block = severity in ("Critical", "High")
-                    append_user_attack(
-                        client_ip, "SSRF", client_ip,
-                        request.path, request.method, severity, blocked=should_block,
-                    )
-                except Exception:
-                    pass
-                return jsonify({"error": "SSRF attempt blocked (fallback)",
-                                "reason": _ssrf_reason}), 403
 
         # ── Layer 5: CSRF Detection ───────────────────────────
-        # CSRF only applies to authenticated browser sessions.
-        # Skip if: Bearer token (API client), missing auth cookie (unauthenticated),
-        # or the endpoint is a public API endpoint (login, products, etc.)
         _auth_header = request.headers.get("Authorization", "") or request.headers.get("X-API-Key", "")
-        _has_session = bool(request.cookies.get("session")) or _auth_header.startswith("Bearer ")
-        _is_public_endpoint = any(request.path.startswith(p) for p in (
+        _is_public_endpoint = any(actual_path.startswith(p) for p in (
             "/api/login", "/api/products", "/api/register", "/api/health",
         ))
         if (
             _CSRF_SSRF_ENABLED
-            and request.method in ("POST", "PUT", "DELETE", "PATCH")
-            and _has_session
+            and actual_method in ("POST", "PUT", "DELETE", "PATCH")
             and not _auth_header.startswith("Bearer ")
             and not _is_public_endpoint
         ):
             _csrf_result = detect_csrf({
-                "method": request.method, "path": request.path,
+                "method": actual_method, "path": actual_path,
                 "headers": dict(request.headers),
                 "body": request.get_json(silent=True) or {},
                 "query_params": request.args.to_dict(),
@@ -257,8 +344,9 @@ def create_api_app():
                 "ip": client_ip, "user_agent": request.user_agent.string,
             })
             if _csrf_result["detected"]:
+                request.is_attack = True
                 from app.api.security import calculate_severity, should_block_attack
-                severity = calculate_severity("CSRF", endpoint=request.path)
+                severity = calculate_severity("CSRF", endpoint=actual_path)
                 security.blocked_requests += 1
                 security._persist_stats()
                 try:
@@ -266,7 +354,7 @@ def create_api_app():
                     should_block = severity in ("Critical", "High")
                     append_user_attack(
                         client_ip, "CSRF", client_ip,
-                        request.path, request.method, severity, blocked=should_block,
+                        actual_path, actual_method, severity, blocked=should_block,
                         description=f"[CSRF] {_csrf_result['reason']}",
                     )
                 except Exception:
@@ -274,35 +362,21 @@ def create_api_app():
                 return jsonify({"error": "CSRF validation failed",
                                 "reason": _csrf_result["reason"]}), 403
 
+        # ══════════════════════════════════════════════════════
+        # STEP 4 — ALL SECURITY LAYERS PASSED
+        #
+        # If the request reached this point without being blocked,
+        # it is clean. Nginx will interpret a 2xx response as
+        # authorization to forward the request to the upstream target.
+        # ══════════════════════════════════════════════════════
+        request.is_clean = True
+        _normal_requests_count += 1
+        security.log_normal_request(client_ip, actual_path, actual_method)
         security._persist_stats()
 
-        # ── Layer 5b: CSRF Fallback (when detections module not available) ──
-        if not _CSRF_SSRF_ENABLED and request.method in ("POST", "PUT", "DELETE", "PATCH") and _has_session and not _auth_header.startswith("Bearer ") and not _is_public_endpoint:
-            # Basic CSRF token check as fallback
-            token_header = (request.headers.get("X-CSRF-Token", "") or
-                           request.headers.get("X-XSRF-TOKEN", "") or
-                           request.headers.get("X-CSRFToken", "") or
-                           request.headers.get("csrf-token", ""))
-            token_cookie = (request.cookies.get("csrftoken", "") or
-                          request.cookies.get("XSRF-TOKEN", "") or
-                          request.cookies.get("csrf_token", "") or
-                          request.cookies.get("_csrf", ""))
-            if not token_header and not token_cookie:
-                security.blocked_requests += 1
-                security._persist_stats()
-                try:
-                    from app.api.persistence import append_user_attack
-                    from app.api.security import calculate_severity, should_block_attack
-                    severity = calculate_severity("CSRF", endpoint=request.path)
-                    should_block = severity in ("Critical", "High")
-                    append_user_attack(
-                        client_ip, "CSRF", client_ip,
-                        request.path, request.method, severity, blocked=should_block,
-                    )
-                except Exception:
-                    pass
-                return jsonify({"error": "CSRF validation failed (fallback)",
-                                "reason": "Missing CSRF token"}), 403
+        # If this is a WAF inspection subrequest from Nginx, return 200 OK.
+        if request.path == "/waf-inspect":
+            return Response("OK", status=200)
 
     @app.after_request
     def after_request(response):
@@ -311,9 +385,17 @@ def create_api_app():
         response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
         response.headers["Content-Security-Policy"]   = "default-src 'self'"
         response.headers["Referrer-Policy"]           = "strict-origin-when-cross-origin"
+
         return response
 
     # ── Basic Routes ──────────────────────────────────────────
+    @app.route("/waf-inspect", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"])
+    def waf_inspect():
+        # This route is the target for Nginx's auth_request directive.
+        # If execution reaches here, the @app.before_request hook has
+        # already scanned the request and found it clean.
+        return Response("OK", status=200)
+
     @app.route("/")
     def index():
         return {"status": "running", "message": "API Security System Active",
@@ -382,73 +464,7 @@ def create_api_app():
         return jsonify({"logs": logs, "total": len(logs)})
 
     # ── Auth ──────────────────────────────────────────────────
-    @app.route("/api/login", methods=["POST"])
-    def login():
-        data     = request.get_json() or {}
-        username = data.get("username")
-        password = data.get("password")
-        ip       = _get_real_ip()
-        now      = time.time()
-
-        # Check persisted blocked IPs
-        if ip in blocked_ips:
-            if now < blocked_ips[ip]:
-                remaining = int(blocked_ips[ip] - now)
-                security.blocked_requests += 1
-                return jsonify({"error": f"IP blocked for {remaining} seconds"}), 429
-            else:
-                del blocked_ips[ip]
-                save_blocked_ips(blocked_ips)
-
-        verified_user = user_manager.verify_password(username, password) if username and password else None
-        if verified_user:
-            brute_force_tracker[ip] = []
-            # Mint and return JWT — same as dashboard's login_user()
-            jti = secrets.token_hex(16)
-            token = jwt.encode({
-                "user": username,
-                "role": verified_user["role"],
-                "exp": datetime.utcnow() + timedelta(hours=8),
-                "iat": datetime.utcnow(),
-                "jti": jti,
-            }, current_app.config["SECRET_KEY"], algorithm="HS256")
-            # Register session for revocation support
-            try:
-                from app.auth.auth import _register_session
-                user_id = verified_user.get("user_id") or verified_user.get("id")
-                if user_id:
-                    _register_session(user_id, jti)
-            except Exception:
-                pass  # session persistence failure must not block login
-            resp = make_response(jsonify({"message": "Login successful"}))
-            resp.set_cookie("auth_token", token, httponly=True,
-                          secure=_cfg.cookie_secure(), samesite="Lax", max_age=8*3600)
-            return resp, 200
-        else:
-            attempts = [t for t in brute_force_tracker[ip] if now - t < BRUTE_FORCE_WINDOW]
-            attempts.append(now)
-            brute_force_tracker[ip] = attempts
-            security.brute_force_count += 1
-            security._persist_stats()
-
-            if len(attempts) >= BRUTE_FORCE_LIMIT:
-                try:
-                    from app.api.persistence import append_user_attack
-                    from app.api.security import calculate_severity, should_block_attack
-                    severity = calculate_severity("Brute Force", endpoint=request.path, ip_hit_count=len(attempts))
-                    should_block = severity in ("Critical", "High")
-                    append_user_attack(
-                        ip, "Brute Force", ip,
-                        request.path, request.method, severity, blocked=should_block,
-                    )
-                except Exception:
-                    pass
-                blocked_ips[ip] = now + BRUTE_FORCE_BLOCK_TIME
-                save_blocked_ips(blocked_ips)
-                _block_ip(ip)
-                return jsonify({"error": "Too many attempts. Try later."}), 429
-
-            return jsonify({"error": "Invalid credentials"}), 401
+    # Note: Login logic has been centralized into app/auth/routes.py
     # ── Attack History Endpoints ──────────────────────────────
     @app.route("/api/my-attacks", methods=["GET"])
     @login_required
@@ -498,6 +514,7 @@ def create_api_app():
         return jsonify({
             "total_requests":       security.total_requests,
             "blocked_requests":     security.blocked_requests,
+            "normal_request_count":  security.normal_request_count,
             "sql_injection_count":  security.sql_injection_count,
             "xss_count":            security.xss_count,
             "cmd_injection_count":  security.cmd_injection_count,
@@ -509,6 +526,95 @@ def create_api_app():
             "uptime":               time.time() - security.start_time,
             "ml_engine":            get_ml_stats(),
         })
+
+    @app.route("/api/security/requests", methods=["GET"])
+    @login_required
+    def get_security_requests(current_user):
+        page = request.args.get("page", 1, type=int)
+        limit = request.args.get("limit", 10, type=int)
+        filter_type = request.args.get("filter", "all").lower().strip()
+        offset = (page - 1) * limit
+
+        from app import database as db
+        with db.engine.connect() as conn:
+            where_clause = ""
+            params = {}
+            if filter_type != "all" and filter_type != "":
+                if filter_type == "clean":
+                    where_clause = "WHERE LOWER(attack_type) IN ('clean', 'normal') OR attack_type IS NULL OR attack_type = ''"
+                elif filter_type == "blocked":
+                    # Check both boolean representations in DB (e.g. 1/0 or true/false)
+                    where_clause = "WHERE blocked = 1 OR blocked = 'true'"
+                elif filter_type == "sqli":
+                    where_clause = "WHERE LOWER(attack_type) LIKE '%sql%'"
+                elif filter_type == "xss":
+                    where_clause = "WHERE LOWER(attack_type) LIKE '%xss%'"
+                elif filter_type == "brute":
+                    where_clause = "WHERE LOWER(attack_type) LIKE '%brute%' OR LOWER(attack_type) LIKE '%auth%'"
+                elif filter_type == "scanner":
+                    where_clause = "WHERE LOWER(attack_type) LIKE '%scan%'"
+                elif filter_type == "ml":
+                    where_clause = "WHERE LOWER(attack_type) LIKE '%ml%' OR LOWER(attack_type) LIKE '%anomaly%'"
+                elif filter_type == "rate":
+                    where_clause = "WHERE LOWER(attack_type) LIKE '%rate%' OR LOWER(attack_type) LIKE '%limit%'"
+                elif filter_type == "csrf":
+                    where_clause = "WHERE LOWER(attack_type) LIKE '%csrf%'"
+                elif filter_type == "ssrf":
+                    where_clause = "WHERE LOWER(attack_type) LIKE '%ssrf%'"
+                elif filter_type == "path":
+                    where_clause = "WHERE LOWER(attack_type) LIKE '%path%' OR LOWER(attack_type) LIKE '%traversal%'"
+                else:
+                    where_clause = "WHERE LOWER(attack_type) LIKE :filter_type"
+                    params["filter_type"] = f"%{filter_type}%"
+
+            total_count_query = f"SELECT COUNT(*) FROM threat_logs {where_clause}"
+            total_count = conn.execute(db.text(total_count_query), params).scalar() or 0
+            
+            fetch_query = f"""
+                SELECT * FROM threat_logs 
+                {where_clause}
+                ORDER BY threat_log_id DESC 
+                LIMIT :limit OFFSET :offset
+            """
+            query_params = {**params, "limit": limit, "offset": offset}
+            rows = conn.execute(db.text(fetch_query), query_params).mappings().all()
+            
+            requests_list = db._sanitize_list(rows)
+            for r in requests_list:
+                r['id'] = r.get('threat_log_id')
+                r['timestamp'] = r.get('created_at')
+                r['source_ip'] = r.get('ip_address')
+                r['path'] = r.get('endpoint')
+                r['is_threat'] = r.get('attack_type') != 'Clean' and r.get('attack_type') != 'Normal'
+                # Deriving status code: if blocked, use 400 (or 429 for rate limit), else 200
+                if r.get('blocked'):
+                    r['status_code'] = 429 if r.get('attack_type') == 'Rate Limit' else 400
+                else:
+                    r['status_code'] = 200
+
+            # Apply IP and payload masking for non-admin / non-analyst users
+            if current_user.get("role") not in ("admin", "analyst"):
+                for r in requests_list:
+                    r['source_ip'] = "XXX.XXX.XXX.XXX"
+                    r['ip_address'] = "XXX.XXX.XXX.XXX"
+                    r['payload'] = "[HIDDEN]"
+                    r['snippet'] = "[HIDDEN]"
+                    r['description'] = "[HIDDEN]"
+
+        import math
+        total_pages = math.ceil(total_count / limit) if limit > 0 else 1
+        
+        return jsonify({
+            "requests": requests_list,
+            "totalCount": total_count,
+            "totalPages": total_pages
+        })
+
+    @app.route("/api/security/reset", methods=["POST"])
+    @admin_only
+    def reset_security_stats(current_user):
+        security.reset()
+        return jsonify({"status": "reset", "message": "Security manager stats reset successfully"})
 
     @app.route("/api/security/ml/feedback", methods=["GET"])
     @admin_only

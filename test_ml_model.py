@@ -8,7 +8,7 @@ def test_model():
     """Test ML model with various inputs"""
     
     try:
-        from app.ml.inference_simple import ml_analyze
+        from app.ml.inference import ml_analyze
     except ImportError:
         print("❌ Could not import ml_analyze")
         print("   Make sure you're in the project root directory")

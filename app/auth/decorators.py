@@ -27,7 +27,7 @@ def _is_jti_valid(jti: str) -> bool:
     except Exception as e:
         import logging
         logging.getLogger(__name__).error(f"[AUTH] DB error verifying JTI: {e}")
-        return True
+        return False
 
 
 def _build_user_from_token(data):
@@ -111,7 +111,7 @@ def analyst_and_above(f):
 
 
 def manager_and_above(f):
-    return require_role(Role.ADMIN, Role.ANALYST, Role.MANAGER, Role.USER)(f)
+    return require_role(Role.ADMIN, Role.ANALYST, Role.MANAGER)(f)
 
 
 # ── Backward compatibility aliases ─────────────────────────────

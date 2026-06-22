@@ -108,94 +108,11 @@ def create_dashboard_app():
         ip = request.headers.get('X-Forwarded-For', request.remote_addr) or 'Unknown'
         ip = ip.split(',')[0].strip()
         dashboard.log_clean_request(ip=ip, endpoint=path, method=request.method)
-    @app.route('/api/auth/login', methods=['POST'])
-    def login():
-        auth = request.get_json()
-        if not auth or not auth.get('username') or not auth.get('password'):
-            return jsonify({'message': 'Missing credentials'}), 401
-        resp, status = login_user(auth.get('username'), auth.get('password'))
-        if status == 200:
-            user = user_manager.get_user(auth.get('username'))
-            from app.database import log_audit
-            user_data = user_manager.get_user(auth.get('username'))
-            role = user_data.get('role_name') or user_data.get('role', 'user') if user_data else 'user'
-            user_id = user.get('id') if user else None
-            ip = request.headers.get('X-Forwarded-For', request.remote_addr) or 'Unknown'
-            ip = ip.split(',')[0].strip()
-            if user_id:
-                log_audit(user_id, "Login", ip)
-        return resp, status
-    @app.route('/api/auth/signup', methods=['POST'])
-    def signup():
-        auth = request.get_json()
-        if not auth or not auth.get('username') or not auth.get('password'):
-            return jsonify({'message': 'Missing username or password'}), 400
-        
-        username = auth.get('username').strip()
-        password = auth.get('password')
-        full_name = auth.get('fullName', '').strip()
-        email = auth.get('email', '').strip()
-        phone = auth.get('phone', '').strip()
-        department = auth.get('department', '').strip()
-        
-        # Validation
-        if len(username) < 3:
-            return jsonify({'message': 'Username must be at least 3 characters'}), 400
-            
-        if not full_name:
-            return jsonify({'message': 'Full name is required'}), 400
-            
-        if not email:
-            return jsonify({'message': 'Email is required'}), 400
-            
-        # Basic email validation
-        import re
-        email_pattern = r'^[^\s@]+@[^\s@]+\.[^\s@]+$'
-        if not re.match(email_pattern, email):
-            return jsonify({'message': 'Please enter a valid email address'}), 400
-            
-        if not phone:
-            return jsonify({'message': 'Phone number is required'}), 400
-            
-        if not department:
-            return jsonify({'message': 'Department is required'}), 400
-        
-        is_valid_password, password_message = user_manager.validate_password_policy(password)
-        if not is_valid_password:
-            return jsonify({'message': password_message}), 400
-            
-        # Check if user already exists
-        if user_manager.get_user(username):
-            return jsonify({'message': 'Username already exists'}), 409
-            
-        # Add new user with USER role and additional info
-        success, message = user_manager.add_user(username, password, Role.USER)
-        if success:
-            # Update user with additional information
-            user_manager.update_user(username, 
-                                  full_name=full_name,
-                                  email=email,
-                                  department=department,
-                                  phone=phone)
-            
-            # Log the new user creation
-            new_user = user_manager.get_user(username)
-            log_action(new_user, "Account Created", f"Full name: {full_name}, Email: {email}")
-            return jsonify({'message': 'Account created successfully'}), 201
-        else:
-            return jsonify({'message': message}), 400
-    @app.route('/api/auth/logout')
-    def logout():
-        token = request.cookies.get('auth_token')
-        if token:
-            try:
-                data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=["HS256"])
-                user = user_manager.get_user(data['user'])
-                if user:
-                    log_action(user, "Logout")
-            except Exception:
-                pass
-        return logout_user()
+
+    # ── Auth ──────────────────────────────────────────────────
+    # Auth endpoints (login, signup, logout) are now centralized 
+    # in the API IdP service (app/auth/routes.py).
+
     # ── Forgot Password / OTP ─────────────────────────────────
     import random, smtplib
     from email.mime.text import MIMEText
@@ -442,6 +359,8 @@ def create_dashboard_app():
             dashboard.stats['blocked_requests'] = data['blocked_requests']
         if 'rate_limit_hits' in data:
             dashboard.stats['rate_limit_hits'] = data['rate_limit_hits']
+        if 'normal_requests_count' in data:
+            dashboard.stats['normal_requests_count'] = data['normal_requests_count']
         return jsonify({'status': 'updated'})
     @app.route('/api/dashboard/reset', methods=['POST'])
     @admin_only
@@ -481,6 +400,18 @@ def create_dashboard_app():
                 dashboard.timeline_data.clear()
             if hasattr(dashboard, 'incidents'):
                 dashboard.incidents.clear()
+
+            # Forward token to WAF app to reset in-memory stats
+            token = request.cookies.get("auth_token")
+            if token:
+                try:
+                    import requests
+                    api_url = os.getenv("API_URL", "http://127.0.0.1:5000")
+                    headers = {"Authorization": f"Bearer {token}"}
+                    requests.post(f"{api_url}/api/security/reset", headers=headers, timeout=2)
+                except Exception as api_err:
+                    print(f"[-] WAF API reset notification error: {api_err}")
+
             log_action(current_user, "Reset Stats", "Cleared all memory stats and audit logs")
             return jsonify({'status': 'stats_reset', 'message': 'All stats and logs cleared'})
         except Exception as e:
@@ -787,6 +718,11 @@ def create_dashboard_app():
         stats['ssrf_attempts'] = sum(
             1 for t in all_threats
             if 'ssrf' in str(t.get('attack_type', t.get('type', ''))).lower()
+        )
+        stats['path_traversal_attempts'] = sum(
+            1 for t in all_threats
+            if 'path' in str(t.get('attack_type', t.get('type', ''))).lower()
+            or 'traversal' in str(t.get('attack_type', t.get('type', ''))).lower()
         )
 
         return render_template(

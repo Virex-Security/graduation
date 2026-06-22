@@ -41,26 +41,34 @@ _INSECURE_VALUES = {
 }
 
 
-def validate_config(strict: bool = False) -> bool:
+def validate_config(strict: bool = None) -> bool:
     """
     Validate environment configuration.
 
     Args:
-        strict: If True, also reject insecure default values
-                (use this for production deployments).
+        strict: If True, also reject insecure default values. If None, defaults to True in production.
 
     Returns:
         True if valid. Logs errors and raises SystemExit if not.
     """
+    if strict is None:
+        # Default to strict in production mode (FLASK_DEBUG is false/not set)
+        strict = os.getenv("FLASK_ENV", "production").lower() == "production" and os.getenv("FLASK_DEBUG", "false").lower() != "true"
+
     errors = []
     warnings = []
 
-    # Check required vars
+    # Strict check for required env keys existence in os.environ
     for key in _REQUIRED:
-        val = os.getenv(key, "").strip()
-        if not val:
-            errors.append(f"  ❌ {key} is not set")
-        elif strict and key in _INSECURE_VALUES:
+        if key not in os.environ or not os.environ[key].strip():
+            logger.critical(f"[SECURITY ERROR] ❌ CRITICAL: {key} is not explicitly defined in the environment variables (os.environ).")
+            print(f"[SECURITY ERROR] ❌ CRITICAL: {key} is not explicitly defined in the environment variables (os.environ).", file=sys.stderr)
+            sys.exit(1)
+
+    # Check required vars and reject insecure defaults if strict
+    for key in _REQUIRED:
+        val = os.environ[key].strip()
+        if strict and key in _INSECURE_VALUES:
             if val in _INSECURE_VALUES[key]:
                 errors.append(f"  ❌ {key} is still using an insecure default value")
 

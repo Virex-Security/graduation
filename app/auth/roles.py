@@ -10,7 +10,7 @@ class Role:
 
     @classmethod
     def manager_and_above(cls):
-        return [cls.ADMIN, cls.ANALYST, cls.MANAGER, cls.USER]
+        return [cls.ADMIN, cls.ANALYST, cls.MANAGER]
 
     @classmethod
     def analyst_and_above(cls):

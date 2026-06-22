@@ -225,6 +225,14 @@ const Dashboard = {
               fill: true,
             },
             {
+              label: "Clean Requests",
+              borderColor: "#22c55e",
+              backgroundColor: "rgba(34, 197, 94, 0.1)",
+              data: [],
+              tension: 0.4,
+              fill: true,
+            },
+            {
               label: "Blocked Requests",
               borderColor: "var(--text-secondary)",
               backgroundColor: "rgba(239, 68, 68, 0.1)",
@@ -468,6 +476,7 @@ const Dashboard = {
   updateStats(stats) {
     const mappings = {
       "total-requests": { val: stats.total_requests, type: "info" },
+      "normal-requests": { val: stats.normal_requests_count, type: "clean" },
       "blocked-requests": { val: stats.blocked_requests, type: "blocked" },
       "ml-detections": { val: stats.ml_detections, type: "ml" },
     };
@@ -669,11 +678,13 @@ const Dashboard = {
     const totals = timeline.map((t) => t.total_requests);
     const blocked = timeline.map((t) => t.blocked_requests);
     const limited = timeline.map((t) => t.rate_limit_hits || 0);
+    const clean = timeline.map((t) => t.normal_requests_count || 0);
 
     this.charts.timeline.data.labels = labels;
     this.charts.timeline.data.datasets[0].data = totals;
-    this.charts.timeline.data.datasets[1].data = blocked;
-    this.charts.timeline.data.datasets[2].data = limited;
+    this.charts.timeline.data.datasets[1].data = clean;
+    this.charts.timeline.data.datasets[2].data = blocked;
+    this.charts.timeline.data.datasets[3].data = limited;
     this.charts.timeline.update("none");
   },
 

@@ -5,10 +5,13 @@ Deterministic, fast, high confidence.
 Checks for internal IPs, localhost, metadata endpoints, dangerous protocols.
 """
 
+import logging
 import re
 import ipaddress
 import urllib.parse
 from typing import Any, Dict, Generator
+
+logger = logging.getLogger(__name__)
 
 DANGEROUS_SCHEMES = frozenset({"gopher", "file", "dict", "ftp", "ldap", "ldaps", "sftp", "tftp", "jar", "netdoc", "mailto"})
 
@@ -99,7 +102,8 @@ def detect_ssrf_rule(request: Dict[str, Any]) -> Dict[str, Any]:
                         "reason": f"Dangerous protocol '{scheme}://' detected in {source_name}.",
                         "payload": url_str[:200]
                     }
-            except Exception: pass
+            except Exception:
+                logger.debug(f"Failed to parse URL in {source_name}: {url_str}")
 
             host = _parse_host(url_str)
             if not host:

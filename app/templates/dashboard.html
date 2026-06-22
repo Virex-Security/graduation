@@ -91,6 +91,14 @@ title %}Dashboard - Virex{% endblock %} {% block stylesheets %}
           <div class="stat-value" id="total-requests">0</div>
         </div>
 
+        <div class="stat-card card type-scanner clickable" onclick="location.href = '/requests'" style="display: none;">
+          <div class="stat-header">
+            <i class="fas fa-circle-check" style="color: #22c55e"></i>
+            <h3>Clean Requests</h3>
+          </div>
+          <div class="stat-value" id="normal-requests">0</div>
+        </div>
+
         <div class="stat-card card type-blocked clickable" onclick="location.href = '/blocked_page'">
           <div class="stat-header">
             <i class="fas fa-hand" style="color: red"></i>
@@ -185,6 +193,13 @@ title %}Dashboard - Virex{% endblock %} {% block stylesheets %}
         <div class="stat-card card type-total clickable" onclick="location.href = '/requests'">
           <div class="stat-header"><i class="fas fa-globe"></i><h3>Total Requests</h3></div>
           <div class="stat-value" id="total-requests">0</div>
+        </div>
+        <div class="stat-card card type-scanner clickable" onclick="location.href = '/requests'" style="display: none;">
+          <div class="stat-header">
+            <i class="fas fa-circle-check" style="color: #22c55e"></i>
+            <h3>Clean Requests</h3>
+          </div>
+          <div class="stat-value" id="normal-requests">0</div>
         </div>
         <div class="stat-card card type-blocked clickable" onclick="location.href = '/blocked_page'">
           <div class="stat-header"><i class="fas fa-hand" style="color: red"></i><h3>Blocked</h3></div>
