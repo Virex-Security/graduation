@@ -22,6 +22,7 @@ const UserManagerPage = lazy(() => import('./pages/UserManagerPage'));
 const MLDetectionsPage = lazy(() => import('./pages/MLDetectionsPage'));
 const MLPerformancePage = lazy(() => import('./pages/MLPerformancePage'));
 const PricingPage = lazy(() => import('./pages/PricingPage'));
+const FlaskTest = lazy(() => import('./components/FlaskTest'));
 
 // Route guard: redirect to /login if not authenticated
 function ProtectedRoute({ children }) {
@@ -74,6 +75,7 @@ export default function App() {
                 <Route path="requests" element={<ErrorBoundary><RequestsPage /></ErrorBoundary>} />
                 <Route path="pricing" element={<ErrorBoundary><PricingPage /></ErrorBoundary>} />
                 <Route path="settings" element={<ErrorBoundary><SettingsPage /></ErrorBoundary>} />
+                <Route path="test-api" element={<ErrorBoundary><FlaskTest /></ErrorBoundary>} />
                 
                 {/* Admin-only routes (AuthContext handles role checks inside components) */}
                 <Route path="user-manager" element={<ErrorBoundary><UserManagerPage /></ErrorBoundary>} />

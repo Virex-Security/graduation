@@ -71,7 +71,7 @@ def create_api_app():
 
     allowed_origins      = os.getenv("ALLOWED_ORIGINS", "http://127.0.0.1:3000,http://localhost:3000")
     allowed_origins_list = [o.strip() for o in allowed_origins.split(",") if o.strip()]
-    CORS(app, resources={r"/api/*": {"origins": allowed_origins_list}})
+    CORS(app, resources={r"/api/*": {"origins": allowed_origins_list}}, supports_credentials=True)
 
     security = SimpleSecurityManager()
 
