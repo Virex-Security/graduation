@@ -4998,5 +4998,545 @@
     "attack_type": "ssrf",
     "reviewed": false,
     "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-23T21:19:07Z",
+    "text_hash": "900b53410dbe0e0c28417a226c81086c",
+    "text_snippet": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36 Edg/149.",
+    "risk_score": 0.790044720727096,
+    "decision": "monitor",
+    "attack_type": "command_injection",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-23T21:19:07Z",
+    "text_hash": "66413b7418a1e39ce3b6a8f42daf4411",
+    "text_snippet": "http://localhost:8060/",
+    "risk_score": 0.9600696334697055,
+    "decision": "block",
+    "attack_type": "ssrf",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-23T21:25:57Z",
+    "text_hash": "2794e5298c00384b6c86f9c0090cb0b0",
+    "text_snippet": "v=v2.1.11",
+    "risk_score": 0.7399129981017785,
+    "decision": "monitor",
+    "attack_type": "command_injection",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-23T21:25:57Z",
+    "text_hash": "900b53410dbe0e0c28417a226c81086c",
+    "text_snippet": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36 Edg/149.",
+    "risk_score": 0.790044720727096,
+    "decision": "monitor",
+    "attack_type": "command_injection",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-23T21:25:57Z",
+    "text_hash": "900b53410dbe0e0c28417a226c81086c",
+    "text_snippet": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36 Edg/149.",
+    "risk_score": 0.790044720727096,
+    "decision": "monitor",
+    "attack_type": "command_injection",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-23T21:25:57Z",
+    "text_hash": "66413b7418a1e39ce3b6a8f42daf4411",
+    "text_snippet": "http://localhost:8060/",
+    "risk_score": 0.9600696334697055,
+    "decision": "block",
+    "attack_type": "ssrf",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-23T21:25:57Z",
+    "text_hash": "66413b7418a1e39ce3b6a8f42daf4411",
+    "text_snippet": "http://localhost:8060/",
+    "risk_score": 0.9600696334697055,
+    "decision": "block",
+    "attack_type": "ssrf",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-23T21:33:58Z",
+    "text_hash": "f528764d624db129b32c21fbca0cb8d6",
+    "text_snippet": "127.0.0.1",
+    "risk_score": 0.9,
+    "decision": "block",
+    "attack_type": "command_injection",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-23T21:34:29Z",
+    "text_hash": "900b53410dbe0e0c28417a226c81086c",
+    "text_snippet": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36 Edg/149.",
+    "risk_score": 0.790044720727096,
+    "decision": "monitor",
+    "attack_type": "command_injection",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-23T21:34:29Z",
+    "text_hash": "66413b7418a1e39ce3b6a8f42daf4411",
+    "text_snippet": "http://localhost:8060/",
+    "risk_score": 0.9600696334697055,
+    "decision": "block",
+    "attack_type": "ssrf",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-23T21:38:15Z",
+    "text_hash": "3930dbb7a46d40597e5c3c4c6f4d375f",
+    "text_snippet": "http://localhost:8060/api/health",
+    "risk_score": 0.925,
+    "decision": "block",
+    "attack_type": "ssrf",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-23T21:39:19Z",
+    "text_hash": "f528764d624db129b32c21fbca0cb8d6",
+    "text_snippet": "127.0.0.1",
+    "risk_score": 0.9,
+    "decision": "block",
+    "attack_type": "command_injection",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-23T21:42:52Z",
+    "text_hash": "900b53410dbe0e0c28417a226c81086c",
+    "text_snippet": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36 Edg/149.",
+    "risk_score": 0.790044720727096,
+    "decision": "monitor",
+    "attack_type": "command_injection",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-23T21:47:03Z",
+    "text_hash": "3930dbb7a46d40597e5c3c4c6f4d375f",
+    "text_snippet": "http://localhost:8060/api/health",
+    "risk_score": 0.925,
+    "decision": "block",
+    "attack_type": "ssrf",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-23T21:49:13Z",
+    "text_hash": "900b53410dbe0e0c28417a226c81086c",
+    "text_snippet": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36 Edg/149.",
+    "risk_score": 0.790044720727096,
+    "decision": "monitor",
+    "attack_type": "command_injection",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-23T21:49:21Z",
+    "text_hash": "960f1e0a242b4ca5dc389c68a8897597",
+    "text_snippet": "http://127.0.0.1:8060/login",
+    "risk_score": 0.98,
+    "decision": "block",
+    "attack_type": "ssrf",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-23T21:50:19Z",
+    "text_hash": "87586cf8eb5aa6bbcc56752662243632",
+    "text_snippet": "http://127.0.0.1:8060/login?username=Hend&password=***REDACTED***",
+    "risk_score": 0.95,
+    "decision": "block",
+    "attack_type": "ssrf",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-23T21:50:38Z",
+    "text_hash": "d958d29be0644d35b06a80b29ca5c464",
+    "text_snippet": "http://127.0.0.1:8060/login?username=Hend&password=***REDACTED***",
+    "risk_score": 0.95,
+    "decision": "block",
+    "attack_type": "ssrf",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-23T21:50:58Z",
+    "text_hash": "e46c08fc72e75d3f11a3c970a61bc250",
+    "text_snippet": "http://127.0.0.1:8060/login?username=Hend&password=***REDACTED***",
+    "risk_score": 0.945,
+    "decision": "block",
+    "attack_type": "brute_force",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-23T21:51:59Z",
+    "text_hash": "3a78a7eeba980288037a1a449b847b31",
+    "text_snippet": "http://127.0.0.1:8060/login?username=Hend&password=***REDACTED***",
+    "risk_score": 0.94,
+    "decision": "block",
+    "attack_type": "brute_force",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-23T22:12:24Z",
+    "text_hash": "900b53410dbe0e0c28417a226c81086c",
+    "text_snippet": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36 Edg/149.",
+    "risk_score": 0.790044720727096,
+    "decision": "monitor",
+    "attack_type": "command_injection",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-23T22:12:28Z",
+    "text_hash": "3930dbb7a46d40597e5c3c4c6f4d375f",
+    "text_snippet": "http://localhost:8060/api/health",
+    "risk_score": 0.925,
+    "decision": "block",
+    "attack_type": "ssrf",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-23T22:23:43Z",
+    "text_hash": "900b53410dbe0e0c28417a226c81086c",
+    "text_snippet": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36 Edg/149.",
+    "risk_score": 0.790044720727096,
+    "decision": "monitor",
+    "attack_type": "command_injection",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-23T22:23:46Z",
+    "text_hash": "3930dbb7a46d40597e5c3c4c6f4d375f",
+    "text_snippet": "http://localhost:8060/api/health",
+    "risk_score": 0.925,
+    "decision": "block",
+    "attack_type": "ssrf",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-23T22:28:01Z",
+    "text_hash": "f528764d624db129b32c21fbca0cb8d6",
+    "text_snippet": "127.0.0.1",
+    "risk_score": 0.9,
+    "decision": "block",
+    "attack_type": "command_injection",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-23T22:29:45Z",
+    "text_hash": "900b53410dbe0e0c28417a226c81086c",
+    "text_snippet": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36 Edg/149.",
+    "risk_score": 0.790044720727096,
+    "decision": "monitor",
+    "attack_type": "command_injection",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-23T22:29:48Z",
+    "text_hash": "3930dbb7a46d40597e5c3c4c6f4d375f",
+    "text_snippet": "http://localhost:8060/api/health",
+    "risk_score": 0.925,
+    "decision": "block",
+    "attack_type": "ssrf",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-23T23:07:12Z",
+    "text_hash": "f528764d624db129b32c21fbca0cb8d6",
+    "text_snippet": "127.0.0.1",
+    "risk_score": 0.9,
+    "decision": "block",
+    "attack_type": "command_injection",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-23T23:08:36Z",
+    "text_hash": "900b53410dbe0e0c28417a226c81086c",
+    "text_snippet": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36 Edg/149.",
+    "risk_score": 0.790044720727096,
+    "decision": "monitor",
+    "attack_type": "command_injection",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-23T23:08:52Z",
+    "text_hash": "2794e5298c00384b6c86f9c0090cb0b0",
+    "text_snippet": "v=v2.1.11",
+    "risk_score": 0.7399129981017785,
+    "decision": "monitor",
+    "attack_type": "command_injection",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-23T23:09:04Z",
+    "text_hash": "66413b7418a1e39ce3b6a8f42daf4411",
+    "text_snippet": "http://localhost:8060/",
+    "risk_score": 0.9600696334697055,
+    "decision": "block",
+    "attack_type": "ssrf",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-23T23:43:09Z",
+    "text_hash": "900b53410dbe0e0c28417a226c81086c",
+    "text_snippet": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36 Edg/149.",
+    "risk_score": 0.790044720727096,
+    "decision": "monitor",
+    "attack_type": "command_injection",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-23T23:43:09Z",
+    "text_hash": "900b53410dbe0e0c28417a226c81086c",
+    "text_snippet": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36 Edg/149.",
+    "risk_score": 0.790044720727096,
+    "decision": "monitor",
+    "attack_type": "command_injection",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-23T23:43:10Z",
+    "text_hash": "2794e5298c00384b6c86f9c0090cb0b0",
+    "text_snippet": "v=v2.1.11",
+    "risk_score": 0.7399129981017785,
+    "decision": "monitor",
+    "attack_type": "command_injection",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-23T23:43:10Z",
+    "text_hash": "66413b7418a1e39ce3b6a8f42daf4411",
+    "text_snippet": "http://localhost:8060/",
+    "risk_score": 0.9600696334697055,
+    "decision": "block",
+    "attack_type": "ssrf",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-24T10:53:17Z",
+    "text_hash": "900b53410dbe0e0c28417a226c81086c",
+    "text_snippet": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36 Edg/149.",
+    "risk_score": 0.790044720727096,
+    "decision": "monitor",
+    "attack_type": "command_injection",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-24T10:53:17Z",
+    "text_hash": "900b53410dbe0e0c28417a226c81086c",
+    "text_snippet": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36 Edg/149.",
+    "risk_score": 0.790044720727096,
+    "decision": "monitor",
+    "attack_type": "command_injection",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-24T10:53:17Z",
+    "text_hash": "900b53410dbe0e0c28417a226c81086c",
+    "text_snippet": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36 Edg/149.",
+    "risk_score": 0.790044720727096,
+    "decision": "monitor",
+    "attack_type": "command_injection",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-24T10:53:18Z",
+    "text_hash": "900b53410dbe0e0c28417a226c81086c",
+    "text_snippet": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36 Edg/149.",
+    "risk_score": 0.790044720727096,
+    "decision": "monitor",
+    "attack_type": "command_injection",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-24T10:53:18Z",
+    "text_hash": "2794e5298c00384b6c86f9c0090cb0b0",
+    "text_snippet": "v=v2.1.11",
+    "risk_score": 0.7399129981017785,
+    "decision": "monitor",
+    "attack_type": "command_injection",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-24T10:53:18Z",
+    "text_hash": "66413b7418a1e39ce3b6a8f42daf4411",
+    "text_snippet": "http://localhost:8060/",
+    "risk_score": 0.9600696334697055,
+    "decision": "block",
+    "attack_type": "ssrf",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-24T10:53:18Z",
+    "text_hash": "66413b7418a1e39ce3b6a8f42daf4411",
+    "text_snippet": "http://localhost:8060/",
+    "risk_score": 0.9600696334697055,
+    "decision": "block",
+    "attack_type": "ssrf",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-24T10:53:18Z",
+    "text_hash": "66413b7418a1e39ce3b6a8f42daf4411",
+    "text_snippet": "http://localhost:8060/",
+    "risk_score": 0.9600696334697055,
+    "decision": "block",
+    "attack_type": "ssrf",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-24T11:03:21Z",
+    "text_hash": "900b53410dbe0e0c28417a226c81086c",
+    "text_snippet": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36 Edg/149.",
+    "risk_score": 0.790044720727096,
+    "decision": "monitor",
+    "attack_type": "command_injection",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-24T11:03:23Z",
+    "text_hash": "66413b7418a1e39ce3b6a8f42daf4411",
+    "text_snippet": "http://localhost:8060/",
+    "risk_score": 0.9600696334697055,
+    "decision": "block",
+    "attack_type": "ssrf",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-24T11:05:47Z",
+    "text_hash": "72792a52c3b4c1e48ec9b588fe4a8873",
+    "text_snippet": "http://localhost:8060/login",
+    "risk_score": 0.9500696334697055,
+    "decision": "block",
+    "attack_type": "ssrf",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-24T11:09:45Z",
+    "text_hash": "900b53410dbe0e0c28417a226c81086c",
+    "text_snippet": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36 Edg/149.",
+    "risk_score": 0.790044720727096,
+    "decision": "monitor",
+    "attack_type": "command_injection",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-24T11:09:47Z",
+    "text_hash": "66413b7418a1e39ce3b6a8f42daf4411",
+    "text_snippet": "http://localhost:8060/",
+    "risk_score": 0.9600696334697055,
+    "decision": "block",
+    "attack_type": "ssrf",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-24T11:09:49Z",
+    "text_hash": "3930dbb7a46d40597e5c3c4c6f4d375f",
+    "text_snippet": "http://localhost:8060/api/health",
+    "risk_score": 0.925,
+    "decision": "block",
+    "attack_type": "ssrf",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-24T11:37:58Z",
+    "text_hash": "900b53410dbe0e0c28417a226c81086c",
+    "text_snippet": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36 Edg/149.",
+    "risk_score": 0.790044720727096,
+    "decision": "monitor",
+    "attack_type": "command_injection",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-24T11:47:11Z",
+    "text_hash": "900b53410dbe0e0c28417a226c81086c",
+    "text_snippet": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36 Edg/149.",
+    "risk_score": 0.790044720727096,
+    "decision": "monitor",
+    "attack_type": "command_injection",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-24T12:01:08Z",
+    "text_hash": "900b53410dbe0e0c28417a226c81086c",
+    "text_snippet": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36 Edg/149.",
+    "risk_score": 0.790044720727096,
+    "decision": "monitor",
+    "attack_type": "command_injection",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-24T12:09:04Z",
+    "text_hash": "900b53410dbe0e0c28417a226c81086c",
+    "text_snippet": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36 Edg/149.",
+    "risk_score": 0.790044720727096,
+    "decision": "monitor",
+    "attack_type": "command_injection",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-24T12:13:21Z",
+    "text_hash": "900b53410dbe0e0c28417a226c81086c",
+    "text_snippet": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36 Edg/149.",
+    "risk_score": 0.790044720727096,
+    "decision": "monitor",
+    "attack_type": "command_injection",
+    "reviewed": false,
+    "promoted_to_rule": false
   }
 ]

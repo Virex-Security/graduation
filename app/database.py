@@ -972,7 +972,7 @@ def load_stats() -> dict:
             SELECT
                 COUNT(*) AS total_threats,
                 SUM(CASE WHEN blocked = TRUE THEN 1 ELSE 0 END) AS blocked,
-                SUM(CASE WHEN ml_detected = TRUE THEN 1 ELSE 0 END) AS ml,
+                SUM(CASE WHEN ml_detected = TRUE OR detection_type ILIKE 'ml%' OR attack_type = 'ML Detection' THEN 1 ELSE 0 END) AS ml,
                 SUM(CASE WHEN attack_type ILIKE '%sql%' THEN 1 ELSE 0 END) AS sqli,
                 SUM(CASE WHEN attack_type ILIKE '%xss%' THEN 1 ELSE 0 END) AS xss,
                 SUM(CASE WHEN attack_type ILIKE '%brute%' OR attack_type ILIKE '%auth%' THEN 1 ELSE 0 END) AS brute,

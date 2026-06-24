@@ -1,0 +1,127 @@
+/* stylelint-disable at-rule-no-unknown */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+/* stylelint-enable at-rule-no-unknown */
+
+@layer base {
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+  
+  body {
+    @apply font-main text-ds-body bg-bg-main text-text-primary antialiased min-h-screen relative;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply text-text-primary;
+  }
+
+  h1 {
+    @apply text-ds-display font-extrabold tracking-ds-snug;
+  }
+
+  h2 {
+    @apply text-ds-title font-bold tracking-ds-snug;
+  }
+
+  h3 {
+    @apply text-ds-heading font-semibold uppercase tracking-ds-wider;
+  }
+}
+
+@layer components {
+  /* Brand text classes */
+  .brand-text {
+    @apply font-black bg-brand-gradient bg-clip-text text-transparent leading-none font-main tracking-ds-snug uppercase text-ds-title;
+  }
+
+  /** Uppercase micro labels (tables, metadata) */
+  .ds-overline {
+    @apply text-ds-micro text-text-muted uppercase font-bold tracking-ds-widest;
+  }
+
+  /** Section headings in modals / panels */
+  .ds-section-label {
+    @apply text-ds-caption font-bold text-text-muted uppercase tracking-ds-wider border-b border-border-dim/50 pb-ds-2;
+  }
+
+  /* Base buttons */
+  .btn {
+    @apply inline-flex items-center justify-center gap-ds-3 px-ds-6 py-ds-3 rounded-ds-xl font-main text-ds-body font-semibold cursor-pointer border-none transition-all duration-300 no-underline;
+  }
+
+  .btn:active {
+    @apply scale-[0.98];
+  }
+
+  .btn:disabled, .btn.is-disabled {
+    @apply opacity-50 cursor-not-allowed pointer-events-none;
+  }
+
+  .btn:focus-visible {
+    @apply outline outline-2 outline-brand-primary outline-offset-2;
+  }
+
+  .btn-primary {
+    @apply bg-brand-gradient text-white shadow-ds-btn-primary;
+  }
+
+  .btn-primary:hover {
+    @apply shadow-ds-btn-primary-hover -translate-y-0.5;
+  }
+
+  .btn-secondary {
+    @apply bg-bg-card/60 border border-border-light text-text-primary;
+  }
+
+  .btn-secondary:hover {
+    @apply bg-brand-primary/10 border border-brand-primary;
+  }
+
+  .btn-danger {
+    @apply bg-danger/15 text-danger border border-danger/30;
+  }
+
+  .btn-danger:hover {
+    @apply bg-danger/25 border-danger shadow-ds-btn-danger-hover -translate-y-0.5;
+  }
+
+  .btn-ghost {
+    @apply bg-transparent text-text-secondary;
+  }
+
+  .btn-ghost:hover {
+    @apply bg-text-primary/10 text-text-primary;
+  }
+  
+  .btn-icon {
+    @apply w-ds-10 h-ds-10 p-0 rounded-full flex items-center justify-center;
+  }
+
+  /* Cards */
+  .card {
+    @apply bg-ds-card-sheen border border-brand-primary/20 rounded-ds-xl p-ds-7 shadow-ds-card backdrop-blur-md transition-all duration-300;
+  }
+
+  /* Inputs */
+  .form-group {
+    @apply mb-ds-5 flex flex-col;
+  }
+
+  .form-label {
+    @apply text-ds-label font-medium mb-ds-2 text-text-primary;
+  }
+
+  .form-input {
+    @apply bg-bg-secondary border border-border-dim text-text-primary px-ds-4 py-ds-3 rounded-ds-xl font-main transition-all duration-200 outline-none;
+  }
+
+  .form-input:focus {
+    @apply border-brand-primary shadow-ds-focus-ring;
+  }
+
+  .form-input::placeholder {
+    @apply text-text-muted;
+  }
+}

@@ -743,10 +743,16 @@ const Dashboard = {
         icon: "fa-shield-virus",
         label: type,
       };
+    if (t.includes("pending") || t.includes("analyzing"))
+      return {
+        cls: "threat-badge threat-pending",
+        icon: "fa-shield-halved",
+        label: type,
+      };
     return {
       cls: "threat-badge threat-unknown",
-      icon: "fa-circle-question",
-      label: type,
+      icon: "fa-shield-halved",
+      label: type || "Pending",
     };
   },
 
@@ -766,7 +772,13 @@ const Dashboard = {
 
     tbody.innerHTML = threats
       .map((t) => {
-        const badge = this.getThreatTypeBadge(t.type);
+        const isBlockedExplicit = t.blocked === true || String(t.blocked) === "1" || String(t.blocked).toLowerCase() === "true";
+        
+        let badge = this.getThreatTypeBadge(t.type);
+        if (isBlockedExplicit) {
+            badge = { cls: "threat-badge threat-blocked", icon: "fa-ban", label: "Blocked" };
+        }
+        
         const rawTs = t.timestamp ?? t.time ?? t.detected_at ?? "";
         const safeTimestamp = rawTs
           ? Formatters.escapeHTML(
@@ -799,7 +811,11 @@ const Dashboard = {
 
         // simplified admin-friendly details: type and location only
         const getSimpleDetail = (threat) => {
-          const threatType = threat.type || threat.attack_type || "Unknown";
+          const isBlockedExplicit = threat.blocked === true || String(threat.blocked) === "1" || String(threat.blocked).toLowerCase() === "true";
+          let threatType = threat.type || threat.attack_type || "Unknown";
+          if (isBlockedExplicit) {
+              threatType = threat.payload || threat.description || "Intercepted Payload";
+          }
           let endpoint =
             threat.endpoint || threat.path || threat.request_path || "";
           if (endpoint) {
@@ -834,7 +850,7 @@ const Dashboard = {
                 <td><span class="severity-badge severity-${safeSeverity.toLowerCase()}">${safeSeverity}</span></td>
                 <td style="display:flex; justify-content:space-between; align-items:center">
                     <span>${Formatters.escapeHTML(simpleDetail)}</span>
-                    <button onclick="viewThreatDetails('${safeCategory}', '${safeIPParam}')" class="btn-view-more" title="View More Details" style="margin-left: 8px; padding: 4px 8px; font-size: 0.8rem; background: var(--brand-primary); color: white; border: none; border-radius: 4px; cursor: pointer;">
+                    <button onclick="viewThreatDetails('${safeCategory}', '${safeIPParam}')" class="btn-view-more" title="View More Details">
                         View More
                     </button>
                 </td>
@@ -877,8 +893,14 @@ const Dashboard = {
     const tbody = document.getElementById("threats-table-body");
     if (!tbody) return;
 
+    const isBlockedExplicit = threat.blocked === true || String(threat.blocked) === "1" || String(threat.blocked).toLowerCase() === "true";
+
     // build row html using same helpers as updateRecentThreats
-    const badge = this.getThreatTypeBadge(threat.type);
+    let badge = this.getThreatTypeBadge(threat.type);
+    if (isBlockedExplicit) {
+        badge = { cls: "threat-badge threat-blocked", icon: "fa-ban", label: "Blocked" };
+    }
+    
     const rawTs = threat.timestamp ?? threat.time ?? threat.detected_at ?? "";
     const safeTimestamp = rawTs
       ? Formatters.escapeHTML(
@@ -908,7 +930,11 @@ const Dashboard = {
       String(threat.severity || "").toLowerCase() === "high";
 
     const simpleDetail = (() => {
-      const threatType = threat.type || threat.attack_type || "Unknown";
+      const isBlockedExplicit = threat.blocked === true || String(threat.blocked) === "1" || String(threat.blocked).toLowerCase() === "true";
+      let threatType = threat.type || threat.attack_type || "Unknown";
+      if (isBlockedExplicit) {
+          threatType = threat.payload || threat.description || "Intercepted Payload";
+      }
       let endpoint =
         threat.endpoint || threat.path || threat.request_path || "";
       if (endpoint) {
@@ -933,7 +959,7 @@ const Dashboard = {
                 <td><span class="severity-badge severity-${safeSeverity.toLowerCase()}">${safeSeverity}</span></td>
                 <td style="display:flex; justify-content:space-between; align-items:center">
                     <span>${Formatters.escapeHTML(simpleDetail)}</span>
-                    <button onclick="viewThreatDetails('${encodeURIComponent(threat.type ?? "")}', '${encodeURIComponent(rawIp ?? "")}')" class="btn-view-more" title="View More Details" style="margin-left: 8px; padding: 4px 8px; font-size: 0.8rem; background: var(--brand-primary); color: white; border: none; border-radius: 4px; cursor: pointer;">
+                    <button onclick="viewThreatDetails('${encodeURIComponent(threat.type ?? "")}', '${encodeURIComponent(rawIp ?? "")}')" class="btn-view-more" title="View More Details">
                         View More
                     </button>
                 </td>

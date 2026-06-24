@@ -3,6 +3,7 @@ API Entry Point — Virex Security API Server
 """
 import os
 import logging
+# pyrefly: ignore [missing-import]
 from dotenv import load_dotenv
 
 load_dotenv()

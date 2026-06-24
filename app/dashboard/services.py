@@ -74,6 +74,7 @@ class SecurityDashboard:
         def monitor():
             while True:
                 self.check_api_connection()
+                self.update_timeline()
                 time.sleep(10)
 
         thread = threading.Thread(target=monitor, daemon=True)
@@ -339,26 +340,45 @@ class SecurityDashboard:
                 return self.last_ml_metrics
 
         print(f"[ML-METRICS] CACHE MISS: computing new metrics")
-        tp = fp = tn = fn = 0
+        # To calculate ML accuracy, we must use the total traffic stats
+        # because the DB does not store every single Clean request.
+        total_live = self.stats.get('total_requests', 0)
+        
+        # Calculate TP, FP, FN from the logged threats
+        tp = fp = fn = 0
         y_true = []
         y_prob = []
         for l in real_logs:
-            is_attack = l.get('attack_type', 'Clean') not in ('Clean', '', None)
-            blocked = l.get('blocked') is True or str(l.get('blocked')).lower() == 'true' or l.get('blocked') == 1
-            ml_flagged = (blocked or l.get('ml_detected') is True or l.get('detection_type') == 'ML')
-            confidence = l.get('confidence', 0.0)
+            # An attack is anything that is not Clean/False Positive
+            is_attack = l.get('attack_type', 'Clean') not in ('Clean', 'False Positive', '', None)
+            
+            # Did the ML model flag this?
+            # We should only check detection_type == 'ML' or ml_detected == True.
+            # We MUST NOT assume all blocked requests are ML detections (Regex also blocks).
+            ml_flagged = l.get('ml_detected') is True or str(l.get('detection_type')).lower() == 'ml' or str(l.get('type')).lower() == 'ml detection'
+            
+            confidence = float(l.get('confidence', 0.0))
             y_true.append(1 if is_attack else 0)
             y_prob.append(confidence if ml_flagged else 0.0)
+            
             if ml_flagged and is_attack:
                 tp += 1
             elif ml_flagged and not is_attack:
                 fp += 1
-            elif not ml_flagged and not is_attack:
-                tn += 1
             elif not ml_flagged and is_attack:
                 fn += 1
 
-        total_live = len(real_logs)
+        # Calculate True Negatives (TN)
+        # TN = Total Traffic - (Attacks caught by ML) - (Attacks missed by ML) - (False Alarms by ML)
+        # But actually, Total Clean Traffic = total_live - (tp + fn)
+        # So TN = Total Clean Traffic - fp
+        total_attacks = tp + fn
+        total_clean = max(0, total_live - total_attacks)
+        tn = max(0, total_clean - fp)
+        
+        # Adjust total_live if the logs exceed the stats counter (e.g. after a reset mismatch)
+        total_live = max(total_live, tp + fp + tn + fn)
+
         ml_events = tp + fp
         print(f"[ML-METRICS] Confusion matrix: TP={tp}, FP={fp}, TN={tn}, FN={fn}")
 
@@ -367,32 +387,36 @@ class SecurityDashboard:
             if self.last_ml_metrics is not None:
                 previous_accuracy = self.last_ml_metrics.get('accuracy')
 
-        if total_live == 0:
+        if total_live == 0 or (tp + fn) == 0:
             print(f"[ML-METRICS] No live data, using baseline metrics")
             accuracy = 94.23
             precision = 94.67
             recall = 93.89
             f1 = 94.28
             roc_auc = 0.9756
-            tn = 932
-            fp = 34
-            fn = 45
-            tp = 989
+            tn_base = 932
+            fp_base = 34
+            fn_base = 45
+            tp_base = 989
             test_size = 2000
             live_data_active = False
+            confusion_matrix_data = {"tn": tn_base, "fp": fp_base, "fn": fn_base, "tp": tp_base}
         else:
-            print(f"[ML-METRICS] Computing metrics from {total_live} live logs...")
+            print(f"[ML-METRICS] Computing metrics from {total_live} total requests...")
             accuracy = round((tp + tn) / total_live * 100, 2)
             precision = round(tp / (tp + fp) * 100, 2) if tp + fp > 0 else 100.0
             recall = round(tp / (tp + fn) * 100, 2) if tp + fn > 0 else 100.0
             denom = precision + recall
             f1 = round(2 * precision * recall / denom, 2) if denom > 0 else 0.0
+            
             if len(y_true) > 0 and len(set(y_true)) > 1 and len(set(y_prob)) > 1:
+                from sklearn.metrics import roc_auc_score
                 roc_auc = round(roc_auc_score(y_true, y_prob), 4)
             else:
                 roc_auc = 0.5
             test_size = total_live
             live_data_active = True
+            confusion_matrix_data = {"tn": tn, "fp": fp, "fn": fn, "tp": tp}
 
         print(f"[ML-METRICS] BEFORE CACHE CHECK: New accuracy={accuracy}, Previous accuracy={previous_accuracy}")
 
@@ -418,7 +442,7 @@ class SecurityDashboard:
             "recall": recall,
             "f1_score": f1,
             "roc_auc": roc_auc,
-            "confusion_matrix": {"tn": tn, "fp": fp, "fn": fn, "tp": tp},
+            "confusion_matrix": confusion_matrix_data,
             "top_features": attack_features,
             "ml_feature_importances": [],
             "attack_indicators": attack_scores,
@@ -504,6 +528,17 @@ class SecurityDashboard:
 
         try:
             accurate = self.get_accurate_stats()
+            
+            # Dynamically compute base metrics from the source of truth (all logs)
+            all_logs = self.load_audit_log()
+            dyn_total = len(all_logs)
+            dyn_blocked = sum(1 for l in all_logs if l.get('blocked') is True or str(l.get('blocked')).lower() in ('true', '1'))
+            dyn_clean = sum(1 for l in all_logs if str(l.get('attack_type', '')).lower() == 'clean' or str(l.get('type', '')).lower() == 'clean' or str(l.get('detection_type', '')).lower() == 'clean')
+            
+            accurate['total_requests'] = dyn_total
+            accurate['blocked_requests'] = dyn_blocked
+            accurate['normal_requests_count'] = dyn_clean
+            
             self.stats.update(accurate)
 
             self.recent_threats = [t for t in self.db.get_threat_logs(limit=20) if t.get('attack_type') != 'Clean'][:10]
@@ -514,13 +549,13 @@ class SecurityDashboard:
             for t in db_recent:
                 normalized = dict(t)
                 normalized['id'] = t.get('threat_log_id')
-                normalized['ip'] = t.get('ip_address')
-                normalized['timestamp'] = t.get('created_at')
+                normalized['ip'] = t.get('ip_address') or 'Unknown'
+                normalized['timestamp'] = t.get('created_at') or 'N/A'
                 normalized['blocked'] = bool(t.get('blocked'))
-                if 'type' not in normalized:
-                    normalized['type'] = t.get('attack_type')
+                if 'type' not in normalized or not normalized.get('type'):
+                    normalized['type'] = t.get('attack_type') or 'Pending'
                 if 'severity' not in normalized or not normalized.get('severity'):
-                    normalized['severity'] = t.get('severity') or 'Medium'
+                    normalized['severity'] = t.get('severity') or 'Analyzing'
                 recent_requests.append(normalized)
 
             ml_perf = None
@@ -636,8 +671,8 @@ class SecurityDashboard:
             if 'action' in l:
                 continue
             attack_type = l.get('attack_type', l.get('type', ''))
-            if attack_type == 'Clean':
-                continue
+            # We must KEEP False Positives (Clean requests flagged by ML) to compute FP
+            # If it's literally just a Clean log that somehow got here, we'll keep it to compute TN.
             endpoint = l.get('endpoint', '')
             if endpoint and any(endpoint.startswith(p) for p in [
                 '/dashboard', '/api/dashboard', '/login', '/signup',

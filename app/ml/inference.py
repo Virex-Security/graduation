@@ -542,15 +542,43 @@ class MLDecision:
         }
 
 
+def clean_text(text_str):
+    """
+    Normalizes empty inputs, query brackets, and normal URL characters.
+    Removes benign structural metadata (like /, ?, =, &) so we can accurately
+    tell if the remaining string is a normal word/URL or a malicious payload.
+    """
+    import re
+    # Strip normal safe web characters
+    return re.sub(r'[/?=&\[\]\-\._@\+:]', '', str(text_str)).strip()
+
 # ── ml_analyze (unchanged) ────────────────────────────────────
 def ml_analyze(text, async_feedback=True):
     _ensure_ml_ready()
     if not MODEL_LOADED:
         return MLDecision(0.0, "allow", "unknown", severity="none")
-    text_str = str(text)
-    if len(text_str) <= 3:
+        
+    text_str = str(text).strip()
+    if not text_str:
         return MLDecision(0.0, "allow", "normal", severity="none")
-    if len(text_str) <= 20 and text_str.isalnum():
+        
+    # Fix False Positives: Apply text cleaner to normalize metadata
+    cleaned = clean_text(text_str)
+
+    # 2. THE CRITICAL BYPASS:
+    # If the text has absolutely NONE of the actual exploitation characters or keywords, 
+    # we force it to return benign and skip the model computation.
+    text_lower = text_str.lower()
+    suspicious_patterns = [
+        r"'", r'"', r";", r"<", r">", r"--", r"/\*", r"\*/", 
+        r"xp_", r"exec", r"union", r"select", r"insert", r"update", r"delete", 
+        r"drop", r"script", r"\|", r"`", r"\$", r"\{", r"\}"
+    ]
+    
+    # Check if ANY suspicious pattern exists
+    is_suspicious = any(re.search(pat, text_lower) for pat in suspicious_patterns)
+    
+    if not cleaned or (len(text_str) <= 150 and not is_suspicious):
         return MLDecision(0.0, "allow", "normal", severity="none")
 
     cached = _cache.get(text_str)

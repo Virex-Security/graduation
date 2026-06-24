@@ -5,8 +5,10 @@ from functools import wraps
 import os
 import hmac
 from venv import logger
+# pyrefly: ignore [missing-import]
 from werkzeug.utils import secure_filename
 
+# pyrefly: ignore [missing-import]
 from flask import Flask, current_app, render_template, jsonify, request, redirect, url_for, g
 import json
 import time
@@ -15,13 +17,14 @@ import threading
 from pathlib import Path
 from collections import defaultdict
 from functools import wraps
+# pyrefly: ignore [missing-import]
 import jwt
 import secrets
 from app.dashboard.services import SecurityDashboard
 from app.dashboard.services import SecurityDashboard
 from app.dashboard.metrics import calculate_threat_score, is_recent, determine_threat_status, run_timeline_updates
 from app.chatbot import SecurityChatbot
-from app.auth import login_user, logout_user, user_manager, Role, login_required, admin_only, analyst_and_above, manager_and_above
+from app.auth import user_manager, Role, login_required, admin_only, analyst_and_above, manager_and_above
 
 # Dashboard services and chatbot initialization
 dashboard = SecurityDashboard()
@@ -50,6 +53,10 @@ def create_dashboard_app():
                 template_folder=template_folder,
                 static_folder=static_folder)
     app.config['SECRET_KEY'] = dashboard.secret_key
+
+    # ── Register auth blueprint so login/signup/logout work on this port ──
+    from app.auth.routes import auth_bp
+    app.register_blueprint(auth_bp)
 
     # ── Context processor: inject current_user into all templates ──
     @app.context_processor
@@ -642,10 +649,12 @@ def create_dashboard_app():
             'ml-detection': 'ML Detection',
             'csrf': 'CSRF',
             'ssrf': 'SSRF',
+            'blocked': 'Blocked',
+            'clean': 'Clean'
         }
         filter_value = category_map.get(category, category)
 
-        if category == 'ml-detection':
+        if category.lower() == 'ml-detection':
             filtered_logs = [
                 l for l in logs
                 if l.get('attack_type') == filter_value
@@ -653,8 +662,27 @@ def create_dashboard_app():
                 or l.get('ml_detected') is True
                 or str(l.get('detection_type', '')).lower().startswith('ml')
             ]
+        elif category.lower() == 'blocked':
+            filtered_logs = [
+                l for l in logs
+                if l.get('blocked') is True 
+                or str(l.get('blocked')).lower() in ('true', '1')
+            ]
+        elif category.lower() == 'clean':
+            filtered_logs = [
+                l for l in logs
+                if str(l.get('attack_type', '')).lower() == 'clean'
+                or str(l.get('type', '')).lower() == 'clean'
+                or str(l.get('detection_type', '')).lower() == 'clean'
+            ]
         else:
-            filtered_logs = [l for l in logs if l.get('attack_type') == filter_value or l.get('type') == filter_value]
+            fv_lower = filter_value.lower()
+            filtered_logs = []
+            for l in logs:
+                at = str(l.get('attack_type', '')).lower()
+                ty = str(l.get('type', '')).lower()
+                if fv_lower in at or fv_lower in ty:
+                    filtered_logs.append(l)
 
         filter_ip = request.args.get('ip')
         if filter_ip:
@@ -689,6 +717,8 @@ def create_dashboard_app():
             'ML Detection': 'Anomalies detected by machine learning model',
             'CSRF': 'Cross-Site Request Forgery attempts — missing or invalid CSRF tokens on state-changing requests',
             'SSRF': 'Server-Side Request Forgery attempts — requests targeting internal IPs, metadata services, or dangerous protocols',
+            'Blocked': 'All intercepted and blocked requests across all threat types',
+            'Clean': 'Benign requests validated and passed by the WAF',
         }
 
         return render_template(

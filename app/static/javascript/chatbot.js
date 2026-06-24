@@ -73,18 +73,28 @@ const Chatbot = {
     const close = document.getElementById("close-chat");
     const send = document.getElementById("send-btn");
     const input = document.getElementById("chat-input");
+    const dismissHint = document.getElementById("chatbot-dismiss-hint");
 
-    fab.addEventListener("click", () => this.toggleChat());
-    close.addEventListener("click", () => this.toggleChat());
+    if (fab) fab.addEventListener("click", () => this.toggleChat());
+    if (close) close.addEventListener("click", () => this.toggleChat());
 
-    send.addEventListener("click", () => this.sendMessage());
+    if (dismissHint) {
+      dismissHint.addEventListener("click", (e) => {
+        e.stopPropagation(); // Prevent opening the chat window
+        fab.classList.add("hidden-widget");
+      });
+    }
 
-    input.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" && !e.shiftKey) {
-        e.preventDefault();
-        this.sendMessage();
-      }
-    });
+    if (send) send.addEventListener("click", () => this.sendMessage());
+
+    if (input) {
+      input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault();
+          this.sendMessage();
+        }
+      });
+    }
   },
 
   toggleChat() {
@@ -95,16 +105,17 @@ const Chatbot = {
     const fab = document.getElementById("chatbot-fab");
 
     if (this.isOpen) {
-      window.classList.add("active");
-      fab.style.display = "none";
-      document.getElementById("chat-input").focus();
+      if (window) window.classList.add("active");
+      if (fab) fab.style.display = "none";
+      const input = document.getElementById("chat-input");
+      if (input) input.focus();
 
       // Scroll to bottom
       const container = document.getElementById("chat-messages");
-      container.scrollTop = container.scrollHeight;
+      if (container) container.scrollTop = container.scrollHeight;
     } else {
-      window.classList.remove("active");
-      fab.style.display = "flex";
+      if (window) window.classList.remove("active");
+      if (fab) fab.style.display = ""; // Reset to CSS default
     }
   },
 

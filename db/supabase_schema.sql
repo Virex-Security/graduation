@@ -287,7 +287,7 @@ ON CONFLICT (name) DO NOTHING;
 INSERT INTO rules (name, type, pattern, severity, action, is_active) VALUES
     ('SQL Injection - UNION',        'sql_injection',     'UNION\s+SELECT',                              'high',     'block', TRUE),
     ('SQL Injection - Keywords',     'sql_injection',     '(SELECT|INSERT|UPDATE|DELETE|DROP|ALTER)',     'high',     'block', TRUE),
-    ('SQL Injection - Comment',      'sql_injection',     '(--|#|/\*|;|@@)',                             'high',     'block', TRUE),
+    ('SQL Injection - Comment',      'sql_injection',     '(--|#|/\*)',                                  'high',     'block', TRUE),
     ('SQL Injection - OR/AND',       'sql_injection',     '(\bOR\b|\bAND\b).+(=|LIKE|IN)',              'high',     'block', TRUE),
     ('XSS - Script Tag',            'xss',               '<script.*?>.*?</script>',                     'high',     'block', TRUE),
     ('XSS - JavaScript Protocol',   'xss',               'javascript:',                                 'high',     'block', TRUE),

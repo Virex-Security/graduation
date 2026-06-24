@@ -10,14 +10,16 @@ import os
 import logging
 from collections import defaultdict
 from urllib.parse import urljoin
-
+# pyrefly: ignore [missing-import]
 from flask import Flask, Response, current_app, make_response, request, jsonify
 from flask_cors import CORS
 
 os.environ.setdefault("RATE_LIMIT_WINDOW", "10")
 os.environ.setdefault("RATE_LIMIT_MAX", "5")
 
+# pyrefly: ignore [missing-import]
 from dotenv import load_dotenv
+# pyrefly: ignore [missing-import]
 import jwt
 import secrets
 from app.api.security import SimpleSecurityManager
@@ -41,6 +43,9 @@ logger = logging.getLogger(__name__)
 
 TRUSTED_PROXIES = {"127.0.0.1", "10.0.0.1"}   # add your proxy IPs
 
+_total_requests_count = 0
+_normal_requests_count = 0
+
 def _get_real_ip():
     if request.remote_addr in TRUSTED_PROXIES:
         xff = request.headers.get("X-Forwarded-For", "")
@@ -52,6 +57,7 @@ def _get_real_ip():
 
 
 def create_api_app():
+    # pyrefly: ignore [missing-import]
     from werkzeug.middleware.proxy_fix import ProxyFix
     app = Flask(__name__)
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1)
@@ -122,6 +128,11 @@ def create_api_app():
         # ══════════════════════════════════════════════════════
         if is_trivial(request):
             return
+            
+        EXCLUDED_PATHS = ['/static/', '/favicon.ico', '/assets/', '/dist/']
+        for path in EXCLUDED_PATHS:
+            if request.path.startswith(path):
+                return # اخرج من الفحص فوراً ومتحسبش أي حاجة
 
         # ══════════════════════════════════════════════════════
         # STEP 1 — IMMEDIATE TOTAL INCREMENT (before anything)
@@ -148,9 +159,7 @@ def create_api_app():
         # eliminating false-positives on internal traffic.
         # The root "/" is also handled locally.
         # ══════════════════════════════════════════════════════
-        if actual_path == "/" or any(
-            actual_path.startswith(p) for p in _LOCAL_ROUTES
-        ):
+        if any(actual_path.startswith(p) for p in _LOCAL_ROUTES):
             # Let Flask dispatch to its own route handlers.
             # Metrics are already incremented above.
             return
@@ -159,224 +168,271 @@ def create_api_app():
         # Everything below is EXTERNAL traffic headed for the
         # upstream target site.  It must survive ALL security
         # layers before being proxied.
+        #
+        # SAFETY NET: The entire WAF pipeline is wrapped in
+        # try/except.  If ANY layer crashes (DB, ML, regex,
+        # persistence), we fail-closed with 403 Forbidden
+        # instead of leaking a 500 Internal Server Error.
         # ──────────────────────────────────────────────────────
+        try:
+            # ── Layer 0: In-memory IP block check ─────────────────
+            if _is_ip_blocked(client_ip):
+                request.is_attack = True
+                security.blocked_requests += 1
+                security._persist_stats()
+                return jsonify({"error": "IP blocked"}), 429
 
-        # ── Layer 0: In-memory IP block check ─────────────────
-        if _is_ip_blocked(client_ip):
-            request.is_attack = True
-            security.blocked_requests += 1
-            security._persist_stats()
-            return jsonify({"error": "IP blocked"}), 429
+            # ── Layer 1: Rate Limiting ────────────────────────────
+            if not security.check_rate_limit(client_ip):
+                security.blocked_requests += 1
+                security._persist_stats()
+                try:
+                    from app.api.persistence import append_user_attack
+                    from app.api.security import calculate_severity, should_block_attack
+                    severity = calculate_severity("Rate Limit", endpoint=actual_path)
+                    should_block = should_block_attack("Rate Limit", endpoint=actual_path)
+                    append_user_attack(
+                        client_ip, "Rate Limit Exceeded", client_ip,
+                        actual_path, actual_method, severity, blocked=True,
+                    )
+                except Exception:
+                    pass
+                _block_ip(client_ip)
+                return jsonify({"error": "Rate limit exceeded"}), 429
 
-        # ── Layer 1: Rate Limiting ────────────────────────────
-        if not security.check_rate_limit(client_ip):
-            security.blocked_requests += 1
-            security._persist_stats()
-            try:
-                from app.api.persistence import append_user_attack
+            # ── Layer 2: Scanner Detection (sensitive paths) ──────
+            sensitive_paths = ["/wp-admin", "/phpmyadmin", "/.env",
+                               "/etc/passwd", "/.git",
+                               "/.svn", "/.htaccess", "/server-status", "/wp-login"]
+            normalized_path = actual_path.lower()
+            if any(normalized_path.startswith(p) for p in sensitive_paths):
+                request.is_attack = True
                 from app.api.security import calculate_severity, should_block_attack
-                severity = calculate_severity("Rate Limit", endpoint=actual_path)
-                should_block = should_block_attack("Rate Limit", endpoint=actual_path)
-                append_user_attack(
-                    client_ip, "Rate Limit Exceeded", client_ip,
-                    actual_path, actual_method, severity, blocked=should_block,
+                severity = calculate_severity("Scanner", endpoint=actual_path)
+                security.blocked_requests += 1
+                security._persist_stats()
+                try:
+                    from app.api.persistence import append_user_attack
+                    append_user_attack(
+                        client_ip, "Scanner", client_ip,
+                        actual_path, actual_method, "Low", blocked=True,
+                        description=f"Sensitive path probe: {actual_path}",
+                    )
+                except Exception:
+                    pass
+                return jsonify({"error": "Not Found"}), 404
+
+            # ══════════════════════════════════════════════════════
+            # Layer 3: FULL Content Scan  (SQLi, XSS, CMDi,
+            #          Path Traversal + ML Model)
+            #
+            # CRITICAL: Extract from ALL attack surfaces and
+            # ALWAYS run the scan — never skip on empty data.
+            # ══════════════════════════════════════════════════════
+
+            # ── 3a. Exhaustive data extraction ────────────────────
+            data_to_scan = {}
+
+            from urllib.parse import urlparse, parse_qs
+            original_uri = request.headers.get("X-Original-URI", "")
+            if original_uri:
+                parsed_uri = urlparse(original_uri)
+                if parsed_uri.query:
+                    qs_dict = parse_qs(parsed_uri.query, keep_blank_values=True)
+                    data_to_scan.update(qs_dict)
+
+            # Query parameters  (?search=payload)
+            if request.args:
+                data_to_scan.update(request.args.to_dict(flat=False))
+
+            # JSON body  (Content-Type: application/json)
+            if request.is_json:
+                try:
+                    j = request.get_json(silent=True)
+                    if j and isinstance(j, dict):
+                        data_to_scan.update(j)
+                    elif j and isinstance(j, list):
+                        for idx, item in enumerate(j):
+                            data_to_scan[f"_json_array_{idx}"] = item
+                except Exception:
+                    pass
+
+            # Form-encoded body
+            if request.form:
+                data_to_scan.update(request.form.to_dict())
+
+            # File uploads  (filename + MIME type can carry payloads)
+            if request.files:
+                for field, fobj in request.files.items():
+                    data_to_scan[f"_file_name_{field}"]     = fobj.filename or ""
+                    data_to_scan[f"_file_mimetype_{field}"] = fobj.content_type or ""
+
+            # URL path itself  (/products/' UNION SELECT ...)
+            if actual_path and actual_path != "/":
+                data_to_scan["_url_path"] = actual_path
+
+            # Raw query string  (catches payloads not parsed as key=value)
+            # Use X-Original-URI to extract raw query if Nginx didn't pass it in subrequest
+            original_uri = request.headers.get("X-Original-URI", "")
+            if "?" in original_uri:
+                data_to_scan["_raw_query"] = original_uri.split("?", 1)[1]
+            elif request.query_string:
+                data_to_scan["_raw_query"] = request.query_string.decode(
+                    "utf-8", errors="replace"
                 )
-            except Exception:
-                pass
-            _block_ip(client_ip)
-            return jsonify({"error": "Rate limit exceeded"}), 429
 
-        # ── Layer 2: Scanner Detection (sensitive paths) ──────
-        sensitive_paths = ["/wp-admin", "/phpmyadmin", "/.env",
-                           "/etc/passwd", "/.git",
-                           "/.svn", "/.htaccess", "/server-status", "/wp-login"]
-        normalized_path = actual_path.lower()
-        if any(normalized_path.startswith(p) for p in sensitive_paths):
-            request.is_attack = True
-            from app.api.security import calculate_severity, should_block_attack
-            severity = calculate_severity("Scanner", endpoint=actual_path)
-            security.blocked_requests += 1
-            security._persist_stats()
-            try:
-                from app.api.persistence import append_user_attack
-                append_user_attack(
-                    client_ip, "Scanner", client_ip,
-                    actual_path, actual_method, "Low", blocked=False,
-                    description=f"Sensitive path probe: {actual_path}",
+            # Security-sensitive headers
+            _SCAN_HEADERS = ("User-Agent", "Referer", "Cookie", "Origin", "X-Forwarded-For")
+            for hdr in _SCAN_HEADERS:
+                val = request.headers.get(hdr)
+                if val:
+                    data_to_scan[f"_header_{hdr}"] = val
+
+            # Raw body fallback  (non-JSON, non-form POST/PUT bodies)
+            if (
+                actual_method in ("POST", "PUT", "PATCH")
+                and not request.is_json
+                and not request.form
+            ):
+                try:
+                    raw = request.get_data(as_text=True)
+                    if raw and len(raw) < 10_000:
+                        data_to_scan["_raw_body"] = raw
+                except Exception:
+                    pass
+
+            # ── 3b. Run WAF scan unconditionally ──────────────────
+            safe, msg = security.check_request_security(data_to_scan, client_ip, actual_path)
+            if not safe:
+                request.is_attack = True
+                security.blocked_requests += 1
+                security._persist_stats()
+                logger.warning(
+                    f"[WAF-BLOCK] {client_ip} → {actual_method} {actual_path} | {msg}"
                 )
-            except Exception:
-                pass
-            return jsonify({"error": "Not Found"}), 404
+                
+                try:
+                    from app.api.persistence import append_user_attack
+                    payload = request.query_string.decode("utf-8", errors="replace")
+                    append_user_attack(
+                        user_key=client_ip,
+                        attack_type="SQLi",
+                        ip=client_ip,
+                        endpoint=actual_path,
+                        method=actual_method,
+                        severity="High",
+                        blocked=True,
+                        description=f"Malicious payload: {payload}"
+                    )
+                except Exception as e:
+                    logger.error(f"Failed to log SQLi attack in routes: {e}")
 
-        # ══════════════════════════════════════════════════════
-        # Layer 3: FULL Content Scan  (SQLi, XSS, CMDi,
-        #          Path Traversal + ML Model)
-        #
-        # CRITICAL: Extract from ALL attack surfaces and
-        # ALWAYS run the scan — never skip on empty data.
-        # ══════════════════════════════════════════════════════
+                return jsonify({
+                    "error": "Malicious content detected",
+                    "blocked": True,
+                }), 403
 
-        # ── 3a. Exhaustive data extraction ────────────────────
-        data_to_scan = {}
+            # ── Layer 4: SSRF Detection ───────────────────────────
+            if _CSRF_SSRF_ENABLED:
+                _ssrf_result = detect_ssrf({
+                    "method": actual_method, "path": actual_path,
+                    "headers": dict(request.headers),
+                    "body": request.get_json(silent=True) or {},
+                    "query_params": request.args.to_dict(),
+                    "cookies": request.cookies.to_dict(),
+                    "ip": client_ip, "user_agent": request.user_agent.string,
+                })
+                if _ssrf_result["detected"]:
+                    request.is_attack = True
+                    from app.api.security import calculate_severity, should_block_attack
+                    severity = calculate_severity("SSRF", endpoint=actual_path)
+                    security.blocked_requests += 1
+                    security._persist_stats()
+                    try:
+                        from app.api.persistence import append_user_attack
+                        append_user_attack(
+                            client_ip, "SSRF", client_ip,
+                            actual_path, actual_method, severity, blocked=True,
+                            description=f"[SSRF] {_ssrf_result['reason']}",
+                        )
+                    except Exception:
+                        pass
+                    return jsonify({"error": "SSRF attempt blocked",
+                                    "reason": _ssrf_result["reason"]}), 403
 
-        # Query parameters  (?search=payload)
-        # Auth subrequest might not forward args by default unless passed
-        # But we extract raw query anyway
-        if request.args:
-            data_to_scan.update(request.args.to_dict())
+            # ── Layer 5: CSRF Detection ───────────────────────────
+            _auth_header = request.headers.get("Authorization", "") or request.headers.get("X-API-Key", "")
+            _is_public_endpoint = any(actual_path.startswith(p) for p in (
+                "/api/login", "/api/products", "/api/register", "/api/health",
+            ))
+            if (
+                _CSRF_SSRF_ENABLED
+                and actual_method in ("POST", "PUT", "DELETE", "PATCH")
+                and not _auth_header.startswith("Bearer ")
+                and not _is_public_endpoint
+            ):
+                _csrf_result = detect_csrf({
+                    "method": actual_method, "path": actual_path,
+                    "headers": dict(request.headers),
+                    "body": request.get_json(silent=True) or {},
+                    "query_params": request.args.to_dict(),
+                    "cookies": request.cookies.to_dict(),
+                    "ip": client_ip, "user_agent": request.user_agent.string,
+                })
+                if _csrf_result["detected"]:
+                    request.is_attack = True
+                    from app.api.security import calculate_severity, should_block_attack
+                    severity = calculate_severity("CSRF", endpoint=actual_path)
+                    security.blocked_requests += 1
+                    security._persist_stats()
+                    try:
+                        from app.api.persistence import append_user_attack
+                        append_user_attack(
+                            client_ip, "CSRF", client_ip,
+                            actual_path, actual_method, severity, blocked=True,
+                            description="Missing or invalid CSRF token",
+                        )
+                    except Exception:
+                        pass
+                    return jsonify({"error": "CSRF validation failed",
+                                    "reason": _csrf_result["reason"]}), 403
 
-        # JSON body  (Content-Type: application/json)
-        if request.is_json:
-            try:
-                j = request.get_json(silent=True)
-                if j and isinstance(j, dict):
-                    data_to_scan.update(j)
-                elif j and isinstance(j, list):
-                    for idx, item in enumerate(j):
-                        data_to_scan[f"_json_array_{idx}"] = item
-            except Exception:
-                pass
+            # ══════════════════════════════════════════════════════
+            # STEP 4 — ALL SECURITY LAYERS PASSED
+            #
+            # If the request reached this point without being blocked,
+            # it is clean. Nginx will interpret a 2xx response as
+            # authorization to forward the request to the upstream target.
+            # ══════════════════════════════════════════════════════
+            request.is_clean = True
+            _normal_requests_count += 1
+            security.log_normal_request(client_ip, actual_path, actual_method)
+            security._persist_stats()
 
-        # Form-encoded body
-        if request.form:
-            data_to_scan.update(request.form.to_dict())
+            # If this is a WAF inspection subrequest from Nginx, return 200 OK.
+            if request.path == "/waf-inspect":
+                return Response("OK", status=200)
 
-        # File uploads  (filename + MIME type can carry payloads)
-        if request.files:
-            for field, fobj in request.files.items():
-                data_to_scan[f"_file_name_{field}"]     = fobj.filename or ""
-                data_to_scan[f"_file_mimetype_{field}"] = fobj.content_type or ""
-
-        # URL path itself  (/products/' UNION SELECT ...)
-        if actual_path and actual_path != "/":
-            data_to_scan["_url_path"] = request.headers.get("X-Original-URI", request.path)
-
-        # Raw query string  (catches payloads not parsed as key=value)
-        # Use X-Original-URI to extract raw query if Nginx didn't pass it in subrequest
-        original_uri = request.headers.get("X-Original-URI", "")
-        if "?" in original_uri:
-            data_to_scan["_raw_query"] = original_uri.split("?", 1)[1]
-        elif request.query_string:
-            data_to_scan["_raw_query"] = request.query_string.decode(
-                "utf-8", errors="replace"
+        except Exception as exc:
+            # ══════════════════════════════════════════════════════
+            # FAIL-CLOSED: If any WAF layer crashes, block the
+            # request with 403 rather than leaking a 500.
+            # ══════════════════════════════════════════════════════
+            logger.error(
+                f"[WAF-ERROR] Unhandled exception during security scan — "
+                f"BLOCKING request from {client_ip} → {actual_method} {actual_path}: {exc}",
+                exc_info=True,
             )
-
-        # Security-sensitive headers
-        _SCAN_HEADERS = ("User-Agent", "Referer", "Cookie", "Origin", "X-Forwarded-For")
-        for hdr in _SCAN_HEADERS:
-            val = request.headers.get(hdr)
-            if val:
-                data_to_scan[f"_header_{hdr}"] = val
-
-        # Raw body fallback  (non-JSON, non-form POST/PUT bodies)
-        if (
-            actual_method in ("POST", "PUT", "PATCH")
-            and not request.is_json
-            and not request.form
-        ):
-            try:
-                raw = request.get_data(as_text=True)
-                if raw and len(raw) < 10_000:
-                    data_to_scan["_raw_body"] = raw
-            except Exception:
-                pass
-
-        # ── 3b. Run WAF scan unconditionally ──────────────────
-        safe, msg = security.check_request_security(data_to_scan, client_ip)
-        if not safe:
             request.is_attack = True
             security.blocked_requests += 1
-            security._persist_stats()
-            logger.warning(
-                f"[WAF-BLOCK] {client_ip} → {actual_method} {actual_path} | {msg}"
-            )
+            try:
+                security._persist_stats()
+            except Exception:
+                pass
             return jsonify({
-                "error": "Malicious content detected",
+                "error": "Request blocked by security policy",
                 "blocked": True,
-            }), 400
-
-        # ── Layer 4: SSRF Detection ───────────────────────────
-        if _CSRF_SSRF_ENABLED:
-            _ssrf_result = detect_ssrf({
-                "method": actual_method, "path": actual_path,
-                "headers": dict(request.headers),
-                "body": request.get_json(silent=True) or {},
-                "query_params": request.args.to_dict(),
-                "cookies": request.cookies.to_dict(),
-                "ip": client_ip, "user_agent": request.user_agent.string,
-            })
-            if _ssrf_result["detected"]:
-                request.is_attack = True
-                from app.api.security import calculate_severity, should_block_attack
-                severity = calculate_severity("SSRF", endpoint=actual_path)
-                security.blocked_requests += 1
-                security._persist_stats()
-                try:
-                    from app.api.persistence import append_user_attack
-                    should_block = severity in ("Critical", "High")
-                    append_user_attack(
-                        client_ip, "SSRF", client_ip,
-                        actual_path, actual_method, severity, blocked=should_block,
-                        description=f"[SSRF] {_ssrf_result['reason']}",
-                    )
-                except Exception:
-                    pass
-                return jsonify({"error": "SSRF attempt blocked",
-                                "reason": _ssrf_result["reason"]}), 403
-
-        # ── Layer 5: CSRF Detection ───────────────────────────
-        _auth_header = request.headers.get("Authorization", "") or request.headers.get("X-API-Key", "")
-        _is_public_endpoint = any(actual_path.startswith(p) for p in (
-            "/api/login", "/api/products", "/api/register", "/api/health",
-        ))
-        if (
-            _CSRF_SSRF_ENABLED
-            and actual_method in ("POST", "PUT", "DELETE", "PATCH")
-            and not _auth_header.startswith("Bearer ")
-            and not _is_public_endpoint
-        ):
-            _csrf_result = detect_csrf({
-                "method": actual_method, "path": actual_path,
-                "headers": dict(request.headers),
-                "body": request.get_json(silent=True) or {},
-                "query_params": request.args.to_dict(),
-                "cookies": request.cookies.to_dict(),
-                "ip": client_ip, "user_agent": request.user_agent.string,
-            })
-            if _csrf_result["detected"]:
-                request.is_attack = True
-                from app.api.security import calculate_severity, should_block_attack
-                severity = calculate_severity("CSRF", endpoint=actual_path)
-                security.blocked_requests += 1
-                security._persist_stats()
-                try:
-                    from app.api.persistence import append_user_attack
-                    should_block = severity in ("Critical", "High")
-                    append_user_attack(
-                        client_ip, "CSRF", client_ip,
-                        actual_path, actual_method, severity, blocked=should_block,
-                        description=f"[CSRF] {_csrf_result['reason']}",
-                    )
-                except Exception:
-                    pass
-                return jsonify({"error": "CSRF validation failed",
-                                "reason": _csrf_result["reason"]}), 403
-
-        # ══════════════════════════════════════════════════════
-        # STEP 4 — ALL SECURITY LAYERS PASSED
-        #
-        # If the request reached this point without being blocked,
-        # it is clean. Nginx will interpret a 2xx response as
-        # authorization to forward the request to the upstream target.
-        # ══════════════════════════════════════════════════════
-        request.is_clean = True
-        _normal_requests_count += 1
-        security.log_normal_request(client_ip, actual_path, actual_method)
-        security._persist_stats()
-
-        # If this is a WAF inspection subrequest from Nginx, return 200 OK.
-        if request.path == "/waf-inspect":
-            return Response("OK", status=200)
+            }), 403
 
     @app.after_request
     def after_request(response):

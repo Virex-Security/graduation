@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 from collections import defaultdict
 from flask import Blueprint, request, jsonify, make_response, current_app
 
-from app.auth import user_manager, Role
+from app.auth import user_manager, Role, mint_token
 from app.api.persistence import load_blocked_ips, save_blocked_ips, append_user_attack
 from app.api.security import calculate_severity
 from app import config as _cfg
@@ -61,26 +61,21 @@ def login():
     verified_user = user_manager.verify_password(username, password)
     if verified_user:
         brute_force_tracker[ip] = []
-        jti = secrets.token_hex(16)
-        token = jwt.encode({
-            "user": username,
-            "role": verified_user.get("role", "user"),
-            "exp": datetime.utcnow() + timedelta(hours=8),
-            "iat": datetime.utcnow(),
-            "jti": jti,
-        }, current_app.config["SECRET_KEY"], algorithm="HS256")
-        
+        user_id = verified_user.get("user_id") or verified_user.get("id")
+        role_name = verified_user.get("role_name") or verified_user.get("role", "user")
+        role_id = verified_user.get("role_id")
+        department_id = verified_user.get("department_id")
+        token, jti = mint_token(username, role_name, role_id, user_id, department_id)
+
         try:
             from app.auth.auth import _register_session
-            user_id = verified_user.get("user_id") or verified_user.get("id")
             if user_id:
                 _register_session(user_id, jti)
         except Exception:
             pass
-            
+
         try:
             from app.database import log_audit
-            user_id = verified_user.get("user_id") or verified_user.get("id")
             if user_id:
                 log_audit(user_id, "Login", ip)
         except Exception:
@@ -88,7 +83,7 @@ def login():
 
         resp = make_response(jsonify({"message": "Login successful"}))
         resp.set_cookie("auth_token", token, httponly=True,
-                      secure=_cfg.cookie_secure(), samesite="Lax", max_age=8*3600)
+                      secure=_cfg.cookie_secure(), samesite="Lax", max_age=8*3600, path="/")
         return resp, 200
     else:
         try:
@@ -179,7 +174,7 @@ def logout():
         token = request.cookies.get('auth_token')
         if token:
             data = jwt.decode(token, current_app.config['SECRET_KEY'], algorithms=["HS256"])
-            user = user_manager.get_user(data['user'])
+            user = user_manager.get_user(data.get('username') or data.get('user'))
             if user:
                 user_id = user.get("user_id") or user.get("id")
                 ip = _get_real_ip()
@@ -188,5 +183,19 @@ def logout():
     except Exception:
         pass
         
-    from app.auth import logout_user
-    return logout_user()
+    if token:
+        try:
+            import hashlib
+            data = jwt.decode(token, current_app.config['SECRET_KEY'], algorithms=["HS256"], options={"verify_exp": False})
+            jti = data.get("jti", "")
+            if jti:
+                from app import database as db
+                jti_hash = hashlib.sha256(jti.encode()).hexdigest()
+                db.invalidate_session(jti_hash)
+        except Exception:
+            pass
+
+    resp = make_response(jsonify({"message": "Logged out successfully"}))
+    resp.set_cookie("auth_token", "", expires=0, httponly=True,
+                    secure=_cfg.cookie_secure(), samesite="Lax", path="/")
+    return resp
