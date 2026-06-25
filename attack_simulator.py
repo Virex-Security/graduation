@@ -125,11 +125,15 @@ REAL_ATTACK_PAYLOADS = {
 # ─────────────────────────── SIMULATOR CLASS ───────────────────────────────
 
 class RealAttackSimulator:
-    """Attack simulator targeting REAL vulnerabilities in Virex project"""
+    """Attack simulator targeting REAL vulnerabilities in Virex project via Nginx Gateway"""
 
-    def __init__(self, dashboard_url=None, api_url=None):
-        self.dashboard_url = dashboard_url or "http://localhost:8070"
-        self.api_url = api_url or "http://localhost:5000"
+    def __init__(self, target_url=None, dashboard_url=None):
+        from dotenv import load_dotenv
+        load_dotenv()
+        
+        self.dashboard_url = dashboard_url or os.getenv("DASHBOARD_URL", "http://localhost:8070")
+        # Ensure traffic hits the Nginx reverse proxy by default
+        self.api_url = target_url or os.getenv("TARGET_URL", "http://localhost:8060")
         self.session = requests.Session()
 
         self.user_agents = [
@@ -170,6 +174,9 @@ class RealAttackSimulator:
     def _request(self, method, url, context, params=None, json_data=None, timeout=5):
         headers = dict(context["headers"])
         headers["X-Forwarded-For"] = context["ip"]
+        
+        print(f"      [DEBUG] Attempting {method} request to: {url}")
+        
         try:
             if method == "GET":
                 resp = self.session.get(url, params=params, headers=headers, timeout=timeout)
@@ -187,7 +194,14 @@ class RealAttackSimulator:
                 self.blocked_count += 1
             
             return resp
-        except Exception:
+        except requests.exceptions.ConnectionError as e:
+            print(f"      [ERROR] ConnectionRefused / DNS Error reaching {url}: {e}")
+            return None
+        except requests.exceptions.Timeout as e:
+            print(f"      [ERROR] Request Timed out reaching {url}: {e}")
+            return None
+        except Exception as e:
+            print(f"      [ERROR] Unknown Exception during request to {url}: {e}")
             return None
 
     def _pause(self, lo=0.1, hi=0.5):
@@ -389,9 +403,9 @@ class RealAttackSimulator:
 
         try:
             resp = self.session.get(f"{self.api_url}/api/health", timeout=3)
-            print(f"[OK] API reachable at {self.api_url} (status {resp.status_code})")
+            print(f"[OK] Target API Gateway reachable at {self.api_url} (status {resp.status_code})")
         except Exception:
-            print(f"[WARNING] Cannot reach API at {self.api_url}")
+            print(f"[WARNING] Cannot reach Target API Gateway at {self.api_url}")
 
         try:
             resp = self.session.get(f"{self.dashboard_url}/api/health", timeout=3)
@@ -425,12 +439,15 @@ class RealAttackSimulator:
 
 if __name__ == "__main__":
     import argparse
+    from dotenv import load_dotenv
+    load_dotenv()
 
     parser = argparse.ArgumentParser(description="VIREX Real Vulnerability Attack Simulator")
-    parser.add_argument("--dashboard", default="http://localhost:8070", help="Dashboard URL")
-    parser.add_argument("--api", default="http://localhost:5000", help="API URL")
+    parser.add_argument("--dashboard", default=os.getenv("DASHBOARD_URL", "http://localhost:8070"), help="Dashboard URL")
+    parser.add_argument("--target", default=os.getenv("TARGET_URL", "http://localhost:8060"), help="Target API Gateway URL (Nginx)")
     parser.add_argument("--export", default="data/real_attack_dataset.csv", help="Export path")
     args = parser.parse_args()
 
-    sim = RealAttackSimulator(dashboard_url=args.dashboard, api_url=args.api)
+    sim = RealAttackSimulator(target_url=args.target, dashboard_url=args.dashboard)
     sim.run_full_test()
+

@@ -111,7 +111,7 @@ def create_api_app():
     # Flask handles them locally (health checks, dashboard,
     # auth endpoints, static assets, and the root index).
     _LOCAL_ROUTES = (
-        "/api/", "/health", "/api/dashboard/",
+        "/health", "/api/dashboard/",
         "/dashboard", "/auth", "/static",
     )
 
@@ -220,7 +220,7 @@ def create_api_app():
                     )
                 except Exception:
                     pass
-                return jsonify({"error": "Not Found"}), 404
+                return jsonify({"error": "Malicious request blocked by WAF", "blocked": True}), 403
 
             # ══════════════════════════════════════════════════════
             # Layer 3: FULL Content Scan  (SQLi, XSS, CMDi,
