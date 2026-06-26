@@ -1,0 +1,357 @@
+{% extends "sidebar_layout.html" %}
+{% set active_page = 'attack-history' %}
+
+{% block title %}Attack History — VIREX{% endblock %}
+
+{% block stylesheets %}
+<link rel="stylesheet" href="/static/css/requests.css" />
+<link rel="stylesheet" href="/static/css/blocked.css" />
+<style>
+  .ah-container {
+    padding: 2.5rem;
+    max-width: 1600px;
+    margin: 0 auto;
+    width: 100%;
+  }
+  .btn-clear {
+    background: transparent;
+    border: 1px solid var(--danger);
+    color: var(--danger);
+    border-radius: 8px;
+    padding: 9px 18px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background .2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn-clear:hover { background: rgba(239, 68, 68, 0.15); }
+  .ah-loading {
+    text-align: center;
+    padding: 3rem;
+    color: var(--text-muted);
+  }
+  .ah-empty {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--text-muted);
+    display: none;
+  }
+  .ah-empty-icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
+
+  /* Toast notification */
+  #toast {
+    position: fixed; bottom: 24px; right: 24px;
+    background: var(--card-bg); border: 1px solid var(--border-color);
+    border-radius: 10px; padding: 12px 20px;
+    color: var(--text-primary); font-size: 13px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.5);
+    transform: translateY(60px); opacity: 0;
+    transition: all .3s; z-index: 9999;
+  }
+  #toast.show { transform: translateY(0); opacity: 1; }
+  #toast.success { border-color: var(--success); }
+  #toast.error   { border-color: var(--danger); }
+</style>
+{% endblock %}
+
+{% block content %}
+<main class="ah-container">
+  <header class="overview-header">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+      <div>
+        <h1>Attack History</h1>
+        <p style="color:var(--text-secondary);font-size:1.05rem;">Real-time log of all detected threats</p>
+      </div>
+      <button class="btn-clear" onclick="confirmClear()">
+        <i class="fas fa-trash-alt"></i> Clear History
+      </button>
+    </div>
+  </header>
+
+  <section class="stats-section" style="margin-bottom:1.5rem;">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;">
+      <div class="stat-card card type-total">
+        <div class="stat-header"><i class="fas fa-shield-virus"></i><h3>Total Attacks</h3></div>
+        <div class="stat-value" id="stat-total">—</div>
+      </div>
+      <div class="stat-card card type-sqli">
+        <div class="stat-header"><i class="fas fa-database" style="color:var(--warning)"></i><h3>SQL Injection</h3></div>
+        <div class="stat-value" id="stat-sqli">—</div>
+      </div>
+      <div class="stat-card card type-xss">
+        <div class="stat-header"><i class="fas fa-code" style="color:var(--info)"></i><h3>XSS</h3></div>
+        <div class="stat-value" id="stat-xss">—</div>
+      </div>
+      <div class="stat-card card type-brute">
+        <div class="stat-header"><i class="fas fa-key" style="color:var(--danger)"></i><h3>Brute Force</h3></div>
+        <div class="stat-value" id="stat-brute">—</div>
+      </div>
+      <div class="stat-card card type-scanner">
+        <div class="stat-header"><i class="fas fa-eye" style="color:var(--success)"></i><h3>Other</h3></div>
+        <div class="stat-value" id="stat-other">—</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="filters-bar">
+    <div class="filters-group">
+      <label class="filters-label" for="filter-severity">Severity</label>
+      <select id="filter-severity" class="filters-select">
+        <option value="all">All</option>
+        <option value="Critical">Critical</option>
+        <option value="High">High</option>
+        <option value="Medium">Medium</option>
+        <option value="Low">Low</option>
+      </select>
+    </div>
+    <div class="filters-group">
+      <label class="filters-label" for="filter-attack-type">Attack Type</label>
+      <select id="filter-attack-type" class="filters-select">
+        <option value="all">All Types</option>
+        <option value="SQL Injection">SQL Injection</option>
+        <option value="XSS">XSS</option>
+        <option value="Command Injection">Command Injection</option>
+        <option value="Path Traversal">Path Traversal</option>
+        <option value="Brute Force">Brute Force</option>
+        <option value="Rate Limit">Rate Limit</option>
+        <option value="CSRF">CSRF</option>
+        <option value="SSRF">SSRF</option>
+        <option value="Scanner">Scanner</option>
+      </select>
+    </div>
+    <div class="filters-group">
+      <label class="filters-label" for="filter-ip">IP / Endpoint</label>
+      <input id="filter-ip" class="filters-input" type="text" placeholder="Search by IP or endpoint...">
+    </div>
+    <div class="filters-actions">
+      <button id="filter-apply" class="filters-btn filters-btn-primary" type="button">Search</button>
+      <button id="filter-reset" class="filters-btn filters-btn-secondary" type="button">Reset</button>
+    </div>
+  <div class="table-card">
+    <div class="ah-loading" id="loading">
+      <i class="fas fa-circle-notch fa-spin"></i> Loading attacks...
+    </div>
+    <div class="ah-empty" id="empty">
+      <div class="ah-empty-icon">🛡️</div>
+      <div>No attacks found</div>
+    </div>
+    <div class="req-table-wrap">
+      <table class="req-table" id="attacks-table" style="display:none;">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Type</th>
+            <th>IP</th>
+            <th>Endpoint</th>
+            <th>Method</th>
+            <th>Severity</th>
+            <th>Time</th>
+          </tr>
+        </thead>
+        <tbody id="attacks-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+</main>
+
+<div id="toast"></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const API_BASE = 'http://127.0.0.1:5000';
+  let allAttacks = [];
+
+  // Map attack types to project threat-badge classes + icons
+  const BADGE_INFO = {
+    'SQL Injection':     { cls: 't-sqli',  icon: 'fa-database' },
+    'XSS':               { cls: 't-xss',   icon: 'fa-code' },
+    'Command Injection': { cls: 't-unknown', icon: 'fa-shield-virus' },
+    'Path Traversal':    { cls: 't-path',  icon: 'fa-folder-open' },
+    'Brute Force':       { cls: 't-brute', icon: 'fa-key' },
+    'Scanner':           { cls: 't-scanner', icon: 'fa-eye' },
+    'ML Anomaly':        { cls: 't-ml',    icon: 'fa-brain' },
+    'Rate Limit':        { cls: 't-rate',  icon: 'fa-bolt' },
+    'CSRF':              { cls: 't-csrf',  icon: 'fa-crosshairs' },
+    'SSRF':              { cls: 't-ssrf',  icon: 'fa-server' },
+    'Clean':             { cls: 't-clean', icon: 'fa-circle-check' }
+  };
+
+  function badgeHTML(type) {
+    const info = BADGE_INFO[type] || { cls: 't-unknown', icon: 'fa-shield-virus' };
+    return `<span class="threat-badge ${info.cls}"><i class="fas ${info.icon}"></i> ${type || 'Threat'}</span>`;
+  }
+
+  const SEV_CLASS = {
+    'Critical': 'sev-critical',
+    'High':     'sev-high',
+    'Medium':   'sev-medium',
+    'Low':      'sev-low',
+  };
+
+  function formatTime(iso) {
+    if (!iso) return '—';
+    const d = new Date(iso);
+    return d.toLocaleString('en-GB', {
+      day:'2-digit', month:'short', year:'numeric',
+      hour:'2-digit', minute:'2-digit', second:'2-digit'
+    });
+  }
+
+  function toast(msg, type = 'success') {
+    const t = document.getElementById('toast');
+    t.textContent = (type === 'success' ? '✓  ' : '✗  ') + msg;
+    t.className = 'show ' + type;
+    setTimeout(() => t.className = '', 3000);
+  }
+
+  async function loadAttacks() {
+    try {
+      // The API endpoint runs on the same origin (either 5000 directly or via dashboard proxy/routing if they are combined)
+      // Actually since it's the dashboard rendering this page, the endpoint is likely relative
+      const res = await fetch('/api/my-attacks?user=all');
+      if (!res.ok) throw new Error('API error: ' + res.status);
+      const data = await res.json();
+
+      // Flatten all users into one list
+      let attacks = [];
+      if (Array.isArray(data.attacks)) {
+        attacks = data.attacks;
+      } else if (data.attacks && typeof data.attacks === 'object') {
+        for (const [user, list] of Object.entries(data.attacks)) {
+          list.forEach(a => { a._user = user; attacks.push(a); });
+        }
+      }
+
+      // Sort newest first
+      attacks.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+      allAttacks = attacks;
+      renderTable(attacks);
+      updateStats(attacks);
+      // Re-apply any active filters after refresh
+      if (typeof applyFilters === 'function') applyFilters();
+    } catch (e) {
+      document.getElementById('loading').innerHTML =
+        '<i class="fas fa-exclamation-triangle"></i> Could not load attacks. Is the API running?';
+    }
+  }
+
+  function updateStats(attacks) {
+    document.getElementById('stat-total').textContent = attacks.length;
+    document.getElementById('stat-sqli').textContent =
+      attacks.filter(a => a.type === 'SQL Injection').length;
+    document.getElementById('stat-xss').textContent =
+      attacks.filter(a => a.type === 'XSS').length;
+    document.getElementById('stat-brute').textContent =
+      attacks.filter(a => a.type === 'Brute Force').length;
+    const other = attacks.filter(
+      a => !['SQL Injection','XSS','Brute Force'].includes(a.type)
+    ).length;
+    document.getElementById('stat-other').textContent = other;
+  }
+
+  function renderTable(attacks) {
+    document.getElementById('loading').style.display    = 'none';
+    const tbody  = document.getElementById('attacks-tbody');
+    const table  = document.getElementById('attacks-table');
+    const empty  = document.getElementById('empty');
+
+    if (attacks.length === 0) {
+      table.style.display = 'none';
+      empty.style.display = 'block';
+      return;
+    }
+    empty.style.display = 'none';
+    table.style.display = 'table';
+
+    tbody.innerHTML = attacks.map((a, i) => `
+      <tr>
+        <td class="mono" style="color:var(--text-muted);font-size:11px;">${i + 1}</td>
+        <td>${badgeHTML(a.type)}</td>
+        <td class="mono">${a.ip || '—'}</td>
+        <td class="mono" style="color:var(--text-muted);">${a.endpoint || '—'}</td>
+        <td class="mono" style="font-size:11px;color:var(--text-muted);">${a.method || '—'}</td>
+        <td><span class="sev-badge sev-${(a.severity || 'low').toLowerCase()}">${a.severity || '—'}</span></td>
+        <td class="mono" style="font-size:11px;color:var(--text-muted);">${formatTime(a.timestamp)}</td>
+      </tr>
+    `).join('');
+  }
+
+  function normalize(s) {
+    return (s || '').toString().trim().toLowerCase();
+  }
+
+  function applyFilters() {
+    const sev = document.getElementById('filter-severity')?.value || 'all';
+    const typ = document.getElementById('filter-attack-type')?.value || 'all';
+    const ipq = document.getElementById('filter-ip')?.value || '';
+
+    const sevN = normalize(sev);
+    const typN = normalize(typ);
+    const ipN  = normalize(ipq);
+
+    const filtered = allAttacks.filter(a => {
+      const matchSev = sevN === 'all' || normalize(a.severity) === sevN;
+      const matchTyp = typN === 'all' || normalize(a.type) === typN;
+      const matchIP  = !ipN ||
+        normalize(a.ip).includes(ipN) ||
+        normalize(a.endpoint).includes(ipN) ||
+        normalize(a.type).includes(ipN);
+      return matchSev && matchTyp && matchIP;
+    });
+
+    renderTable(filtered);
+    updateStats(filtered);
+  }
+
+  function resetFilters() {
+    const s = document.getElementById('filter-severity');
+    const t = document.getElementById('filter-attack-type');
+    const i = document.getElementById('filter-ip');
+    if (s) s.value = 'all';
+    if (t) t.value = 'all';
+    if (i) i.value = '';
+    applyFilters();
+  }
+
+  function confirmClear() {
+    const ok = confirm('Are you sure you want to delete all attack history?\nThis action cannot be undone.');
+    if (!ok) return;
+    clearAttacks();
+  }
+
+  async function clearAttacks() {
+    try {
+      const res = await fetch(`${API_BASE}/api/clear-attacks?all=true`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Failed');
+      allAttacks = [];
+      renderTable([]);
+      updateStats([]);
+      toast('Attack history cleared successfully');
+    } catch (e) {
+      toast('Failed to clear history', 'error');
+    }
+  }
+
+  // Filter button event listeners
+  document.addEventListener('DOMContentLoaded', () => {
+    const a = document.getElementById('filter-apply');
+    const r = document.getElementById('filter-reset');
+    const ip = document.getElementById('filter-ip');
+    if (a) a.addEventListener('click', applyFilters);
+    if (r) r.addEventListener('click', resetFilters);
+    if (ip) {
+      ip.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); applyFilters(); }
+      });
+    }
+  });
+
+  // Load on page load + auto-refresh every 30s
+  loadAttacks();
+  setInterval(loadAttacks, 30000);
+</script>
+{% endblock %}

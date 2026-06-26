@@ -1,106 +1,54 @@
-import React, { lazy } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './utils/AuthContext.jsx';
-import { useAuth } from './utils/useAuth';
-import { ToastProvider } from './utils/ToastContext.jsx';
-import ErrorBoundary from './components/ErrorBoundary';
-import Layout from './layout/Layout';
-import Chatbot from './components/Chatbot';
-import { SecondaryButton } from './components/Buttons';
-
-// Lazy-load all pages for code splitting
-const LoginPage = lazy(() => import('./pages/LoginPage'));
-const DashboardPage = lazy(() => import('./pages/DashboardPage'));
-const AttacksPage = lazy(() => import('./pages/AttacksPage'));
-const IncidentsPage = lazy(() => import('./pages/IncidentsPage'));
-const IncidentDetailPage = lazy(() => import('./pages/IncidentDetailPage'));
-const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage'));
-const RequestsPage = lazy(() => import('./pages/RequestsPage'));
-const SettingsPage = lazy(() => import('./pages/SettingsPage'));
-const BlacklistPage = lazy(() => import('./pages/BlacklistPage'));
-const UserManagerPage = lazy(() => import('./pages/UserManagerPage'));
-const MLDetectionsPage = lazy(() => import('./pages/MLDetectionsPage'));
-const MLPerformancePage = lazy(() => import('./pages/MLPerformancePage'));
-const PricingPage = lazy(() => import('./pages/PricingPage'));
-const FlaskTest = lazy(() => import('./components/FlaskTest'));
-
-// Route guard: redirect to /login if not authenticated
-function ProtectedRoute({ children }) {
-  const { user, loading } = useAuth();
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-bg-main flex items-center justify-center">
-        <div className="w-10 h-10 rounded-full border-2 border-brand-primary border-t-transparent animate-spin" aria-label="Loading" />
-      </div>
-    );
-  }
-  if (!user) return <Navigate to="/login" replace />;
-  return children;
-}
-
-/** Chatbot only when authenticated (same scope as dashboard shell). */
-function AuthenticatedChatbot() {
-  const { user, loading } = useAuth();
-  if (loading || !user) return null;
-  return <Chatbot />;
-}
+import React, { useState, useEffect } from 'react';
 
 export default function App() {
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const handleMessage = (event) => {
+      if (event.data && event.data.type === 'SHOW_LOADER') {
+        setLoading(true);
+      }
+    };
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, []);
+
   return (
-    <AuthProvider>
-      <ToastProvider>
-        <BrowserRouter>
-          <ErrorBoundary>
-            <Routes>
-              {/* Public routes */}
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-
-              {/* Protected dashboard routes */}
-              <Route
-                path="/"
-                element={
-                  <ProtectedRoute>
-                    <Layout />
-                  </ProtectedRoute>
-                }
-              >
-                <Route index element={<Navigate to="/dashboard" replace />} />
-                <Route path="dashboard" element={<ErrorBoundary><DashboardPage /></ErrorBoundary>} />
-                <Route path="incidents" element={<ErrorBoundary><IncidentsPage /></ErrorBoundary>} />
-                <Route path="incidents/:id" element={<ErrorBoundary><IncidentDetailPage /></ErrorBoundary>} />
-                <Route path="attack-history" element={<ErrorBoundary><AttacksPage /></ErrorBoundary>} />
-                <Route path="ml-detections" element={<ErrorBoundary><MLDetectionsPage /></ErrorBoundary>} />
-                <Route path="ml-performance" element={<ErrorBoundary><MLPerformancePage /></ErrorBoundary>} />
-                <Route path="requests" element={<ErrorBoundary><RequestsPage /></ErrorBoundary>} />
-                <Route path="pricing" element={<ErrorBoundary><PricingPage /></ErrorBoundary>} />
-                <Route path="settings" element={<ErrorBoundary><SettingsPage /></ErrorBoundary>} />
-                <Route path="test-api" element={<ErrorBoundary><FlaskTest /></ErrorBoundary>} />
-                
-                {/* Admin-only routes (AuthContext handles role checks inside components) */}
-                <Route path="user-manager" element={<ErrorBoundary><UserManagerPage /></ErrorBoundary>} />
-                <Route path="blacklist" element={<ErrorBoundary><BlacklistPage /></ErrorBoundary>} />
-                
-                {/* Fallback navigation for sidebar links that might be slightly different */}
-                <Route path="blocked" element={<Navigate to="/blacklist" replace />} />
-                <Route path="critical" element={<Navigate to="/incidents" replace />} />
-
-                {/* Fallthrough */}
-                <Route path="*" element={
-                  <div className="flex flex-col items-center justify-center h-full gap-4">
-                    <h1 className="text-4xl font-black text-text-muted">404</h1>
-                    <p className="text-text-secondary">Page not found.</p>
-                    <SecondaryButton onClick={() => window.location.href = '/dashboard'}>Go to Dashboard</SecondaryButton>
-                  </div>
-                } />
-              </Route>
-
-              <Route path="*" element={<Navigate to="/login" replace />} />
-            </Routes>
-            <AuthenticatedChatbot />
-          </ErrorBoundary>
-        </BrowserRouter>
-      </ToastProvider>
-    </AuthProvider>
+    <div style={{ position: 'relative', width: '100vw', height: '100vh', backgroundColor: '#191c2b', overflow: 'hidden' }}>
+      {loading && (
+        <div className="global-loader-container">
+          <div className="global-loader-ring"></div>
+          <div className="global-loader-v" style={{ position: 'absolute' }}>
+            <svg viewBox="15 0 70 100" style={{ width: '60px', height: '60px' }}>
+              <defs>
+                <linearGradient id="loader-v-left" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" style={{ stopColor: '#9a277d' }}></stop>
+                  <stop offset="100%" style={{ stopColor: '#792b9d' }}></stop>
+                </linearGradient>
+                <linearGradient id="loader-v-right" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" style={{ stopColor: '#e046ba' }}></stop>
+                  <stop offset="100%" style={{ stopColor: '#b347e6' }}></stop>
+                </linearGradient>
+              </defs>
+              <path d="M25,25 L50,80" stroke="url(#loader-v-left)" strokeWidth="20" strokeLinecap="round" fill="none"></path>
+              <path d="M50,80 L75,25" stroke="url(#loader-v-right)" strokeWidth="20" strokeLinecap="round" fill="none"></path>
+            </svg>
+          </div>
+        </div>
+      )}
+      <iframe
+        src={"http://localhost:8090" + window.location.pathname + window.location.search + window.location.hash}
+        style={{ 
+          width: '100%', 
+          height: '100%', 
+          border: 'none', 
+          display: 'block',
+          opacity: loading ? 0 : 1,
+          transition: 'opacity 0.4s ease-in-out'
+        }}
+        onLoad={() => setLoading(false)}
+        title="VIREX Secure Application"
+      />
+    </div>
   );
 }

@@ -413,5 +413,7 @@ def generate_validation_dataset(output_name="ml_validation_data.csv"):
 
 
 if __name__ == "__main__":
-    generate_dataset(normal_count=2000, attack_count=2000)
+    # تم التعديل: زيادة عدد الـ Normal إلى 3000 ليتفوق على الـ Attacks (2000)
+    # لتصبح النسبة تقريباً 60% للبيانات الطبيعية، مما يمنع الموديل من التحيز للهجمات
+    generate_dataset(normal_count=3000, attack_count=2000)
     generate_validation_dataset()

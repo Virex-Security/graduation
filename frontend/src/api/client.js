@@ -6,7 +6,7 @@
  * No tokens are ever read or stored in JavaScript.
  */
 
-const BASE = '/api';
+const BASE = 'http://localhost:5000/api';
 const TIMEOUT_MS = 12_000;
 
 function withTimeout(promise, ms) {

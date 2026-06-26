@@ -208,13 +208,13 @@ export default function Sidebar({
               {user?.avatar_url ? (
                 <img src={user.avatar_url} alt="" className="h-full w-full object-cover" />
               ) : (
-                (user?.full_name || user?.username || 'US').substring(0, 2).toUpperCase()
+                (user?.user_metadata?.full_name || user?.user_metadata?.name || user?.full_name || user?.username || user?.email || 'US').substring(0, 2).toUpperCase()
               )}
             </div>
             {!collapsed && (
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2 truncate font-semibold text-text-primary">
-                  {user?.full_name || user?.username || 'User'}
+                  {user?.user_metadata?.full_name || user?.user_metadata?.name || user?.full_name || user?.username || user?.email || 'User'}
                 </div>
                 <div className="text-sm capitalize text-text-secondary">{user?.role || 'Guest'}</div>
                 <div className="mt-1 flex items-center gap-2 text-xs text-success">
