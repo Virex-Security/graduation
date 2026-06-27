@@ -137,7 +137,7 @@ def create_api_app():
         if is_trivial(request):
             return
             
-        EXCLUDED_PATHS = ['/static/', '/favicon.ico', '/assets/', '/dist/']
+        EXCLUDED_PATHS = ['/static/', '/favicon.ico', '/assets/', '/dist/', '/api/health']
         for path in EXCLUDED_PATHS:
             if request.path.startswith(path):
                 return # اخرج من الفحص فوراً ومتحسبش أي حاجة
