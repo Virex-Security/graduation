@@ -1,9 +1,22 @@
 """
-Database Manager - PostgreSQL via SQLAlchemy
-=============================================
-All database operations via SQLAlchemy ORM/Engine.
-Zero SQLite. Zero Supabase REST client.
+Database Manager — SQLite + PostgreSQL via SQLAlchemy
+======================================================
+Supports both SQLite (development / benchmark) and PostgreSQL (production).
+Dialect is detected automatically from DATABASE_URL.
+
+All database operations use SQLAlchemy core (text() queries).
+Zero Supabase REST client dependency.
 Full backward-compatible function signatures.
+
+SQLite notes
+------------
+* RETURNING is emulated via cursor.lastrowid (see _insert_returning).
+* ILIKE replaced with LIKE (SQLite LIKE is case-insensitive for ASCII).
+* information_schema replaced with PRAGMA table_info().
+* ON CONFLICT … DO UPDATE requires PRIMARY KEY / UNIQUE on the column —
+  which is satisfied by the schema (metric_name is PK in system_stats,
+  ip_address is PK in blocked_ips).
+* Pool: NullPool is used for SQLite (no multi-threaded pooling needed).
 """
 
 import os
@@ -13,7 +26,7 @@ import string
 import logging
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
-from sqlalchemy.pool import QueuePool
+from sqlalchemy.pool import QueuePool, NullPool
 
 logger = logging.getLogger(__name__)
 
@@ -23,19 +36,71 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 if not DATABASE_URL:
     raise RuntimeError("DATABASE_URL not set in .env")
 
-engine = create_engine(
-    DATABASE_URL,
-    poolclass=QueuePool,
-    pool_size=5,
-    max_overflow=10,
-    pool_pre_ping=True,
-)
+# ── Dialect detection ──────────────────────────────────────────
+_IS_SQLITE = DATABASE_URL.startswith("sqlite")
+
+# ── Engine ────────────────────────────────────────────────────
+if _IS_SQLITE:
+    # SQLite: use NullPool; check_same_thread=False for Flask multi-thread
+    engine = create_engine(
+        DATABASE_URL,
+        poolclass=NullPool,
+        connect_args={"check_same_thread": False},
+    )
+else:
+    engine = create_engine(
+        DATABASE_URL,
+        poolclass=QueuePool,
+        pool_size=5,
+        max_overflow=10,
+        pool_pre_ping=True,
+    )
 
 
 def _db():
-    """Return a connected connection with autocommit off."""
-    conn = engine.connect()
-    return conn
+    """Return a connected SQLAlchemy connection."""
+    return engine.connect()
+
+
+# ── SQL helpers ────────────────────────────────────────────────
+
+def _insert_returning(conn, sql: str, params: dict, pk_col: str = "id"):
+    """
+    Execute an INSERT and return the new primary-key value.
+
+    * PostgreSQL: use RETURNING clause natively.
+    * SQLite:     strip RETURNING clause; return cursor.lastrowid.
+
+    The SQL string must end with:
+        RETURNING <pk_col>
+    """
+    if _IS_SQLITE:
+        # Strip the RETURNING clause (case-insensitive, trailing whitespace)
+        import re
+        clean_sql = re.sub(
+            r"\s+RETURNING\s+\S+\s*$", "", sql.strip(), flags=re.IGNORECASE
+        )
+        result = conn.execute(text(clean_sql), params)
+        return result.lastrowid
+    else:
+        result = conn.execute(text(sql), params)
+        return result.scalar()
+
+
+def _like(col: str) -> str:
+    """
+    Return the correct LIKE operator for the dialect.
+    PostgreSQL supports ILIKE for case-insensitive matching.
+    SQLite's LIKE is case-insensitive for ASCII by default.
+    """
+    return "LIKE" if _IS_SQLITE else "ILIKE"
+
+
+def _bool(val: bool) -> object:
+    """Return the correct boolean literal for the dialect."""
+    if _IS_SQLITE:
+        return 1 if val else 0
+    return val
 
 
 def _sanitize(row: dict) -> dict:
@@ -43,7 +108,7 @@ def _sanitize(row: dict) -> dict:
     import datetime
     out = {}
     for k, v in row.items():
-        if isinstance(v, (datetime.datetime,)):
+        if isinstance(v, datetime.datetime):
             out[k] = v.strftime("%Y-%m-%d %H:%M:%S")
         else:
             out[k] = v
@@ -52,40 +117,309 @@ def _sanitize(row: dict) -> dict:
 
 def _sanitize_list(rows: list) -> list:
     return [_sanitize(r) for r in rows]
+
+
+# ══════════════════════════════════════════════════════════════
+# SCHEMA CREATION (idempotent — safe to run multiple times)
+# ══════════════════════════════════════════════════════════════
+
+# Full DDL — compatible with both SQLite and PostgreSQL.
+# PostgreSQL ignores the INTEGER autoincrement style but SQLAlchemy
+# handles the type affinity correctly through the ORM layer.
+# For fresh PostgreSQL deployments use db_init/init.sql instead.
+
+_CREATE_TABLES_SQL = [
+    # roles (must be created before users)
+    """
+    CREATE TABLE IF NOT EXISTS roles (
+        role_id INTEGER PRIMARY KEY,
+        name VARCHAR(50) UNIQUE NOT NULL,
+        description TEXT,
+        created_at VARCHAR(50)
+    )
+    """,
+    # departments (must be created before users)
+    """
+    CREATE TABLE IF NOT EXISTS departments (
+        department_id INTEGER PRIMARY KEY,
+        name VARCHAR(100) NOT NULL,
+        slug VARCHAR(100) UNIQUE NOT NULL,
+        description TEXT,
+        created_at VARCHAR(50)
+    )
+    """,
+    # users
+    """
+    CREATE TABLE IF NOT EXISTS users (
+        user_id INTEGER PRIMARY KEY,
+        username VARCHAR(50) UNIQUE NOT NULL,
+        password_hash VARCHAR(255) NOT NULL,
+        email VARCHAR(100) UNIQUE,
+        role_id INTEGER REFERENCES roles(role_id),
+        department_id INTEGER REFERENCES departments(department_id),
+        is_active INTEGER DEFAULT 1,
+        created_at VARCHAR(50),
+        updated_at VARCHAR(50),
+        last_login VARCHAR(50),
+        reset_token VARCHAR(255),
+        reset_token_expiry VARCHAR(50)
+    )
+    """,
+    # rate_limits
+    """
+    CREATE TABLE IF NOT EXISTS rate_limits (
+        id INTEGER PRIMARY KEY,
+        ip_address VARCHAR(45) NOT NULL,
+        timestamp REAL NOT NULL
+    )
+    """,
+    # system_stats — metric_name is PK → enables ON CONFLICT upsert
+    """
+    CREATE TABLE IF NOT EXISTS system_stats (
+        metric_name VARCHAR(100) PRIMARY KEY,
+        metric_value INTEGER NOT NULL,
+        updated_at VARCHAR(50) DEFAULT CURRENT_TIMESTAMP
+    )
+    """,
+    # rules
+    """
+    CREATE TABLE IF NOT EXISTS rules (
+        rule_id INTEGER PRIMARY KEY,
+        name VARCHAR(100) NOT NULL,
+        type VARCHAR(50) NOT NULL,
+        pattern TEXT NOT NULL,
+        severity VARCHAR(20) NOT NULL,
+        action VARCHAR(20) NOT NULL,
+        is_active INTEGER DEFAULT 1,
+        created_at VARCHAR(50),
+        updated_at VARCHAR(50)
+    )
+    """,
+    # threat_logs
+    """
+    CREATE TABLE IF NOT EXISTS threat_logs (
+        threat_log_id INTEGER PRIMARY KEY,
+        attack_type VARCHAR(100) NOT NULL,
+        ip_address VARCHAR(45) NOT NULL,
+        endpoint VARCHAR(255) NOT NULL,
+        method VARCHAR(10) NOT NULL,
+        payload TEXT,
+        severity VARCHAR(20) NOT NULL,
+        description TEXT,
+        blocked INTEGER NOT NULL,
+        ml_detected INTEGER DEFAULT 0,
+        confidence REAL DEFAULT 0.0,
+        detection_type VARCHAR(50) DEFAULT 'rule',
+        created_at VARCHAR(50)
+    )
+    """,
+    # blocked_ips — ip_address is PK → enables ON CONFLICT upsert
+    """
+    CREATE TABLE IF NOT EXISTS blocked_ips (
+        ip_address VARCHAR(45) PRIMARY KEY,
+        reason TEXT,
+        blocked_by INTEGER REFERENCES users(user_id),
+        is_permanent INTEGER DEFAULT 0,
+        blocked_at VARCHAR(50),
+        unblock_at VARCHAR(50)
+    )
+    """,
+    # blocked_events
+    """
+    CREATE TABLE IF NOT EXISTS blocked_events (
+        blocked_event_id INTEGER PRIMARY KEY,
+        threat_log_id INTEGER REFERENCES threat_logs(threat_log_id) ON DELETE CASCADE,
+        ip_address VARCHAR(45) NOT NULL,
+        attack_type VARCHAR(100) NOT NULL,
+        severity VARCHAR(20) NOT NULL,
+        ml_detected INTEGER DEFAULT 0,
+        confidence REAL DEFAULT 0.0,
+        blocked_at VARCHAR(50)
+    )
+    """,
+    # incidents
+    """
+    CREATE TABLE IF NOT EXISTS incidents (
+        incident_id INTEGER PRIMARY KEY,
+        incident_code VARCHAR(20) UNIQUE NOT NULL,
+        category VARCHAR(50) NOT NULL,
+        source_ip VARCHAR(45) NOT NULL,
+        detection_type VARCHAR(50) NOT NULL,
+        status VARCHAR(20) NOT NULL DEFAULT 'open',
+        severity VARCHAR(20) NOT NULL,
+        first_seen VARCHAR(50),
+        last_seen VARCHAR(50),
+        created_at VARCHAR(50)
+    )
+    """,
+    # incident_events
+    """
+    CREATE TABLE IF NOT EXISTS incident_events (
+        incident_event_id INTEGER PRIMARY KEY,
+        incident_id INTEGER REFERENCES incidents(incident_id) ON DELETE CASCADE,
+        threat_log_id INTEGER REFERENCES threat_logs(threat_log_id) ON DELETE CASCADE,
+        created_at VARCHAR(50)
+    )
+    """,
+    # incident_actions
+    """
+    CREATE TABLE IF NOT EXISTS incident_actions (
+        action_id INTEGER PRIMARY KEY,
+        incident_id INTEGER REFERENCES incidents(incident_id) ON DELETE CASCADE,
+        actor_id INTEGER REFERENCES users(user_id),
+        action VARCHAR(50) NOT NULL,
+        comment TEXT,
+        previous_status VARCHAR(20),
+        new_status VARCHAR(20),
+        created_at VARCHAR(50)
+    )
+    """,
+    # login_attempts
+    """
+    CREATE TABLE IF NOT EXISTS login_attempts (
+        login_attempt_id INTEGER PRIMARY KEY,
+        user_id INTEGER REFERENCES users(user_id) ON DELETE CASCADE,
+        ip_address VARCHAR(45) NOT NULL,
+        success INTEGER NOT NULL,
+        failure_reason TEXT,
+        attempted_at VARCHAR(50)
+    )
+    """,
+    # user_sessions
+    """
+    CREATE TABLE IF NOT EXISTS user_sessions (
+        session_id INTEGER PRIMARY KEY,
+        user_id INTEGER REFERENCES users(user_id) ON DELETE CASCADE,
+        jwt_token_hash VARCHAR(64) UNIQUE NOT NULL,
+        ip_address VARCHAR(45) NOT NULL,
+        user_agent TEXT,
+        is_active INTEGER DEFAULT 1,
+        expires_at VARCHAR(50),
+        created_at VARCHAR(50)
+    )
+    """,
+    # notifications
+    """
+    CREATE TABLE IF NOT EXISTS notifications (
+        notification_id INTEGER PRIMARY KEY,
+        user_id INTEGER REFERENCES users(user_id) ON DELETE CASCADE,
+        threat_log_id INTEGER REFERENCES threat_logs(threat_log_id) ON DELETE SET NULL,
+        type VARCHAR(50) DEFAULT 'info',
+        message TEXT NOT NULL,
+        is_read INTEGER DEFAULT 0,
+        created_at VARCHAR(50)
+    )
+    """,
+    # password_resets
+    """
+    CREATE TABLE IF NOT EXISTS password_resets (
+        id INTEGER PRIMARY KEY,
+        user_id INTEGER REFERENCES users(user_id) ON DELETE CASCADE,
+        otp VARCHAR(255) NOT NULL,
+        otp_expiry VARCHAR(50) NOT NULL,
+        otp_attempts INTEGER DEFAULT 0,
+        used INTEGER DEFAULT 0
+    )
+    """,
+    # orders
+    """
+    CREATE TABLE IF NOT EXISTS orders (
+        order_id INTEGER PRIMARY KEY,
+        username VARCHAR(50) NOT NULL,
+        product VARCHAR(100) NOT NULL,
+        price REAL NOT NULL,
+        created_at VARCHAR(50)
+    )
+    """,
+    # products
+    """
+    CREATE TABLE IF NOT EXISTS products (
+        product_id INTEGER PRIMARY KEY,
+        name VARCHAR(100) NOT NULL,
+        category VARCHAR(50) NOT NULL,
+        description TEXT,
+        price REAL NOT NULL,
+        created_at VARCHAR(50)
+    )
+    """,
+    # ml_model_runs
+    """
+    CREATE TABLE IF NOT EXISTS ml_model_runs (
+        run_id INTEGER PRIMARY KEY,
+        model_version VARCHAR(50) NOT NULL,
+        algorithm VARCHAR(100) NOT NULL,
+        dataset_size INTEGER NOT NULL,
+        accuracy REAL NOT NULL,
+        precision_score REAL NOT NULL,
+        recall REAL NOT NULL,
+        f1_score REAL NOT NULL,
+        roc_auc REAL NOT NULL,
+        trained_at VARCHAR(50)
+    )
+    """,
+    # chatbot_sessions
+    """
+    CREATE TABLE IF NOT EXISTS chatbot_sessions (
+        chatbot_session_id INTEGER PRIMARY KEY,
+        user_id INTEGER REFERENCES users(user_id) ON DELETE CASCADE,
+        page_context TEXT,
+        started_at VARCHAR(50)
+    )
+    """,
+    # chatbot_messages
+    """
+    CREATE TABLE IF NOT EXISTS chatbot_messages (
+        chatbot_message_id INTEGER PRIMARY KEY,
+        session_id INTEGER REFERENCES chatbot_sessions(chatbot_session_id) ON DELETE CASCADE,
+        role VARCHAR(20) NOT NULL,
+        content TEXT NOT NULL,
+        intent_detected VARCHAR(100),
+        created_at VARCHAR(50)
+    )
+    """,
+]
+
+_CREATE_INDEXES_SQL = [
+    "CREATE INDEX IF NOT EXISTS idx_rate_limits_ip_ts ON rate_limits(ip_address, timestamp)",
+]
+
+
+def _create_all_tables():
+    """
+    Create all tables and indexes idempotently (CREATE IF NOT EXISTS).
+    Safe to call multiple times — never raises on existing tables.
+    """
+    with _db() as conn:
+        for ddl in _CREATE_TABLES_SQL:
+            conn.execute(text(ddl.strip()))
+        for idx in _CREATE_INDEXES_SQL:
+            conn.execute(text(idx))
+        conn.commit()
+    logger.info("[DB] All tables ensured")
+
+
+# ══════════════════════════════════════════════════════════════
+# INIT
 # ══════════════════════════════════════════════════════════════
 
 def init_db():
-    """Seed roles/users into PostgreSQL."""
+    """
+    Idempotent database initialisation.
+    1. Create all tables (if not already present).
+    2. Seed roles, admin user, sample users, WAF rules.
+    Safe to call multiple times.
+    """
     try:
-        # Create rate_limits and system_stats tables
-        with _db() as conn:
-            conn.execute(text("""
-                CREATE TABLE IF NOT EXISTS rate_limits (
-                    id SERIAL PRIMARY KEY,
-                    ip_address VARCHAR(45) NOT NULL,
-                    timestamp DOUBLE PRECISION NOT NULL
-                );
-            """))
-            conn.execute(text("""
-                CREATE INDEX IF NOT EXISTS idx_rate_limits_ip_ts ON rate_limits(ip_address, timestamp);
-            """))
-            conn.execute(text("""
-                CREATE TABLE IF NOT EXISTS system_stats (
-                    metric_name VARCHAR(100) PRIMARY KEY,
-                    metric_value BIGINT NOT NULL,
-                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                );
-            """))
-            conn.commit()
-
+        _create_all_tables()
         _seed_roles()
         _seed_admin()
         _seed_users()
         _seed_rules()
         _ensure_password_resets_columns()
-        logger.info("[DB] Ready — PostgreSQL: %s", DATABASE_URL.split("@")[-1] if "@" in DATABASE_URL else "connected")
+        backend = DATABASE_URL.split("@")[-1] if "@" in DATABASE_URL else DATABASE_URL
+        logger.info("[DB] Ready — %s: %s", "SQLite" if _IS_SQLITE else "PostgreSQL", backend)
     except Exception as e:
-        logger.warning(f"[DB] Seeding skipped — {e}")
+        logger.warning("[DB] Seeding skipped — %s", e)
 
 
 def _seed_admin():
@@ -104,22 +438,28 @@ def _seed_admin():
         else:
             import secrets
             admin_password = secrets.token_urlsafe(16)
-            logger.info(f"[DB] Auto-generated admin password: {admin_password}")
-        conn.execute(text("""
+            logger.info("[DB] Auto-generated admin password: %s", admin_password)
+        _insert_returning(conn, """
             INSERT INTO users (username, password_hash, email, role_id, is_active, created_at, updated_at)
-            VALUES ('admin', :ph, 'admin@virex.local', 1, TRUE, :now, :now)
-        """), {"ph": generate_password_hash(admin_password), "now": now})
+            VALUES ('admin', :ph, 'admin@virex.local', 1, :active, :now, :now)
+            RETURNING user_id
+        """, {"ph": generate_password_hash(admin_password), "active": _bool(True), "now": now}, "user_id")
         conn.commit()
 
 
 def _ensure_password_resets_columns():
-    """Add otp_attempts column if missing."""
+    """Add otp_attempts column if missing — dialect-aware schema inspection."""
     with _db() as conn:
-        cols = conn.execute(text("""
-            SELECT column_name FROM information_schema.columns
-            WHERE table_name = 'password_resets'
-        """)).mappings().all()
-        col_names = [c["column_name"] for c in cols]
+        if _IS_SQLITE:
+            rows = conn.execute(text("PRAGMA table_info(password_resets)")).fetchall()
+            col_names = [r[1] for r in rows]  # column at index 1 is 'name'
+        else:
+            rows = conn.execute(text("""
+                SELECT column_name FROM information_schema.columns
+                WHERE table_name = 'password_resets'
+            """)).mappings().all()
+            col_names = [c["column_name"] for c in rows]
+
         if "otp_attempts" not in col_names:
             conn.execute(text("ALTER TABLE password_resets ADD COLUMN otp_attempts INTEGER DEFAULT 0"))
             conn.commit()
@@ -144,60 +484,58 @@ def _seed_roles():
 
 
 def _seed_users():
-    """Seed users from users.json or create default admin from environment"""
+    """Seed users from users.json or create default admin from environment."""
     import json
     from werkzeug.security import generate_password_hash
-    
+
     users_file = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "users.json")
-    
+
     with _db() as conn:
-        # Check if admin already exists
         admin_exists = conn.execute(
             text("SELECT user_id FROM users WHERE username = 'admin'")
         ).fetchone()
-        
+
         if not admin_exists:
             admin_password = os.getenv("ADMIN_PASSWORD", "AdminPassword123")
-            
             now = time.strftime("%Y-%m-%d %H:%M:%S")
-            conn.execute(text("""
+            _insert_returning(conn, """
                 INSERT INTO users (username, password_hash, email, role_id, is_active, created_at, updated_at)
-                VALUES ('admin', :ph, 'admin@virex.local', 1, TRUE, :now, :now)
-            """), {"ph": generate_password_hash(admin_password), "now": now})
+                VALUES ('admin', :ph, 'admin@virex.local', 1, :active, :now, :now)
+                RETURNING user_id
+            """, {"ph": generate_password_hash(admin_password), "active": _bool(True), "now": now}, "user_id")
             conn.commit()
-        
-        # Load additional users from users.json if exists
+
         if os.path.exists(users_file):
             with open(users_file, encoding="utf-8") as f:
                 users_json = json.load(f)
-            
+
             for username, u in users_json.items():
-                if username == "admin":  # Skip admin, already handled
+                if username == "admin":
                     continue
-                    
                 exists = conn.execute(
                     text("SELECT user_id FROM users WHERE username = :u"), {"u": username}
                 ).fetchone()
                 if exists:
                     continue
-                    
                 role_name = u.get("role", "user")
                 role_row = conn.execute(
                     text("SELECT role_id FROM roles WHERE name = :n"), {"n": role_name}
                 ).fetchone()
                 role_id = role_row[0] if role_row else 2
                 now = time.strftime("%Y-%m-%d %H:%M:%S")
-                conn.execute(text("""
+                _insert_returning(conn, """
                     INSERT INTO users
                         (username, password_hash, email, role_id, is_active, created_at, updated_at)
-                    VALUES (:username, :ph, :email, :role_id, TRUE, :now, :now)
-                """), {
+                    VALUES (:username, :ph, :email, :role_id, :active, :now, :now)
+                    RETURNING user_id
+                """, {
                     "username": username,
                     "ph": u.get("password_hash", ""),
                     "email": u.get("email", f"{username}@example.com"),
                     "role_id": role_id,
+                    "active": _bool(True),
                     "now": now,
-                })
+                }, "user_id")
             conn.commit()
 
 
@@ -209,44 +547,39 @@ def _seed_rules():
         now = time.strftime("%Y-%m-%d %H:%M:%S")
         default_rules = [
             # SQL Injection
-            ("SQL Injection - UNION",       "sql_injection",    r"UNION\s+ALL?\s+SELECT",                       "critical", "block"),
-            ("SQL Injection - OR 1=1",      "sql_injection",    r"'\s+OR\s+['\d]+\s*=\s*['\d]+",               "critical", "block"),
-            ("SQL Injection - Sleep",       "sql_injection",    r"SLEEP\s*\(",                                  "high",     "block"),
-            ("SQL Injection - Exec/CMDSHELL","sql_injection",   r"(EXEC\s+|xp_cmdshell|exec\s*\(|\bWAITFOR\b)", "critical", "block"),
-            ("SQL Injection - Drop/Alter",  "sql_injection",    r"\b(DROP\s+TABLE|ALTER\s+TABLE)\s",            "critical", "block"),
-            
+            ("SQL Injection - UNION",        "sql_injection",    r"UNION\s+ALL?\s+SELECT",                         "critical", "block"),
+            ("SQL Injection - OR 1=1",       "sql_injection",    r"'\s+OR\s+['\d]+\s*=\s*['\d]+",                 "critical", "block"),
+            ("SQL Injection - Sleep",        "sql_injection",    r"SLEEP\s*\(",                                     "high",     "block"),
+            ("SQL Injection - Exec/CMDSHELL","sql_injection",    r"(EXEC\s+|xp_cmdshell|exec\s*\(|\bWAITFOR\b)",  "critical", "block"),
+            ("SQL Injection - Drop/Alter",   "sql_injection",    r"\b(DROP\s+TABLE|ALTER\s+TABLE)\s",              "critical", "block"),
             # XSS
-            ("XSS - Full Script Tag",       "xss",              r"<script[\s>][\s\S]*?</script>",               "high",     "block"),
-            ("XSS - JavaScript Protocol",   "xss",              r"(href|src)=[\"']?\s*javascript:",            "high",     "block"),
-            ("XSS - Event Handler",         "xss",              r"\b(onerror|onload|onclick)\s*=\s*['\"]*[\"'()]", "high", "block"),
-            ("XSS - Cookie Steal",          "xss",              r"document\.cookie",                            "high",     "block"),
-            
+            ("XSS - Full Script Tag",        "xss",              r"<script[\s>][\s\S]*?</script>",                 "high",     "block"),
+            ("XSS - JavaScript Protocol",    "xss",              r"(href|src)=[\"']?\s*javascript:",               "high",     "block"),
+            ("XSS - Event Handler",          "xss",              r"\b(onerror|onload|onclick)\s*=\s*['\"]*[\"'()]","high",     "block"),
+            ("XSS - Cookie Steal",           "xss",              r"document\.cookie",                              "high",     "block"),
             # Command Injection
-            ("Command Injection - Pipe+CMD","command_injection", r"(;|\||`)\s*(cat|rm|wget|curl|nc|bash|sh|python)\s", "critical","block"),
-            ("Command Injection - Subshell","command_injection", r"\$\(.*\)\s*",                                "critical", "block"),
-            
+            ("Command Injection - Pipe+CMD", "command_injection", r"(;|\||`)  \s*(cat|rm|wget|curl|nc|bash|sh|python)\s","critical","block"),
+            ("Command Injection - Subshell", "command_injection", r"\$\(.*\)\s*",                                  "critical", "block"),
             # Path Traversal
-            ("Path Traversal - Dotdot",     "path_traversal",   r"\.\.[/\\]|%2e%2e[/\\%]",                     "high",     "block"),
-            ("Path Traversal - Sensitive",  "path_traversal",   r"(etc/passwd|etc/shadow|windows/system32)",   "critical", "block"),
-            
+            ("Path Traversal - Dotdot",      "path_traversal",   r"\.\.[/\\]|%2e%2e[/\\%]",                       "high",     "block"),
+            ("Path Traversal - Sensitive",   "path_traversal",   r"(etc/passwd|etc/shadow|windows/system32)",      "critical", "block"),
             # Log4Shell
-            ("Log4Shell - JNDI",            "log4shell",        r"\$\{jndi:(ldap|rmi|dns|http)",              "critical", "block"),
-            
+            ("Log4Shell - JNDI",             "log4shell",        r"\$\{jndi:(ldap|rmi|dns|http)",                  "critical", "block"),
             # SSRF
-            ("SSRF - Cloud Metadata",       "ssrf",             r"169\.254\.169\.254",                          "high",     "block"),
-            ("SSRF - Localhost Bypass",     "ssrf",             r"(localhost|127\.0\.0\.1|0\.0\.0\.0|::1)",    "high",     "monitor"),
-            ("SSRF - Internal IP",          "ssrf",             r"(10\.|172\.(1[6-9]|2[0-9]|3[01])\.|192\.168\.)", "medium", "monitor"),
-            
+            ("SSRF - Cloud Metadata",        "ssrf",             r"169\.254\.169\.254",                             "high",     "block"),
+            ("SSRF - Localhost Bypass",      "ssrf",             r"(localhost|127\.0\.0\.1|0\.0\.0\.0|::1)",       "high",     "monitor"),
+            ("SSRF - Internal IP",           "ssrf",             r"(10\.|172\.(1[6-9]|2[0-9]|3[01])\.|192\.168\.)", "medium", "monitor"),
             # CSRF
-            ("CSRF - Missing Origin",       "csrf",             r"^POST|PUT|DELETE|PATCH",                      "medium",   "monitor"),
-            ("CSRF - Suspicious Referer",   "csrf",             r"Referer:\s*(https?://[^/]+)",                "medium",   "monitor"),
-            ("XXE - External Entity",       "xxe",              r"<!ENTITY\s+\w+\s+SYSTEM\s+[\"'](file|http)",  "high",     "block"),
+            ("CSRF - Missing Origin",        "csrf",             r"^POST|PUT|DELETE|PATCH",                         "medium",   "monitor"),
+            ("CSRF - Suspicious Referer",    "csrf",             r"Referer:\s*(https?://[^/]+)",                   "medium",   "monitor"),
+            ("XXE - External Entity",        "xxe",              r"<!ENTITY\s+\w+\s+SYSTEM\s+[\"'](file|http)",    "high",     "block"),
         ]
         for name, rtype, pattern, severity, action in default_rules:
             conn.execute(text("""
                 INSERT INTO rules (name, type, pattern, severity, action, is_active, created_at)
-                VALUES (:name, :type, :pattern, :severity, :action, TRUE, :now)
-            """), {"name": name, "type": rtype, "pattern": pattern, "severity": severity, "action": action, "now": now})
+                VALUES (:name, :type, :pattern, :severity, :action, :active, :now)
+            """), {"name": name, "type": rtype, "pattern": pattern,
+                   "severity": severity, "action": action, "active": _bool(True), "now": now})
         conn.commit()
 
 
@@ -304,21 +637,22 @@ def insert_user(username, password_hash, email=None,
             text("SELECT role_id FROM roles WHERE name = :role"), {"role": role}
         ).mappings().fetchone()
         role_id = role_row["role_id"] if role_row else 2
-        result = conn.execute(text("""
+        new_id = _insert_returning(conn, """
             INSERT INTO users
                 (username, password_hash, email, role_id, department_id, is_active, created_at, updated_at)
-            VALUES (:username, :ph, :email, :role_id, :dept, TRUE, :now, :now)
+            VALUES (:username, :ph, :email, :role_id, :dept, :active, :now, :now)
             RETURNING user_id
-        """), {
+        """, {
             "username": username,
             "ph": password_hash,
             "email": email or f"{username}@example.com",
             "role_id": role_id,
             "dept": department_id,
+            "active": _bool(True),
             "now": now,
-        })
+        }, "user_id")
         conn.commit()
-        return result.scalar()
+        return new_id
 
 
 def update_user(username: str, **kwargs) -> bool:
@@ -369,13 +703,13 @@ def get_all_departments() -> list:
 def create_department(name: str, slug: str, description: str = "") -> int:
     now = time.strftime("%Y-%m-%d %H:%M:%S")
     with _db() as conn:
-        result = conn.execute(text("""
+        new_id = _insert_returning(conn, """
             INSERT INTO departments (name, slug, description, created_at)
             VALUES (:name, :slug, :desc, :now)
             RETURNING department_id
-        """), {"name": name, "slug": slug, "desc": description, "now": now})
+        """, {"name": name, "slug": slug, "desc": description, "now": now}, "department_id")
         conn.commit()
-        return result.scalar()
+        return new_id
 
 
 # ══════════════════════════════════════════════════════════════
@@ -390,63 +724,62 @@ def log_threat(attack_type: str, ip_address: str, endpoint: str,
     _invalidate_caches()
     now = time.strftime("%Y-%m-%d %H:%M:%S")
     with _db() as conn:
-        result = conn.execute(text("""
+        new_id = _insert_returning(conn, """
             INSERT INTO threat_logs
                 (attack_type, ip_address, endpoint, method, payload, severity,
                  description, blocked, ml_detected, confidence, detection_type, created_at)
             VALUES (:at, :ip, :ep, :method, :payload, :sev,
                     :desc, :blocked, :ml, :conf, :dt, :now)
             RETURNING threat_log_id
-        """), {
+        """, {
             "at": attack_type, "ip": ip_address, "ep": endpoint,
             "method": method, "payload": (payload or "")[:500],
             "sev": severity, "desc": description,
-            "blocked": bool(blocked), "ml": bool(ml_detected),
+            "blocked": _bool(blocked), "ml": _bool(ml_detected),
             "conf": round(confidence, 4), "dt": detection_type, "now": now,
-        })
+        }, "threat_log_id")
         conn.commit()
-        return result.scalar()
+        return new_id
 
 
 def log_normal_request(ip_address: str, endpoint: str, method: str = "") -> int | None:
-    """
-    Log a normal/clean request to system_stats and threat_logs.
-    """
+    """Log a normal/clean request to system_stats and threat_logs."""
     _invalidate_caches()
     now = time.strftime("%Y-%m-%d %H:%M:%S")
     try:
         with _db() as conn:
-            # 1. Update system_stats for normal_requests_count
+            # Upsert normal_requests_count
             conn.execute(text("""
                 INSERT INTO system_stats (metric_name, metric_value, updated_at)
                 VALUES ('normal_requests_count', 1, :now)
                 ON CONFLICT (metric_name)
-                DO UPDATE SET metric_value = system_stats.metric_value + 1, updated_at = EXCLUDED.updated_at
+                DO UPDATE SET metric_value = system_stats.metric_value + 1, updated_at = :now
             """), {"now": now})
 
-            # 2. Update total_requests in system_stats
+            # Upsert total_requests
             conn.execute(text("""
                 INSERT INTO system_stats (metric_name, metric_value, updated_at)
                 VALUES ('total_requests', 1, :now)
                 ON CONFLICT (metric_name)
-                DO UPDATE SET metric_value = system_stats.metric_value + 1, updated_at = EXCLUDED.updated_at
+                DO UPDATE SET metric_value = system_stats.metric_value + 1, updated_at = :now
             """), {"now": now})
 
-            # 3. Log to threat_logs
-            result = conn.execute(text("""
+            # Log to threat_logs
+            new_id = _insert_returning(conn, """
                 INSERT INTO threat_logs
                     (attack_type, ip_address, endpoint, method, payload, severity,
                      description, blocked, ml_detected, confidence, detection_type, created_at)
                 VALUES ('Clean', :ip, :ep, :method, '', 'Low',
-                        'Normal Request validated', FALSE, FALSE, 0.0, 'clean', :now)
+                        'Normal Request validated', :blocked, :ml, 0.0, 'clean', :now)
                 RETURNING threat_log_id
-            """), {
-                "ip": ip_address, "ep": endpoint, "method": method, "now": now
-            })
+            """, {
+                "ip": ip_address, "ep": endpoint, "method": method,
+                "blocked": _bool(False), "ml": _bool(False), "now": now,
+            }, "threat_log_id")
             conn.commit()
-            return result.scalar()
+            return new_id
     except Exception as e:
-        logger.error(f"Failed to log normal request: {e}")
+        logger.error("Failed to log normal request: %s", e)
         return None
 
 
@@ -469,7 +802,6 @@ def get_threat_logs(limit: int = 100, attack_type: str = None,
 
 def clear_threat_logs():
     with _db() as conn:
-        # Clear dependent tables first to avoid FK violations
         conn.execute(text("DELETE FROM incident_actions"))
         conn.execute(text("DELETE FROM incident_events"))
         conn.execute(text("DELETE FROM blocked_events"))
@@ -487,7 +819,9 @@ def clear_threat_logs():
 def load_blocked_ips() -> dict:
     now = time.strftime("%Y-%m-%d %H:%M:%S")
     with _db() as conn:
-        conn.execute(text("DELETE FROM blocked_ips WHERE is_permanent = FALSE AND unblock_at <= :now"), {"now": now})
+        conn.execute(text(
+            "DELETE FROM blocked_ips WHERE is_permanent = :perm AND unblock_at <= :now"
+        ), {"perm": _bool(False), "now": now})
         conn.commit()
         rows = conn.execute(text("SELECT ip_address, unblock_at FROM blocked_ips")).mappings().all()
     result = {}
@@ -508,17 +842,17 @@ def save_blocked_ips(blocked: dict):
     now_ts = time.time()
     now_str = time.strftime("%Y-%m-%d %H:%M:%S")
     with _db() as conn:
-        conn.execute(text("DELETE FROM blocked_ips WHERE is_permanent = FALSE"))
+        conn.execute(text("DELETE FROM blocked_ips WHERE is_permanent = :perm"), {"perm": _bool(False)})
         for ip, unblock_ts in blocked.items():
             if unblock_ts > now_ts:
                 unblock_str = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(unblock_ts))
                 conn.execute(text("""
                     INSERT INTO blocked_ips (ip_address, reason, is_permanent, blocked_at, unblock_at)
-                    VALUES (:ip, 'auto-block', FALSE, :now, :unblock)
+                    VALUES (:ip, 'auto-block', :perm, :now, :unblock)
                     ON CONFLICT (ip_address) DO UPDATE SET
-                        reason = EXCLUDED.reason, is_permanent = EXCLUDED.is_permanent,
-                        blocked_at = EXCLUDED.blocked_at, unblock_at = EXCLUDED.unblock_at
-                """), {"ip": ip, "now": now_str, "unblock": unblock_str})
+                        reason = 'auto-block', is_permanent = :perm,
+                        blocked_at = :now, unblock_at = :unblock
+                """), {"ip": ip, "perm": _bool(False), "now": now_str, "unblock": unblock_str})
         conn.commit()
 
 
@@ -534,12 +868,12 @@ def block_ip(ip: str, unblock_at: str = None, reason: str = "auto-block",
             INSERT INTO blocked_ips (ip_address, reason, blocked_by, is_permanent, blocked_at, unblock_at)
             VALUES (:ip, :reason, :by, :perm, :now, :unblock)
             ON CONFLICT (ip_address) DO UPDATE SET
-                reason = EXCLUDED.reason, blocked_by = EXCLUDED.blocked_by,
-                is_permanent = EXCLUDED.is_permanent, blocked_at = EXCLUDED.blocked_at,
-                unblock_at = EXCLUDED.unblock_at
+                reason = :reason, blocked_by = :by,
+                is_permanent = :perm, blocked_at = :now,
+                unblock_at = :unblock
         """), {
             "ip": ip, "reason": reason, "by": blocked_by,
-            "perm": bool(is_permanent), "now": now_str, "unblock": unblock_str,
+            "perm": _bool(is_permanent), "now": now_str, "unblock": unblock_str,
         })
         conn.commit()
 
@@ -565,7 +899,7 @@ def log_blocked_event(ip_address: str, attack_type: str, severity: str,
             VALUES (:tl, :ip, :at, :sev, :ml, :conf, :now)
         """), {
             "tl": threat_log_id, "ip": ip_address, "at": attack_type,
-            "sev": severity, "ml": bool(ml_detected),
+            "sev": severity, "ml": _bool(ml_detected),
             "conf": round(confidence, 4), "now": now,
         })
         conn.commit()
@@ -588,18 +922,18 @@ def create_incident(category: str, source_ip: str, severity: str,
     now = time.strftime("%Y-%m-%d %H:%M:%S")
     code = "INC-" + "".join(random.choices(string.digits, k=6))
     with _db() as conn:
-        result = conn.execute(text("""
+        new_id = _insert_returning(conn, """
             INSERT INTO incidents
                 (incident_code, category, source_ip, detection_type, status, severity,
                  first_seen, last_seen, created_at)
             VALUES (:code, :cat, :ip, :dt, 'open', :sev, :now, :now, :now)
             RETURNING incident_id
-        """), {
+        """, {
             "code": code, "cat": category, "ip": source_ip,
             "dt": detection_type, "sev": severity, "now": now,
-        })
+        }, "incident_id")
         conn.commit()
-        return result.scalar()
+        return new_id
 
 
 def get_incidents(status: str = None, limit: int = 100) -> list:
@@ -652,7 +986,7 @@ def log_login_attempt(user_id: int, ip_address: str,
             INSERT INTO login_attempts (user_id, ip_address, success, failure_reason, attempted_at)
             VALUES (:uid, :ip, :succ, :fr, :now)
         """), {
-            "uid": user_id, "ip": ip_address, "succ": bool(success),
+            "uid": user_id, "ip": ip_address, "succ": _bool(success),
             "fr": failure_reason, "now": now,
         })
         conn.commit()
@@ -679,24 +1013,24 @@ def create_session(user_id: int, jwt_hash: str, ip_address: str,
                    user_agent: str, expires_at: str) -> int:
     now = time.strftime("%Y-%m-%d %H:%M:%S")
     with _db() as conn:
-        result = conn.execute(text("""
+        new_id = _insert_returning(conn, """
             INSERT INTO user_sessions
                 (user_id, jwt_token_hash, ip_address, user_agent, is_active, expires_at, created_at)
-            VALUES (:uid, :jti, :ip, :ua, TRUE, :exp, :now)
+            VALUES (:uid, :jti, :ip, :ua, :active, :exp, :now)
             RETURNING session_id
-        """), {
+        """, {
             "uid": user_id, "jti": jwt_hash, "ip": ip_address,
-            "ua": user_agent, "exp": expires_at, "now": now,
-        })
+            "ua": user_agent, "active": _bool(True), "exp": expires_at, "now": now,
+        }, "session_id")
         conn.commit()
-        return result.scalar()
+        return new_id
 
 
 def invalidate_session(jwt_hash: str):
     with _db() as conn:
         conn.execute(text(
-            "UPDATE user_sessions SET is_active = FALSE WHERE jwt_token_hash = :jti"
-        ), {"jti": jwt_hash})
+            "UPDATE user_sessions SET is_active = :inactive WHERE jwt_token_hash = :jti"
+        ), {"inactive": _bool(False), "jti": jwt_hash})
         conn.commit()
 
 
@@ -721,10 +1055,10 @@ def create_notification(user_id: int, message: str,
     with _db() as conn:
         conn.execute(text("""
             INSERT INTO notifications (user_id, threat_log_id, type, message, is_read, created_at)
-            VALUES (:uid, :tl, :nt, :msg, FALSE, :now)
+            VALUES (:uid, :tl, :nt, :msg, :unread, :now)
         """), {
             "uid": user_id, "tl": threat_log_id, "nt": notif_type,
-            "msg": message, "now": now,
+            "msg": message, "unread": _bool(False), "now": now,
         })
         conn.commit()
 
@@ -733,7 +1067,8 @@ def get_notifications(user_id: int, unread_only: bool = False) -> list:
     sql = "SELECT * FROM notifications WHERE user_id = :uid"
     params = {"uid": user_id}
     if unread_only:
-        sql += " AND is_read = FALSE"
+        sql += " AND is_read = :unread"
+        params["unread"] = _bool(False)
     sql += " ORDER BY notification_id DESC"
     with _db() as conn:
         rows = conn.execute(text(sql), params).mappings().all()
@@ -743,8 +1078,8 @@ def get_notifications(user_id: int, unread_only: bool = False) -> list:
 def mark_notification_read(notification_id: int):
     with _db() as conn:
         conn.execute(text(
-            "UPDATE notifications SET is_read = TRUE WHERE notification_id = :id"
-        ), {"id": notification_id})
+            "UPDATE notifications SET is_read = :read WHERE notification_id = :id"
+        ), {"read": _bool(True), "id": notification_id})
         conn.commit()
 
 
@@ -807,9 +1142,9 @@ def log_ml_detection(text_snippet: str, risk_score: float,
 def get_ml_detections(limit: int = 100) -> list:
     with _db() as conn:
         rows = conn.execute(text("""
-            SELECT * FROM threat_logs WHERE ml_detected = TRUE
+            SELECT * FROM threat_logs WHERE ml_detected = :ml
             ORDER BY threat_log_id DESC LIMIT :lim
-        """), {"lim": limit}).mappings().all()
+        """), {"ml": _bool(True), "lim": limit}).mappings().all()
         return _sanitize_list(rows)
 
 
@@ -839,13 +1174,13 @@ def log_ml_model_run(model_version: str, algorithm: str,
 def create_chatbot_session(user_id: int, page_context: str = "") -> int:
     now = time.strftime("%Y-%m-%d %H:%M:%S")
     with _db() as conn:
-        result = conn.execute(text("""
+        new_id = _insert_returning(conn, """
             INSERT INTO chatbot_sessions (user_id, page_context, started_at)
             VALUES (:uid, :pc, :now)
             RETURNING chatbot_session_id
-        """), {"uid": user_id, "pc": page_context, "now": now})
+        """, {"uid": user_id, "pc": page_context, "now": now}, "chatbot_session_id")
         conn.commit()
-        return result.scalar()
+        return new_id
 
 
 def save_chatbot_message(session_id: int, role: str, content: str,
@@ -878,10 +1213,11 @@ def get_chatbot_history(session_id: int) -> list:
 def get_rules(active_only: bool = True) -> list:
     sql = "SELECT * FROM rules"
     if active_only:
-        sql += " WHERE is_active = TRUE"
+        sql += " WHERE is_active = :active"
     sql += " ORDER BY rule_id"
+    params = {"active": _bool(True)} if active_only else {}
     with _db() as conn:
-        rows = conn.execute(text(sql)).mappings().all()
+        rows = conn.execute(text(sql), params).mappings().all()
         return _sanitize_list(rows)
 
 
@@ -904,14 +1240,15 @@ def get_orders(user_filter=None) -> list:
 def create_order(user, product, price) -> dict:
     now = time.strftime("%Y-%m-%d %H:%M:%S")
     with _db() as conn:
-        result = conn.execute(text("""
+        new_id = _insert_returning(conn, """
             INSERT INTO orders (username, product, price, created_at)
             VALUES (:user, :product, :price, :now)
-            RETURNING *
-        """), {"user": user, "product": product, "price": price, "now": now})
+            RETURNING order_id
+        """, {"user": user, "product": product, "price": price, "now": now}, "order_id")
         conn.commit()
-        row = result.mappings().fetchone()
-        return _sanitize(dict(row)) if row else {}
+        # Return a minimal dict matching what callers expect
+        return {"order_id": new_id, "username": user, "product": product,
+                "price": price, "created_at": now}
 
 
 def get_products(category=None, search=None) -> list:
@@ -940,10 +1277,12 @@ _stats_cache = None
 _stats_cache_time = 0
 _stats_cache_ttl = 10
 
+
 def _invalidate_caches():
     global _stats_cache, _stats_cache_time
     _stats_cache = None
     _stats_cache_time = 0
+
 
 def load_stats() -> dict:
     global _stats_cache, _stats_cache_time
@@ -951,35 +1290,37 @@ def load_stats() -> dict:
     if _stats_cache and (now - _stats_cache_time) < _stats_cache_ttl:
         return _stats_cache
     with _db() as conn:
-        # 1. Fetch values from system_stats
+        # Fetch values from system_stats
         sys_rows = conn.execute(text("SELECT metric_name, metric_value FROM system_stats")).fetchall()
         sys_stats = {r[0]: r[1] for r in sys_rows} if sys_rows else {}
 
-        # 2. Exclude 'Clean' and 'Normal' when querying threat metrics from threat_logs
-        row = conn.execute(text("""
+        # Use LIKE instead of ILIKE for SQLite compatibility
+        # (SQLite LIKE is case-insensitive for ASCII)
+        like = _like("attack_type")
+        row = conn.execute(text(f"""
             SELECT
                 COUNT(*) AS total_threats,
-                SUM(CASE WHEN blocked = TRUE THEN 1 ELSE 0 END) AS blocked,
-                SUM(CASE WHEN ml_detected = TRUE OR detection_type ILIKE 'ml%' OR attack_type = 'ML Detection' THEN 1 ELSE 0 END) AS ml,
-                SUM(CASE WHEN attack_type ILIKE '%sql%' THEN 1 ELSE 0 END) AS sqli,
-                SUM(CASE WHEN attack_type ILIKE '%xss%' THEN 1 ELSE 0 END) AS xss,
-                SUM(CASE WHEN attack_type ILIKE '%brute%' OR attack_type ILIKE '%auth%' THEN 1 ELSE 0 END) AS brute,
-                SUM(CASE WHEN attack_type ILIKE '%scanner%' OR attack_type ILIKE '%recon%' OR attack_type = 'Scanner' THEN 1 ELSE 0 END) AS scanner,
-                SUM(CASE WHEN attack_type ILIKE '%rate%' OR attack_type ILIKE '%limit%' OR attack_type = 'Rate Limit Exceeded' THEN 1 ELSE 0 END) AS rate_limit,
-                SUM(CASE WHEN attack_type ILIKE '%csrf%' OR attack_type ILIKE '%cross%site%request%' OR attack_type = 'CSRF' THEN 1 ELSE 0 END) AS csrf,
-                SUM(CASE WHEN attack_type ILIKE '%ssrf%' OR attack_type ILIKE '%server%side%' OR attack_type = 'SSRF' THEN 1 ELSE 0 END) AS ssrf,
-                SUM(CASE WHEN attack_type ILIKE '%command%' OR attack_type ILIKE '%cmd%' OR attack_type ILIKE '%injection%' AND attack_type NOT ILIKE '%sql%' THEN 1 ELSE 0 END) AS cmd_injection,
-                SUM(CASE WHEN attack_type ILIKE '%path%' OR attack_type ILIKE '%traversal%' THEN 1 ELSE 0 END) AS path_traversal,
-                SUM(CASE WHEN attack_type ILIKE '%xxe%' THEN 1 ELSE 0 END) AS xxe,
-                SUM(CASE WHEN attack_type ILIKE '%ssti%' THEN 1 ELSE 0 END) AS ssti,
-                SUM(CASE WHEN attack_type ILIKE '%log4shell%' OR attack_type ILIKE '%jndi%' THEN 1 ELSE 0 END) AS log4shell,
+                SUM(CASE WHEN blocked = :btrue THEN 1 ELSE 0 END) AS blocked,
+                SUM(CASE WHEN ml_detected = :btrue OR detection_type {like} 'ml%' OR attack_type = 'ML Detection' THEN 1 ELSE 0 END) AS ml,
+                SUM(CASE WHEN attack_type {like} '%sql%' THEN 1 ELSE 0 END) AS sqli,
+                SUM(CASE WHEN attack_type {like} '%xss%' THEN 1 ELSE 0 END) AS xss,
+                SUM(CASE WHEN attack_type {like} '%brute%' OR attack_type {like} '%auth%' THEN 1 ELSE 0 END) AS brute,
+                SUM(CASE WHEN attack_type {like} '%scanner%' OR attack_type {like} '%recon%' OR attack_type = 'Scanner' THEN 1 ELSE 0 END) AS scanner,
+                SUM(CASE WHEN attack_type {like} '%rate%' OR attack_type {like} '%limit%' OR attack_type = 'Rate Limit Exceeded' THEN 1 ELSE 0 END) AS rate_limit,
+                SUM(CASE WHEN attack_type {like} '%csrf%' OR attack_type {like} '%cross%site%request%' OR attack_type = 'CSRF' THEN 1 ELSE 0 END) AS csrf,
+                SUM(CASE WHEN attack_type {like} '%ssrf%' OR attack_type {like} '%server%side%' OR attack_type = 'SSRF' THEN 1 ELSE 0 END) AS ssrf,
+                SUM(CASE WHEN attack_type {like} '%command%' OR attack_type {like} '%cmd%' OR (attack_type {like} '%injection%' AND attack_type NOT {like} '%sql%') THEN 1 ELSE 0 END) AS cmd_injection,
+                SUM(CASE WHEN attack_type {like} '%path%' OR attack_type {like} '%traversal%' THEN 1 ELSE 0 END) AS path_traversal,
+                SUM(CASE WHEN attack_type {like} '%xxe%' THEN 1 ELSE 0 END) AS xxe,
+                SUM(CASE WHEN attack_type {like} '%ssti%' THEN 1 ELSE 0 END) AS ssti,
+                SUM(CASE WHEN attack_type {like} '%log4shell%' OR attack_type {like} '%jndi%' THEN 1 ELSE 0 END) AS log4shell,
                 SUM(CASE WHEN UPPER(severity) = 'CRITICAL' THEN 1 ELSE 0 END) AS critical_count,
                 SUM(CASE WHEN UPPER(severity) = 'HIGH' THEN 1 ELSE 0 END) AS high_count,
                 SUM(CASE WHEN UPPER(severity) = 'MEDIUM' THEN 1 ELSE 0 END) AS medium_count,
                 SUM(CASE WHEN UPPER(severity) = 'LOW' THEN 1 ELSE 0 END) AS low_count
             FROM threat_logs
             WHERE attack_type != 'Clean' AND attack_type != 'Normal'
-        """)).fetchone()
+        """), {"btrue": _bool(True)}).fetchone()
 
     total_reqs = sys_stats.get("total_requests")
     if total_reqs is None:
@@ -1029,15 +1370,13 @@ def save_stats(stats_data=None, *args, **kwargs):
     if isinstance(stats_data, dict):
         metrics = stats_data
     elif len(args) >= 1 or (stats_data is not None and not isinstance(stats_data, dict)):
-        # Handle save_stats(total, blocked)
         total = stats_data
         blocked = args[0] if args else kwargs.get("blocked", 0)
         metrics = {
             "total_requests": total,
-            "blocked_requests": blocked
+            "blocked_requests": blocked,
         }
-    
-    # Add any keyword arguments
+
     for k, v in kwargs.items():
         if isinstance(v, (int, float)):
             metrics[k] = v
@@ -1051,8 +1390,8 @@ def save_stats(stats_data=None, *args, **kwargs):
             conn.execute(text("""
                 INSERT INTO system_stats (metric_name, metric_value, updated_at)
                 VALUES (:name, :val, :now)
-                ON CONFLICT (metric_name) 
-                DO UPDATE SET metric_value = EXCLUDED.metric_value, updated_at = EXCLUDED.updated_at
+                ON CONFLICT (metric_name)
+                DO UPDATE SET metric_value = :val, updated_at = :now
             """), {"name": name, "val": int(value), "now": now})
         conn.commit()
 
@@ -1118,16 +1457,16 @@ def create_password_reset(user_id: int, otp_hash: str, otp_expiry: str):
         conn.execute(text("DELETE FROM password_resets WHERE user_id = :uid"), {"uid": user_id})
         conn.execute(text("""
             INSERT INTO password_resets (user_id, otp, otp_expiry, used, otp_attempts)
-            VALUES (:uid, :otp, :exp, FALSE, 0)
-        """), {"uid": user_id, "otp": otp_hash, "exp": otp_expiry})
+            VALUES (:uid, :otp, :exp, :unused, 0)
+        """), {"uid": user_id, "otp": otp_hash, "exp": otp_expiry, "unused": _bool(False)})
         conn.commit()
 
 
 def get_active_password_reset(user_id: int) -> dict | None:
     with _db() as conn:
         row = conn.execute(text("""
-            SELECT * FROM password_resets WHERE user_id = :uid AND used = FALSE LIMIT 1
-        """), {"uid": user_id}).mappings().fetchone()
+            SELECT * FROM password_resets WHERE user_id = :uid AND used = :unused LIMIT 1
+        """), {"uid": user_id, "unused": _bool(False)}).mappings().fetchone()
         return _sanitize(dict(row)) if row else None
 
 
@@ -1135,8 +1474,8 @@ def increment_otp_attempts(user_id: int):
     with _db() as conn:
         conn.execute(text("""
             UPDATE password_resets SET otp_attempts = COALESCE(otp_attempts, 0) + 1
-            WHERE user_id = :uid AND used = FALSE
-        """), {"uid": user_id})
+            WHERE user_id = :uid AND used = :unused
+        """), {"uid": user_id, "unused": _bool(False)})
         conn.commit()
 
 
@@ -1144,15 +1483,15 @@ def reset_otp_attempts(user_id: int):
     with _db() as conn:
         conn.execute(text("""
             UPDATE password_resets SET otp_attempts = 0
-            WHERE user_id = :uid AND used = FALSE
-        """), {"uid": user_id})
+            WHERE user_id = :uid AND used = :unused
+        """), {"uid": user_id, "unused": _bool(False)})
         conn.commit()
 
 
 def mark_password_reset_used(user_id: int):
     with _db() as conn:
         conn.execute(text("""
-            UPDATE password_resets SET used = TRUE, otp_attempts = 0
+            UPDATE password_resets SET used = :used, otp_attempts = 0
             WHERE user_id = :uid
-        """), {"uid": user_id})
+        """), {"uid": user_id, "used": _bool(True)})
         conn.commit()

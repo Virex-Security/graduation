@@ -1,29 +1,37 @@
 """
-Virex Security System — Supabase Setup Script
+Virex Security System — Database Setup Script
 ==============================================
-Run this once before starting the app for the first time.
-Seeds initial data (roles, default admin, WAF rules) into Supabase.
-
-Tables must be created in Supabase dashboard first.
-See: https://supabase.com/dashboard/project/_/editor
+Idempotent: safe to run multiple times.
+Supports both SQLite (development) and PostgreSQL (production).
 
 Usage:
     python setup_db.py
 """
 import os
+import sys
 from dotenv import load_dotenv
 
 load_dotenv()
 
 print("=" * 50)
-print("  Virex DB Setup — Supabase")
+print("  Virex DB Setup")
 print("=" * 50)
-print(f"\n  Supabase URL: {os.getenv('SUPABASE_URL', 'NOT SET')}\n")
 
-if not os.getenv("SUPABASE_URL") or not os.getenv("SUPABASE_KEY"):
-    print("  ERROR: SUPABASE_URL and SUPABASE_KEY must be set in .env")
-    print("  Copy .env.example to .env and fill in your Supabase credentials.")
-    exit(1)
+db_url = os.getenv("DATABASE_URL", "")
+
+if not db_url:
+    print("\n  ERROR: DATABASE_URL not set in .env")
+    print("  For local development set:")
+    print("    DATABASE_URL=sqlite:///data/virex.db")
+    print("  For production set a PostgreSQL URL.")
+    sys.exit(1)
+
+dialect = "SQLite" if db_url.startswith("sqlite") else "PostgreSQL"
+print(f"\n  Backend : {dialect}")
+
+# Show safe portion of URL (no passwords)
+safe = db_url.split("@")[-1] if "@" in db_url else db_url
+print(f"  URL     : {safe}\n")
 
 from app.database import init_db
 

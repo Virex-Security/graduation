@@ -3,7 +3,8 @@ import psutil
 import os
 import random
 
-os.environ['DATABASE_URL'] = 'sqlite:///data/virex.db'
+if not os.environ.get('DATABASE_URL'):
+    os.environ['DATABASE_URL'] = 'sqlite:///data/virex.db'
 
 from app.ml.inference import ml_analyze, _ensure_ml_ready
 

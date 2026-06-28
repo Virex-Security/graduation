@@ -1,0 +1,12 @@
+{
+  "brute_force": 0.1,
+  "command_injection": 0.1862,
+  "log4shell": 0.1,
+  "normal": 0.2628,
+  "path_traversal": 0.1185,
+  "sql_injection": 0.1032,
+  "ssrf": 0.1,
+  "ssti": 0.1,
+  "xss": 0.1,
+  "xxe": 0.1
+}

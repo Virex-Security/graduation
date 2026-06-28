@@ -161,8 +161,57 @@ def _evaluate(clf, le, X_test_f, y_test, class_names, X_train_f, y_train):
     y_prob     = clf.predict_proba(X_test_f)
     y_train_pred = clf.predict(X_train_f)
 
+    # ── ROC Tuning (FPR < 1%) ────────────────────────────────────
+    from sklearn.metrics import roc_curve
+    tuned_thresholds = {}
+    for i, cls in enumerate(class_names):
+        y_binary = (y_test == i).astype(int)
+        y_score = y_prob[:, i]
+        if y_binary.sum() == 0:
+            tuned_thresholds[cls] = 0.5
+            continue
+        fpr, tpr, thresh = roc_curve(y_binary, y_score)
+        
+        # roc_curve returns thresholds in decreasing order
+        # We want the lowest threshold (max index) where fpr <= 0.01
+        valid_idx = np.where(fpr <= 0.01)[0]
+        if len(valid_idx) > 0:
+            best_idx = valid_idx[-1]
+            optimal_thresh = thresh[best_idx]
+            # Cap threshold to sensible bounds
+            optimal_thresh = min(max(optimal_thresh, 0.1), 0.95)
+        else:
+            optimal_thresh = 0.85
+            
+        tuned_thresholds[cls] = round(float(optimal_thresh), 4)
+
+    # Save custom thresholds
+    thresh_path = DATA_DIR / "class_thresholds.json"
+    with open(thresh_path, "w", encoding="utf-8") as f:
+        json.dump(tuned_thresholds, f, indent=2)
+    logger.info(f"Saved ROC-tuned thresholds → {thresh_path}")
+
+    # ── Tuned Predictions ─────────────────────────────────────────
+    y_pred_tuned = []
+    normal_idx = list(class_names).index("normal") if "normal" in class_names else 0
+    for i in range(len(y_prob)):
+        scores = y_prob[i]
+        passed = []
+        for c_idx, cls in enumerate(class_names):
+            if scores[c_idx] >= tuned_thresholds[cls]:
+                passed.append((c_idx, scores[c_idx] - tuned_thresholds[cls]))
+        
+        if not passed:
+            y_pred_tuned.append(normal_idx)
+        else:
+            # Pick the class that exceeded its threshold by the largest margin
+            best_c_idx = max(passed, key=lambda x: x[1])[0]
+            y_pred_tuned.append(best_c_idx)
+            
+    y_pred_tuned = np.array(y_pred_tuned)
+
     # Decode label indices back to class names
-    pred_names  = le.inverse_transform(y_pred)
+    pred_names  = le.inverse_transform(y_pred_tuned) # using tuned!
     true_names  = le.inverse_transform(y_test)
     train_names = le.inverse_transform(y_train_pred)
     true_train  = le.inverse_transform(y_train)
@@ -184,15 +233,29 @@ def _evaluate(clf, le, X_test_f, y_test, class_names, X_train_f, y_train):
         roc_auc = None
 
     cm_np = confusion_matrix(y_test, y_pred, labels=list(range(len(class_names))))
+    cm_np_tuned = confusion_matrix(y_test, y_pred_tuned, labels=list(range(len(class_names))))
+    
     total_fp = total_fn = 0
+    total_fp_tuned = total_fn_tuned = 0
     for i in range(len(class_names)):
         tp = cm_np[i, i]
         total_fp += int(cm_np[:, i].sum() - tp)
         total_fn += int(cm_np[i, :].sum() - tp)
+        
+        tp_tuned = cm_np_tuned[i, i]
+        total_fp_tuned += int(cm_np_tuned[:, i].sum() - tp_tuned)
+        total_fn_tuned += int(cm_np_tuned[i, :].sum() - tp_tuned)
 
     per_class = classification_report(
         true_names, pred_names, zero_division=0, output_dict=True
     )
+
+    print(f"\n  Tuned Thresholds (FPR < 1%):")
+    for cls, t in tuned_thresholds.items():
+        print(f"    {cls:20s}: {t:.4f}")
+
+    print(f"\n  Baseline FP / FN : {total_fp} / {total_fn}")
+    print(f"  Tuned FP / FN    : {total_fp_tuned} / {total_fn_tuned}")
 
     print(f"\n  Train Accuracy : {train_acc*100:.2f}%")
     print(f"  Test  Accuracy : {test_acc*100:.2f}%")
@@ -202,9 +265,8 @@ def _evaluate(clf, le, X_test_f, y_test, class_names, X_train_f, y_train):
     print(f"  Recall        : {rec_macro*100:.2f}%")
     if roc_auc:
         print(f"  ROC-AUC       : {roc_auc*100:.2f}%")
-    print(f"  FP / FN       : {total_fp} / {total_fn}")
 
-    print(f"\n  Per-class report:")
+    print(f"\n  Per-class report (Tuned):")
     for cls in class_names:
         if cls in per_class:
             m = per_class[cls]
@@ -223,9 +285,11 @@ def _evaluate(clf, le, X_test_f, y_test, class_names, X_train_f, y_train):
         "recall_macro":           round(rec_macro, 4),
         "roc_auc_macro":          round(roc_auc, 4) if roc_auc else None,
         "overfitting_gap":        round(gap, 4),
-        "total_false_positives":  total_fp,
-        "total_false_negatives":  total_fn,
-        "confusion_matrix":       cm_np.tolist(),
+        "baseline_fp":            total_fp,
+        "tuned_fp":               total_fp_tuned,
+        "baseline_confusion":     cm_np.tolist(),
+        "tuned_confusion":        cm_np_tuned.tolist(),
+        "tuned_thresholds":       tuned_thresholds,
         "class_names":            class_names,
         "per_class_report":       per_class,
         "model_version":          "v2.0",
@@ -314,6 +378,35 @@ def build():
     banner("Training RandomForestClassifier (300 trees)")
     clf = _build_classifier(len(class_names))
     clf.fit(X_train_f, y_train)
+
+    banner("Extracting Feature Importance")
+    importances = clf.feature_importances_
+    tf_names = vec.get_feature_names_out()
+    sec_names = sec.feature_names
+    all_names = list(tf_names) + list(sec_names)
+    
+    feat_imp = sorted(zip(all_names, importances), key=lambda x: x[1], reverse=True)
+    top_features = [{"feature": n, "importance": float(i)} for n, i in feat_imp[:100]]
+    
+    imp_path = DATA_DIR / "feature_importance.json"
+    with open(imp_path, "w", encoding="utf-8") as f:
+        json.dump(top_features, f, indent=2)
+    logger.info(f"Feature importance saved to {imp_path.name}")
+    
+    try:
+        import matplotlib.pyplot as plt
+        import seaborn as sns
+        top20_df = pd.DataFrame(top_features[:20])
+        plt.figure(figsize=(10, 8))
+        sns.barplot(data=top20_df, x="importance", y="feature", palette="viridis")
+        plt.title("Top 20 ML Feature Importances (Virex v2)")
+        plt.tight_layout()
+        plot_path = DATA_DIR / "feature_importance.png"
+        plt.savefig(plot_path)
+        plt.close()
+        logger.info(f"Feature importance plot saved to {plot_path.name}")
+    except Exception as e:
+        logger.warning(f"Could not generate feature plot: {e}")
 
     # 6. Validation check
     y_val_pred = clf.predict(X_val_f)

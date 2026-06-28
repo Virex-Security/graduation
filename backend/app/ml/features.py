@@ -20,12 +20,9 @@ class SecurityFeatureExtractor(BaseEstimator, TransformerMixin):
 
     # ── SQL ───────────────────────────────────────────────────────
     _SQL_KEYWORDS = re.compile(
-        r"\b(select|insert|update|delete|drop|union|exec|execute|"
-        r"sleep|benchmark|waitfor|having|group\s+by|order\s+by|"
-        r"information_schema|sysobjects|syscolumns|xp_cmdshell|"
-        r"load_file|into\s+outfile|pg_sleep|convert|cast|"
-        r"char|ascii|hex|substring|mid|concat|group_concat|"
-        r"extractvalue|updatexml|floor|rand|exp)\b",
+        r"\b(union\s+select|insert\s+into|update\s+\w+\s+set|delete\s+from|"
+        r"drop\s+table|exec\s+xp_|xp_cmdshell|information_schema|sysobjects|syscolumns|"
+        r"load_file|into\s+outfile|pg_sleep|waitfor\s+delay|extractvalue|updatexml)\b",
         re.I,
     )
     _UNION_SEL   = re.compile(r"union\s+(all\s+)?select", re.I)

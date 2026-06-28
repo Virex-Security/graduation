@@ -49,12 +49,10 @@ def test_model():
     correct = 0
     total = len(test_cases)
     
-    for text, expected_type in test_cases:
-        result = ml_analyze(text)
-        
-        # Check if detection is correct
+    for sample, expected_type in test_cases:
+        decision = ml_analyze(sample, async_feedback=False, debug=True)
         is_attack = expected_type != "Normal"
-        detected_attack = result.action in ["monitor", "block"]
+        detected_attack = decision.action in ["monitor", "block"]
         
         if is_attack == detected_attack:
             status = "✅"
@@ -62,8 +60,11 @@ def test_model():
         else:
             status = "❌"
         
-        print(f"{status} {expected_type:20s} | Risk: {result.risk_score:.2f} | Action: {result.action:8s} | Type: {result.attack_type}")
-        print(f"   Input: {text[:60]}")
+        print(f"\n{status} {expected_type.title():<20} | Risk: {decision.risk_score:.2f} | Action: {decision.action:<8} | Type: {decision.attack_type}")
+        print(f"   Input: {sample}")
+        if decision.explanation:
+            print(f"   Expl:  {decision.explanation}")
+            print(f"   Feats: {', '.join([f['feature'] for f in decision.top_features])}")
         print()
     
     accuracy = (correct / total) * 100

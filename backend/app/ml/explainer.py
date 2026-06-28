@@ -19,22 +19,6 @@ class PredictionExplainer:
     الحاجة لـ SHAP على الـ ensemble الكامل (بطيء).
     """
 
-    # feature names بنفس ترتيب SecurityFeatureExtractor
-    FEATURE_NAMES = [
-        "length", "length_norm",
-        "entropy", "entropy_norm",
-        "special_char_ratio",
-        "sql_keyword_count", "has_union_select", "sql_comment_count",
-        "html_tag_count", "js_event_count",
-        "shell_meta_count", "shell_cmd_count",
-        "has_path_traversal", "dotdot_slash_count", "dotdot_back_count",
-        "url_enc_count", "url_enc_ratio", "has_html_entities",
-        "has_jndi", "has_ssrf_host", "has_xxe", "has_ssti",
-        "ampersand_count", "question_mark_count", "equals_count",
-        "single_quote_imbalance", "double_quote_imbalance",
-        "max_nesting_depth", "has_null_byte",
-    ]
-
     # وصف بالعربي/الإنجليزي لكل feature
     FEATURE_DESCRIPTIONS = {
         "sql_keyword_count":      "SQL keywords (SELECT, UNION, DROP…)",
@@ -91,7 +75,7 @@ class PredictionExplainer:
 
         # pick top contributing features
         top_features = []
-        for name, val in zip(self.FEATURE_NAMES, feat_vec):
+        for name, val in zip(extractor.feature_names, feat_vec):
             if val <= 0:
                 continue
             desc = self.FEATURE_DESCRIPTIONS.get(name, name.replace("_", " "))

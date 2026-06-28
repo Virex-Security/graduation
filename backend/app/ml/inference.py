@@ -20,7 +20,6 @@ from pathlib import Path
 from collections import OrderedDict
 from concurrent.futures import ThreadPoolExecutor
 from dotenv import load_dotenv
-import onnxruntime as ort
 import redis
 
 load_dotenv()
@@ -57,7 +56,7 @@ LOG_PREDICTIONS   = os.getenv("ML_LOG_PREDICTIONS", "false").lower() == "true"
 # Includes SQLi symbols: -- /* */
 # Includes keywords: select, union, insert, update, delete, drop, exec, xp_, script, javascript:, onerror, onload
 _FAST_SUSPICIOUS_REGEX = re.compile(
-    r"['\"<>;|\${}()]|--|/\*|\*/|\.\./|\.\.\\|\b(?:select|union|insert|update|delete|drop|exec|xp_|script|javascript:|onerror|onload|or|and|having|where|sleep|benchmark|waitfor)\b",
+    r"['\"<>;|\${}()]|--|/\*|\*/|\.\./|\.\.\\|\b(?:union\s+select|insert\s+into|update\s+\w+\s+set|delete\s+from|drop\s+table|exec|xp_|script|javascript:|onerror=|onload=|sleep\s*\(|benchmark\s*\(|waitfor)\b",
     re.IGNORECASE
 )
 
@@ -289,6 +288,7 @@ def _try_load_onnx():
     global _onnx_session, _vectorizer, MODEL_LOADED, _using_v2, _model_version
     if RF_ONNX_PATH.exists() and VECTORIZER_PATH.exists():
         try:
+            import onnxruntime as ort
             with _model_lock:
                 _onnx_session = ort.InferenceSession(str(RF_ONNX_PATH), providers=["CPUExecutionProvider"])
                 _vectorizer = joblib.load(str(VECTORIZER_PATH))
@@ -531,17 +531,54 @@ def _auto_retrain_loop():
         _cache.clear()
 
 
+_class_thresholds = {}
+
+def _load_thresholds():
+    global _class_thresholds
+    thresh_path = DATA_DIR / "class_thresholds.json"
+    if thresh_path.exists():
+        try:
+            with open(thresh_path, "r", encoding="utf-8") as f:
+                _class_thresholds = json.load(f)
+        except Exception as e:
+            logger.error(f"[ML] Failed to load thresholds: {e}")
+
 def _compute_v2(text):
     from scipy.sparse import hstack
+    if not _class_thresholds:
+        _load_thresholds()
+        
     with _model_lock:
         Xf    = hstack([_vectorizer.transform([text]), _sec_feat.transform([text])])
         proba = _model.predict_proba(Xf)[0]
-        pred_idx = int(np.argmax(proba))
-    classes      = list(_label_enc.classes_)
+        
+    classes = list(_label_enc.classes_)
+    
+    passed = []
+    for c_idx, cls in enumerate(classes):
+        if cls == "normal": continue
+        thresh = _class_thresholds.get(cls, 0.85)
+        if proba[c_idx] >= thresh:
+            passed.append((c_idx, proba[c_idx] - thresh))
+            
+    if not passed:
+        try:
+            pred_idx = classes.index("normal")
+        except ValueError:
+            pred_idx = int(np.argmax(proba))
+    else:
+        # Pick the attack class that passed its threshold by the largest margin
+        pred_idx = max(passed, key=lambda x: x[1])[0]
+        
     attack_type  = classes[pred_idx]
     confidence   = float(proba[pred_idx])
-    normal_idx   = classes.index("normal") if "normal" in classes else -1
-    risk_score   = 1.0 - float(proba[normal_idx]) if normal_idx >= 0 else confidence
+    
+    try:
+        normal_idx = classes.index("normal")
+        risk_score = 1.0 - float(proba[normal_idx])
+    except ValueError:
+        risk_score = confidence
+
     class_probs  = {cls: round(float(p), 4) for cls, p in zip(classes, proba)}
     return risk_score, attack_type, confidence, class_probs
 
@@ -640,13 +677,12 @@ def _classify_v1(text):
     # XSS
     if re.search(
         r"(<script|javascript:|onerror=|onload=|onclick=|onmouseover="
-        r"|<iframe|<svg|<img.{0,30}onerror|alert\s*\(|con
-nner"
+        r"|<iframe|<svg|<img.{0,30}onerror|alert\s*\(|confirm\s*\()",
+        t,
+    ):
+        return "xss"
 
     return "normal"
-
-
-    return risk, attack_type, risk, {attack_type: risk}
 
 
 def _classify_v1(text):
@@ -691,12 +727,14 @@ class MLDecision:
     __slots__ = (
         "risk_score", "action", "attack_type", "attack_class_id",
         "confidence", "severity", "class_probabilities", "from_cache", "model_version",
+        "explanation", "top_features"
     )
 
     def __init__(
         self, risk_score, action, attack_type, attack_class_id=0,
         confidence=0.0, severity="none", class_probabilities=None,
         from_cache=False, model_version="v1.0",
+        explanation=None, top_features=None
     ):
         self.risk_score          = risk_score
         self.action              = action
@@ -707,6 +745,8 @@ class MLDecision:
         self.class_probabilities = class_probabilities or {}
         self.from_cache          = from_cache
         self.model_version       = model_version
+        self.explanation         = explanation
+        self.top_features        = top_features or []
 
     @property
     def should_block(self):   return self.action == "block"
@@ -725,6 +765,10 @@ class MLDecision:
             "from_cache":          self.from_cache,
             "model_version":       self.model_version,
         }
+        if self.explanation:
+            d["explanation"] = self.explanation
+            d["top_features"] = self.top_features
+        return d
 
 
 def clean_text(text_str):
@@ -738,7 +782,7 @@ def clean_text(text_str):
     return re.sub(r'[/?=&\[\]\-\._@\+:]', '', str(text_str)).strip()
 
 # ── ml_analyze (unchanged) ────────────────────────────────────
-def ml_analyze(text, async_feedback=True):
+def ml_analyze(text, async_feedback=True, debug=False):
     _ensure_ml_ready()
     if not MODEL_LOADED:
         return MLDecision(0.0, "allow", "unknown", severity="none")
@@ -763,19 +807,35 @@ def ml_analyze(text, async_feedback=True):
 
     cached = _cache.get(text_str)
     if cached is not None:
+        explanation = None
+        top_features = None
+        if debug:
+            from app.ml.explainer import get_explainer
+            exp = get_explainer().explain(text_str, cached["attack_type"], cached["risk_score"])
+            explanation = exp.get("explanation")
+            top_features = exp.get("top_features", [])
+            
         return MLDecision(
             cached["risk_score"], cached["action"], cached["attack_type"],
             cached.get("attack_class_id", 0), cached.get("confidence", 0.0),
             cached.get("severity", "none"), cached.get("class_probabilities", {}),
             from_cache=True, model_version=cached.get("model_version", _model_version),
+            explanation=explanation, top_features=top_features
         )
     try:
         if _using_v2:
             risk_score, attack_type, confidence, class_probs = _compute_v2(text_str)
+            if attack_type != "normal":
+                # Strict ROC threshold passed -> Override standard risk thresholds
+                action = "block"
+                # Ensure risk_score visually reflects a block
+                risk_score = max(risk_score, THRESHOLD_BLOCK)
+            else:
+                action = _make_decision(risk_score)
         else:
             risk_score, attack_type, confidence, class_probs = _compute_v1(text_str)
+            action   = _make_decision(risk_score)
 
-        action   = _make_decision(risk_score)
         severity = SEVERITY_MAP.get(attack_type, "medium")
 
         if attack_type == "normal" and risk_score >= THRESHOLD_MONITOR:
@@ -812,9 +872,18 @@ def ml_analyze(text, async_feedback=True):
             _executor.submit(_append_feedback, text_str, risk_score, action, attack_type)
             _executor.submit(_log_prediction, th, confidence, attack_type, severity, action, _model_version)
 
+        explanation = None
+        top_features = None
+        if debug:
+            from app.ml.explainer import get_explainer
+            exp = get_explainer().explain(text_str, attack_type, risk_score)
+            explanation = exp.get("explanation")
+            top_features = exp.get("top_features", [])
+
         return MLDecision(
             risk_score, action, attack_type, attack_class_id,
             confidence, severity, class_probs, model_version=_model_version,
+            explanation=explanation, top_features=top_features
         )
     except Exception as e:
         logger.error(f"[ML] inference error: {e}")

@@ -1,0 +1,402 @@
+[
+  {
+    "feature": "has_ssrf_host",
+    "importance": 0.012909650453181503
+  },
+  {
+    "feature": "ler",
+    "importance": 0.012740473681819088
+  },
+  {
+    "feature": "- ",
+    "importance": 0.01159166755891812
+  },
+  {
+    "feature": "} ",
+    "importance": 0.011333495346342799
+  },
+  {
+    "feature": "ale",
+    "importance": 0.011292536856551441
+  },
+  {
+    "feature": "{",
+    "importance": 0.011283840303926327
+  },
+  {
+    "feature": "shell_meta_count",
+    "importance": 0.011117060074744625
+  },
+  {
+    "feature": "sql_comment_count",
+    "importance": 0.0110805145288093
+  },
+  {
+    "feature": "has_path_traversal",
+    "importance": 0.010043030468260473
+  },
+  {
+    "feature": "}",
+    "importance": 0.00959000848505502
+  },
+  {
+    "feature": "--",
+    "importance": 0.009402918261954633
+  },
+  {
+    "feature": ":",
+    "importance": 0.008978469363172757
+  },
+  {
+    "feature": "cmd_separator_count",
+    "importance": 0.008828446507133311
+  },
+  {
+    "feature": "..",
+    "importance": 0.008572679879543672
+  },
+  {
+    "feature": "-- ",
+    "importance": 0.008558778897274627
+  },
+  {
+    "feature": "al",
+    "importance": 0.008512345314087285
+  },
+  {
+    "feature": "ert",
+    "importance": 0.007570243642820901
+  },
+  {
+    "feature": "max_nesting_depth",
+    "importance": 0.007093270483511249
+  },
+  {
+    "feature": "wo",
+    "importance": 0.006890315590651415
+  },
+  {
+    "feature": ": ",
+    "importance": 0.006866090926176513
+  },
+  {
+    "feature": "//1",
+    "importance": 0.0067815632716258486
+  },
+  {
+    "feature": "special_char_ratio",
+    "importance": 0.00654594757031422
+  },
+  {
+    "feature": "swo",
+    "importance": 0.006521208379749442
+  },
+  {
+    "feature": "&p",
+    "importance": 0.006436817093627335
+  },
+  {
+    "feature": "rt",
+    "importance": 0.006298563549215983
+  },
+  {
+    "feature": "foo",
+    "importance": 0.006298155036293657
+  },
+  {
+    "feature": "oct",
+    "importance": 0.0059237239895674944
+  },
+  {
+    "feature": "!",
+    "importance": 0.005549185319210415
+  },
+  {
+    "feature": "${",
+    "importance": 0.005514726822130876
+  },
+  {
+    "feature": "%20",
+    "importance": 0.005514287563397086
+  },
+  {
+    "feature": "i:",
+    "importance": 0.005421602950221751
+  },
+  {
+    "feature": "wor",
+    "importance": 0.0054168538942236475
+  },
+  {
+    "feature": "!e",
+    "importance": 0.0052093494641148675
+  },
+  {
+    "feature": "!en",
+    "importance": 0.005145314775219449
+  },
+  {
+    "feature": "!do",
+    "importance": 0.005102224898798779
+  },
+  {
+    "feature": "rd=",
+    "importance": 0.004967435264911924
+  },
+  {
+    "feature": "$",
+    "importance": 0.0049067554001022366
+  },
+  {
+    "feature": "&",
+    "importance": 0.004894347249146933
+  },
+  {
+    "feature": ":l",
+    "importance": 0.004881826682328393
+  },
+  {
+    "feature": "&pa",
+    "importance": 0.0048793020156643946
+  },
+  {
+    "feature": "://",
+    "importance": 0.004828522276497591
+  },
+  {
+    "feature": "//",
+    "importance": 0.004739031310958485
+  },
+  {
+    "feature": "!d",
+    "importance": 0.0047205972924159855
+  },
+  {
+    "feature": "di",
+    "importance": 0.004709266502665887
+  },
+  {
+    "feature": ".",
+    "importance": 0.004648859344444026
+  },
+  {
+    "feature": "evi",
+    "importance": 0.0044636258352125984
+  },
+  {
+    "feature": "=h",
+    "importance": 0.004432970330963607
+  },
+  {
+    "feature": "{{",
+    "importance": 0.004356715091644606
+  },
+  {
+    "feature": ":/",
+    "importance": 0.0043010096299156775
+  },
+  {
+    "feature": "as",
+    "importance": 0.004263920508086616
+  },
+  {
+    "feature": "i:l",
+    "importance": 0.004204345788134485
+  },
+  {
+    "feature": "dap",
+    "importance": 0.004179889987127455
+  },
+  {
+    "feature": "jnd",
+    "importance": 0.004153071405940615
+  },
+  {
+    "feature": "di:",
+    "importance": 0.0039971420166334225
+  },
+  {
+    "feature": "has_ssti_jinja",
+    "importance": 0.0038720855670362703
+  },
+  {
+    "feature": "../",
+    "importance": 0.003864652997899683
+  },
+  {
+    "feature": "=ht",
+    "importance": 0.003804297663347216
+  },
+  {
+    "feature": "j",
+    "importance": 0.003771286438096589
+  },
+  {
+    "feature": "pas",
+    "importance": 0.0037157173248117165
+  },
+  {
+    "feature": "typ",
+    "importance": 0.0037037553139203524
+  },
+  {
+    "feature": "jn",
+    "importance": 0.0036866188856226603
+  },
+  {
+    "feature": "tc",
+    "importance": 0.003644480263178365
+  },
+  {
+    "feature": "url_enc_count",
+    "importance": 0.0036381007140428665
+  },
+  {
+    "feature": "tit",
+    "importance": 0.0036210565559333147
+  },
+  {
+    "feature": "p:/",
+    "importance": 0.0036060405003002414
+  },
+  {
+    "feature": "etc",
+    "importance": 0.003578153338863806
+  },
+  {
+    "feature": "%2",
+    "importance": 0.003497084493348773
+  },
+  {
+    "feature": "a} ",
+    "importance": 0.0034897029453209633
+  },
+  {
+    "feature": ":ld",
+    "importance": 0.0034416088733964373
+  },
+  {
+    "feature": "20",
+    "importance": 0.003361934880673596
+  },
+  {
+    "feature": "ssw",
+    "importance": 0.003325349655977266
+  },
+  {
+    "feature": "cty",
+    "importance": 0.0032494590491507352
+  },
+  {
+    "feature": "length",
+    "importance": 0.003241945887310109
+  },
+  {
+    "feature": "%3c",
+    "importance": 0.0032149615349747742
+  },
+  {
+    "feature": "7",
+    "importance": 0.0032131467004018655
+  },
+  {
+    "feature": "rt%",
+    "importance": 0.0032094949781513956
+  },
+  {
+    "feature": "ty",
+    "importance": 0.003198761462471482
+  },
+  {
+    "feature": "%",
+    "importance": 0.0031830007936473406
+  },
+  {
+    "feature": "ndi",
+    "importance": 0.0031745219689133753
+  },
+  {
+    "feature": "length_norm",
+    "importance": 0.0031689790480815307
+  },
+  {
+    "feature": "ity",
+    "importance": 0.003150838471120991
+  },
+  {
+    "feature": "doc",
+    "importance": 0.0030958910577489666
+  },
+  {
+    "feature": "dotdot_slash_count",
+    "importance": 0.003087876255719584
+  },
+  {
+    "feature": "}}",
+    "importance": 0.0030717339124948224
+  },
+  {
+    "feature": "]",
+    "importance": 0.003042093690573896
+  },
+  {
+    "feature": "ampersand_count",
+    "importance": 0.0029811111360270644
+  },
+  {
+    "feature": "ipt",
+    "importance": 0.002980391681382122
+  },
+  {
+    "feature": "p:",
+    "importance": 0.0029606969202953222
+  },
+  {
+    "feature": "0.0",
+    "importance": 0.0029548660105529517
+  },
+  {
+    "feature": "ld",
+    "importance": 0.0029375934119567917
+  },
+  {
+    "feature": "l.c",
+    "importance": 0.002935233234262269
+  },
+  {
+    "feature": "url_enc_ratio",
+    "importance": 0.0029227489937902937
+  },
+  {
+    "feature": "has_ssti_el",
+    "importance": 0.0029167707522088733
+  },
+  {
+    "feature": "3c",
+    "importance": 0.002904682549741114
+  },
+  {
+    "feature": "m/a",
+    "importance": 0.002900806673105977
+  },
+  {
+    "feature": "0.",
+    "importance": 0.0028833964203548567
+  },
+  {
+    "feature": "ype",
+    "importance": 0.0028813633416513657
+  },
+  {
+    "feature": "-",
+    "importance": 0.002873766905184936
+  },
+  {
+    "feature": "vil",
+    "importance": 0.0028603032918030893
+  },
+  {
+    "feature": "0.1",
+    "importance": 0.002848906484306564
+  }
+]

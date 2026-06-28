@@ -1,5 +1,5 @@
 {
-  "active_version": "v1.0-auto",
+  "active_version": "v2.0",
   "models": {
     "v1.0-auto": {
       "version": "v1.0-auto",
@@ -234,6 +234,374 @@
         "generalization_gap": 0.8236
       },
       "active": false
+    },
+    "v2.0": {
+      "version": "v2.0",
+      "model_path": "C:\\Users\\HP\\graduation-1\\backend\\data\\model_v2.pkl",
+      "registered_at": "2026-06-28T23:11:17Z",
+      "metrics": {
+        "train_accuracy": 0.9973,
+        "test_accuracy": 0.9987,
+        "f1_macro": 0.9993,
+        "f1_weighted": 0.9987,
+        "precision_macro": 0.9996,
+        "recall_macro": 0.9991,
+        "roc_auc_macro": 1.0,
+        "overfitting_gap": -0.0014,
+        "baseline_fp": 19,
+        "tuned_fp": 10,
+        "baseline_confusion": [
+          [
+            450,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            744,
+            0,
+            6,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            300,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            2250,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            750,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            11,
+            0,
+            1189,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            450,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            2,
+            0,
+            0,
+            0,
+            0,
+            0,
+            298,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1200,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            300
+          ]
+        ],
+        "tuned_confusion": [
+          [
+            450,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            749,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            300,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            2250,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            750,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            9,
+            0,
+            1191,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            450,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            300,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1200,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            300
+          ]
+        ],
+        "tuned_thresholds": {
+          "brute_force": 0.1,
+          "command_injection": 0.1862,
+          "log4shell": 0.1,
+          "normal": 0.2628,
+          "path_traversal": 0.1185,
+          "sql_injection": 0.1032,
+          "ssrf": 0.1,
+          "ssti": 0.1,
+          "xss": 0.1,
+          "xxe": 0.1
+        },
+        "class_names": [
+          "brute_force",
+          "command_injection",
+          "log4shell",
+          "normal",
+          "path_traversal",
+          "sql_injection",
+          "ssrf",
+          "ssti",
+          "xss",
+          "xxe"
+        ],
+        "per_class_report": {
+          "brute_force": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 450.0
+          },
+          "command_injection": {
+            "precision": 1.0,
+            "recall": 0.9986666666666667,
+            "f1-score": 0.9993328885923949,
+            "support": 750.0
+          },
+          "log4shell": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 300.0
+          },
+          "normal": {
+            "precision": 0.995575221238938,
+            "recall": 1.0,
+            "f1-score": 0.9977827050997783,
+            "support": 2250.0
+          },
+          "path_traversal": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 750.0
+          },
+          "sql_injection": {
+            "precision": 1.0,
+            "recall": 0.9925,
+            "f1-score": 0.9962358845671266,
+            "support": 1200.0
+          },
+          "ssrf": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 450.0
+          },
+          "ssti": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 300.0
+          },
+          "xss": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 1200.0
+          },
+          "xxe": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 300.0
+          },
+          "accuracy": 0.9987421383647799,
+          "macro avg": {
+            "precision": 0.9995575221238937,
+            "recall": 0.9991166666666667,
+            "f1-score": 0.9993351478259299,
+            "support": 7950.0
+          },
+          "weighted avg": {
+            "precision": 0.9987477041242278,
+            "recall": 0.9987421383647799,
+            "f1-score": 0.9987413603018049,
+            "support": 7950.0
+          }
+        },
+        "model_version": "v2.0",
+        "trained_at": "2026-06-28T23:11:17Z",
+        "val_accuracy": 0.9974,
+        "val_f1_macro": 0.9983,
+        "train_samples": 39644,
+        "val_samples": 5406,
+        "test_samples": 7950
+      },
+      "active": true
     }
   }
 }
