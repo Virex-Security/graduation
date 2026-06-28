@@ -73,7 +73,7 @@ def init_db():
                 CREATE TABLE IF NOT EXISTS system_stats (
                     metric_name VARCHAR(100) PRIMARY KEY,
                     metric_value BIGINT NOT NULL,
-                    updated_at TIMESTAMP DEFAULT NOW()
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 );
             """))
             conn.commit()

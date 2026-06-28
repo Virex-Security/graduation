@@ -222,7 +222,7 @@
   "train_samples": 36040,
   "val_samples": 6360,
   "test_samples": 10600,
-  "trained_at": "2026-06-28T15:27:59Z",
+  "trained_at": "2026-06-28T19:19:28Z",
   "validation_accuracy": 0.0543,
   "generalization_gap": 0.8236
 }

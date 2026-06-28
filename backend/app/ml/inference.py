@@ -44,11 +44,11 @@ PRED_LOG_PATH     = DATA_DIR / "predictions_log.jsonl"
 EVAL_REPORT_PATH  = DATA_DIR / "evaluation_report.json"   # ← جديد
 RF_ONNX_PATH      = DATA_DIR / "rf_model.onnx"
 
-RETRAIN_INTERVAL = int(os.getenv("ML_RETRAIN_INTERVAL", "3600"))
-CACHE_SIZE       = int(os.getenv("ML_CACHE_SIZE", "1024"))
-CACHE_TTL        = int(os.getenv("ML_CACHE_TTL", "300"))
+RETRAIN_INTERVAL  = int(os.getenv("ML_RETRAIN_INTERVAL", "3600"))
+CACHE_SIZE        = int(os.getenv("ML_CACHE_SIZE", "1024"))
+CACHE_TTL         = int(os.getenv("ML_CACHE_TTL", "300"))
 THRESHOLD_BLOCK   = float(os.getenv("ML_THRESHOLD_BLOCK", "0.85"))
-THRESHOLD_MONITOR = float(os.getenv("ML_THRESHOLD_MONITOR", "0.60"))
+THRESHOLD_MONITOR = float(os.getenv("ML_THRESHOLD_MONITOR", "0.65"))  # ↑ 0.60→0.65 lowers FP
 THRESHOLD_ALLOW   = float(os.getenv("ML_THRESHOLD_ALLOW", "0.00"))
 LOG_PREDICTIONS   = os.getenv("ML_LOG_PREDICTIONS", "false").lower() == "true"
 
@@ -57,7 +57,7 @@ LOG_PREDICTIONS   = os.getenv("ML_LOG_PREDICTIONS", "false").lower() == "true"
 # Includes SQLi symbols: -- /* */
 # Includes keywords: select, union, insert, update, delete, drop, exec, xp_, script, javascript:, onerror, onload
 _FAST_SUSPICIOUS_REGEX = re.compile(
-    r"['\"<>;|\${}()]|--|/\*|\*/|\b(?:select|union|insert|update|delete|drop|exec|xp_|script|javascript:|onerror|onload)\b",
+    r"['\"<>;|\${}()]|--|/\*|\*/|\.\./|\.\.\\|\b(?:select|union|insert|update|delete|drop|exec|xp_|script|javascript:|onerror|onload|or|and|having|where|sleep|benchmark|waitfor)\b",
     re.IGNORECASE
 )
 
@@ -73,15 +73,26 @@ _model = None; _vectorizer = None; _sec_feat = None; _label_enc = None; _onnx_se
 _model_version = "v1"; _model_lock = threading.RLock()
 MODEL_LOADED = False; _using_v2 = False
 
-redis_url = os.getenv("REDIS_URL", "redis://localhost:6379/0")
-try:
-    _redis_client = redis.Redis.from_url(redis_url, socket_connect_timeout=1, socket_timeout=1)
-    _redis_client.ping()
-    _use_redis = True
-except Exception as e:
-    logger.warning(f"[ML] Redis not available, using local LRU cache: {e}")
-    _redis_client = None
-    _use_redis = False
+redis_url = os.getenv("REDIS_URL", "")
+_use_redis = False
+_redis_client = None
+if redis_url:
+    try:
+        _redis_client = redis.Redis.from_url(
+            redis_url,
+            socket_connect_timeout=0.5,
+            socket_timeout=0.5,
+            retry_on_timeout=False,
+        )
+        _redis_client.ping()
+        _use_redis = True
+        logger.info(f"[ML] Redis cache connected: {redis_url.split('@')[-1]}")
+    except Exception as e:
+        logger.info(f"[ML] Redis not available — using local LRU cache ({e})")
+        _redis_client = None
+        _use_redis = False
+else:
+    logger.info("[ML] REDIS_URL not set — using local LRU cache")
 
 class _CacheWrapper:
     def __init__(self, fallback_cache):
@@ -538,25 +549,103 @@ def _compute_v2(text):
 def _compute_v1(text):
     with _model_lock:
         X = _vectorizer.transform([text]).astype(np.float32)
-        
+
         if _onnx_session is not None:
-            input_name = _onnx_session.get_inputs()[0].name
-            label_name = _onnx_session.get_outputs()[0].name
-            proba_name = _onnx_session.get_outputs()[1].name
-            
-            X_dense = X.toarray()
-            res = _onnx_session.run([label_name, proba_name], {input_name: X_dense})
-            proba_dict = res[1][0] 
-            risk = float(proba_dict.get(1, proba_dict.get('1', 0.0)))
-        else:
-            if hasattr(_model, "predict_proba"):
-                proba   = _model.predict_proba(X)[0]
-                classes = list(_model.classes_)
-                idx     = classes.index(1) if 1 in classes else -1
-                risk    = float(proba[idx]) if idx >= 0 else 0.0
+            # ── ONNX path ──────────────────────────────────────
+            input_name   = _onnx_session.get_inputs()[0].name
+            label_name   = _onnx_session.get_outputs()[0].name
+            proba_name   = _onnx_session.get_outputs()[1].name
+            X_dense      = X.toarray()
+            res          = _onnx_session.run([label_name, proba_name], {input_name: X_dense})
+            proba_output = res[1][0]
+            is_multiclass = len(proba_output) > 2
+
+            if isinstance(proba_output, dict):
+                if is_multiclass:
+                    normal_key = min(proba_output.keys())
+                    risk = 1.0 - float(proba_output.get(normal_key, 0.0))
+                else:
+                    risk = float(proba_output.get(1, proba_output.get('1', 0.0)))
             else:
-                risk = 1.0 if _model.predict(X)[0] == 1 else 0.0
+                proba_arr = list(proba_output)
+                if is_multiclass:
+                    risk = 1.0 - float(proba_arr[0]) if proba_arr else 0.5
+                else:
+                    risk = float(proba_arr[1]) if len(proba_arr) > 1 else float(proba_arr[0])
+        else:
+            # ── sklearn RF path ────────────────────────────────
+            classes = list(_model.classes_) if hasattr(_model, "classes_") else [0, 1]
+            is_multiclass = len(classes) > 2
+
+            if hasattr(_model, "predict_proba"):
+                proba = _model.predict_proba(X)[0]
+                if is_multiclass:
+                    try:
+                        normal_idx = next(
+                            i for i, c in enumerate(classes)
+                            if str(c).lower() in ("normal", "0", "benign")
+                        )
+                    except StopIteration:
+                        normal_idx = 0
+                    risk = 1.0 - float(proba[normal_idx]) if normal_idx < len(proba) else 0.0
+                else:
+                    try:
+                        attack_idx = classes.index(1)
+                    except ValueError:
+                        attack_idx = 1
+                    risk = float(proba[attack_idx]) if attack_idx < len(proba) else 0.5
+            else:
+                pred = _model.predict(X)[0]
+                risk = 0.0 if str(pred).lower() in ("0", "normal", "benign") else 1.0
+
     attack_type = _classify_v1(text)
+    return risk, attack_type, risk, {attack_type: risk}
+
+
+
+
+def _classify_v1(text):
+    """Rule-based fallback classifier — covers all 10 attack classes."""
+    t = text.lower()
+
+    # Log4Shell first (very specific)
+    if re.search(r"\$\{jndi:", t):
+        return "log4shell"
+    if re.search(r"\$\{[a-z:]+\}.*(?:ldap|rmi|dns|jndi)", t):
+        return "log4shell"
+
+    # XXE
+    if re.search(r"<!entity|<!doctype.*system|<\?xml.*<!", t):
+        return "xxe"
+
+    # SSTI — Jinja2, EL, Freemarker, Ruby, ASP
+    if re.search(
+        r"(\{\{.*?\}\}|\{%.*?%\}|\$\{[^}]+\}|#\{[^}]+\}|<%="
+        r"|__class__|__mro__|__subclasses__|__globals__|__builtins__"
+        r"|lipsum|request\.application|_self\.env)",
+        t,
+    ):
+        return "ssti"
+
+    # SQL Injection — extended keywords + tautology + UNION + NoSQL
+    if re.search(
+        r"(select\s|union\s|insert\s+into|update\s+\w+\s+set|delete\s+from"
+        r"|drop\s+table|exec\s+xp_|waitfor\s+delay|pg_sleep|sleep\s*\(|benchmark\s*\("
+        r"|extractvalue|updatexml|information_schema|group_concat"
+        r"|'\s*or\s*'1'='1|'\s*or\s+1=1|\$gt|\$ne|\$where|\$regex)",
+        t,
+    ):
+        return "sql_injection"
+
+    # XSS
+    if re.search(
+        r"(<script|javascript:|onerror=|onload=|onclick=|onmouseover="
+        r"|<iframe|<svg|<img.{0,30}onerror|alert\s*\(|con
+nner"
+
+    return "normal"
+
+
     return risk, attack_type, risk, {attack_type: risk}
 
 
@@ -695,8 +784,10 @@ def ml_analyze(text, async_feedback=True):
                 attack_type = reclassified
                 severity    = SEVERITY_MAP.get(attack_type, "medium")
             else:
-                action   = "allow"
-                severity = "none"
+                # ML gave high risk but regex couldn't classify — keep risk-based action
+                # Don't override to allow; use 'suspicious' as a fallback type
+                attack_type = "suspicious"
+                severity    = "medium"
 
         attack_class_id = 0
         if _label_enc is not None:

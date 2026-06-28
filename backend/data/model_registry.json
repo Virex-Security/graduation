@@ -4,7 +4,7 @@
     "v1.0-auto": {
       "version": "v1.0-auto",
       "model_path": "C:\\Users\\HP\\graduation-1\\backend\\data\\model.pkl",
-      "registered_at": "2026-06-28T15:28:06Z",
+      "registered_at": "2026-06-28T19:19:35Z",
       "metrics": {
         "train_accuracy": 0.8839,
         "val_accuracy": 0.8851,
@@ -229,7 +229,7 @@
         "train_samples": 36040,
         "val_samples": 6360,
         "test_samples": 10600,
-        "trained_at": "2026-06-28T15:27:59Z",
+        "trained_at": "2026-06-28T19:19:28Z",
         "validation_accuracy": 0.0543,
         "generalization_gap": 0.8236
       },

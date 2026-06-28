@@ -5538,5 +5538,605 @@
     "attack_type": "command_injection",
     "reviewed": false,
     "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-28T19:23:06Z",
+    "text_hash": "7f35ee6e150b8be375cbb2d4a4309187",
+    "text_snippet": "username=admin'--",
+    "risk_score": 0.8414586248593023,
+    "decision": "monitor",
+    "attack_type": "brute_force",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-28T19:23:06Z",
+    "text_hash": "3cd1e98a7628c23cb90786408357dc4e",
+    "text_snippet": "search=' UNION SELECT * FROM users--",
+    "risk_score": 0.7925132713120419,
+    "decision": "monitor",
+    "attack_type": "sql_injection",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-28T19:23:06Z",
+    "text_hash": "38fff51cb7248a06d6142c6bdf846831",
+    "text_snippet": "<script>alert(1)</script>",
+    "risk_score": 0.8528893088001729,
+    "decision": "block",
+    "attack_type": "xss",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-28T19:23:06Z",
+    "text_hash": "afe47532bbaed8a71b3521f79e0bc544",
+    "text_snippet": "<img src=x onerror=alert(1)>",
+    "risk_score": 0.8496733632487111,
+    "decision": "monitor",
+    "attack_type": "xss",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-28T19:23:06Z",
+    "text_hash": "d0ef46fde6c6901b744232007bacf6c4",
+    "text_snippet": "name=<svg onload=alert(document.cookie)>",
+    "risk_score": 0.84412927384594,
+    "decision": "monitor",
+    "attack_type": "xss",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-28T19:23:06Z",
+    "text_hash": "18fd51c581dbf7e4e0f3e8faacdcd953",
+    "text_snippet": "file=test.txt; cat /etc/passwd",
+    "risk_score": 0.8732308583648158,
+    "decision": "block",
+    "attack_type": "command_injection",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-28T19:25:50Z",
+    "text_hash": "7f35ee6e150b8be375cbb2d4a4309187",
+    "text_snippet": "username=admin'--",
+    "risk_score": 0.8414586335420609,
+    "decision": "monitor",
+    "attack_type": "brute_force",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-28T19:25:50Z",
+    "text_hash": "3cd1e98a7628c23cb90786408357dc4e",
+    "text_snippet": "search=' UNION SELECT * FROM users--",
+    "risk_score": 0.7925132364034653,
+    "decision": "monitor",
+    "attack_type": "sql_injection",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-28T19:25:50Z",
+    "text_hash": "38fff51cb7248a06d6142c6bdf846831",
+    "text_snippet": "<script>alert(1)</script>",
+    "risk_score": 0.8528892546892166,
+    "decision": "block",
+    "attack_type": "xss",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-28T19:25:50Z",
+    "text_hash": "afe47532bbaed8a71b3521f79e0bc544",
+    "text_snippet": "<img src=x onerror=alert(1)>",
+    "risk_score": 0.8496733456850052,
+    "decision": "monitor",
+    "attack_type": "xss",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-28T19:25:50Z",
+    "text_hash": "d0ef46fde6c6901b744232007bacf6c4",
+    "text_snippet": "name=<svg onload=alert(document.cookie)>",
+    "risk_score": 0.8441292494535446,
+    "decision": "monitor",
+    "attack_type": "xss",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-28T19:25:50Z",
+    "text_hash": "18fd51c581dbf7e4e0f3e8faacdcd953",
+    "text_snippet": "file=test.txt; cat /etc/passwd",
+    "risk_score": 0.8732308447360992,
+    "decision": "block",
+    "attack_type": "command_injection",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-28T19:27:02Z",
+    "text_hash": "7f35ee6e150b8be375cbb2d4a4309187",
+    "text_snippet": "username=admin'--",
+    "risk_score": 0.8414586335420609,
+    "decision": "monitor",
+    "attack_type": "brute_force",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-28T19:27:02Z",
+    "text_hash": "3cd1e98a7628c23cb90786408357dc4e",
+    "text_snippet": "search=' UNION SELECT * FROM users--",
+    "risk_score": 0.7925132364034653,
+    "decision": "monitor",
+    "attack_type": "sql_injection",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-28T19:27:02Z",
+    "text_hash": "38fff51cb7248a06d6142c6bdf846831",
+    "text_snippet": "<script>alert(1)</script>",
+    "risk_score": 0.8528892546892166,
+    "decision": "block",
+    "attack_type": "xss",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-28T19:27:02Z",
+    "text_hash": "afe47532bbaed8a71b3521f79e0bc544",
+    "text_snippet": "<img src=x onerror=alert(1)>",
+    "risk_score": 0.8496733456850052,
+    "decision": "monitor",
+    "attack_type": "xss",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-28T19:27:02Z",
+    "text_hash": "d0ef46fde6c6901b744232007bacf6c4",
+    "text_snippet": "name=<svg onload=alert(document.cookie)>",
+    "risk_score": 0.8441292494535446,
+    "decision": "monitor",
+    "attack_type": "xss",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-28T19:27:02Z",
+    "text_hash": "18fd51c581dbf7e4e0f3e8faacdcd953",
+    "text_snippet": "file=test.txt; cat /etc/passwd",
+    "risk_score": 0.8732308447360992,
+    "decision": "block",
+    "attack_type": "command_injection",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-28T19:29:50Z",
+    "text_hash": "7f35ee6e150b8be375cbb2d4a4309187",
+    "text_snippet": "username=admin'--",
+    "risk_score": 0.8414586335420609,
+    "decision": "monitor",
+    "attack_type": "brute_force",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-28T19:29:51Z",
+    "text_hash": "3cd1e98a7628c23cb90786408357dc4e",
+    "text_snippet": "search=' UNION SELECT * FROM users--",
+    "risk_score": 0.7925132364034653,
+    "decision": "monitor",
+    "attack_type": "sql_injection",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-28T19:29:51Z",
+    "text_hash": "38fff51cb7248a06d6142c6bdf846831",
+    "text_snippet": "<script>alert(1)</script>",
+    "risk_score": 0.8528892546892166,
+    "decision": "block",
+    "attack_type": "xss",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-28T19:29:51Z",
+    "text_hash": "afe47532bbaed8a71b3521f79e0bc544",
+    "text_snippet": "<img src=x onerror=alert(1)>",
+    "risk_score": 0.8496733456850052,
+    "decision": "monitor",
+    "attack_type": "xss",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-28T19:29:51Z",
+    "text_hash": "d0ef46fde6c6901b744232007bacf6c4",
+    "text_snippet": "name=<svg onload=alert(document.cookie)>",
+    "risk_score": 0.8441292494535446,
+    "decision": "monitor",
+    "attack_type": "xss",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-28T19:29:51Z",
+    "text_hash": "18fd51c581dbf7e4e0f3e8faacdcd953",
+    "text_snippet": "file=test.txt; cat /etc/passwd",
+    "risk_score": 0.8732308447360992,
+    "decision": "block",
+    "attack_type": "command_injection",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-28T19:31:04Z",
+    "text_hash": "7f35ee6e150b8be375cbb2d4a4309187",
+    "text_snippet": "username=admin'--",
+    "risk_score": 0.8414586335420609,
+    "decision": "monitor",
+    "attack_type": "brute_force",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-28T19:31:04Z",
+    "text_hash": "3cd1e98a7628c23cb90786408357dc4e",
+    "text_snippet": "search=' UNION SELECT * FROM users--",
+    "risk_score": 0.7925132364034653,
+    "decision": "monitor",
+    "attack_type": "sql_injection",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-28T19:31:04Z",
+    "text_hash": "38fff51cb7248a06d6142c6bdf846831",
+    "text_snippet": "<script>alert(1)</script>",
+    "risk_score": 0.8528892546892166,
+    "decision": "block",
+    "attack_type": "xss",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-28T19:31:04Z",
+    "text_hash": "afe47532bbaed8a71b3521f79e0bc544",
+    "text_snippet": "<img src=x onerror=alert(1)>",
+    "risk_score": 0.8496733456850052,
+    "decision": "monitor",
+    "attack_type": "xss",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-28T19:31:04Z",
+    "text_hash": "d0ef46fde6c6901b744232007bacf6c4",
+    "text_snippet": "name=<svg onload=alert(document.cookie)>",
+    "risk_score": 0.8441292494535446,
+    "decision": "monitor",
+    "attack_type": "xss",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-28T19:31:04Z",
+    "text_hash": "18fd51c581dbf7e4e0f3e8faacdcd953",
+    "text_snippet": "file=test.txt; cat /etc/passwd",
+    "risk_score": 0.8732308447360992,
+    "decision": "block",
+    "attack_type": "command_injection",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-28T19:32:50Z",
+    "text_hash": "97fc1360b072d903d6dc5f5af9db2e4b",
+    "text_snippet": "id=1' OR '1'='1",
+    "risk_score": 0.7966892570257187,
+    "decision": "monitor",
+    "attack_type": "suspicious",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-28T19:32:50Z",
+    "text_hash": "7f35ee6e150b8be375cbb2d4a4309187",
+    "text_snippet": "username=admin'--",
+    "risk_score": 0.8414586335420609,
+    "decision": "monitor",
+    "attack_type": "brute_force",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-28T19:32:50Z",
+    "text_hash": "3cd1e98a7628c23cb90786408357dc4e",
+    "text_snippet": "search=' UNION SELECT * FROM users--",
+    "risk_score": 0.7925132364034653,
+    "decision": "monitor",
+    "attack_type": "sql_injection",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-28T19:32:50Z",
+    "text_hash": "38fff51cb7248a06d6142c6bdf846831",
+    "text_snippet": "<script>alert(1)</script>",
+    "risk_score": 0.8528892546892166,
+    "decision": "block",
+    "attack_type": "xss",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-28T19:32:50Z",
+    "text_hash": "afe47532bbaed8a71b3521f79e0bc544",
+    "text_snippet": "<img src=x onerror=alert(1)>",
+    "risk_score": 0.8496733456850052,
+    "decision": "monitor",
+    "attack_type": "xss",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-28T19:32:50Z",
+    "text_hash": "d0ef46fde6c6901b744232007bacf6c4",
+    "text_snippet": "name=<svg onload=alert(document.cookie)>",
+    "risk_score": 0.8441292494535446,
+    "decision": "monitor",
+    "attack_type": "xss",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-28T19:32:50Z",
+    "text_hash": "18fd51c581dbf7e4e0f3e8faacdcd953",
+    "text_snippet": "file=test.txt; cat /etc/passwd",
+    "risk_score": 0.8732308447360992,
+    "decision": "block",
+    "attack_type": "command_injection",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-28T19:32:50Z",
+    "text_hash": "26badd32da2670f021da4350d0b6211e",
+    "text_snippet": "url=http://example.com | whoami",
+    "risk_score": 0.84373739361763,
+    "decision": "monitor",
+    "attack_type": "suspicious",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-28T19:32:50Z",
+    "text_hash": "d8b0b70d25c0246b81b5be266e29f4de",
+    "text_snippet": "file=../../../etc/passwd",
+    "risk_score": 0.875410832464695,
+    "decision": "block",
+    "attack_type": "path_traversal",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-28T19:32:50Z",
+    "text_hash": "0cba5c0a45d979f63b0f5e497442e743",
+    "text_snippet": "path=..\\..\\windows\\system32",
+    "risk_score": 0.7941355556249619,
+    "decision": "monitor",
+    "attack_type": "path_traversal",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-28T19:33:36Z",
+    "text_hash": "97fc1360b072d903d6dc5f5af9db2e4b",
+    "text_snippet": "id=1' OR '1'='1",
+    "risk_score": 0.7966892570257187,
+    "decision": "monitor",
+    "attack_type": "suspicious",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-28T19:33:36Z",
+    "text_hash": "7f35ee6e150b8be375cbb2d4a4309187",
+    "text_snippet": "username=admin'--",
+    "risk_score": 0.8414586335420609,
+    "decision": "monitor",
+    "attack_type": "brute_force",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-28T19:33:36Z",
+    "text_hash": "3cd1e98a7628c23cb90786408357dc4e",
+    "text_snippet": "search=' UNION SELECT * FROM users--",
+    "risk_score": 0.7925132364034653,
+    "decision": "monitor",
+    "attack_type": "sql_injection",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-28T19:33:36Z",
+    "text_hash": "38fff51cb7248a06d6142c6bdf846831",
+    "text_snippet": "<script>alert(1)</script>",
+    "risk_score": 0.8528892546892166,
+    "decision": "block",
+    "attack_type": "xss",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-28T19:33:36Z",
+    "text_hash": "afe47532bbaed8a71b3521f79e0bc544",
+    "text_snippet": "<img src=x onerror=alert(1)>",
+    "risk_score": 0.8496733456850052,
+    "decision": "monitor",
+    "attack_type": "xss",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-28T19:33:36Z",
+    "text_hash": "d0ef46fde6c6901b744232007bacf6c4",
+    "text_snippet": "name=<svg onload=alert(document.cookie)>",
+    "risk_score": 0.8441292494535446,
+    "decision": "monitor",
+    "attack_type": "xss",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-28T19:33:36Z",
+    "text_hash": "18fd51c581dbf7e4e0f3e8faacdcd953",
+    "text_snippet": "file=test.txt; cat /etc/passwd",
+    "risk_score": 0.8732308447360992,
+    "decision": "block",
+    "attack_type": "command_injection",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-28T19:33:36Z",
+    "text_hash": "26badd32da2670f021da4350d0b6211e",
+    "text_snippet": "url=http://example.com | whoami",
+    "risk_score": 0.84373739361763,
+    "decision": "monitor",
+    "attack_type": "suspicious",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-28T19:33:36Z",
+    "text_hash": "d8b0b70d25c0246b81b5be266e29f4de",
+    "text_snippet": "file=../../../etc/passwd",
+    "risk_score": 0.875410832464695,
+    "decision": "block",
+    "attack_type": "path_traversal",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-28T19:33:36Z",
+    "text_hash": "0cba5c0a45d979f63b0f5e497442e743",
+    "text_snippet": "path=..\\..\\windows\\system32",
+    "risk_score": 0.7941355556249619,
+    "decision": "monitor",
+    "attack_type": "path_traversal",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-28T21:06:46Z",
+    "text_hash": "97fc1360b072d903d6dc5f5af9db2e4b",
+    "text_snippet": "id=1' OR '1'='1",
+    "risk_score": 0.7966892570257187,
+    "decision": "monitor",
+    "attack_type": "suspicious",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-28T21:06:46Z",
+    "text_hash": "7f35ee6e150b8be375cbb2d4a4309187",
+    "text_snippet": "username=admin'--",
+    "risk_score": 0.8414586335420609,
+    "decision": "monitor",
+    "attack_type": "brute_force",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-28T21:06:46Z",
+    "text_hash": "3cd1e98a7628c23cb90786408357dc4e",
+    "text_snippet": "search=' UNION SELECT * FROM users--",
+    "risk_score": 0.7925132364034653,
+    "decision": "monitor",
+    "attack_type": "sql_injection",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-28T21:06:46Z",
+    "text_hash": "38fff51cb7248a06d6142c6bdf846831",
+    "text_snippet": "<script>alert(1)</script>",
+    "risk_score": 0.8528892546892166,
+    "decision": "block",
+    "attack_type": "xss",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-28T21:06:46Z",
+    "text_hash": "afe47532bbaed8a71b3521f79e0bc544",
+    "text_snippet": "<img src=x onerror=alert(1)>",
+    "risk_score": 0.8496733456850052,
+    "decision": "monitor",
+    "attack_type": "xss",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-28T21:06:46Z",
+    "text_hash": "d0ef46fde6c6901b744232007bacf6c4",
+    "text_snippet": "name=<svg onload=alert(document.cookie)>",
+    "risk_score": 0.8441292494535446,
+    "decision": "monitor",
+    "attack_type": "xss",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-28T21:06:46Z",
+    "text_hash": "18fd51c581dbf7e4e0f3e8faacdcd953",
+    "text_snippet": "file=test.txt; cat /etc/passwd",
+    "risk_score": 0.8732308447360992,
+    "decision": "block",
+    "attack_type": "command_injection",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-28T21:06:46Z",
+    "text_hash": "26badd32da2670f021da4350d0b6211e",
+    "text_snippet": "url=http://example.com | whoami",
+    "risk_score": 0.84373739361763,
+    "decision": "monitor",
+    "attack_type": "suspicious",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-28T21:06:46Z",
+    "text_hash": "d8b0b70d25c0246b81b5be266e29f4de",
+    "text_snippet": "file=../../../etc/passwd",
+    "risk_score": 0.875410832464695,
+    "decision": "block",
+    "attack_type": "path_traversal",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-06-28T21:06:46Z",
+    "text_hash": "0cba5c0a45d979f63b0f5e497442e743",
+    "text_snippet": "path=..\\..\\windows\\system32",
+    "risk_score": 0.7941355556249619,
+    "decision": "monitor",
+    "attack_type": "path_traversal",
+    "reviewed": false,
+    "promoted_to_rule": false
   }
 ]
