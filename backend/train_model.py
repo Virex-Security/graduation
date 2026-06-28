@@ -1,4 +1,5 @@
 import pandas as pd
+import re
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.pipeline import Pipeline
@@ -24,7 +25,7 @@ def train_and_evaluate():
     print("="*60)
     print("  ML Model Training - Virex Security")
     print("="*60)
-    print(f"\n📊 Training samples: {len(train_data)}")
+    print(f"\n Training samples: {len(train_data)}")
     print(f"   Normal:  {(train_data['label']==0).sum()} ({(train_data['label']==0).sum()/len(train_data)*100:.1f}%)")
     print(f"   Attacks: {(train_data['label']==1).sum()} ({(train_data['label']==1).sum()/len(train_data)*100:.1f}%)")
     
@@ -43,19 +44,19 @@ def train_and_evaluate():
         stratify=train_data["label"],
     )
 
-    print(f"\n📦 Split: {len(X_train)} train, {len(X_test)} test")
+    print(f"\n Split: {len(X_train)} train, {len(X_test)} test")
 
     # Create Pipeline (prevents data leakage)
-    print("\n🔧 Building ML Pipeline...")
+    print("\n Building ML Pipeline...")
     pipeline = Pipeline([
         ('vectorizer', TfidfVectorizer(
-            ngram_range=(1, 3),
-            max_features=5000,  # Reduced to prevent overfitting
+            ngram_range=(1, 4),  # Increased to 4 to capture longer attack sequences
+            max_features=2500,  # Reduced from 5000 to prevent overfitting and memorizing noise
             lowercase=True,
             strip_accents="unicode",
             sublinear_tf=True,
-            min_df=3,  # Increased to reduce noise
-            max_df=0.8,  # Ignore very common terms
+            min_df=5,  # Increased from 3 to ignore highly rare synthetic tokens
+            max_df=0.7,  # Ignore words in >70% of docs
         )),
         ('classifier', RandomForestClassifier(
             n_estimators=100,  # Reduced from 200
@@ -68,12 +69,23 @@ def train_and_evaluate():
         ))
     ])
 
+    # Calculate sample weights to rebalance Command Injection
+    print("\n Weighting Command Injection samples...")
+    cmd_pattern = re.compile(r"(;|\|\||\||&&|\$(?:@|\*|\$|\?|#|-|!|\{IFS\}|\{PATH\})|`|\$\(|base64\s*-d|awk|sed|sudo|cat|wget|curl|nc|bash|sh|php|perl|ruby|powershell)", re.I)
+    
+    sample_weights = []
+    for text, label in zip(X_train, y_train):
+        if label == 1 and cmd_pattern.search(str(text)):
+            sample_weights.append(3.0)  # Boost Command Injection importance
+        else:
+            sample_weights.append(1.0)
+            
     # Train model
-    print("🎯 Training Random Forest...")
-    pipeline.fit(X_train, y_train)
+    print(" Training Random Forest with sample weights...")
+    pipeline.fit(X_train, y_train, classifier__sample_weight=sample_weights)
 
     # Cross-validation on training set
-    print("\n🔄 Running 5-fold cross-validation...")
+    print("\n Running 5-fold cross-validation...")
     cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
     cv_scores = cross_val_score(
         pipeline, X_train, y_train,
@@ -85,10 +97,10 @@ def train_and_evaluate():
     if cv_scores.std() > 0.08:
         print("   ⚠️  High variance - model may be unstable")
     else:
-        print("   ✅ Low variance - model is stable")
+        print("    Low variance - model is stable")
 
     # Evaluate on test set
-    print("\n📈 Test Set Evaluation:")
+    print("\n Test Set Evaluation:")
     y_pred = pipeline.predict(X_test)
     y_prob = pipeline.predict_proba(X_test)[:, 1]
 
@@ -117,14 +129,14 @@ def train_and_evaluate():
     if fpr > 0.05:
         print("   ⚠️  High FPR - may block legitimate requests")
     else:
-        print("   ✅ Low FPR - good for production")
+        print("    Low FPR - good for production")
     
     # Overfitting check
     train_pred = pipeline.predict(X_train)
     train_accuracy = accuracy_score(y_train, train_pred)
     gap = train_accuracy - test_accuracy
     
-    print(f"\n🔍 Overfitting Analysis:")
+    print(f"\n Overfitting Analysis:")
     print(f"   Train Accuracy: {train_accuracy*100:.2f}%")
     print(f"   Test Accuracy:  {test_accuracy*100:.2f}%")
     print(f"   Gap:            {gap*100:.2f}%")
@@ -137,7 +149,7 @@ def train_and_evaluate():
         print("   ⚠️  Slight overfitting")
         print("   Model may not generalize well")
     else:
-        print("   ✅ Good generalization")
+        print("    Good generalization")
     
     # Realistic accuracy check
     if test_accuracy > 0.95:
@@ -149,17 +161,17 @@ def train_and_evaluate():
         print("\n   Recommendation: Test on real-world data")
 
     # Classification report
-    print(f"\n📊 Detailed Classification Report:")
+    print(f"\n Detailed Classification Report:")
     print(classification_report(y_test, y_pred, target_names=['Normal', 'Attack'], digits=3))
 
     # Save pipeline
     DATA_DIR.mkdir(exist_ok=True)
     joblib.dump(pipeline, MODEL_PATH)
-    print(f"\n💾 Model pipeline saved to: {MODEL_PATH}")
+    print(f"\n Model pipeline saved to: {MODEL_PATH}")
     print(f"   Size: {MODEL_PATH.stat().st_size / 1024:.1f} KB")
     
     # Feature importance (top 20)
-    print(f"\n🔝 Top 20 Important Features:")
+    print(f"\n Top 20 Important Features:")
     vectorizer = pipeline.named_steps['vectorizer']
     classifier = pipeline.named_steps['classifier']
     feature_names = vectorizer.get_feature_names_out()
@@ -170,9 +182,9 @@ def train_and_evaluate():
         print(f"   {i:2d}. {feature_names[idx]:30s} ({importances[idx]:.4f})")
 
     print("\n" + "="*60)
-    print("✅ Training Complete!")
+    print(" Training Complete!")
     print("="*60)
-    print("\n🚀 Next steps:")
+    print("\n Next steps:")
     print("   1. Test model: python -c \"from app.ml.inference import ml_analyze; print(ml_analyze('SELECT * FROM users'))\"")
     print("   2. Start dashboard: python run_dashboard.py")
     print("   3. Monitor false positives in production")

@@ -44,9 +44,19 @@ EVAL_REPORT_PATH  = DATA_DIR / "evaluation_report.json"   # ← جديد
 RETRAIN_INTERVAL = int(os.getenv("ML_RETRAIN_INTERVAL", "3600"))
 CACHE_SIZE       = int(os.getenv("ML_CACHE_SIZE", "1024"))
 CACHE_TTL        = int(os.getenv("ML_CACHE_TTL", "300"))
-THRESHOLD_BLOCK  = float(os.getenv("ML_THRESHOLD_BLOCK", "0.85"))
+THRESHOLD_BLOCK   = float(os.getenv("ML_THRESHOLD_BLOCK", "0.85"))
 THRESHOLD_MONITOR = float(os.getenv("ML_THRESHOLD_MONITOR", "0.60"))
-LOG_PREDICTIONS  = os.getenv("ML_LOG_PREDICTIONS", "false").lower() == "true"
+THRESHOLD_ALLOW   = float(os.getenv("ML_THRESHOLD_ALLOW", "0.00"))
+LOG_PREDICTIONS   = os.getenv("ML_LOG_PREDICTIONS", "false").lower() == "true"
+
+# Pre-compiled high-speed regex for critical bypass
+# Includes characters: ' " < > ; | $ { } ( )
+# Includes SQLi symbols: -- /* */
+# Includes keywords: select, union, insert, update, delete, drop, exec, xp_, script, javascript:, onerror, onload
+_FAST_SUSPICIOUS_REGEX = re.compile(
+    r"['\"<>;|\${}()]|--|/\*|\*/|\b(?:select|union|insert|update|delete|drop|exec|xp_|script|javascript:|onerror|onload)\b",
+    re.IGNORECASE
+)
 
 SEVERITY_MAP = {
     "log4shell": "critical", "command_injection": "critical",
@@ -567,18 +577,13 @@ def ml_analyze(text, async_feedback=True):
 
     # 2. THE CRITICAL BYPASS:
     # If the text has absolutely NONE of the actual exploitation characters or keywords, 
-    # we force it to return benign and skip the model computation.
-    text_lower = text_str.lower()
-    suspicious_patterns = [
-        r"'", r'"', r";", r"<", r">", r"--", r"/\*", r"\*/", 
-        r"xp_", r"exec", r"union", r"select", r"insert", r"update", r"delete", 
-        r"drop", r"script", r"\|", r"`", r"\$", r"\{", r"\}"
-    ]
+    # we force it to return benign and skip the expensive ML computation.
+    # This guarantees 0% false positives for normal alphanumeric text regardless of length.
     
-    # Check if ANY suspicious pattern exists
-    is_suspicious = any(re.search(pat, text_lower) for pat in suspicious_patterns)
+    # Check if ANY suspicious pattern exists using the highly optimized pre-compiled regex
+    is_suspicious = bool(_FAST_SUSPICIOUS_REGEX.search(text_str))
     
-    if not cleaned or (len(text_str) <= 150 and not is_suspicious):
+    if not cleaned or not is_suspicious:
         return MLDecision(0.0, "allow", "normal", severity="none")
 
     cached = _cache.get(text_str)

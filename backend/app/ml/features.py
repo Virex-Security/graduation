@@ -39,16 +39,26 @@ class SecurityFeatureExtractor(BaseEstimator, TransformerMixin):
         re.I,
     )
 
-    # Shell metacharacters
-    _SHELL_META = re.compile(r"[;|`&$]|\$\(|\|\|")
+    # Shell metacharacters (generalized)
+    _SHELL_META = re.compile(r"[&$]")
 
-    # Shell commands
+    # Shell commands (enhanced with awk, sed, sudo, etc.)
     _SHELL_CMDS = re.compile(
         r"\b(cat|ls|rm|wget|curl|nc|bash|sh|python|perl|ruby|"
         r"php|powershell|cmd|exec|system|whoami|id|uname|ifconfig|"
-        r"netstat|ping|nslookup|nmap|chmod|chown|passwd)\b",
+        r"netstat|ping|nslookup|nmap|chmod|chown|passwd|awk|sed|sudo|nohup|xargs|eval)\b",
         re.I,
     )
+
+    # Specific Command Injection Bypasses
+    _CMD_SEPARATORS = re.compile(r"(?:;|&&|\|\||\|)")
+    _SHELL_VARS = re.compile(r"\$(?:@|\*|\$|\?|#|-|!|\{IFS\}|\{PATH\})")
+    _NESTED_QUOTES = re.compile(r"\w+['\"]\w+['\"]\w*")
+    _BACKTICKS = re.compile(r"`[^`]*`|`")
+    _CMD_SUBSTITUTION = re.compile(r"\$\([^)]+\)")
+    _BASE64_EXEC = re.compile(r"(?:base64\s*-d|@b64decode)", re.I)
+    _HEX_OCT_ESCAPES = re.compile(r"\\x[0-9a-fA-F]{2}|\\[0-7]{3}")
+    _REPEATED_ESCAPING = re.compile(r"\\{2,}")
 
     # Path traversal
     _PATH_TRAV = re.compile(
@@ -125,6 +135,14 @@ class SecurityFeatureExtractor(BaseEstimator, TransformerMixin):
             # command injection
             float(len(self._SHELL_META.findall(t))),
             float(len(self._SHELL_CMDS.findall(low))),
+            float(len(self._CMD_SEPARATORS.findall(t))),
+            float(len(self._SHELL_VARS.findall(t))),
+            float(len(self._NESTED_QUOTES.findall(t))),
+            float(len(self._BACKTICKS.findall(t))),
+            float(len(self._CMD_SUBSTITUTION.findall(t))),
+            float(bool(self._BASE64_EXEC.search(t))),
+            float(len(self._HEX_OCT_ESCAPES.findall(t))),
+            float(bool(self._REPEATED_ESCAPING.search(t))),
 
             # path traversal
             float(bool(self._PATH_TRAV.search(low))),
@@ -190,6 +208,9 @@ class SecurityFeatureExtractor(BaseEstimator, TransformerMixin):
             "sql_keyword_count", "has_union_select", "sql_comment_count",
             "html_tag_count", "js_event_count",
             "shell_meta_count", "shell_cmd_count",
+            "cmd_separator_count", "shell_var_count", "nested_quotes_count",
+            "backticks_count", "cmd_substitution_count",
+            "has_base64_exec", "hex_oct_escapes_count", "has_repeated_escaping",
             "has_path_traversal", "dotdot_slash_count", "dotdot_back_count",
             "url_enc_count", "url_enc_ratio", "has_html_entities",
             "has_jndi", "has_ssrf_host", "has_xxe", "has_ssti",
