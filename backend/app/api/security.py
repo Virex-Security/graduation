@@ -710,15 +710,21 @@ class SimpleSecurityManager:
                                 ml_confidence=decision.risk_score,
                                 endpoint=request.path
                             )
-                            append_user_attack(
-                                user_key, decision.attack_type, ip,
-                                request.path, request.method, severity,
-                                blocked=False
-                            )
-                            log_ml_detection(
-                                text[:120], decision.risk_score, "monitor",
-                                decision.attack_type, ip, request.path
-                            )
+                            def log_monitor_async(user_key_async, decision_async, ip_async, path_async, method_async, severity_async, text_async):
+                                try:
+                                    append_user_attack(
+                                        user_key_async, decision_async.attack_type, ip_async,
+                                        path_async, method_async, severity_async,
+                                        blocked=False
+                                    )
+                                    log_ml_detection(
+                                        text_async[:120], decision_async.risk_score, "monitor",
+                                        decision_async.attack_type, ip_async, path_async
+                                    )
+                                except Exception as e:
+                                    logger.error(f"Async monitor log failed: {e}")
+                                    
+                            executor.submit(log_monitor_async, user_key, decision, ip, request.path, request.method, severity, text)
                         except Exception:
                             pass
                 except Exception as e:

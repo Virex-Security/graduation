@@ -20,6 +20,8 @@ from pathlib import Path
 from collections import OrderedDict
 from concurrent.futures import ThreadPoolExecutor
 from dotenv import load_dotenv
+import onnxruntime as ort
+import redis
 
 load_dotenv()
 logger = logging.getLogger(__name__)
@@ -40,6 +42,7 @@ TRAINING_DATA_PATH = DATA_DIR / (
 FEEDBACK_LOG_PATH = DATA_DIR / "ml_feedback.json"
 PRED_LOG_PATH     = DATA_DIR / "predictions_log.jsonl"
 EVAL_REPORT_PATH  = DATA_DIR / "evaluation_report.json"   # ← جديد
+RF_ONNX_PATH      = DATA_DIR / "rf_model.onnx"
 
 RETRAIN_INTERVAL = int(os.getenv("ML_RETRAIN_INTERVAL", "3600"))
 CACHE_SIZE       = int(os.getenv("ML_CACHE_SIZE", "1024"))
@@ -66,9 +69,63 @@ SEVERITY_MAP = {
     "brute_force": "medium", "normal": "none", "unknown": "none",
 }
 
-_model = None; _vectorizer = None; _sec_feat = None; _label_enc = None
+_model = None; _vectorizer = None; _sec_feat = None; _label_enc = None; _onnx_session = None
 _model_version = "v1"; _model_lock = threading.RLock()
 MODEL_LOADED = False; _using_v2 = False
+
+redis_url = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+try:
+    _redis_client = redis.Redis.from_url(redis_url, socket_connect_timeout=1, socket_timeout=1)
+    _redis_client.ping()
+    _use_redis = True
+except Exception as e:
+    logger.warning(f"[ML] Redis not available, using local LRU cache: {e}")
+    _redis_client = None
+    _use_redis = False
+
+class _CacheWrapper:
+    def __init__(self, fallback_cache):
+        self.fallback = fallback_cache
+        
+    def _key(self, text):
+        return "ml_cache:" + hashlib.md5(text.encode("utf-8", errors="replace")).hexdigest()
+        
+    def get(self, text):
+        if _use_redis:
+            try:
+                k = self._key(text)
+                v = _redis_client.get(k)
+                if v:
+                    return json.loads(v)
+            except Exception:
+                pass
+        return self.fallback.get(text)
+        
+    def set(self, text, value):
+        if _use_redis:
+            try:
+                k = self._key(text)
+                _redis_client.setex(k, CACHE_TTL, json.dumps(value))
+                return
+            except Exception:
+                pass
+        self.fallback.set(text, value)
+        
+    def clear(self):
+        if _use_redis:
+            try:
+                keys = _redis_client.keys("ml_cache:*")
+                if keys:
+                    _redis_client.delete(*keys)
+            except Exception:
+                pass
+        self.fallback.clear()
+        
+    @property
+    def stats(self):
+        s = self.fallback.stats
+        s["redis"] = _use_redis
+        return s
 
 
 # ── LRU Cache (unchanged) ─────────────────────────────────────
@@ -120,7 +177,7 @@ class _LRUCache:
             }
 
 
-_cache    = _LRUCache()
+_cache    = _CacheWrapper(_LRUCache())
 _executor = ThreadPoolExecutor(max_workers=4, thread_name_prefix="ml_worker")
 _feedback_lock  = threading.Lock()
 _pred_log_lock  = threading.Lock()
@@ -216,6 +273,22 @@ def _try_load_v1():
         return True
     except Exception:
         return False
+
+def _try_load_onnx():
+    global _onnx_session, _vectorizer, MODEL_LOADED, _using_v2, _model_version
+    if RF_ONNX_PATH.exists() and VECTORIZER_PATH.exists():
+        try:
+            with _model_lock:
+                _onnx_session = ort.InferenceSession(str(RF_ONNX_PATH), providers=["CPUExecutionProvider"])
+                _vectorizer = joblib.load(str(VECTORIZER_PATH))
+                MODEL_LOADED = True
+                _using_v2 = False
+                _model_version = "v1.0-onnx"
+            logger.info("[ML] ONNX model loaded")
+            return True
+        except Exception as e:
+            logger.warning(f"[ML] ONNX load failed: {e}")
+    return False
 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -430,6 +503,8 @@ def _retrain_v1():
 def _load_or_train():
     if _try_load_v2():
         return
+    if _try_load_onnx():
+        return
     if _try_load_v1():
         return
     logger.warning("[ML] No model — training v1 from scratch...")
@@ -440,7 +515,7 @@ def _auto_retrain_loop():
     while True:
         time.sleep(RETRAIN_INTERVAL)
         logger.info("[ML] Auto-retraining...")
-        if not _try_load_v2():
+        if not _try_load_v2() and not _try_load_onnx():
             _retrain_v1()
         _cache.clear()
 
@@ -462,14 +537,25 @@ def _compute_v2(text):
 
 def _compute_v1(text):
     with _model_lock:
-        X = _vectorizer.transform([text])
-        if hasattr(_model, "predict_proba"):
-            proba   = _model.predict_proba(X)[0]
-            classes = list(_model.classes_)
-            idx     = classes.index(1) if 1 in classes else -1
-            risk    = float(proba[idx]) if idx >= 0 else 0.0
+        X = _vectorizer.transform([text]).astype(np.float32)
+        
+        if _onnx_session is not None:
+            input_name = _onnx_session.get_inputs()[0].name
+            label_name = _onnx_session.get_outputs()[0].name
+            proba_name = _onnx_session.get_outputs()[1].name
+            
+            X_dense = X.toarray()
+            res = _onnx_session.run([label_name, proba_name], {input_name: X_dense})
+            proba_dict = res[1][0] 
+            risk = float(proba_dict.get(1, proba_dict.get('1', 0.0)))
         else:
-            risk = 1.0 if _model.predict(X)[0] == 1 else 0.0
+            if hasattr(_model, "predict_proba"):
+                proba   = _model.predict_proba(X)[0]
+                classes = list(_model.classes_)
+                idx     = classes.index(1) if 1 in classes else -1
+                risk    = float(proba[idx]) if idx >= 0 else 0.0
+            else:
+                risk = 1.0 if _model.predict(X)[0] == 1 else 0.0
     attack_type = _classify_v1(text)
     return risk, attack_type, risk, {attack_type: risk}
 
