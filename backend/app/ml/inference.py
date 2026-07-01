@@ -27,22 +27,14 @@ logger = logging.getLogger(__name__)
 
 PROJECT_ROOT     = Path(__file__).parent.parent.parent
 DATA_DIR         = PROJECT_ROOT / "data"
-MODEL_V2_PATH    = DATA_DIR / "model_v2.pkl"
-VEC_V2_PATH      = DATA_DIR / "vectorizer_v2.pkl"
-SEC_FEAT_V2_PATH = DATA_DIR / "sec_features_v2.pkl"
-LE_V2_PATH       = DATA_DIR / "label_encoder_v2.pkl"
-MODEL_PATH       = DATA_DIR / "model.pkl"
-VECTORIZER_PATH  = DATA_DIR / "vectorizer.pkl"
-TRAINING_DATA_PATH = DATA_DIR / (
-    "ml_training_data_v2.csv"
-    if (DATA_DIR / "ml_training_data_v2.csv").exists()
-    else "ml_training_data.csv"
-)
-FEEDBACK_LOG_PATH = DATA_DIR / "ml_feedback.json"
-PRED_LOG_PATH     = DATA_DIR / "predictions_log.jsonl"
-EVAL_REPORT_PATH  = DATA_DIR / "evaluation_report.json"   # ← جديد
-RF_ONNX_PATH      = DATA_DIR / "rf_model.onnx"
-
+MODELS_DIR          = PROJECT_ROOT / "models"
+LGBM_ONNX_PATH      = MODELS_DIR / "model_lightgbm.onnx"
+VEC_PATH            = MODELS_DIR / "vectorizer_lightgbm.pkl"
+SEC_FEAT_PATH       = MODELS_DIR / "preprocessor_lightgbm.pkl"
+LE_PATH             = MODELS_DIR / "label_encoder_lightgbm.pkl"
+FEEDBACK_LOG_PATH   = DATA_DIR / "ml_feedback.json"
+PRED_LOG_PATH       = DATA_DIR / "predictions_log.jsonl"
+EVAL_REPORT_PATH    = DATA_DIR / "evaluation_report.json"
 RETRAIN_INTERVAL  = int(os.getenv("ML_RETRAIN_INTERVAL", "3600"))
 CACHE_SIZE        = int(os.getenv("ML_CACHE_SIZE", "1024"))
 CACHE_TTL         = int(os.getenv("ML_CACHE_TTL", "300"))
@@ -62,16 +54,15 @@ _FAST_SUSPICIOUS_REGEX = re.compile(
 
 SEVERITY_MAP = {
     "log4shell": "critical", "command_injection": "critical",
-    "sql_injection": "critical", "ssrf": "high", "xxe": "high", "ssti": "critical",
+    "sql_injection": "critical", "sqli": "critical", "ssrf": "high", "xxe": "high", "ssti": "critical",
     "xss": "high", "path_traversal": "high", "csrf": "high",
     "scanner": "low", "rate_limit": "low",
     "brute_force": "medium", "normal": "none", "unknown": "none",
 }
 
-_model = None; _vectorizer = None; _sec_feat = None; _label_enc = None; _onnx_session = None
-_model_version = "v1"; _model_lock = threading.RLock()
-MODEL_LOADED = False; _using_v2 = False
-
+_vectorizer = None; _sec_feat = None; _label_enc = None; _onnx_session = None
+_model_version = "v3-lightgbm"; _model_lock = threading.RLock()
+MODEL_LOADED = False
 redis_url = os.getenv("REDIS_URL", "")
 _use_redis = False
 _redis_client = None
@@ -250,286 +241,34 @@ def _log_prediction(text_hash, confidence, attack_type, severity, action, model_
 
 
 # ── Model loading (unchanged) ──────────────────────────────────
-def _try_load_v2():
-    global _model, _vectorizer, _sec_feat, _label_enc, MODEL_LOADED, _using_v2, _model_version
-    if all(p.exists() for p in [MODEL_V2_PATH, VEC_V2_PATH, SEC_FEAT_V2_PATH, LE_V2_PATH]):
-        try:
-            sys.path.insert(0, str(PROJECT_ROOT))
-            with _model_lock:
-                _model      = joblib.load(str(MODEL_V2_PATH))
-                _vectorizer = joblib.load(str(VEC_V2_PATH))
-                _sec_feat   = joblib.load(str(SEC_FEAT_V2_PATH))
-                _label_enc  = joblib.load(str(LE_V2_PATH))
-                MODEL_LOADED = True
-                _using_v2    = True
-                _model_version = "v2.0"
-            logger.info("[ML] v2 multi-class model loaded")
-            return True
-        except Exception as e:
-            logger.warning(f"[ML] v2 load failed: {e}")
-    return False
-
-
-def _try_load_v1():
-    global _model, _vectorizer, MODEL_LOADED, _using_v2, _model_version
-    try:
-        with _model_lock:
-            _model      = joblib.load(str(MODEL_PATH))
-            _vectorizer = joblib.load(str(VECTORIZER_PATH))
-            MODEL_LOADED = True
-            _using_v2    = False
-            _model_version = "v1.0"
-        logger.info("[ML] v1 fallback model loaded")
-        return True
-    except Exception:
-        return False
-
-def _try_load_onnx():
-    global _onnx_session, _vectorizer, MODEL_LOADED, _using_v2, _model_version
-    if RF_ONNX_PATH.exists() and VECTORIZER_PATH.exists():
+def _load_onnx():
+    global _onnx_session, _vectorizer, _sec_feat, _label_enc, MODEL_LOADED, _model_version
+    if all(p.exists() for p in [LGBM_ONNX_PATH, VEC_PATH, SEC_FEAT_PATH, LE_PATH]):
         try:
             import onnxruntime as ort
+            sys.path.insert(0, str(PROJECT_ROOT))
             with _model_lock:
-                _onnx_session = ort.InferenceSession(str(RF_ONNX_PATH), providers=["CPUExecutionProvider"])
-                _vectorizer = joblib.load(str(VECTORIZER_PATH))
+                _onnx_session = ort.InferenceSession(str(LGBM_ONNX_PATH), providers=["CPUExecutionProvider"])
+                _vectorizer = joblib.load(str(VEC_PATH))
+                _sec_feat = joblib.load(str(SEC_FEAT_PATH))
+                _label_enc = joblib.load(str(LE_PATH))
                 MODEL_LOADED = True
-                _using_v2 = False
-                _model_version = "v1.0-onnx"
-            logger.info("[ML] ONNX model loaded")
+                _model_version = "v3.0-lightgbm-onnx"
+            logger.info("[ML] LightGBM ONNX model loaded successfully")
             return True
         except Exception as e:
-            logger.warning(f"[ML] ONNX load failed: {e}")
+            logger.error(f"[ML] LightGBM ONNX load failed: {e}")
+    else:
+        logger.error(f"[ML] Missing LightGBM model files in {MODELS_DIR}")
     return False
 
-
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# ✅ IMPROVED _retrain_v1 — Full Evaluation + SMOTE + Val Set
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-def _retrain_v1():
-    """
-    Train v1 model with:
-    - Honest train/val/test split (random_state=None)
-    - Cross-validation for realistic estimate
-    - Full evaluation: Accuracy, F1, Precision, Recall, ROC-AUC, Confusion Matrix
-    - Separate validation set check for generalization gap
-    - Results saved to data/evaluation_report.json
-    """
-    global _model, _vectorizer, MODEL_LOADED, _using_v2, _model_version
-
-    from sklearn.ensemble import RandomForestClassifier
-    from sklearn.feature_extraction.text import TfidfVectorizer
-    from sklearn.model_selection import train_test_split
-    from sklearn.metrics import (
-        accuracy_score, f1_score, precision_score, recall_score,
-        roc_auc_score, classification_report, confusion_matrix,
-    )
-    from sklearn.preprocessing import LabelEncoder
-
-    try:
-        # ── 1. Load data ───────────────────────────────────────
-        data = pd.read_csv(str(TRAINING_DATA_PATH))
-        if "attack_type" in data.columns:
-            le = LabelEncoder()
-            y  = le.fit_transform(data["attack_type"])
-            class_names = list(le.classes_)
-            is_multiclass = True
-        else:
-            y = data["label"].values if "label" in data.columns else (
-                data["attack_type"] != "normal"
-            ).astype(int).values
-            class_names = ["normal", "attack"]
-            is_multiclass = False
-
-        X_text = data["text"].values
-        logger.info(f"[ML] Dataset: {len(X_text):,} samples, {len(set(y))} classes")
-
-        # ── 2. Split: Train / Val / Test (stratified, fixed seed) ──
-        X_tv, X_test, y_tv, y_test = train_test_split(
-            X_text, y, test_size=0.20, random_state=42, stratify=y,
-        )
-        X_train, X_val, y_train, y_val = train_test_split(
-            X_tv, y_tv, test_size=0.15, random_state=42, stratify=y_tv,
-        )
-        logger.info(
-            f"[ML] Split — Train:{len(y_train):,}  Val:{len(y_val):,}  Test:{len(y_test):,}"
-        )
-
-        # ── 3. Vectorize (fit on train only!) ─────────────────
-        vec = TfidfVectorizer(
-            ngram_range=(1, 3),
-            max_features=1000,       # <-- تم التعديل: تقليل الميزات إلى 1000 لمنع الموديل من حفظ الكلمات النادرة
-            lowercase=True,
-            strip_accents="unicode",
-            sublinear_tf=True,
-            min_df=2,
-        )
-        X_train_vec = vec.fit_transform(X_train)
-        X_val_vec   = vec.transform(X_val)
-        X_test_vec  = vec.transform(X_test)
-
-        # ── 4. Train ───────────────────────────────────────────
-        clf = RandomForestClassifier(
-            n_estimators=200,
-            max_depth=10,            # <-- تم التعديل: تقييد عمق الشجرة بـ 10 لمنع الـ Overfitting
-            min_samples_leaf=10,     # <-- تم التعديل: إجبار الموديل على التعميم برفع الحد الأدنى للعينات في الأوراق
-            class_weight="balanced",
-            random_state=42,
-            n_jobs=-1,
-        )
-        clf.fit(X_train_vec, y_train)
-
-        # ── 5. Evaluate on Validation set ──────────────────────
-        y_val_pred = clf.predict(X_val_vec)
-        val_acc    = accuracy_score(y_val, y_val_pred)
-        val_f1     = f1_score(y_val, y_val_pred, average="macro", zero_division=0)
-        logger.info(f"[ML] Val — Acc: {val_acc*100:.2f}%  F1(macro): {val_f1*100:.2f}%")
-
-        # ── 6. Final evaluation on Test set ───────────────────
-        y_test_pred = clf.predict(X_test_vec)
-        y_test_prob = clf.predict_proba(X_test_vec)
-
-        train_acc = accuracy_score(y_train, clf.predict(X_train_vec))
-        test_acc  = accuracy_score(y_test,  y_test_pred)
-        test_f1_macro    = f1_score(y_test, y_test_pred, average="macro",    zero_division=0)
-        test_f1_weighted = f1_score(y_test, y_test_pred, average="weighted", zero_division=0)
-        test_precision   = precision_score(y_test, y_test_pred, average="macro", zero_division=0)
-        test_recall      = recall_score(y_test, y_test_pred, average="macro",    zero_division=0)
-
-        overfitting_gap = train_acc - test_acc
-
-        try:
-            if is_multiclass:
-                roc_auc = roc_auc_score(
-                    y_test, y_test_prob, multi_class="ovr", average="macro"
-                )
-            else:
-                roc_auc = roc_auc_score(y_test, y_test_prob[:, 1])
-        except Exception:
-            roc_auc = None
-
-        cm = confusion_matrix(y_test, y_test_pred).tolist()
-
-        total_fp = total_fn = 0
-        cm_np = np.array(cm)
-        for i in range(len(class_names)):
-            tp = cm_np[i, i]
-            total_fp += int(cm_np[:, i].sum() - tp)
-            total_fn += int(cm_np[i, :].sum() - tp)
-
-        per_class_str = classification_report(
-            y_test, y_test_pred,
-            target_names=class_names,
-            zero_division=0,
-            output_dict=True,
-        )
-
-        # ── 7. Log everything ──────────────────────────────────
-        logger.info(
-            f"[ML] Test — Acc:{test_acc*100:.2f}%  "
-            f"F1:{test_f1_macro*100:.2f}%  "
-            f"Prec:{test_precision*100:.2f}%  "
-            f"Recall:{test_recall*100:.2f}%  "
-            f"ROC-AUC:{roc_auc*100:.2f}%" if roc_auc else
-            f"[ML] Test — Acc:{test_acc*100:.2f}%  "
-            f"F1:{test_f1_macro*100:.2f}%"
-        )
-        logger.info(
-            f"[ML] Overfitting gap: {overfitting_gap*100:.2f}%  "
-            f"FP:{total_fp}  FN:{total_fn}"
-        )
-
-        # ── 8. Save evaluation report ─────────────────────────
-        metrics = {
-            "train_accuracy":    round(train_acc, 4),
-            "val_accuracy":      round(val_acc, 4),
-            "test_accuracy":     round(test_acc, 4),
-            "f1_macro":          round(test_f1_macro, 4),
-            "f1_weighted":       round(test_f1_weighted, 4),
-            "precision_macro":   round(test_precision, 4),
-            "recall_macro":      round(test_recall, 4),
-            "roc_auc_macro":     round(roc_auc, 4) if roc_auc else None,
-            "overfitting_gap":   round(overfitting_gap, 4),
-            "total_false_positives": total_fp,
-            "total_false_negatives": total_fn,
-            "confusion_matrix":  cm,
-            "class_names":       class_names,
-            "per_class_report":  per_class_str,
-            "train_samples":     int(len(y_train)),
-            "val_samples":       int(len(y_val)),
-            "test_samples":      int(len(y_test)),
-            "trained_at":        time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-        }
-
-        # ── 9. Validation set check (generalization gap) ──────
-        val_path = DATA_DIR / "ml_validation_data.csv"
-        if val_path.exists():
-            try:
-                val_data = pd.read_csv(str(val_path))
-                X_val_ext = vec.transform(val_data["text"])
-                y_val_ext_pred = clf.predict(X_val_ext)
-                val_ext_acc = accuracy_score(val_data["label"], y_val_ext_pred)
-                logger.info(f"[ML] Validation set Accuracy: {val_ext_acc*100:.2f}%")
-
-                gap = test_acc - val_ext_acc
-                if gap > 0.05:
-                    logger.warning(
-                        f"[ML] Generalization gap: {gap*100:.1f}% "
-                        f"— model may be overfitting"
-                    )
-                metrics["validation_accuracy"] = round(val_ext_acc, 4)
-                metrics["generalization_gap"] = round(gap, 4)
-            except Exception as e:
-                logger.warning(f"[ML] Validation set check failed: {e}")
-
-        DATA_DIR.mkdir(parents=True, exist_ok=True)
-        with open(EVAL_REPORT_PATH, "w", encoding="utf-8") as f:
-            json.dump(metrics, f, indent=2, ensure_ascii=False)
-        logger.info(f"[ML] Evaluation report saved -> {EVAL_REPORT_PATH}")
-
-        # ── 10. Register in ModelRegistry ─────────────────────
-        try:
-            from app.ml.model_registry import get_registry
-            registry = get_registry()
-            registry.register_model(str(MODEL_PATH), metrics, version="v1.0-auto")
-        except Exception as e:
-            logger.warning(f"[ML] Registry update failed: {e}")
-
-        # ── 11. Save model ─────────────────────────────────────
-        with _model_lock:
-            _model         = clf
-            _vectorizer    = vec
-            MODEL_LOADED   = True
-            _using_v2      = False
-            _model_version = "v1.0-auto"
-
-        joblib.dump(clf, str(MODEL_PATH))
-        joblib.dump(vec, str(VECTORIZER_PATH))
-        logger.info("[ML] v1 model saved")
-
-    except Exception as e:
-        logger.error(f"[ML] retrain failed: {e}", exc_info=True)
-
-
-# ── Inference logic (unchanged from original) ─────────────────
 def _load_or_train():
-    if _try_load_v2():
-        return
-    if _try_load_onnx():
-        return
-    if _try_load_v1():
-        return
-    logger.warning("[ML] No model — training v1 from scratch...")
-    _retrain_v1()
-
+    if not _load_onnx():
+        logger.critical("[ML] No model could be loaded! Traffic will be allowed.")
 
 def _auto_retrain_loop():
-    while True:
-        time.sleep(RETRAIN_INTERVAL)
-        logger.info("[ML] Auto-retraining...")
-        if not _try_load_v2() and not _try_load_onnx():
-            _retrain_v1()
-        _cache.clear()
-
+    # Retraining is deprecated in favor of offline external pipelines
+    pass
 
 _class_thresholds = {}
 
@@ -543,16 +282,30 @@ def _load_thresholds():
         except Exception as e:
             logger.error(f"[ML] Failed to load thresholds: {e}")
 
-def _compute_v2(text):
+def _compute_ml(text):
     from scipy.sparse import hstack
     if not _class_thresholds:
         _load_thresholds()
         
     with _model_lock:
-        Xf    = hstack([_vectorizer.transform([text]), _sec_feat.transform([text])])
-        proba = _model.predict_proba(Xf)[0]
+        Xt = _vectorizer.transform([text])
+        Xs = _sec_feat.transform([text])
+        X = hstack([Xt, Xs]).astype(np.float32)
+        
+        if hasattr(X, "toarray"):
+            X = X.toarray()
+            
+        input_name = _onnx_session.get_inputs()[0].name
+        label_name = _onnx_session.get_outputs()[0].name
+        proba_name = _onnx_session.get_outputs()[1].name
+        
+        res = _onnx_session.run([label_name, proba_name], {input_name: X})
+        proba_list = res[1] # List of dicts from LightGBM onnxmltools
         
     classes = list(_label_enc.classes_)
+    proba_dict = proba_list[0]
+    # Ensure proba array matches classes order (keys are integer indices)
+    proba = np.array([proba_dict.get(i, 0.0) for i in range(len(classes))])
     
     passed = []
     for c_idx, cls in enumerate(classes):
@@ -579,64 +332,8 @@ def _compute_v2(text):
     except ValueError:
         risk_score = confidence
 
-    class_probs  = {cls: round(float(p), 4) for cls, p in zip(classes, proba)}
+    class_probs  = {str(cls): round(float(p), 4) for cls, p in zip(classes, proba)}
     return risk_score, attack_type, confidence, class_probs
-
-
-def _compute_v1(text):
-    with _model_lock:
-        X = _vectorizer.transform([text]).astype(np.float32)
-
-        if _onnx_session is not None:
-            # ── ONNX path ──────────────────────────────────────
-            input_name   = _onnx_session.get_inputs()[0].name
-            label_name   = _onnx_session.get_outputs()[0].name
-            proba_name   = _onnx_session.get_outputs()[1].name
-            X_dense      = X.toarray()
-            res          = _onnx_session.run([label_name, proba_name], {input_name: X_dense})
-            proba_output = res[1][0]
-            is_multiclass = len(proba_output) > 2
-
-            if isinstance(proba_output, dict):
-                if is_multiclass:
-                    normal_key = min(proba_output.keys())
-                    risk = 1.0 - float(proba_output.get(normal_key, 0.0))
-                else:
-                    risk = float(proba_output.get(1, proba_output.get('1', 0.0)))
-            else:
-                proba_arr = list(proba_output)
-                if is_multiclass:
-                    risk = 1.0 - float(proba_arr[0]) if proba_arr else 0.5
-                else:
-                    risk = float(proba_arr[1]) if len(proba_arr) > 1 else float(proba_arr[0])
-        else:
-            # ── sklearn RF path ────────────────────────────────
-            classes = list(_model.classes_) if hasattr(_model, "classes_") else [0, 1]
-            is_multiclass = len(classes) > 2
-
-            if hasattr(_model, "predict_proba"):
-                proba = _model.predict_proba(X)[0]
-                if is_multiclass:
-                    try:
-                        normal_idx = next(
-                            i for i, c in enumerate(classes)
-                            if str(c).lower() in ("normal", "0", "benign")
-                        )
-                    except StopIteration:
-                        normal_idx = 0
-                    risk = 1.0 - float(proba[normal_idx]) if normal_idx < len(proba) else 0.0
-                else:
-                    try:
-                        attack_idx = classes.index(1)
-                    except ValueError:
-                        attack_idx = 1
-                    risk = float(proba[attack_idx]) if attack_idx < len(proba) else 0.5
-            else:
-                pred = _model.predict(X)[0]
-                risk = 0.0 if str(pred).lower() in ("0", "normal", "benign") else 1.0
-
-    attack_type = _classify_v1(text)
-    return risk, attack_type, risk, {attack_type: risk}
 
 
 
@@ -823,18 +520,14 @@ def ml_analyze(text, async_feedback=True, debug=False):
             explanation=explanation, top_features=top_features
         )
     try:
-        if _using_v2:
-            risk_score, attack_type, confidence, class_probs = _compute_v2(text_str)
-            if attack_type != "normal":
-                # Strict ROC threshold passed -> Override standard risk thresholds
-                action = "block"
-                # Ensure risk_score visually reflects a block
-                risk_score = max(risk_score, THRESHOLD_BLOCK)
-            else:
-                action = _make_decision(risk_score)
+        risk_score, attack_type, confidence, class_probs = _compute_ml(text_str)
+        if attack_type != "normal":
+            # Strict ROC threshold passed -> Override standard risk thresholds
+            action = "block"
+            # Ensure risk_score visually reflects a block
+            risk_score = max(risk_score, THRESHOLD_BLOCK)
         else:
-            risk_score, attack_type, confidence, class_probs = _compute_v1(text_str)
-            action   = _make_decision(risk_score)
+            action = _make_decision(risk_score)
 
         severity = SEVERITY_MAP.get(attack_type, "medium")
 
@@ -901,15 +594,13 @@ def _ensure_ml_ready():
         if _ml_initialized:
             return
         _load_or_train()
-        if MODEL_LOADED and not _using_v2:
+        if MODEL_LOADED:
             try:
-                s = _compute_v1("startup check")[0]
+                s = _compute_ml("startup check")[0]
                 if not (0.0 <= s <= 1.0):
-                    logger.critical("[ML] out-of-range — retraining...")
-                    _retrain_v1()
+                    logger.critical("[ML] out-of-range")
             except Exception as e:
-                logger.critical(f"[ML] startup failed: {e} — retraining...")
-                _retrain_v1()
+                logger.critical(f"[ML] startup failed: {e}")
         _ml_initialized = True
         _retrain_thread = threading.Thread(target=_auto_retrain_loop, daemon=True)
         _retrain_thread.start()
@@ -947,7 +638,7 @@ def get_ml_stats():
     return {
         "model_loaded":    MODEL_LOADED,
         "model_version":   _model_version,
-        "using_v2":        _using_v2,
+        "using_v2":        False,
         "cache":           _cache.stats,
         "thresholds":      {"block": THRESHOLD_BLOCK, "monitor": THRESHOLD_MONITOR},
         "feedback_log":    str(FEEDBACK_LOG_PATH),

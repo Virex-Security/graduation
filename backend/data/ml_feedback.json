@@ -6328,5 +6328,35 @@
     "attack_type": "path_traversal",
     "reviewed": false,
     "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-07-01T02:21:04Z",
+    "text_hash": "e354c5f7f1634de2f970b0da2655adf5",
+    "text_snippet": "SELECT * FROM users WHERE id = '1' OR '1'='1'",
+    "risk_score": 1.0,
+    "decision": "block",
+    "attack_type": "sql_injection",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-07-01T02:21:17Z",
+    "text_hash": "e354c5f7f1634de2f970b0da2655adf5",
+    "text_snippet": "SELECT * FROM users WHERE id = '1' OR '1'='1'",
+    "risk_score": 1.0,
+    "decision": "block",
+    "attack_type": "sql_injection",
+    "reviewed": false,
+    "promoted_to_rule": false
+  },
+  {
+    "timestamp": "2026-07-01T02:23:06Z",
+    "text_hash": "e354c5f7f1634de2f970b0da2655adf5",
+    "text_snippet": "SELECT * FROM users WHERE id = '1' OR '1'='1'",
+    "risk_score": 0.9999196858116193,
+    "decision": "block",
+    "attack_type": "sqli",
+    "reviewed": false,
+    "promoted_to_rule": false
   }
 ]

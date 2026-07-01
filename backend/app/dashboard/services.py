@@ -499,7 +499,7 @@ class SecurityDashboard:
 
         metrics = {
             "status": "ok",
-            "model_type": "Random Forest (100 trees, max_depth=20)",
+            "model_type": "LightGBM ONNX",
             "vectorizer_type": "TF-IDF (ngrams 1-2, 5000 features)",
             "dataset_size": test_size,
             "test_size": test_size,

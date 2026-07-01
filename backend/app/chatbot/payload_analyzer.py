@@ -257,8 +257,9 @@ def _explain_attack_en(attack: str) -> str:
             "to discover vulnerabilities, endpoints, and configurations."
         ),
         "ML Anomaly Detection": (
-            "How it works: The Random Forest model flagged this request as anomalous "
-            "based on TF-IDF features that deviate from normal traffic patterns."
+            "How it works: The LightGBM model flagged this request as anomalous "
+            "based on structural analysis and feature extraction, which detected "
+            "patterns commonly associated with exploitation attempts."
         ),
     }
     return explanations.get(attack, "")
@@ -303,8 +304,9 @@ def _explain_attack_ar(attack: str) -> str:
             "عشان تكتشف الثغرات ونقاط الضعف في النظام."
         ),
         "ML Anomaly Detection": (
-            "إزاي بيشتغل: نموذج Random Forest صنف الطلب ده على أنه غير طبيعي "
-            "بناءً على خصائص (TF-IDF) مختلفة عن نمط الحركة العادي."
+            "إزاي بيشتغل: نموذج LightGBM صنف الطلب ده على أنه غير طبيعي "
+            "بناءً على تحليل التركيب واستخراج الخصائص اللي اكتشفت "
+            "أنماط مرتبطة بمحاولات الاختراق."
         ),
     }
     return explanations.get(attack, "")
