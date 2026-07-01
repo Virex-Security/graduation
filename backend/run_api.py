@@ -22,6 +22,17 @@ logger = logging.getLogger(__name__)
 
 app = create_api_app()
 
+# ── Optional MLOps Scheduler auto-start ───────────────────────────────────────
+# Set MLOPS_AUTOSTART=true in .env to enable. Non-blocking daemon thread.
+# API startup is never delayed — start() returns immediately.
+if os.getenv("MLOPS_AUTOSTART", "false").lower() in ("1", "true", "yes"):
+    try:
+        from mlops import RetrainScheduler
+        RetrainScheduler().start()
+        logger.info("🔄 MLOps retraining scheduler started (daemon mode).")
+    except Exception as _mlops_err:
+        logger.warning(f"⚠️  MLOps scheduler failed to start: {_mlops_err}")
+
 if __name__ == '__main__':
     logger.info("🛡️  Virex API Security System starting...")
     api_port = int(os.getenv("API_PORT", 5000))

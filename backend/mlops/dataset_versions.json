@@ -1,0 +1,20 @@
+{
+  "current_version": 1,
+  "versions": [
+    {
+      "version": 1,
+      "timestamp": "2026-06-28T23:11:17Z",
+      "train_hash": "baseline",
+      "row_count": 142323,
+      "original_rows": 142323,
+      "feedback_count": 0,
+      "invalid_dropped": 0,
+      "duplicate_dropped": 0,
+      "source_files": [
+        "train.csv"
+      ],
+      "notes": "Initial baseline — original training dataset (train.csv, validation.csv, test.csv)"
+    }
+  ],
+  "_note": "Auto-managed by dataset_merger.py. Increments on every successful dataset merge."
+}

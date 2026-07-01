@@ -21,6 +21,9 @@ sqlalchemy
 psycopg2-binary
 
 # --- HTTP Requests ---
+Flask
+Flask-Cors
+PyJWT
 requests
 
 # --- Utilities ---

@@ -1,0 +1,18 @@
+{
+  "active_version": "model_v1",
+  "promoted_at": "2026-06-28T23:11:17Z",
+  "promoted_by": "initial_deployment",
+  "dataset_version": 1,
+  "metrics": {
+    "version": "model_v1",
+    "accuracy": 0.9987,
+    "precision_macro": 0.9996,
+    "recall_macro": 0.9991,
+    "f1_macro": 0.9993,
+    "roc_auc": 1.0,
+    "false_positive_rate": 0.0013,
+    "false_negative_rate": 0.0009,
+    "test_samples": 7950
+  },
+  "_note": "Auto-managed by champion_challenger.py. Do not edit manually."
+}

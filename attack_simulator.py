@@ -236,7 +236,7 @@ class RealAttackSimulator:
             else:
                 r = self._request("POST", url, context, json_data={param: payload, "password": "test"})
             
-            code = r.status_code if r else None
+            code = r.status_code if r is not None else None
             blocked = code in [403, 429] if code else False
             
             print(f"    [{i+1}/{num_attacks}] {method} {endpoint}?{param}={payload[:30]}... -> {code} {'BLOCKED' if blocked else ''}")
@@ -258,7 +258,7 @@ class RealAttackSimulator:
             body = {field: payload, "email": "test@test.com"}
             r = self._request("POST", url, context, json_data=body)
             
-            code = r.status_code if r else None
+            code = r.status_code if r is not None else None
             blocked = code in [403, 429] if code else False
             
             print(f"    [{i+1}/{num_attacks}] POST {endpoint} {field}={payload[:30]}... -> {code} {'BLOCKED' if blocked else ''}")
@@ -280,7 +280,7 @@ class RealAttackSimulator:
             url = f"{self.api_url}{endpoint}"
             r = self._request(method, url, context, json_data=payload)
             
-            code = r.status_code if r else None
+            code = r.status_code if r is not None else None
             blocked = code in [403, 429] if code else False
             
             print(f"    [{i+1}/{num_attacks}] {method} {endpoint} (no CSRF token) -> {code} {'BLOCKED' if blocked else ''}")
@@ -296,15 +296,16 @@ class RealAttackSimulator:
             payload = random.choice(payloads)
             context = self._client_context("attacker")
             
+            payload_path = payload if payload.startswith("/") else f"/{payload}"
             vector = random.choice([
                 ("GET", f"{self.api_url}/api/data", {"file": payload}),
-                ("GET", f"{self.api_url}{payload}", None),
+                ("GET", f"{self.api_url}{payload_path}", None),
             ])
             
             method, url, params = vector
             r = self._request(method, url, context, params=params)
             
-            code = r.status_code if r else None
+            code = r.status_code if r is not None else None
             blocked = code in [403, 404, 429] if code else False
             
             print(f"    [{i+1}/{num_attacks}] {method} {payload[:40]}... -> {code} {'BLOCKED' if blocked else ''}")
@@ -326,7 +327,7 @@ class RealAttackSimulator:
             r = self._request("POST", f"{self.api_url}/api/login", context,
                             json_data={"username": uname, "password": passwd})
             
-            code = r.status_code if r else None
+            code = r.status_code if r is not None else None
             blocked = code in [403, 429] if code else False
             
             if i % 5 == 0:
@@ -344,9 +345,10 @@ class RealAttackSimulator:
         for i in range(num_scans):
             path = random.choice(paths)
             base = random.choice([self.dashboard_url, self.api_url])
-            r = self._request("GET", f"{base}{path}", context)
+            path_clean = path if path.startswith("/") else f"/{path}"
+            r = self._request("GET", f"{base}{path_clean}", context)
             
-            code = r.status_code if r else None
+            code = r.status_code if r is not None else None
             blocked = code in [403, 404, 429] if code else False
             
             print(f"    [{i+1}/{num_scans}] {path} -> {code} {'BLOCKED' if blocked else ''}")
@@ -369,7 +371,7 @@ class RealAttackSimulator:
             method, url, data = op
             r = self._request(method, url, context, params=data if method == "GET" else None, json_data=data if method == "POST" else None)
             
-            code = r.status_code if r else None
+            code = r.status_code if r is not None else None
             
             if i % 5 == 0:
                 print(f"    [{i+1}/{num_requests}] {method} -> {code}")
