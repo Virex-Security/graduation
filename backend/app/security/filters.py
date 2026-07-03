@@ -3,7 +3,7 @@ def is_trivial(req):
     Determine if a request is trivial (monitoring/health checks).
     Trivial requests are NEVER counted in any metric.
     """
-    path = req.path
+    path = req.headers.get("X-Original-URI", req.path).split('?')[0]
 
     # Health and status checks
     if path in ['/health', '/api/health', '/status', '/ping']:

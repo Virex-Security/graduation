@@ -127,6 +127,8 @@ def create_api_app():
 
         global _total_requests_count, _normal_requests_count
         request.request_id = new_request_id()
+        actual_path = request.headers.get("X-Original-URI", request.path).split('?')[0]
+        actual_method = request.headers.get("X-Original-Method", request.method)
 
         # ══════════════════════════════════════════════════════
         # STEP 0: Skip trivial noise (health probes, static
@@ -139,7 +141,7 @@ def create_api_app():
             
         EXCLUDED_PATHS = ['/static/', '/favicon.ico', '/assets/', '/dist/', '/api/health']
         for path in EXCLUDED_PATHS:
-            if request.path.startswith(path):
+            if actual_path.startswith(path):
                 return # اخرج من الفحص فوراً ومتحسبش أي حاجة
 
         # ══════════════════════════════════════════════════════
@@ -155,9 +157,6 @@ def create_api_app():
 
         request.is_attack = False
         client_ip = _get_real_ip()
-
-        actual_path = request.headers.get("X-Original-URI", request.path).split('?')[0]
-        actual_method = request.headers.get("X-Original-Method", request.method)
 
         # ══════════════════════════════════════════════════════
         # STEP 2 — WHITE-LISTED LOCAL ROUTE BYPASS
