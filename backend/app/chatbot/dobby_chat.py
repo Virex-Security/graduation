@@ -769,12 +769,12 @@ class SecurityChatbot:
             return random.choice([
                 "**عن Virex 🛡️:**\nنظام لحماية التطبيقات (WAF) معتمد على الذكاء الاصطناعي لاكتشاف وصد الهجمات في الوقت الفعلي. تم تطويره كمشروع تخرج علشان يكون درع قوي ضد التهديدات السيبرانية!",
                 "**Virex Features:**\n• WAF بيحمي بالـ ML + Regex\n• SIEM Dashboard لتحليل الحوادث\n• كشف 6 أنواع هجمات\n• RBAC للتحكم في الصلاحيات\n• Attack Simulator للاختبار",
-                "**Virex Architecture:**\n• Frontend: Dashboard (Flask + Bootstrap)\n• Backend: Flask API (port 5000)\n• ML: Random Forest + TF-IDF\n• DB: SQLite\n• AI Assistant: Dobby 🛡️",
+                "**Virex Architecture:**\n• Frontend: Dashboard (Flask + Bootstrap)\n• Backend: Flask API (port 5000)\n• ML: LightGBM ONNX + TF-IDF\n• DB: SQLite\n• AI Assistant: Dobby 🛡️",
             ])
         return random.choice([
             "**About Virex 🛡️:**\nAn AI-powered Web Application Firewall (WAF) designed to detect and block threats in real-time. Created as a graduation project to be a robust cyber shield!",
             "**Virex Core Features:**\n• ML + Regex WAF Engine\n• SIEM Dashboard for live monitoring\n• 6 attack type detection\n• RBAC with 4 roles\n• Attack Simulator for testing",
-            "**Virex Tech Stack:**\n• Dashboard: Flask + Bootstrap (port 8070)\n• API: Flask + Gunicorn (port 5000)\n• ML Model: Random Forest + TF-IDF\n• Database: SQLite\n• Security Assistant: Dobby 🛡️",
+            "**Virex Tech Stack:**\n• Dashboard: Flask + Bootstrap (port 8070)\n• API: Flask + Gunicorn (port 5000)\n• ML Model: LightGBM ONNX + TF-IDF\n• Database: SQLite\n• Security Assistant: Dobby 🛡️",
         ])
 
     def _r_dashboard_help(self, lang):

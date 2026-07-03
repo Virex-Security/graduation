@@ -1,0 +1,31 @@
+{
+  "generated_at": "2026-07-01 02:33:35",
+  "total_payloads": 184026,
+  "duplicates_skipped": 35179,
+  "categories": {
+    "normal": 81310,
+    "sqli": 33926,
+    "xss": 11662,
+    "cmdi": 8689,
+    "path_traversal": 47258,
+    "xxe": 331,
+    "ssrf": 279,
+    "ssti": 529,
+    "log4shell": 42
+  },
+  "datasets": {
+    "csic_2010": {
+      "files": 3,
+      "payloads": 123042
+    },
+    "payloads_all_the_things": {
+      "files": 67,
+      "payloads": 30022
+    },
+    "seclists": {
+      "files": 62,
+      "payloads": 66157
+    }
+  },
+  "combined_csv_rows": 184026
+}

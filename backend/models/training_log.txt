@@ -1,0 +1,23 @@
+LightGBM Training Log
+=================================
+Training Duration: 2823.37 seconds
+Random Seed: 42
+
+Validation Metrics (Best Model)
+-------------------------------
+Validation Accuracy: 0.9230
+Validation Macro Precision: 0.9588
+Validation Macro Recall: 0.9670
+Validation Macro F1: 0.9614
+
+Best Optuna Parameters
+----------------------
+{'learning_rate': 0.11114989443094977, 'num_leaves': 22, 'max_depth': 12, 'min_child_samples': 85, 'n_estimators': 145, 'feature_fraction': 0.5909124836035503, 'bagging_fraction': 0.5917022549267169, 'lambda_l1': 5.472429642032198e-06, 'lambda_l2': 0.00052821153945323}
+Best Iteration: 143
+
+Cross Validation (5-Fold Stratified)
+------------------------------------
+Mean Accuracy: 0.9219 (± 0.0018)
+Mean Precision (Macro): 0.9581 (± 0.0011)
+Mean Recall (Macro): 0.9644 (± 0.0011)
+Mean F1-score (Macro): 0.9600 (± 0.0011)

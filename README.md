@@ -6,7 +6,7 @@ Virex is an AI-powered Web Application Firewall (WAF) and Security Information a
 
 - **Traffic Interception & Proxying**: Acts as an application-layer firewall, intercepting traffic to inspect payloads and headers before forwarding to the target application.
 - **Rule-Based WAF**: Detects common vulnerabilities such as SQL Injection (SQLi), Cross-Site Scripting (XSS), Path Traversal, Command Injection, Server-Side Request Forgery (SSRF), and Cross-Site Request Forgery (CSRF).
-- **Machine Learning Engine**: Utilizes a Random Forest classifier and TF-IDF vectorization (via scikit-learn) to detect zero-day attacks and anomalies that bypass static regex rules.
+- **Machine Learning Engine**: Utilizes a LightGBM classifier exported to ONNX Runtime and TF-IDF vectorization (via scikit-learn) to detect zero-day attacks and anomalies that bypass static regex rules.
 - **Rate Limiting & Brute Force Protection**: Tracks request frequencies per IP address to automatically block distributed denial-of-service (DDoS) attempts and brute-force login attacks.
 - **Real-Time Analytics Dashboard**: Visualizes traffic trends, attack distributions, top attackers, and ML performance metrics using Chart.js.
 - **Incident Management**: Automatically groups related threat logs into actionable security incidents, allowing analysts to investigate, mitigate (e.g., block IP, rate limit), or close alerts.
@@ -29,7 +29,7 @@ The system operates on a dual-service architecture:
 ## Technology Stack
 
 - **Backend**: Python 3, Flask, SQLAlchemy, JWT (PyJWT), Werkzeug
-- **Machine Learning**: scikit-learn (RandomForestClassifier, TfidfVectorizer), pandas, numpy
+- **Machine Learning**: lightgbm, onnxruntime, scikit-learn (TfidfVectorizer), pandas, numpy
 - **Frontend**: HTML5, Vanilla CSS, JavaScript, Chart.js
 - **Database**: PostgreSQL (typically hosted via Supabase)
 - **Infrastructure**: Designed for Docker containerization with separate services for the API and Dashboard.

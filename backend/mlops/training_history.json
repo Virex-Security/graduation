@@ -1,0 +1,25 @@
+{
+  "events": [
+    {
+      "event_id": 1,
+      "model_version": "model_v1",
+      "dataset_version": 1,
+      "timestamp": "2026-06-28T23:11:17Z",
+      "trigger": "initial",
+      "metrics": {
+        "accuracy": 0.9987,
+        "precision_macro": 0.9996,
+        "recall_macro": 0.9991,
+        "f1_macro": 0.9993,
+        "roc_auc": 1.0,
+        "false_positive_rate": 0.0013,
+        "false_negative_rate": 0.0009
+      },
+      "deployment_decision": "promoted",
+      "drift_psi": null,
+      "feedback_count": 0,
+      "training_duration_s": 2823
+    }
+  ],
+  "_note": "Auto-managed by retrain_scheduler.py. One entry per retraining event."
+}

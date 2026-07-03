@@ -1,0 +1,44 @@
+{
+  "before": {
+    "normal": 81310,
+    "sqli": 33754,
+    "xss": 11053,
+    "command_injection": 8660,
+    "path_traversal": 47196,
+    "xxe": 323,
+    "ssrf": 266,
+    "ssti": 511,
+    "log4shell": 33
+  },
+  "after": {
+    "normal": 81310,
+    "sqli": 33754,
+    "xss": 11053,
+    "command_injection": 10000,
+    "path_traversal": 47196,
+    "xxe": 5000,
+    "ssrf": 5000,
+    "ssti": 5000,
+    "log4shell": 5000
+  },
+  "augmented": {
+    "normal": 0,
+    "sqli": 0,
+    "xss": 0,
+    "command_injection": 1340,
+    "path_traversal": 0,
+    "xxe": 4677,
+    "ssrf": 4734,
+    "ssti": 4489,
+    "log4shell": 4967
+  },
+  "duplicates_removed": 0,
+  "train_size": 142323,
+  "val_size": 30495,
+  "test_size": 30495,
+  "leakage": {
+    "train_val": 0,
+    "train_test": 0,
+    "val_test": 0
+  }
+}

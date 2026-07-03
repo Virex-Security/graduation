@@ -1,0 +1,56 @@
+{
+  "timestamp": "2026-07-01T13:44:02Z",
+  "window_hours": 24,
+  "baseline_total": 142323,
+  "current_total": 3,
+  "psi": 40.852513,
+  "kl_divergence": 23.025851,
+  "feature_drift_scores": {
+    "normal": 0.8164,
+    "sql_injection": 100000.0,
+    "xss": 0.2398,
+    "command_injection": 0.2274,
+    "path_traversal": 0.5498,
+    "log4shell": 0.1588,
+    "ssrf": 0.1588,
+    "xxe": 0.1588,
+    "ssti": 0.1588,
+    "brute_force": 0.0
+  },
+  "drift_detected": true,
+  "metrics_exceeded": [
+    "PSI=40.8525 >= 0.2",
+    "KL=23.0259 >= 0.5",
+    "MaxFeatZ=100000.0000 >= 2.0"
+  ],
+  "baseline_distribution": {
+    "normal": 0.39992130576224505,
+    "sql_injection": 0.0,
+    "xss": 0.054376313034435755,
+    "command_injection": 0.04918389859685363,
+    "path_traversal": 0.2321339488346929,
+    "log4shell": 0.024591949298426816,
+    "ssrf": 0.024591949298426816,
+    "xxe": 0.024591949298426816,
+    "ssti": 0.024591949298426816,
+    "brute_force": 0.0
+  },
+  "current_distribution": {
+    "normal": 0.0,
+    "sql_injection": 1.0,
+    "xss": 0.0,
+    "command_injection": 0.0,
+    "path_traversal": 0.0,
+    "log4shell": 0.0,
+    "ssrf": 0.0,
+    "xxe": 0.0,
+    "ssti": 0.0,
+    "brute_force": 0.0
+  },
+  "thresholds": {
+    "psi": 0.2,
+    "kl": 0.5,
+    "feat": 2.0
+  },
+  "notes": ""
+}
