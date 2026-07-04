@@ -608,17 +608,15 @@ class SimpleSecurityManager:
                             pass
                         logger.info(f"[ML-BLOCK] Simulated ML attack for demo: ip={ip}")
                         try:
-                            from app.api.persistence import append_user_attack, log_ml_detection
+                            from app.api.persistence import append_user_attack
                             user_key = getattr(request, "current_username", ip)
                             append_user_attack(
                                 user_key, 'SQL Injection', ip,
                                 request.path, request.method, "Critical",
                                 blocked=True,
-                                description="ML Detected: SQL Injection Anomaly - Request Blocked"
-                            )
-                            log_ml_detection(
-                                payload_str[:120], 0.99, "block",
-                                "HIGH_RISK_ML", ip, request.path
+                                description="ML Detected: SQL Injection Anomaly - Request Blocked",
+                                ml_detected=True, confidence=0.99, detection_type="ml",
+                                payload=payload_str[:120]
                             )
                         except Exception:
                             pass
@@ -638,7 +636,7 @@ class SimpleSecurityManager:
                             f"score={decision.risk_score:.2%}"
                         )
                         try:
-                            from app.api.persistence import append_user_attack, log_ml_detection
+                            from app.api.persistence import append_user_attack
                             user_key = getattr(request, "current_username", ip)
                             severity = calculate_severity(
                                 decision.attack_type,
@@ -650,11 +648,9 @@ class SimpleSecurityManager:
                             append_user_attack(
                                 user_key, real_type, ip,
                                 request.path, request.method, severity,
-                                blocked=True
-                            )
-                            log_ml_detection(
-                                text[:120], decision.risk_score, "block",
-                                decision.attack_type, ip, request.path
+                                blocked=True, description="ML detection",
+                                ml_detected=True, confidence=decision.risk_score, detection_type="ml",
+                                payload=text[:120]
                             )
                         except Exception:
                             pass
@@ -670,7 +666,7 @@ class SimpleSecurityManager:
                             f"score={decision.risk_score:.2%}"
                         )
                         try:
-                            from app.api.persistence import append_user_attack, log_ml_detection
+                            from app.api.persistence import append_user_attack
                             user_key = getattr(request, "current_username", ip)
                             severity = calculate_severity(
                                 decision.attack_type,
@@ -682,11 +678,9 @@ class SimpleSecurityManager:
                                     append_user_attack(
                                         user_key_async, decision_async.attack_type, ip_async,
                                         path_async, method_async, severity_async,
-                                        blocked=False
-                                    )
-                                    log_ml_detection(
-                                        text_async[:120], decision_async.risk_score, "monitor",
-                                        decision_async.attack_type, ip_async, path_async
+                                        blocked=False, description="ML monitor",
+                                        ml_detected=True, confidence=decision_async.risk_score, detection_type="ml",
+                                        payload=text_async[:120]
                                     )
                                 except Exception as e:
                                     logger.error(f"Async monitor log failed: {e}")

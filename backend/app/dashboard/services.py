@@ -435,11 +435,8 @@ class SecurityDashboard:
                 fn += 1
 
         # Calculate True Negatives (TN)
-        # TN = Total Traffic - (Attacks caught by ML) - (Attacks missed by ML) - (False Alarms by ML)
-        # But actually, Total Clean Traffic = total_live - (tp + fn)
-        # So TN = Total Clean Traffic - fp
-        total_attacks = tp + fn
-        total_clean = max(0, total_live - total_attacks)
+        # Total Clean Traffic is directly available from stats
+        total_clean = self.stats.get('normal_requests_count', 0)
         tn = max(0, total_clean - fp)
         
         # Adjust total_live if the logs exceed the stats counter (e.g. after a reset mismatch)
@@ -468,8 +465,9 @@ class SecurityDashboard:
             live_data_active = False
             confusion_matrix_data = {"tn": tn_base, "fp": fp_base, "fn": fn_base, "tp": tp_base}
         else:
-            print(f"[ML-METRICS] Computing metrics from {total_live} total requests...")
-            accuracy = round((tp + tn) / total_live * 100, 2)
+            print(f"[ML-METRICS] Computing metrics...")
+            ml_evaluated_total = tp + fp + tn + fn
+            accuracy = round((tp + tn) / ml_evaluated_total * 100, 2) if ml_evaluated_total > 0 else 0.0
             precision = round(tp / (tp + fp) * 100, 2) if tp + fp > 0 else 100.0
             recall = round(tp / (tp + fn) * 100, 2) if tp + fn > 0 else 100.0
             denom = precision + recall
@@ -738,6 +736,11 @@ class SecurityDashboard:
         for l in logs:
             if 'action' in l:
                 continue
+            
+            # Fix Issue B: Exclude regex blocks from ML metrics evaluation
+            if str(l.get('detection_type', '')).lower() == 'rule':
+                continue
+            
             attack_type = l.get('attack_type', l.get('type', ''))
             # We must KEEP False Positives (Clean requests flagged by ML) to compute FP
             # If it's literally just a Clean log that somehow got here, we'll keep it to compute TN.

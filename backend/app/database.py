@@ -1402,13 +1402,17 @@ def save_stats(stats_data=None, *args, **kwargs):
 
 def append_user_attack(user_key: str, attack_type: str, ip: str,
                        endpoint: str, method: str = "", severity: str = "High",
-                       blocked: bool = True, description: str = None) -> int | None:
+                       blocked: bool = True, description: str = None,
+                       ml_detected: bool = False, confidence: float = 0.0, detection_type: str = "rule",
+                       payload: str = "") -> int | None:
     _invalidate_caches()
     return log_threat(
         attack_type=attack_type, ip_address=ip, endpoint=endpoint,
         method=method, severity=severity, blocked=blocked,
         description=description or f"user_key={user_key}",
-        detection_type="rule",
+        detection_type=detection_type,
+        ml_detected=ml_detected, confidence=confidence,
+        payload=payload
     )
 
 

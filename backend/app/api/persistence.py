@@ -66,7 +66,9 @@ def clear_seen_attacks():
 
 def append_user_attack(user_key: str, attack_type: str, ip: str,
                        endpoint: str, method: str = "", severity: str = "Medium",
-                       blocked: bool = False, description: str = None):
+                       blocked: bool = False, description: str = None,
+                       ml_detected: bool = False, confidence: float = 0.0, detection_type: str = "rule",
+                       payload: str = ""):
     key = (ip, attack_type, endpoint)
     now = time.time()
     
@@ -88,7 +90,9 @@ def append_user_attack(user_key: str, attack_type: str, ip: str,
     
     threat_log_id = db.append_user_attack(
         user_key, attack_type, ip, endpoint, method, severity,
-        blocked=should_block, description=description
+        blocked=should_block, description=description,
+        ml_detected=ml_detected, confidence=confidence, detection_type=detection_type,
+        payload=payload
     )
     
     # ── إنشاء blocked_event عشان يظهر في جرس التنبيهات (SSE) ──
@@ -96,7 +100,7 @@ def append_user_attack(user_key: str, attack_type: str, ip: str,
         try:
             db.log_blocked_event(
                 ip_address=ip, attack_type=attack_type, severity=severity,
-                ml_detected=False, confidence=0.0,
+                ml_detected=ml_detected, confidence=confidence,
                 threat_log_id=threat_log_id
             )
         except Exception as e:
