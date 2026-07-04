@@ -400,15 +400,17 @@ class SecurityDashboard:
         current_log_count = len(real_logs)
         print(f"[ML-METRICS] Loaded {current_log_count} real logs from audit")
 
+        total_live = self.stats.get('total_requests', 0)
+        
         with self.ml_metrics_lock:
-            if self.last_ml_metrics is not None and self.last_log_count == current_log_count:
+            last_total_live = getattr(self, 'last_total_live', 0)
+            if self.last_ml_metrics is not None and self.last_log_count == current_log_count and last_total_live == total_live:
                 print(f"[ML-METRICS] CACHE HIT: log_count unchanged ({current_log_count}), returning cached metrics")
                 return self.last_ml_metrics
 
         print(f"[ML-METRICS] CACHE MISS: computing new metrics")
         # To calculate ML accuracy, we must use the total traffic stats
         # because the DB does not store every single Clean request.
-        total_live = self.stats.get('total_requests', 0)
         
         # Calculate TP, FP, FN from the logged threats
         tp = fp = fn = 0
@@ -484,7 +486,8 @@ class SecurityDashboard:
 
         print(f"[ML-METRICS] BEFORE CACHE CHECK: New accuracy={accuracy}, Previous accuracy={previous_accuracy}")
 
-        if previous_accuracy is not None and accuracy == previous_accuracy and self.last_log_count == current_log_count:
+        last_total_live = getattr(self, 'last_total_live', 0)
+        if previous_accuracy is not None and accuracy == previous_accuracy and self.last_log_count == current_log_count and last_total_live == total_live:
             print(f"[ML-METRICS] Accuracy unchanged ({accuracy}), keeping cached metrics")
             return self.last_ml_metrics
 
