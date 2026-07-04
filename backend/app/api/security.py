@@ -611,10 +611,10 @@ class SimpleSecurityManager:
                             from app.api.persistence import append_user_attack, log_ml_detection
                             user_key = getattr(request, "current_username", ip)
                             append_user_attack(
-                                user_key, 'HIGH_RISK_ML', ip,
+                                user_key, 'SQL Injection', ip,
                                 request.path, request.method, "Critical",
                                 blocked=True,
-                                description="CRITICAL: ML Detected Anomaly - Request Blocked"
+                                description="ML Detected: SQL Injection Anomaly - Request Blocked"
                             )
                             log_ml_detection(
                                 payload_str[:120], 0.99, "block",
@@ -645,8 +645,10 @@ class SimpleSecurityManager:
                                 ml_confidence=decision.risk_score,
                                 endpoint=request.path
                             )
+                            # Use the real attack type detected by ML — not 'ML' as a label
+                            real_type = decision.attack_type.replace('_', ' ').title() if decision.attack_type not in ('normal', 'unknown', 'error') else 'Suspicious'
                             append_user_attack(
-                                user_key, 'ML', ip,
+                                user_key, real_type, ip,
                                 request.path, request.method, severity,
                                 blocked=True
                             )

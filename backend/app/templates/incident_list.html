@@ -78,48 +78,18 @@ title %}Incidents - Virex{% endblock %} {% block stylesheets %}
   </div>
 
   {% if user.role in ['admin','analyst'] %}
-  <div class="table-card" style="margin-bottom: 2rem">
-    <h2>Detection Type Distribution</h2>
-    <div
-      id="distribution-report"
-      style="display: flex; gap: 1rem; padding: 0.5rem; flex-wrap: wrap"
-    >
-      {% if distribution %} {% for detection_type, count in distribution.items() %}
-      <div
-        style="
-          background: var(--bg-color);
-          padding: 0.5rem 1rem;
-          border-radius: 8px;
-          min-width: 100px;
-          border: 1px solid var(--border-color);
-          text-align: center;
-        "
-      >
-        <div
-          style="
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            margin-bottom: 0.25rem;
-          "
-        >
-          {{ detection_type }}
-        </div>
-        <div
-          style="
-            font-size: 1.2rem;
-            font-weight: 700;
-            color: var(--primary-color);
-          "
-        >
-          {{ count }}
-        </div>
-      </div>
-      {% endfor %} {% else %}
-      <div style="color: var(--text-muted); padding: 1rem">
-        No incidents yet
-      </div>
-      {% endif %}
-    </div>
+  <div id="distribution-report" style="display:flex; align-items:center; gap:0.4rem; flex-wrap:wrap; margin-bottom:0.75rem;">
+    <span style="font-size:0.7rem; color:var(--text-muted); font-weight:600; text-transform:uppercase; letter-spacing:0.05em; white-space:nowrap;">Detection Types:</span>
+    {% if distribution %}
+      {% for detection_type, count in distribution.items() %}
+      <span style="display:inline-flex; align-items:center; gap:0.25rem; background:rgba(124,58,237,0.08); border:1px solid rgba(124,58,237,0.2); border-radius:4px; padding:0.15rem 0.45rem; font-size:0.7rem;">
+        <span style="color:var(--text-muted);">{{ detection_type }}</span>
+        <span style="font-weight:700; color:var(--primary-color);">{{ count }}</span>
+      </span>
+      {% endfor %}
+    {% else %}
+      <span style="font-size:0.7rem; color:var(--text-muted);">No incidents yet</span>
+    {% endif %}
   </div>
   {% endif %}
 

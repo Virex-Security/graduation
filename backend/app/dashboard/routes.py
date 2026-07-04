@@ -482,6 +482,8 @@ def create_dashboard_app():
     @manager_and_above
     def incidents_page(current_user):
         global dashboard
+        # Reload from DB to get live data from WAF attacks
+        dashboard.load_stats_from_audit()
         incidents_list = []
         for inc in dashboard.incidents.values():
             incident_dict = {
@@ -530,6 +532,8 @@ def create_dashboard_app():
     @manager_and_above
     def get_incidents(current_user):
         global dashboard
+        # Always reload from DB so we reflect attacks logged by the WAF in real-time
+        dashboard.load_stats_from_audit()
         incidents_data = []
         for inc in dashboard.incidents.values():
             incidents_data.append(inc.__dict__)

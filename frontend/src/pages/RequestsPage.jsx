@@ -129,7 +129,6 @@ export default memo(function RequestsPage() {
     { id: 'xss', label: 'XSS' },
     { id: 'brute', label: 'Brute Force' },
     { id: 'scanner', label: 'Scanner' },
-    { id: 'ml', label: 'ML' },
     { id: 'rate', label: 'Rate Limit' },
     { id: 'csrf', label: 'CSRF' },
     { id: 'ssrf', label: 'SSRF' },
