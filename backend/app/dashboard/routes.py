@@ -95,7 +95,7 @@ def create_dashboard_app():
         '/api/users', '/api/rules', '/api/blocked-ips', '/api/reports',
         '/api/chatbot', '/api/threats', '/api/my-attacks', '/api/clear-attacks',
         '/api/request-reset-otp', '/api/verify-reset-otp', '/api/subscription/',
-        '/api/incident/'
+        '/api/incident/', '/api/health', '/api/blocked-events'
     )
     # Dashboard internal pages - should not be counted as traffic
     SKIP_EXACT = {
@@ -577,8 +577,9 @@ def create_dashboard_app():
     @admin_only
     def requests_page(current_user):
         logs = dashboard.load_audit_log()
-        logs.sort(key=lambda x: x.get('timestamp', ''), reverse=True)
-        return render_template('requests.html', logs=logs, title="Total Requests", user=current_user)
+        traffic_logs = [l for l in logs if "action" not in l]
+        traffic_logs.sort(key=lambda x: x.get('timestamp', ''), reverse=True)
+        return render_template('requests.html', logs=traffic_logs, title="Total Requests", user=current_user)
     @app.route('/api/blocked-events')
     @analyst_and_above
     def blocked_events_stream(current_user):

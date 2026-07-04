@@ -6,7 +6,7 @@ def is_trivial(req):
     path = req.headers.get("X-Original-URI", req.path).split('?')[0]
 
     # Health and status checks
-    if path in ['/health', '/api/health', '/status', '/ping']:
+    if path in ['/health', '/api/health', '/api/system/health', '/status', '/ping']:
         return True
 
     # Dashboard internal APIs

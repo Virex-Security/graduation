@@ -523,55 +523,20 @@ class SimpleSecurityManager:
             except Exception as e:
                 logger.warning(f"[RATE LIMIT] Redis check failed, falling back to Database: {e}")
 
-        # ── 2. Database Fallback Rate Limiter ────────────────
-        try:
-            with db._db() as conn:
-                # Remove expired records for this IP address
-                conn.execute(text("""
-                    DELETE FROM rate_limits 
-                    WHERE ip_address = :ip AND timestamp < :cutoff
-                """), {"ip": ip, "cutoff": now - window})
-
-                # Count remaining requests in the window
-                row = conn.execute(text("""
-                    SELECT COUNT(*) FROM rate_limits 
-                    WHERE ip_address = :ip
-                """), {"ip": ip}).fetchone()
-                current_count = row[0] if row else 0
-
-                if current_count >= limit:
-                    self.rate_limit_hits += 1
-                    try:
-                        request.is_attack = True
-                    except Exception:
-                        pass
-                    conn.commit()
-                    return False
-
-                # Register the new request
-                conn.execute(text("""
-                    INSERT INTO rate_limits (ip_address, timestamp)
-                    VALUES (:ip, :ts)
-                """), {"ip": ip, "ts": now})
-                conn.commit()
-                return True
-        except Exception as e:
-            logger.error(f"[RATE LIMIT] Centralized database fallback rate limiter failed: {e}")
-            
-            # Local fallback just in case database connection fails to avoid completely taking down the app
-            with self.rate_limit_lock:
-                q = self.rate_limit_storage[ip]
-                while q and now - q[0] > window:
-                    q.popleft()
-                if len(q) >= limit:
-                    self.rate_limit_hits += 1
-                    try:
-                        request.is_attack = True
-                    except Exception:
-                        pass
-                    return False
-                q.append(now)
-                return True
+        # ── 2. Local In-Memory Rate Limiter (High Performance Fallback) ──
+        with self.rate_limit_lock:
+            q = self.rate_limit_storage[ip]
+            while q and now - q[0] > window:
+                q.popleft()
+            if len(q) >= limit:
+                self.rate_limit_hits += 1
+                try:
+                    request.is_attack = True
+                except Exception:
+                    pass
+                return False
+            q.append(now)
+            return True
 
     # ── Main Security Check ───────────────────────────────────
     def check_request_security(self, data, ip, actual_path=None):

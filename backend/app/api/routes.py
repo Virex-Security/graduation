@@ -117,7 +117,7 @@ def create_api_app():
         "/ml-performance", "/threats", "/login", "/signup", "/logout",
         "/forbidden", "/privacy", "/terms", "/docs", "/support",
         "/attack-history", "/threats-overview", "/user-manager", "/settings",
-        "/notifications", "/pricing", "/payment", "/blacklist", "/api/"
+        "/notifications", "/pricing", "/payment", "/blacklist"
     )
 
     @app.before_request
@@ -139,7 +139,7 @@ def create_api_app():
         if is_trivial(request):
             return
             
-        EXCLUDED_PATHS = ['/static/', '/favicon.ico', '/assets/', '/dist/', '/api/health']
+        EXCLUDED_PATHS = ['/static/', '/favicon.ico', '/assets/', '/dist/', '/api/health', '/api/system/health']
         for path in EXCLUDED_PATHS:
             if actual_path.startswith(path):
                 return # اخرج من الفحص فوراً ومتحسبش أي حاجة
@@ -166,6 +166,8 @@ def create_api_app():
         # eliminating false-positives on internal traffic.
         # The root "/" is also handled locally.
         # ══════════════════════════════════════════════════════
+        print(f"[WAF-DEBUG] actual_path: {actual_path}", flush=True)
+        print(f"[WAF-DEBUG] matched: {any(actual_path.startswith(p) for p in _LOCAL_ROUTES)}", flush=True)
         if actual_path == "/" or actual_path == "/login" or any(actual_path.startswith(p) for p in _LOCAL_ROUTES):
             # Let Flask dispatch to its own route handlers.
             # Metrics are already incremented above.

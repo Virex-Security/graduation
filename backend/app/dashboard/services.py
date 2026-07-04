@@ -597,9 +597,10 @@ class SecurityDashboard:
             
             # Dynamically compute base metrics from the source of truth (all logs)
             all_logs = self.load_audit_log()
-            dyn_total = len(all_logs)
-            dyn_blocked = sum(1 for l in all_logs if l.get('blocked') is True or str(l.get('blocked')).lower() in ('true', '1'))
-            dyn_clean = sum(1 for l in all_logs if str(l.get('attack_type', '')).lower() == 'clean' or str(l.get('type', '')).lower() == 'clean' or str(l.get('detection_type', '')).lower() == 'clean')
+            traffic_logs = [l for l in all_logs if "action" not in l]
+            dyn_total = len(traffic_logs)
+            dyn_blocked = sum(1 for l in traffic_logs if l.get('blocked') is True or str(l.get('blocked')).lower() in ('true', '1'))
+            dyn_clean = sum(1 for l in traffic_logs if str(l.get('attack_type', '')).lower() == 'clean' or str(l.get('type', '')).lower() == 'clean' or str(l.get('detection_type', '')).lower() == 'clean')
             
             accurate['total_requests'] = dyn_total
             accurate['blocked_requests'] = dyn_blocked
