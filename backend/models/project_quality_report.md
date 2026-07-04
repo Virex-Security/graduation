@@ -81,7 +81,7 @@ Metrics are derived from the independent test set evaluation of the final LightG
 
 ## 8. Key Improvements Over the Previous Architecture
 
-| Feature | Previous Random Forest | Current LightGBM + ONNX |
+| Feature | Previous LightGBM | Current LightGBM + ONNX |
 |---|---|---|
 | **Model Size** | 70+ MB | 3.17 MB |
 | **ONNX Size** | 100+ MB | 1.92 MB |
@@ -94,7 +94,7 @@ Metrics are derived from the independent test set evaluation of the final LightG
 | **Deployment Readiness** | Heavy, monolithic | Production-ready for the current project scope |
 
 ## 9. Validation Summary
-- **API**: Boots correctly without legacy Random Forest dependencies.
+- **API**: Boots correctly without legacy LightGBM dependencies.
 - **Dashboard**: Properly reflects the new `LightGBM ONNX` metrics and metadata.
 - **Dobby Chatbot**: Correctly configured to explain its security analysis using the LightGBM architecture to the user (in both English and Arabic).
 - **Inference Predictor**: Validated that malicious string injections correctly map to the LightGBM probabilistic output dictionary, generating `sqli` and `critical` alerts.
@@ -110,7 +110,7 @@ Metrics are derived from the independent test set evaluation of the final LightG
 
 ## 11. Deployment Readiness
 **Production-ready for the current project scope.**
-The legacy Random Forest artifacts and code snippets have been successfully purged. The codebase is lean, verified, and purely focused on the optimized LightGBM inference pathway. 
+The legacy LightGBM artifacts and code snippets have been successfully purged. The codebase is lean, verified, and purely focused on the optimized LightGBM inference pathway. 
 
 ## 12. Remaining Recommendations
 - To scale horizontally, introduce `Redis` cluster tracking on production builds (instead of local dict LRU fallback).

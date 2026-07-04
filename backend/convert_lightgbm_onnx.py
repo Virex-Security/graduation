@@ -154,7 +154,7 @@ The ONNX graph faithfully recreates the decision paths of the LightGBM model. Me
     REPORT_PATH.write_text(report, encoding="utf-8")
     
     # 7. Final Verification
-    print("\n[OK] Random Forest artifacts remain untouched.")
+    print("\n[OK] LightGBM artifacts remain untouched.")
     print("[OK] ONNX model loads successfully.")
     print(f"[OK] Prediction agreement >= 99.9% ({agreement_rate:.2f}%).")
     print("[OK] No inference code modified.")

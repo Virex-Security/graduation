@@ -451,17 +451,17 @@ class SecurityDashboard:
                 previous_accuracy = self.last_ml_metrics.get('accuracy')
 
         if total_live == 0 or (tp + fn) == 0:
-            print(f"[ML-METRICS] No live data, using baseline metrics")
-            accuracy = 94.23
-            precision = 94.67
-            recall = 93.89
-            f1 = 94.28
-            roc_auc = 0.9756
-            tn_base = 932
-            fp_base = 34
-            fn_base = 45
-            tp_base = 989
-            test_size = 2000
+            print(f"[ML-METRICS] No live data, returning empty metrics")
+            accuracy = 0.0
+            precision = 0.0
+            recall = 0.0
+            f1 = 0.0
+            roc_auc = 0.0
+            tn_base = 0
+            fp_base = 0
+            fn_base = 0
+            tp_base = 0
+            test_size = 0
             live_data_active = False
             confusion_matrix_data = {"tn": tn_base, "fp": fp_base, "fn": fn_base, "tp": tp_base}
         else:

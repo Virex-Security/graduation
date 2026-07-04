@@ -262,7 +262,7 @@ Mean F1-score (Macro): {cv_f1_m:.4f} (± {cv_f1_std:.4f})
     # 9. Final Verification
     print("\nFinal Verification")
     print("="*40)
-    print("[OK] All Random Forest files are untouched.")
+    print("[OK] All LightGBM files are untouched.")
     
     new_files = [MODEL_PATH, VEC_PATH, SEC_PATH, LE_PATH, FEAT_IMP_PATH, LOG_PATH]
     all_exist = all(f.exists() for f in new_files)

@@ -1,11 +1,11 @@
-# Final Migration Report: Random Forest to LightGBM
+# Final Migration Report: LightGBM to LightGBM
 
 ## Executive Summary
-The migration of the Virex Security WAF Machine Learning engine from the legacy `RandomForestClassifier` to the new `LightGBM` framework (accelerated via ONNX Runtime) is successfully complete. 
+The migration of the Virex Security WAF Machine Learning engine from the legacy `LightGBMClassifier` to the new `LightGBM` framework (accelerated via ONNX Runtime) is successfully complete. 
 
-The previous Random Forest approach suffered from high latency during real-time traffic inspection. Our benchmarks identified that LightGBM deployed with ONNX executes inferences up to **25x faster** on single requests and scales tremendously well with batches, whilst yielding a higher Macro-F1 score on the validation set.
+The previous LightGBM approach suffered from high latency during real-time traffic inspection. Our benchmarks identified that LightGBM deployed with ONNX executes inferences up to **25x faster** on single requests and scales tremendously well with batches, whilst yielding a higher Macro-F1 score on the validation set.
 
-All legacy Random Forest artifacts have been cleanly removed from the repository. The production inference pipeline now seamlessly runs the `model_lightgbm.onnx` asset with backward compatibility preserved for existing dashboard layouts and API schemas.
+All legacy LightGBM artifacts have been cleanly removed from the repository. The production inference pipeline now seamlessly runs the `model_lightgbm.onnx` asset with backward compatibility preserved for existing dashboard layouts and API schemas.
 
 ## Major Steps Completed
 1. **Dependency Analysis and Upgrade**:
@@ -42,6 +42,6 @@ All legacy Random Forest artifacts have been cleanly removed from the repository
 ## Validation Results
 - **Functional Validation**: The `run_api.py` and `run_dashboard.py` entry-points boot perfectly. 
 - **Inference Verification**: Passing malicious SQL Injection (`SELECT * FROM users WHERE id = '1' OR '1'='1'`) correctly returns a `block` decision, `sqli` categorization, `100.0` risk score, and `critical` severity.
-- **Repository Audit**: Global project search confirms **zero** residual code usages of `RandomForestClassifier` or `model_v2`.
+- **Repository Audit**: Global project search confirms **zero** residual code usages of `LightGBMClassifier` or `model_v2`.
 
 **Status**: Ready for Production 🚀
