@@ -1,4 +1,4 @@
-# Benchmark Comparison: Random Forest vs LightGBM
+# Benchmark Comparison: LightGBM vs LightGBM
 
 ## 1. Hardware & Environment
 - **Python Version**: 3.10.9
@@ -8,7 +8,7 @@
 ## 2. Model Loading & Size Comparison
 | Model | Pickle Size (MB) | ONNX Size (MB) | Pickle Load (s) | ONNX Load (s) | Load RAM (MB) |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Random Forest** | 10.61 | 1.26 | 0.286 | 0.069 | 37.9 |
+| **LightGBM** | 10.61 | 1.26 | 0.286 | 0.069 | 37.9 |
 | **LightGBM** | 3.17 | 1.92 | 0.557 | 0.138 | 24.7 |
 
 ## 3. Full Benchmark Tables
@@ -50,8 +50,8 @@ LGBM (Pickle) 7024.26288    6999.5175 7128.82962 7151.585524  1423.636924       
 **ONNX vs Pickle**
 The ONNX models heavily out-perform the Pickle models for both architectures. Latency drops significantly and throughput spikes when scaling batches. 
 
-**Random Forest vs LightGBM**
-LightGBM natively utilizes optimized C++ histograms for inference, making it vastly superior to Random Forest in inference speed for deeply branched trees, especially via ONNX Runtime. The LightGBM ONNX model also drastically reduces disk and memory overhead.
+**LightGBM vs LightGBM**
+LightGBM natively utilizes optimized C++ histograms for inference, making it vastly superior to LightGBM in inference speed for deeply branched trees, especially via ONNX Runtime. The LightGBM ONNX model also drastically reduces disk and memory overhead.
 
 ## 6. Final Recommendation
 

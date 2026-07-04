@@ -275,7 +275,7 @@ The LightGBM model successfully trained and evaluated against the held-out test 
     report_path.write_text(report, encoding="utf-8")
     
     # 10. Final Verification
-    print("[OK] No Random Forest files were modified.")
+    print("[OK] No LightGBM files were modified.")
     print("[OK] No training occurred.")
     print("[OK] No inference code was modified.")
     print("[OK] No ONNX conversion occurred.")

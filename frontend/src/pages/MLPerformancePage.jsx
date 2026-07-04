@@ -168,24 +168,38 @@ export default memo(function MLPerformancePage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Radar Chart */}
         <InfoCard title="Performance Radar">
-          <div className="h-80 flex items-center justify-center">
-            <Radar data={radarData} options={radarOptions} />
-          </div>
+          {data ? (
+            <div className="h-80 flex items-center justify-center">
+              <Radar data={radarData} options={radarOptions} />
+            </div>
+          ) : (
+            <div className="text-center py-20 text-text-muted">
+              <i className="fas fa-chart-bar text-4xl mb-4 opacity-50"></i>
+              <p>No ML evaluation data available.</p>
+            </div>
+          )}
         </InfoCard>
 
         {/* Confusion Matrix */}
         <InfoCard title="Confusion Matrix">
-          <div className="h-80">
-            <Bar data={barData} options={{ 
-              responsive: true, 
-              maintainAspectRatio: false, 
-              plugins: { legend: { display: false } },
-              scales: { 
-                y: { grid: { color: 'rgba(255,255,255,0.05)' } },
-                x: { grid: { display: false } }
-              }
-            }} />
-          </div>
+          {data ? (
+            <div className="h-80">
+              <Bar data={barData} options={{ 
+                responsive: true, 
+                maintainAspectRatio: false, 
+                plugins: { legend: { display: false } },
+                scales: { 
+                  y: { grid: { color: 'rgba(255,255,255,0.05)' } },
+                  x: { grid: { display: false } }
+                }
+              }} />
+            </div>
+          ) : (
+            <div className="text-center py-20 text-text-muted">
+              <i className="fas fa-table text-4xl mb-4 opacity-50"></i>
+              <p>No ML evaluation data available.</p>
+            </div>
+          )}
         </InfoCard>
       </div>
 
@@ -218,7 +232,7 @@ export default memo(function MLPerformancePage() {
           <div className="space-y-4">
             <div className="p-3 rounded-lg bg-bg-secondary/50 border border-border-dim/50 space-y-1">
               <div className="ds-overline">Model Type</div>
-              <div className="text-xs text-text-primary font-mono">{data?.model_type || 'Random Forest Classifier'}</div>
+              <div className="text-xs text-text-primary font-mono">{data?.model_type || 'LightGBM Classifier'}</div>
             </div>
             <div className="p-3 rounded-lg bg-bg-secondary/50 border border-border-dim/50 space-y-1">
               <div className="ds-overline">Dataset Size</div>

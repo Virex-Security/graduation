@@ -73,7 +73,7 @@ export default memo(function MLDetectionsPage() {
         <div className="mt-0.5"><InformationCircleIcon className="w-5 h-5 text-brand-primary" /></div>
         <div className="text-sm text-text-secondary leading-relaxed">
           <strong className="text-brand-primary uppercase text-xs tracking-wider">Note:</strong> &quot;Attack Type&quot; is the label assigned based on classification. 
-          &quot;Detection Method&quot; identifies the specific model (Random Forest, LSTM, etc.). 
+          &quot;Detection Method&quot; identifies the specific model (LightGBM, LSTM, etc.). 
           Our AI model flags anomalous behavior even when signatures don&apos;t match.
         </div>
       </div>
