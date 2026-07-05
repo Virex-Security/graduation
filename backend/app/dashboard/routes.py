@@ -267,6 +267,11 @@ def create_dashboard_app():
             user=current_user,
             dashboard_api_enabled=dashboard_api_enabled,
         )
+
+    @app.route('/api/health')
+    def basic_health():
+        return jsonify({'status': 'ok'}), 200
+
     @app.route('/api/system/health')
     @login_required
     def system_health(current_user):
@@ -1730,6 +1735,11 @@ def create_dashboard_app():
                         {"rid": role_map[new_role], "uid": target_user_id})
             conn.commit()
         return jsonify({"message": "Role updated"})
+
+    @app.route('/api/ml/live-stats')
+    @analyst_and_above
+    def api_ml_live_stats(current_user):
+        return jsonify(dashboard.get_live_waf_stats())
 
     return app
 def calculate_threat_score(threat):

@@ -474,11 +474,12 @@ const Dashboard = {
    * Update KPI Cards
    */
   updateStats(stats) {
+    const total = stats.total_requests || 0;
     const mappings = {
-      "total-requests": { val: stats.total_requests, type: "info" },
-      "normal-requests": { val: stats.normal_requests_count, type: "clean" },
-      "blocked-requests": { val: stats.blocked_requests, type: "blocked" },
-      "ml-detections": { val: stats.ml_detections, type: "ml" },
+      "total-requests": { val: total },
+      "blocked-requests": { val: stats.blocked_requests || 0, pctId: "blocked-pct" },
+      "rule-detections": { val: stats.rule_detections || 0, pctId: "rule-pct" },
+      "ml-detections": { val: stats.ml_detections || 0, pctId: "ml-pct" },
     };
 
     for (const [id, config] of Object.entries(mappings)) {
@@ -486,6 +487,13 @@ const Dashboard = {
       if (el) {
         this.animateNumber(el, config.val);
         this.previousStats[id] = config.val;
+      }
+      if (config.pctId) {
+        const pctEl = document.getElementById(config.pctId);
+        if (pctEl) {
+            const pct = total > 0 ? ((config.val / total) * 100).toFixed(1) : 0;
+            pctEl.textContent = `(${pct}%)`;
+        }
       }
     }
 
@@ -840,6 +848,9 @@ const Dashboard = {
           t.blocked === true ||
           String(t.severity || "").toLowerCase() === "high";
 
+        const detectionBy = (t.detection_type && t.detection_type.toLowerCase() === 'ml') || t.ml_detected ? 'ML Model' : 'Rule';
+        const detectionBadgeCls = detectionBy === 'ML Model' ? 'threat-badge threat-ml' : 'threat-badge threat-scanner';
+
         return `
             <tr class="${isBlocked ? "row-blocked" : ""}">
                 <td>${safeTimestamp}</td>
@@ -848,6 +859,7 @@ const Dashboard = {
                         <i class="fas ${badge.icon}"></i> ${safeLabel}
                     </span>
                 </td>
+                <td><span class="${detectionBadgeCls}" style="font-size: 0.8rem; padding: 2px 6px;">${detectionBy}</span></td>
                 <td class="attacker-ip">${Formatters.escapeHTML(maskedIp)}</td>
                 <td><span class="severity-badge severity-${safeSeverity.toLowerCase()}">${safeSeverity}</span></td>
                 <td style="display:flex; justify-content:space-between; align-items:center">
@@ -948,6 +960,9 @@ const Dashboard = {
       return threatType;
     })();
 
+    const detectionBy = (threat.detection_type && threat.detection_type.toLowerCase() === 'ml') || threat.ml_detected ? 'ML Model' : 'Rule';
+    const detectionBadgeCls = detectionBy === 'ML Model' ? 'threat-badge threat-ml' : 'threat-badge threat-scanner';
+
     const row = document.createElement("tr");
     if (isBlocked) row.classList.add("row-blocked");
     row.innerHTML = `
@@ -957,6 +972,7 @@ const Dashboard = {
                         <i class="fas ${badge.icon}"></i> ${safeLabel}
                     </span>
                 </td>
+                <td><span class="${detectionBadgeCls}" style="font-size: 0.8rem; padding: 2px 6px;">${detectionBy}</span></td>
                 <td class="attacker-ip">${Formatters.escapeHTML(maskedIp)}</td>
                 <td><span class="severity-badge severity-${safeSeverity.toLowerCase()}">${safeSeverity}</span></td>
                 <td style="display:flex; justify-content:space-between; align-items:center">
