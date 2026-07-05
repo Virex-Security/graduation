@@ -6,12 +6,21 @@ Decision Engine:
   >= THRESHOLD_MONITOR → monitor
   else                 → allow
 
-Attack Classes:
-  0 normal            5 ssrf
-  1 sql_injection     6 xxe
-  2 xss               7 ssti
-  3 command_injection 8 log4shell
-  4 path_traversal    9 brute_force
+Deployed ONNX Model — 9 ML Classes (from model_metadata.json):
+  0 command_injection
+  1 log4shell
+  2 normal
+  3 path_traversal
+  4 sqli
+  5 ssrf
+  6 ssti
+  7 xss
+  8 xxe
+
+NOTE: brute_force is NOT an ML class. The ONNX model was never trained on it
+(train.csv contains no brute_force label — verified from balance_report.json).
+Brute-force detection is handled EXCLUSIVELY as a rule-based heuristic in
+_classify_v1() (fallback) and auth/rate-limit layers in auth/routes.py.
 """
 
 import os, re, sys, time, json, hashlib, logging, threading, joblib
@@ -48,7 +57,11 @@ LOG_PREDICTIONS   = os.getenv("ML_LOG_PREDICTIONS", "false").lower() == "true"
 # Includes SQLi symbols: -- /* */
 # Includes keywords: select, union, insert, update, delete, drop, exec, xp_, script, javascript:, onerror, onload
 _FAST_SUSPICIOUS_REGEX = re.compile(
-    r"['\"<>;|\${}()]|--|/\*|\*/|\.\./|\.\.\\|\b(?:union\s+select|insert\s+into|update\s+\w+\s+set|delete\s+from|drop\s+table|exec|xp_|script|javascript:|onerror=|onload=|sleep\s*\(|benchmark\s*\(|waitfor)\b",
+    r"['\"<>;|\${}()]|--|/\*|\*/|\.\./|\.\.\\"
+    r"|password=|passwd=|username=|login=|admin:|root:|"
+    r"/\.env|/\.git/|/phpmyadmin|/wp-admin|"
+    r"sqlmap/|nikto/|nmap|curl/|wget|acunetix|nessus|burp|zap|"
+    r"\b(?:union\s+select|insert\s+into|update\s+\w+\s+set|delete\s+from|drop\s+table|exec|xp_|script|javascript:|onerror=|onload=|sleep\s*\(|benchmark\s*\(|waitfor)\b",
     re.IGNORECASE
 )
 
@@ -57,6 +70,8 @@ SEVERITY_MAP = {
     "sql_injection": "critical", "sqli": "critical", "ssrf": "high", "xxe": "high", "ssti": "critical",
     "xss": "high", "path_traversal": "high", "csrf": "high",
     "scanner": "low", "rate_limit": "low",
+    # brute_force: detected only via heuristics/_classify_v1() — NOT by the ONNX model.
+    # The ML model was never trained on brute_force (no brute_force rows in train.csv).
     "brute_force": "medium", "normal": "none", "unknown": "none",
 }
 
@@ -267,8 +282,12 @@ def _load_or_train():
         logger.critical("[ML] No model could be loaded! Traffic will be allowed.")
 
 def _auto_retrain_loop():
-    # Retraining is deprecated in favor of offline external pipelines
-    pass
+    """
+    Automatic retraining intentionally disabled.
+    Models are trained offline through the training pipeline
+    and manually exported to ONNX before deployment.
+    """
+    return
 
 _class_thresholds = {}
 
@@ -339,20 +358,47 @@ def _compute_ml(text):
 
 
 def _classify_v1(text):
-    """Rule-based fallback classifier — covers all 10 attack classes."""
+    """
+    Rule-based fallback classifier — covers attack types not always caught by
+    the ONNX model (e.g. novel payloads) or types the model was never trained on.
+
+    IMPORTANT: This function is NOT ML. It is purely heuristic/regex-based.
+    It is invoked only when the ONNX model predicts 'normal' with moderate risk,
+    or as a safety net for unsupported attack categories.
+
+    Supported classes and their detection method:
+      - log4shell       : JNDI lookup patterns (ML-supported, heuristic backup)
+      - xxe             : XML entity declarations (ML-supported, heuristic backup)
+      - ssti            : Template injection markers (ML-supported, heuristic backup)
+      - sql_injection   : SQL keywords + NoSQL operators (ML-supported, heuristic backup)
+      - xss             : Script/event handler patterns (ML-supported, heuristic backup)
+      - command_injection: Shell metacharacter + command combos (ML-supported, heuristic backup)
+      - path_traversal  : Directory traversal sequences (ML-supported, heuristic backup)
+      - ssrf            : Internal IP/metadata access (ML-supported, heuristic backup)
+      - brute_force     : Repeated credential patterns (HEURISTIC ONLY — NOT in ONNX model)
+
+    NOTE on brute_force:
+      The deployed ONNX model (model_lightgbm.onnx / model_metadata.json) was trained
+      on 9 classes: command_injection, log4shell, normal, path_traversal, sqli, ssrf,
+      ssti, xss, xxe. brute_force was not in the training data (train.csv).
+      The evaluation_report.json from a legacy v2.0 model shows brute_force with
+      perfect precision/recall — that report corresponds to an older model and does
+      NOT apply to the current deployed model.
+      Recommendation: include brute_force in the next training cycle.
+    """
     t = text.lower()
 
-    # Log4Shell first (very specific)
+    # ── Log4Shell first (very specific, highest priority) ──────────────
     if re.search(r"\$\{jndi:", t):
         return "log4shell"
     if re.search(r"\$\{[a-z:]+\}.*(?:ldap|rmi|dns|jndi)", t):
         return "log4shell"
 
-    # XXE
+    # ── XXE ─────────────────────────────────────────────────────────────
     if re.search(r"<!entity|<!doctype.*system|<\?xml.*<!", t):
         return "xxe"
 
-    # SSTI — Jinja2, EL, Freemarker, Ruby, ASP
+    # ── SSTI — Jinja2, EL, Freemarker, Ruby, ASP ─────────────────────
     if re.search(
         r"(\{\{.*?\}\}|\{%.*?%\}|\$\{[^}]+\}|#\{[^}]+\}|<%="
         r"|__class__|__mro__|__subclasses__|__globals__|__builtins__"
@@ -361,7 +407,7 @@ def _classify_v1(text):
     ):
         return "ssti"
 
-    # SQL Injection — extended keywords + tautology + UNION + NoSQL
+    # ── SQL Injection — extended keywords + tautology + UNION + NoSQL ──
     if re.search(
         r"(select\s|union\s|insert\s+into|update\s+\w+\s+set|delete\s+from"
         r"|drop\s+table|exec\s+xp_|waitfor\s+delay|pg_sleep|sleep\s*\(|benchmark\s*\("
@@ -371,7 +417,7 @@ def _classify_v1(text):
     ):
         return "sql_injection"
 
-    # XSS
+    # ── XSS ─────────────────────────────────────────────────────────────
     if re.search(
         r"(<script|javascript:|onerror=|onload=|onclick=|onmouseover="
         r"|<iframe|<svg|<img.{0,30}onerror|alert\s*\(|confirm\s*\()",
@@ -379,36 +425,35 @@ def _classify_v1(text):
     ):
         return "xss"
 
-    return "normal"
-
-
-def _classify_v1(text):
-    t = text.lower()
-    if re.search(r"(select|insert|update|delete|drop|union|exec|sleep|benchmark|waitfor)", t):
-        return "sql_injection"
-    if re.search(r"(<script|javascript:|onerror|onload|onclick|<iframe|<svg|alert\()", t):
-        return "xss"
-    if re.search(r"(;|\||`|&&|\|\|)\s*(cat|ls|rm|wget|curl|nc|bash|sh|python)", t):
+    # ── Command Injection ────────────────────────────────────────────────
+    if re.search(
+        r"(;|\||`|&&|\|\|)\s*(cat|ls|rm|wget|curl|nc|bash|sh|python|perl|ruby|php)",
+        t,
+    ):
         return "command_injection"
+
+    # ── Path Traversal ───────────────────────────────────────────────────
     if re.search(r"(\.\./|\.\.\\|%2e%2e|etc/passwd|etc/shadow|proc/self)", t):
         return "path_traversal"
-    if re.search(r"\$\{jndi:", t):
-        return "log4shell"
-    if re.search(r"(127\.0\.0\.1|localhost|169\.254\.169\.254)", t):
+
+    # ── SSRF ─────────────────────────────────────────────────────────────
+    if re.search(r"(127\.0\.0\.1|localhost|169\.254\.169\.254|metadata\.google|file://)", t):
         return "ssrf"
-    if re.search(r"(password|login|user|admin).*?(password|login|user|admin)", t):
+
+    # ── Brute Force (HEURISTIC ONLY — no ML class for this) ─────────────
+    # The ONNX model does not predict brute_force. This heuristic provides
+    # a fallback signal for credential-stuffing style payloads.
+    if re.search(
+        r"(username=.{0,40}&password=|passwd=|user=.{0,40}&pass="
+        r"|login=.{0,40}&pwd=|admin.{0,10}:(?!http).{1,20}|root:.{1,20})",
+        t,
+    ):
         return "brute_force"
-    if re.search(r"(csrf.?bypass|csrf.?token.*?null|csrf.?token.*?invalid|missing.?csrf)", t):
-        return "csrf"
-    if re.search(r"(/admin|/wp-|/phpmyadmin|/\.env|/config|/backup|nikto|nmap|scanner)", t):
-        return "scanner"
-    if re.search(r"(rate.?limit|too.?many|throttl|flood|spam)", t):
-        return "rate_limit"
-    if re.search(r"(xxe|<!ENTITY|<!DOCTYPE.*SYSTEM)", t):
-        return "xxe"
-    if re.search(r"(ssti|\{\{.*\}\}|\{%.*%\}|\$\{.*\})", t):
-        return "ssti"
+
     return "normal"
+
+
+
 
 
 def _make_decision(risk_score):
@@ -451,7 +496,7 @@ class MLDecision:
     def should_monitor(self): return self.action in ("block", "monitor")
 
     def to_dict(self):
-        return {
+        d = {
             "risk_score":          round(self.risk_score * 100, 1),
             "action":              self.action,
             "attack_type":         self.attack_type,
@@ -618,20 +663,28 @@ def ml_detect(text):
 
 
 def get_ml_stats():
-    # Include latest evaluation metrics if available
+    # IMPORTANT: evaluation_report.json in backend/data/ is a LEGACY artifact from model v2.0.
+    # It must not be used as the source of truth for the current deployed model (v3.0).
+    # The authoritative evaluation lives in backend/models/model_metadata.json and
+    # backend/models/evaluation/model_evaluation_report.md.
+    # This section is only read for supplementary debug info; it is NOT shown in the dashboard.
     eval_metrics = {}
     if EVAL_REPORT_PATH.exists():
         try:
             with open(EVAL_REPORT_PATH, "r", encoding="utf-8") as f:
                 report = json.load(f)
-            eval_metrics = {
-                "test_accuracy":   report.get("test_accuracy"),
-                "f1_macro":        report.get("f1_macro"),
-                "roc_auc_macro":   report.get("roc_auc_macro"),
-                "false_positives": report.get("total_false_positives"),
-                "false_negatives": report.get("total_false_negatives"),
-                "trained_at":      report.get("trained_at"),
-            }
+            # Skip legacy note field
+            if "_legacy_note" in report:
+                logger.debug("[ML] evaluation_report.json is a legacy artifact from v2.0 — skipped for stats")
+            else:
+                eval_metrics = {
+                    "test_accuracy":   report.get("test_accuracy"),
+                    "f1_macro":        report.get("f1_macro"),
+                    "roc_auc_macro":   report.get("roc_auc_macro"),
+                    "false_positives": report.get("total_false_positives"),
+                    "false_negatives": report.get("total_false_negatives"),
+                    "trained_at":      report.get("trained_at"),
+                }
         except Exception:
             pass
 
