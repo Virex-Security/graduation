@@ -76,7 +76,7 @@ This document contains the exact design guidelines, copywriting, and layout stru
 * **Center:** **Project Team:**
   * [Student Name 1]
   * [Student Name 2]
-  * [Student Name 3]
+  * [Student Name 3
   * [Student Name 4]
 * **Right:** 
   * [QR Code Placeholder]
