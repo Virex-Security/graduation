@@ -6,695 +6,618 @@
 {% block stylesheets %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/ml_stats.css') }}" />
 <style>
-/* ── Page-level overrides ───────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════════
+   ML PERFORMANCE PAGE — presentation layer only
+   No backend / API / metric / model changes.
+   ═══════════════════════════════════════════════════════════════ */
 
-/* Skeleton animation */
+/* ── Skeleton loader ──────────────────────────────────────────── */
 @keyframes skeleton-shine {
   0%   { background-position: -600px 0; }
   100% { background-position:  600px 0; }
 }
 .skeleton {
-  background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.10) 50%, rgba(255,255,255,0.04) 75%);
+  background: linear-gradient(90deg,
+    rgba(255,255,255,0.04) 25%,
+    rgba(255,255,255,0.09) 50%,
+    rgba(255,255,255,0.04) 75%);
   background-size: 600px 100%;
-  animation: skeleton-shine 1.6s ease-in-out infinite;
+  animation: skeleton-shine 1.5s ease-in-out infinite;
   border-radius: 8px;
 }
-.skeleton-card {
+.skel-card {
   background: #1e293b;
   border: 1px solid rgba(255,255,255,0.05);
   border-radius: 12px;
-  padding: 1.5rem;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  height: 96px;
+  padding: 1.25rem;
+  display: flex; align-items: center; gap: 14px;
+  height: 88px;
   box-sizing: border-box;
 }
-.skeleton-icon  { width:52px; height:52px; border-radius:12px; flex-shrink:0; }
-.skeleton-text  { flex:1; display:flex; flex-direction:column; gap:10px; }
-.skeleton-line  { height:14px; border-radius:6px; }
-.skeleton-line-sm{ height:10px; border-radius:6px; width:60%; }
-
-.skeleton-panel {
+.skel-icon { width:46px; height:46px; border-radius:10px; flex-shrink:0; }
+.skel-text { flex:1; display:flex; flex-direction:column; gap:9px; }
+.skel-line    { height:13px; border-radius:5px; }
+.skel-line-sm { height:9px;  border-radius:5px; width:55%; }
+.skel-panel {
   background: #1e293b;
   border: 1px solid rgba(255,255,255,0.05);
-  border-radius: 12px;
-  height: 480px;
+  border-radius: 13px;
+  height: 460px;
   box-sizing: border-box;
 }
 
-/* ── Metric card hover ──────────────────────────────────────── */
+/* ── Metric card grid ─────────────────────────────────────────── */
+#offline-metric-cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+@media (max-width: 1300px) { #offline-metric-cards { grid-template-columns: repeat(2,1fr); } }
+@media (max-width:  600px) { #offline-metric-cards { grid-template-columns: 1fr; } }
+
+/* ── Metric card hover ────────────────────────────────────────── */
 .ml-metric-card {
-  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease !important;
+  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease !important;
   cursor: default;
+  height: 88px !important;
+  box-sizing: border-box !important;
+  align-items: center !important;
 }
 .ml-metric-card:hover {
   transform: scale(1.025) !important;
-  box-shadow: 0 8px 32px rgba(219, 39, 119, 0.18), 0 2px 8px rgba(0,0,0,0.3) !important;
-  border-color: rgba(219,39,119,0.4) !important;
+  box-shadow: 0 6px 28px rgba(219,39,119,0.18), 0 2px 8px rgba(0,0,0,0.25) !important;
+  border-color: rgba(219,39,119,0.38) !important;
 }
 
-/* ── 4-column visualization grid ────────────────────────────── */
+/* ── 4-column visualization grid ─────────────────────────────── */
 .ml-charts-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
-  margin-top: 24px;
-  align-items: start;
+  gap: 16px;
+  margin-top: 20px;
+  /* grid rows: all cards stretch to the same height */
+  align-items: stretch;
 }
-@media (max-width: 1600px) {
-  .ml-charts-grid { grid-template-columns: repeat(2, 1fr); }
-}
-@media (max-width: 900px) {
-  .ml-charts-grid { grid-template-columns: 1fr; }
-}
+@media (max-width: 1600px) { .ml-charts-grid { grid-template-columns: repeat(2,1fr); } }
+@media (max-width:  900px) { .ml-charts-grid { grid-template-columns: 1fr; } }
 
-/* ── Unified visualization card ─────────────────────────────── */
+/* ── Unified visualization card (all 4 share this class) ─────── */
 .viz-card {
   background: #1e293b;
   border: 1px solid rgba(255,255,255,0.06);
-  border-radius: 14px;
-  padding: 1.4rem;
+  border-radius: 13px;
+  padding: 1.1rem 1.15rem 1rem;   /* tighter than before */
   display: flex;
   flex-direction: column;
-  height: 480px;
+  height: 460px;
   box-sizing: border-box;
-  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
-  position: relative;
   overflow: hidden;
+  position: relative;
+  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
 }
 .viz-card::before {
   content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
+  position: absolute; top:0; left:0; right:0;
   height: 2px;
   background: linear-gradient(90deg, #9a277d, #e046ba);
-  opacity: 0;
-  transition: opacity 0.3s;
+  opacity: 0; transition: opacity 0.28s;
 }
-.viz-card:hover {
-  transform: scale(1.015);
-  box-shadow: 0 10px 40px rgba(219,39,119,0.15), 0 2px 10px rgba(0,0,0,0.3);
-  border-color: rgba(219,39,119,0.35);
-}
+.viz-card:hover { transform: scale(1.012); box-shadow: 0 8px 36px rgba(219,39,119,0.14), 0 2px 8px rgba(0,0,0,0.28); border-color: rgba(219,39,119,0.32); }
 .viz-card:hover::before { opacity: 1; }
 
-.viz-card-title {
-  font-size: 0.82rem;
-  color: #9ca3af;
+/* Card header */
+.vc-title {
+  font-size: 0.78rem;
+  color: #6b7280;
   text-transform: uppercase;
-  letter-spacing: 1.2px;
-  margin-bottom: 10px;
+  letter-spacing: 1.1px;
   font-weight: 700;
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  display: flex; align-items: center; gap: 7px;
   flex-shrink: 0;
+  margin-bottom: 7px;
 }
-.viz-card-title i { color: #db2777; }
+.vc-title i { color: #db2777; font-size: 0.8rem; }
 
-.viz-card-body {
+/* Card body — takes all remaining height */
+.vc-body {
   flex: 1;
   min-height: 0;
   display: flex;
   flex-direction: column;
 }
 
-.viz-card-footer {
-  font-size: 0.73rem;
-  color: #4b5563;
-  margin-top: 10px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
+/* Card footer note */
+.vc-footer {
+  font-size: 0.7rem;
+  color: #374151;
+  margin-top: 8px;
+  display: flex; align-items: center; gap: 5px;
   flex-shrink: 0;
+  line-height: 1.3;
 }
 
-/* ── ROC AUC label ──────────────────────────────────────────── */
-.roc-auc-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: rgba(16,185,129,0.12);
-  border: 1px solid rgba(16,185,129,0.25);
+/* ── ROC-AUC badge ────────────────────────────────────────────── */
+.roc-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(16,185,129,0.11);
+  border: 1px solid rgba(16,185,129,0.22);
   border-radius: 6px;
-  padding: 4px 10px;
-  font-size: 0.83rem;
-  font-weight: 700;
-  color: #10b981;
-  margin-bottom: 10px;
+  padding: 3px 9px;
+  font-size: 0.8rem; font-weight: 700; color: #10b981;
+  margin-bottom: 8px;
   flex-shrink: 0;
+  width: fit-content;
 }
 
-/* ── ROC / Confusion Matrix image container ─────────────────── */
-.img-dark-container {
+/* ── Image panel (ROC + Confusion Matrix) ─────────────────────── */
+.img-panel {
   flex: 1;
   min-height: 0;
-  background: #0f172a;
-  border-radius: 8px;
+  background: #0a1628;      /* very dark, near-black */
+  border-radius: 7px;
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
   border: 1px solid rgba(255,255,255,0.04);
 }
-.img-dark-container img {
+/* Image fills the container perfectly with no white border */
+.img-panel img {
+  display: block;
   width: 100%;
   height: 100%;
-  object-fit: contain;
-  border-radius: 6px;
-  display: block;
+  object-fit: fill;      /* fill = stretch to eliminate matplotlib white border */
+  border-radius: 5px;
 }
 
 /* ── Feature importance ──────────────────────────────────────── */
-.features-scroll {
+.feat-list {
   flex: 1;
   min-height: 0;
-  overflow-y: hidden;   /* no scrollbar */
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
   gap: 0;
+  /* no scrollbar */
+  overflow: hidden;
 }
-.feature-row {
+.feat-row {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 5px 0;
-  border-bottom: 1px solid rgba(255,255,255,0.03);
+  gap: 8px;
+  padding: 3.5px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.025);
+  flex-shrink: 0;
 }
-.feature-row:last-child { border-bottom: none; }
-.feature-name {
-  width: 148px;
-  font-size: 0.82rem;
+.feat-row:last-child { border-bottom: none; }
+.feat-label {
+  width: 132px;
+  font-size: 0.78rem;
   font-weight: 600;
-  color: #e2e8f0;
+  color: #cbd5e1;
   text-align: right;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   flex-shrink: 0;
 }
-.feature-bar-track {
+.feat-track {
   flex: 1;
-  height: 13px;
+  height: 10px;
   background: rgba(255,255,255,0.04);
-  border-radius: 6px;
+  border-radius: 5px;
   overflow: hidden;
 }
-.feature-bar-fill {
+.feat-fill {
   height: 100%;
-  border-radius: 6px;
+  border-radius: 5px;
   background: linear-gradient(90deg, #9a277d, #e046ba);
-  box-shadow: 0 0 10px rgba(219,39,119,0.35);
-  transition: width 0.8s ease;
+  box-shadow: 0 0 8px rgba(219,39,119,0.3);
 }
-.feature-pct {
-  width: 52px;
-  font-size: 0.82rem;
+.feat-pct {
+  width: 46px;
+  font-size: 0.78rem;
   font-weight: 700;
-  color: #f1f5f9;
+  color: #e2e8f0;
   text-align: right;
   flex-shrink: 0;
 }
 
-/* ── Per-class table: no internal scrollbar ──────────────────── */
-.per-class-wrapper {
+/* ── Per-class table ──────────────────────────────────────────── */
+.cls-wrapper {
   flex: 1;
   min-height: 0;
-  overflow: hidden;
+  /* Thin scrollbar only when strictly needed */
+  overflow-y: auto;
+  overflow-x: hidden;
 }
-.per-class-table {
+.cls-wrapper::-webkit-scrollbar { width: 4px; }
+.cls-wrapper::-webkit-scrollbar-track { background: rgba(255,255,255,0.03); border-radius:2px; }
+.cls-wrapper::-webkit-scrollbar-thumb { background: rgba(219,39,119,0.35); border-radius:2px; }
+.cls-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.84rem;
+  font-size: 0.81rem;
 }
-.per-class-table thead th {
-  padding: 7px 6px;
-  color: #6b7280;
-  font-weight: 600;
-  font-size: 0.77rem;
-  text-transform: uppercase;
-  letter-spacing: 0.6px;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
-}
-.per-class-table thead th:first-child { text-align: left; }
-.per-class-table thead th:not(:first-child) { text-align: center; }
-.per-class-table thead th:last-child { text-align: right; }
-
-.per-class-table tbody tr {
-  border-bottom: 1px solid rgba(255,255,255,0.04);
-  transition: background 0.18s;
-}
-.per-class-table tbody tr:hover { background: rgba(255,255,255,0.025); }
-.per-class-table tbody tr:last-child { border-bottom: none; }
-.per-class-table tbody td {
-  padding: 7px 6px;
-  font-size: 0.84rem;
-  color: #f1f5f9;
-}
-.per-class-table tbody td:not(:first-child) { text-align: center; }
-.per-class-table tbody td:last-child { text-align: right; color: #9ca3af; }
-.per-class-table .macro-row td { border-top: 1px solid rgba(255,255,255,0.12); font-weight: 700; padding-top: 9px; }
-
-/* ── Model Information ───────────────────────────────────────── */
-.model-info-card {
-  margin-top: 24px;
-  background: #1e293b;
-  border: 1px solid rgba(255,255,255,0.06);
-  border-radius: 14px;
-  padding: 1.4rem 1.6rem;
-  transition: box-shadow 0.25s, border-color 0.25s;
-}
-.model-info-card:hover {
-  box-shadow: 0 6px 28px rgba(219,39,119,0.1);
-  border-color: rgba(219,39,119,0.25);
-}
-.model-info-card h3 {
-  font-size: 0.82rem;
-  color: #9ca3af;
-  text-transform: uppercase;
-  letter-spacing: 1.2px;
-  margin-bottom: 18px;
+.cls-table thead th {
+  padding: 5px 5px 6px;
+  color: #4b5563;
   font-weight: 700;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.model-info-card h3 i { color: #db2777; }
-.model-info-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
-.model-info-table th {
-  padding: 10px 16px;
-  color: #6b7280;
-  font-weight: 600;
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   border-bottom: 1px solid rgba(255,255,255,0.08);
-  text-align: left;
+  white-space: nowrap;
+  position: sticky; top: 0;
+  background: #1e293b;
+  z-index: 1;
+}
+.cls-table thead th:first-child { text-align: left; }
+.cls-table thead th:not(:first-child) { text-align: center; }
+.cls-table thead th:last-child { text-align: right; }
+.cls-table tbody tr {
+  border-bottom: 1px solid rgba(255,255,255,0.035);
+  transition: background 0.15s;
+}
+.cls-table tbody tr:hover { background: rgba(255,255,255,0.025); }
+.cls-table tbody tr:last-child { border-bottom: none; }
+.cls-table tbody td {
+  padding: 5px 5px;
+  font-size: 0.81rem;
+  color: #e2e8f0;
   white-space: nowrap;
 }
-.model-info-table td {
-  padding: 14px 16px;
-  color: #f1f5f9;
-  font-size: 0.88rem;
+.cls-table tbody td:not(:first-child) { text-align: center; }
+.cls-table tbody td:last-child { text-align: right; color: #6b7280; }
+.cls-table .macro-row td {
+  border-top: 1px solid rgba(255,255,255,0.1);
+  font-weight: 700;
+  padding-top: 7px;
+  color: #db2777;
+}
+.cls-table .macro-row td:first-child { color: #e2e8f0; }
+.cls-table .macro-row td:last-child { color: #6b7280; }
+
+/* ── Model Information card ───────────────────────────────────── */
+.model-card {
+  margin-top: 18px;
+  background: #1e293b;
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 13px;
+  padding: 1.1rem 1.4rem;
+  transition: box-shadow 0.22s, border-color 0.22s;
+}
+.model-card:hover {
+  box-shadow: 0 5px 24px rgba(219,39,119,0.09);
+  border-color: rgba(219,39,119,0.22);
+}
+.model-card h3 {
+  font-size: 0.78rem; color: #6b7280;
+  text-transform: uppercase; letter-spacing: 1.1px;
+  margin-bottom: 14px; font-weight: 700;
+  display: flex; align-items: center; gap: 7px;
+}
+.model-card h3 i { color: #db2777; }
+.mi-table { width:100%; border-collapse:collapse; }
+.mi-table th {
+  padding: 8px 14px 8px;
+  color: #4b5563; font-weight: 700; font-size: 0.72rem;
+  text-transform: uppercase; letter-spacing: 0.5px;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  text-align: left; white-space: nowrap;
+}
+.mi-table td {
+  padding: 12px 14px;
+  color: #f1f5f9; font-size: 0.85rem;
   white-space: nowrap;
 }
-
-/* ── Metric cards skeleton spacing ─────────────────────────── */
-.metrics-skeleton-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1.25rem;
-}
-@media (max-width: 1200px) { .metrics-skeleton-grid { grid-template-columns: repeat(2,1fr); } }
-
-/* ── Responsive metric cards ────────────────────────────────── */
-#offline-metric-cards {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1.25rem;
-}
-@media (max-width: 1200px) { #offline-metric-cards { grid-template-columns: repeat(2,1fr); } }
-@media (max-width: 600px)  { #offline-metric-cards { grid-template-columns: 1fr; } }
 </style>
 {% endblock %}
 
 {% block content %}
 <main class="main-content">
-  <!-- Page Header -->
-  <header style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:20px;">
+
+  <!-- ── Page Header ─────────────────────────────────────────── -->
+  <header style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:18px;">
     <div>
-      <h1 style="font-size:1.8rem; margin:0; font-weight:700; color:#f8fafc;">ML Performance Dashboard</h1>
-      <p style="margin:8px 0 0 0; color:#9ca3af; font-size:0.95rem;">Offline Evaluation Metrics — LightGBM ONNX Model</p>
+      <h1 style="font-size:1.75rem; margin:0; font-weight:700; color:#f8fafc;">ML Performance Dashboard</h1>
+      <p style="margin:6px 0 0; color:#9ca3af; font-size:0.9rem;">Offline Evaluation Metrics — LightGBM ONNX Model</p>
     </div>
-    <div style="display:flex; align-items:center; gap:16px; flex-shrink:0;">
-      <div style="background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.2); color:#10b981; padding:8px 16px; border-radius:8px; font-size:0.88rem; font-weight:600; display:flex; align-items:center; gap:8px;">
+    <div style="display:flex; align-items:center; gap:14px; flex-shrink:0;">
+      <div style="background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.2); color:#10b981; padding:7px 15px; border-radius:8px; font-size:0.85rem; font-weight:600; display:flex; align-items:center; gap:7px;">
         <i class="fas fa-database"></i> Offline Evaluation
       </div>
-      <div style="display:flex; align-items:center; gap:10px; color:#9ca3af; font-size:0.84rem;">
-        <div style="background:rgba(255,255,255,0.05); padding:10px; border-radius:8px;"><i class="far fa-calendar-alt"></i></div>
+      <div style="display:flex; align-items:center; gap:9px; color:#9ca3af; font-size:0.82rem;">
+        <div style="background:rgba(255,255,255,0.05); padding:9px; border-radius:8px;"><i class="far fa-calendar-alt"></i></div>
         <div style="display:flex; flex-direction:column;">
-          <span style="font-size:0.72rem; color:#6b7280;">Last Updated</span>
-          <span id="current-time" style="color:#f3f4f6; font-family:monospace; font-weight:600; font-size:0.88rem;"></span>
+          <span style="font-size:0.7rem; color:#4b5563;">Last Updated</span>
+          <span id="current-time" style="color:#f3f4f6; font-family:monospace; font-weight:600; font-size:0.85rem;"></span>
         </div>
       </div>
     </div>
   </header>
 
-  <!-- Status bar -->
-  <div style="display:flex; align-items:center; gap:12px; background:rgba(16,185,129,0.07); border:1px solid rgba(16,185,129,0.2); border-radius:10px; padding:11px 16px; margin-bottom:24px; font-size:0.88rem; color:#d1fae5;">
-    <i class="fas fa-check-circle" style="color:#10b981; font-size:1rem;"></i>
+  <!-- ── Status bar ──────────────────────────────────────────── -->
+  <div style="display:flex; align-items:center; gap:11px; background:rgba(16,185,129,0.07); border:1px solid rgba(16,185,129,0.18); border-radius:9px; padding:10px 15px; margin-bottom:20px; font-size:0.86rem; color:#d1fae5;">
+    <i class="fas fa-check-circle" style="color:#10b981;"></i>
     <span>Offline evaluation metrics loaded successfully. These metrics are computed during model evaluation and do not change with live traffic.</span>
   </div>
 
-  <!-- Metric Cards (skeleton while loading) -->
+  <!-- ── Metric Cards ─────────────────────────────────────────── -->
   <div id="offline-metric-cards">
-    <!-- Skeleton placeholders -->
-    <div class="skeleton-card">
-      <div class="skeleton skeleton-icon"></div>
-      <div class="skeleton-text"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line-sm"></div></div>
+    {% for _ in range(8) %}
+    <div class="skel-card">
+      <div class="skeleton skel-icon"></div>
+      <div class="skel-text">
+        <div class="skeleton skel-line"></div>
+        <div class="skeleton skel-line-sm"></div>
+      </div>
     </div>
-    <div class="skeleton-card">
-      <div class="skeleton skeleton-icon"></div>
-      <div class="skeleton-text"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line-sm"></div></div>
-    </div>
-    <div class="skeleton-card">
-      <div class="skeleton skeleton-icon"></div>
-      <div class="skeleton-text"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line-sm"></div></div>
-    </div>
-    <div class="skeleton-card">
-      <div class="skeleton skeleton-icon"></div>
-      <div class="skeleton-text"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line-sm"></div></div>
-    </div>
-    <div class="skeleton-card">
-      <div class="skeleton skeleton-icon"></div>
-      <div class="skeleton-text"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line-sm"></div></div>
-    </div>
-    <div class="skeleton-card">
-      <div class="skeleton skeleton-icon"></div>
-      <div class="skeleton-text"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line-sm"></div></div>
-    </div>
-    <div class="skeleton-card">
-      <div class="skeleton skeleton-icon"></div>
-      <div class="skeleton-text"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line-sm"></div></div>
-    </div>
-    <div class="skeleton-card">
-      <div class="skeleton skeleton-icon"></div>
-      <div class="skeleton-text"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line-sm"></div></div>
-    </div>
+    {% endfor %}
   </div>
 
-  <!-- Visualization Grid: 4 equal-height cards -->
+  <!-- ── Visualization Grid ──────────────────────────────────── -->
   <div class="ml-charts-grid" id="viz-grid">
-    <!-- Feature Importance skeleton -->
-    <div class="skeleton-panel" id="skel-feat"></div>
-    <!-- ROC Curve skeleton -->
-    <div class="skeleton-panel" id="skel-roc"></div>
-    <!-- Per-Class skeleton -->
-    <div class="skeleton-panel" id="skel-cls"></div>
-    <!-- Confusion Matrix skeleton -->
-    <div class="skeleton-panel" id="skel-cm"></div>
+    <div class="skel-panel" id="sp-feat"></div>
+    <div class="skel-panel" id="sp-roc"></div>
+    <div class="skel-panel" id="sp-cls"></div>
+    <div class="skel-panel" id="sp-cm"></div>
   </div>
 
-  <!-- Model Information (skeleton) -->
-  <div class="model-info-card" id="model-info-section" style="min-height:110px;">
+  <!-- ── Model Information ────────────────────────────────────── -->
+  <div class="model-card" id="model-info-section">
     <h3><i class="fas fa-cube"></i> Model Information</h3>
-    <div style="display:flex; gap:16px;">
-      <div class="skeleton" style="height:48px; flex:1; border-radius:8px;"></div>
-      <div class="skeleton" style="height:48px; flex:1; border-radius:8px;"></div>
-      <div class="skeleton" style="height:48px; flex:1; border-radius:8px;"></div>
-      <div class="skeleton" style="height:48px; flex:1; border-radius:8px;"></div>
-      <div class="skeleton" style="height:48px; flex:1; border-radius:8px;"></div>
+    <div style="display:flex; gap:12px;">
+      {% for _ in range(9) %}
+      <div class="skeleton" style="height:42px; flex:1; border-radius:7px;"></div>
+      {% endfor %}
     </div>
   </div>
+
 </main>
 {% endblock %}
 
 {% block scripts %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+/* ── MLPerformance controller — presentation only ────────────── */
 const MLPerformance = {
   rocChart: null,
 
   load() {
     fetch('/api/ml/stats', { credentials: 'same-origin' })
-      .then(res => {
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        return res.json();
-      })
-      .then(data => {
-        this.renderMetricCards(data);
-        this.renderVizGrid(data);
-        this.renderModelInfo(data);
+      .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(d => {
+        this.renderMetricCards(d);
+        this.renderVizGrid(d);
+        this.renderModelInfo(d);
       })
       .catch(err => {
-        console.error('Failed to load ML stats:', err);
+        console.error('ML stats error:', err);
         document.getElementById('offline-metric-cards').innerHTML =
-          '<div style="color:#ef4444; padding:16px; grid-column:1/-1;"><i class="fas fa-exclamation-circle"></i> Failed to load metrics. Check API connection.</div>';
+          '<div style="color:#ef4444;padding:16px;grid-column:1/-1"><i class="fas fa-exclamation-circle"></i> Failed to load metrics.</div>';
       });
   },
 
-  renderMetricCards(data) {
+  /* ── Metric cards ─────────────────────────────────────────── */
+  renderMetricCards(d) {
     const cards = [
-      { label: 'Accuracy',             value: data.accuracy              != null ? data.accuracy.toFixed(2)              + '%' : '--', color: '#10b981', icon: 'fa-bullseye',      bg: 'rgba(16,185,129,0.12)' },
-      { label: 'Precision',            value: data.precision             != null ? data.precision.toFixed(2)             + '%' : '--', color: '#3b82f6', icon: 'fa-crosshairs',    bg: 'rgba(59,130,246,0.12)' },
-      { label: 'Recall',               value: data.recall                != null ? data.recall.toFixed(2)                + '%' : '--', color: '#f59e0b', icon: 'fa-sync-alt',      bg: 'rgba(245,158,11,0.12)' },
-      { label: 'F1-Score',             value: data.f1_score              != null ? data.f1_score.toFixed(2)              + '%' : '--', color: '#8b5cf6', icon: 'fa-star',           bg: 'rgba(139,92,246,0.12)' },
-      { label: 'ROC-AUC',              value: data.roc_auc               != null ? data.roc_auc.toFixed(4)                    : '--', color: '#ec4899', icon: 'fa-chart-line',    bg: 'rgba(236,72,153,0.12)' },
-      { label: 'Log Loss',             value: data.log_loss              != null ? data.log_loss.toFixed(4)                   : '--', color: '#9ca3af', icon: 'fa-chart-bar',     bg: 'rgba(156,163,175,0.12)' },
-      { label: 'Balanced Accuracy',    value: data.balanced_accuracy     != null ? data.balanced_accuracy.toFixed(2)     + '%' : '--', color: '#a855f7', icon: 'fa-balance-scale', bg: 'rgba(168,85,247,0.12)' },
-      { label: 'Inference Time (Avg)', value: data.average_inference_time_ms != null ? '~' + data.average_inference_time_ms + ' ms' : '--', color: '#38bdf8', icon: 'fa-bolt', bg: 'rgba(56,189,248,0.12)' },
+      { label:'Accuracy',             v: d.accuracy              != null ? d.accuracy.toFixed(2)+'%'              : '--', color:'#10b981', icon:'fa-bullseye',      bg:'rgba(16,185,129,0.12)' },
+      { label:'Precision',            v: d.precision             != null ? d.precision.toFixed(2)+'%'             : '--', color:'#3b82f6', icon:'fa-crosshairs',    bg:'rgba(59,130,246,0.12)' },
+      { label:'Recall',               v: d.recall                != null ? d.recall.toFixed(2)+'%'                : '--', color:'#f59e0b', icon:'fa-sync-alt',      bg:'rgba(245,158,11,0.12)' },
+      { label:'F1-Score',             v: d.f1_score              != null ? d.f1_score.toFixed(2)+'%'              : '--', color:'#8b5cf6', icon:'fa-star',           bg:'rgba(139,92,246,0.12)' },
+      { label:'ROC-AUC',              v: d.roc_auc               != null ? d.roc_auc.toFixed(4)                   : '--', color:'#ec4899', icon:'fa-chart-line',    bg:'rgba(236,72,153,0.12)' },
+      { label:'Log Loss',             v: d.log_loss              != null ? d.log_loss.toFixed(4)                  : '--', color:'#9ca3af', icon:'fa-chart-bar',     bg:'rgba(156,163,175,0.12)' },
+      { label:'Balanced Accuracy',    v: d.balanced_accuracy     != null ? d.balanced_accuracy.toFixed(2)+'%'     : '--', color:'#a855f7', icon:'fa-balance-scale', bg:'rgba(168,85,247,0.12)' },
+      { label:'Inference Time (Avg)', v: d.average_inference_time_ms != null ? '~'+d.average_inference_time_ms+' ms' : '--', color:'#38bdf8', icon:'fa-bolt',    bg:'rgba(56,189,248,0.12)' },
     ];
     document.getElementById('offline-metric-cards').innerHTML = cards.map(c => `
-      <div class="ml-metric-card" style="background:#1e293b; border:1px solid rgba(255,255,255,0.06); padding:1.4rem; border-radius:12px; display:flex; align-items:center; gap:14px; box-shadow:0 2px 8px rgba(0,0,0,0.2);">
-        <div style="width:52px; height:52px; background:${c.bg}; color:${c.color}; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.35rem; flex-shrink:0;">
+      <div class="ml-metric-card" style="background:#1e293b;border:1px solid rgba(255,255,255,0.06);padding:1.1rem 1.2rem;border-radius:12px;display:flex;align-items:center;gap:13px;box-shadow:0 2px 6px rgba(0,0,0,0.2);">
+        <div style="width:46px;height:46px;background:${c.bg};color:${c.color};border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;flex-shrink:0;">
           <i class="fas ${c.icon}"></i>
         </div>
-        <div style="display:flex; flex-direction:column; gap:4px;">
-          <div style="color:#f8fafc; font-size:1.55rem; font-weight:700; line-height:1; font-family:monospace;">${c.value}</div>
-          <div style="color:#9ca3af; font-size:0.85rem; font-weight:500;">${c.label}</div>
+        <div style="display:flex;flex-direction:column;gap:3px;min-width:0;">
+          <div style="color:#f8fafc;font-size:1.45rem;font-weight:700;line-height:1;font-family:monospace;white-space:nowrap;">${c.v}</div>
+          <div style="color:#9ca3af;font-size:0.8rem;font-weight:500;white-space:nowrap;">${c.label}</div>
         </div>
-      </div>
-    `).join('');
+      </div>`).join('');
   },
 
-  renderVizGrid(data) {
-    const grid = document.getElementById('viz-grid');
-    grid.innerHTML = `
-      <!-- Feature Importance -->
-      <div class="viz-card" id="card-feat">
-        <div class="viz-card-title"><i class="fas fa-chart-bar"></i> Feature Importance (Top 10)</div>
-        <div class="viz-card-body">
-          <div class="features-scroll" id="features-list">
-            <div style="color:#6b7280; text-align:center; padding:20px;"><i class="fas fa-spinner fa-spin"></i> Loading...</div>
-          </div>
+  /* ── Visualization grid ───────────────────────────────────── */
+  renderVizGrid(d) {
+    document.getElementById('viz-grid').innerHTML = `
+      <!-- 1: Feature Importance -->
+      <div class="viz-card">
+        <div class="vc-title"><i class="fas fa-chart-bar"></i> Feature Importance (Top 10)</div>
+        <div class="vc-body">
+          <div class="feat-list" id="feat-list"></div>
         </div>
-        <div class="viz-card-footer"><i class="fas fa-info-circle"></i> Importance values normalized to 100%.</div>
+        <div class="vc-footer"><i class="fas fa-info-circle"></i> Importance values normalized to 100%.</div>
       </div>
 
-      <!-- ROC Curve -->
-      <div class="viz-card" id="card-roc">
-        <div class="viz-card-title"><i class="fas fa-chart-line"></i> ROC Curve</div>
-        <div class="roc-auc-badge"><i class="fas fa-star"></i> ROC-AUC: <span id="roc-auc-label">--</span></div>
-        <div class="img-dark-container" style="flex:1; min-height:0;">
+      <!-- 2: ROC Curve -->
+      <div class="viz-card">
+        <div class="vc-title"><i class="fas fa-chart-line"></i> ROC Curve</div>
+        <div class="roc-badge"><i class="fas fa-star"></i> ROC-AUC:&nbsp;<span id="roc-auc-val">--</span></div>
+        <div class="img-panel" style="flex:1;min-height:0;">
           <img id="roc-img"
-               src="/api/ml/eval-image/roc_curve.png"
-               onerror="this.style.display='none'; document.getElementById('offlineRocChart').style.display='block';"
+               src="/api/ml/eval-image/roc_curve.png?v=${Date.now()}"
+               onerror="this.style.display='none';document.getElementById('roc-canvas').style.display='block';"
                alt="ROC Curve">
-          <canvas id="offlineRocChart" style="display:none; width:100%; height:100%;"></canvas>
+          <canvas id="roc-canvas" style="display:none;width:100%;height:100%;"></canvas>
         </div>
-        <div class="viz-card-footer"><i class="fas fa-info-circle"></i> Real ROC Curve from model evaluation</div>
+        <div class="vc-footer"><i class="fas fa-info-circle"></i> Real ROC Curve from model evaluation</div>
       </div>
 
-      <!-- Per-Class Evaluation -->
-      <div class="viz-card" id="card-cls">
-        <div class="viz-card-title"><i class="fas fa-bullseye"></i> Per-Class Evaluation</div>
-        <div class="viz-card-body">
-          <div class="per-class-wrapper">
-            <table class="per-class-table">
+      <!-- 3: Per-Class Evaluation -->
+      <div class="viz-card">
+        <div class="vc-title"><i class="fas fa-bullseye"></i> Per-Class Evaluation</div>
+        <div class="vc-body">
+          <div class="cls-wrapper">
+            <table class="cls-table">
               <thead>
                 <tr>
                   <th style="text-align:left;">Class</th>
-                  <th>Precision</th>
+                  <th>Prec.</th>
                   <th>Recall</th>
-                  <th>F1-Score</th>
+                  <th>F1</th>
                   <th style="text-align:right;">Support</th>
                 </tr>
               </thead>
-              <tbody id="per-class-tbody">
-                <tr><td colspan="5" style="text-align:center; color:#6b7280; padding:20px;">Loading...</td></tr>
+              <tbody id="cls-tbody">
+                <tr><td colspan="5" style="text-align:center;color:#4b5563;padding:18px;">Loading…</td></tr>
               </tbody>
             </table>
           </div>
         </div>
-        <div class="viz-card-footer"><i class="fas fa-info-circle"></i> Metrics from the held-out test set (28,511 samples).</div>
+        <div class="vc-footer"><i class="fas fa-info-circle"></i> Held-out test set · 28,511 samples</div>
       </div>
 
-      <!-- Confusion Matrix -->
-      <div class="viz-card" id="card-cm">
-        <div class="viz-card-title"><i class="fas fa-th"></i> Confusion Matrix</div>
-        <div class="img-dark-container" style="flex:1; min-height:0;">
-          <img src="/api/ml/eval-image/confusion_matrix_normalized.png"
-               onerror="this.parentElement.innerHTML='<p style=\\'color:#6b7280;text-align:center;\\'>Image not available</p>'"
+      <!-- 4: Confusion Matrix -->
+      <div class="viz-card">
+        <div class="vc-title"><i class="fas fa-th"></i> Confusion Matrix</div>
+        <div class="img-panel" style="flex:1;min-height:0;">
+          <img src="/api/ml/eval-image/confusion_matrix_normalized.png?v=${Date.now()}"
+               onerror="this.parentElement.innerHTML='<p style=\\'color:#4b5563;text-align:center;\\'>Image not available</p>'"
                alt="Normalized Confusion Matrix">
         </div>
-        <div class="viz-card-footer"><i class="fas fa-info-circle"></i> Normalized confusion matrix from test set.</div>
+        <div class="vc-footer"><i class="fas fa-info-circle"></i> Normalized confusion matrix · test set</div>
       </div>
     `;
 
-    // Now render data into the panels
-    this.renderFeatures(data.feature_importance || []);
-    this.renderRocChart(data.roc_auc);
-    this.renderPerClassTable(data.per_class_report || {}, data.class_names || []);
+    this.renderFeatures(d.feature_importance || []);
+    this.renderRocChart(d.roc_auc);
+    this.renderPerClassTable(d.per_class_report || {}, d.class_names || []);
   },
 
+  /* ── Feature importance ───────────────────────────────────── */
   renderFeatures(features) {
-    const container = document.getElementById('features-list');
+    const el = document.getElementById('feat-list');
+    if (!el) return;
     if (!features.length) {
-      container.innerHTML = '<div style="color:#6b7280; text-align:center; padding:20px;"><i class="fas fa-info-circle"></i> Feature importance file not found.</div>';
+      el.innerHTML = '<div style="color:#4b5563;text-align:center;padding:18px;"><i class="fas fa-info-circle"></i> Not available.</div>';
       return;
     }
-    const top10 = features.slice(0, 10);
-    const max = top10[0].importance;
-    container.innerHTML = top10.map(f => {
+    const top = features.slice(0, 10);
+    const max = top[0].importance;
+    el.innerHTML = top.map(f => {
       const pct = (f.importance / max * 100).toFixed(2);
-      const barW = (f.importance / max * 100).toFixed(1);
+      const w   = (f.importance / max * 100).toFixed(1);
       return `
-        <div class="feature-row">
-          <div class="feature-name" title="${f.feature}">${f.feature}</div>
-          <div class="feature-bar-track">
-            <div class="feature-bar-fill" style="width:${barW}%;"></div>
-          </div>
-          <div class="feature-pct">${pct}%</div>
+        <div class="feat-row">
+          <div class="feat-label" title="${f.feature}">${f.feature}</div>
+          <div class="feat-track"><div class="feat-fill" style="width:${w}%;"></div></div>
+          <div class="feat-pct">${pct}%</div>
         </div>`;
     }).join('');
   },
 
+  /* ── ROC Chart fallback (Chart.js) ───────────────────────── */
   renderRocChart(rocAuc) {
-    const label = document.getElementById('roc-auc-label');
-    if (label) label.textContent = rocAuc != null ? rocAuc.toFixed(4) : '--';
+    const lbl = document.getElementById('roc-auc-val');
+    if (lbl) lbl.textContent = rocAuc != null ? rocAuc.toFixed(4) : '--';
 
-    // If the real image loads fine, chart.js canvas stays hidden — nothing to do.
-    // Only initialise Chart.js if the image fails (onerror fires).
-    const canvas = document.getElementById('offlineRocChart');
+    const canvas = document.getElementById('roc-canvas');
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (this.rocChart) this.rocChart.destroy();
     this.rocChart = new Chart(ctx, {
       type: 'line',
       data: {
-        labels: ['0.00', '0.25', '0.50', '0.75', '1.00'],
+        labels: ['0.00','0.25','0.50','0.75','1.00'],
         datasets: [
-          {
-            label: 'Model (AUC = ' + (rocAuc != null ? rocAuc.toFixed(4) : '--') + ')',
-            data: [0, 0.95, 0.98, 0.99, 1],
-            borderColor: '#db2777',
-            backgroundColor: 'rgba(219,39,119,0.08)',
-            borderWidth: 2.5,
-            tension: 0.45,
-            pointRadius: 0,
-            fill: true,
-          },
-          {
-            label: 'Random Classifier',
-            data: [0, 0.25, 0.5, 0.75, 1],
-            borderColor: 'rgba(255,255,255,0.35)',
-            borderWidth: 1.5,
-            borderDash: [5, 5],
-            pointRadius: 0,
-          }
+          { label: 'Model (AUC='+(rocAuc!=null?rocAuc.toFixed(4):'--')+')',
+            data:[0,0.95,0.98,0.99,1],
+            borderColor:'#db2777', backgroundColor:'rgba(219,39,119,0.08)',
+            borderWidth:2.5, tension:0.45, pointRadius:0, fill:true },
+          { label:'Random Classifier',
+            data:[0,0.25,0.5,0.75,1],
+            borderColor:'rgba(255,255,255,0.35)', borderWidth:1.5,
+            borderDash:[5,5], pointRadius:0 }
         ]
       },
       options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            position: 'bottom',
-            labels: { color: '#d1d5db', font: { size: 11 }, boxWidth: 14, boxHeight: 2, padding: 10 }
-          }
-        },
-        scales: {
-          x: {
-            title: { display: true, text: 'False Positive Rate', color: '#9ca3af', font: { size: 11 } },
-            ticks: { color: '#6b7280', font: { size: 10 }, maxTicksLimit: 5 },
-            grid: { color: 'rgba(255,255,255,0.06)' }
-          },
-          y: {
-            title: { display: true, text: 'True Positive Rate', color: '#9ca3af', font: { size: 11 } },
-            ticks: { color: '#6b7280', font: { size: 10 }, stepSize: 0.25 },
-            grid: { color: 'rgba(255,255,255,0.06)' },
-            min: 0, max: 1
-          }
+        responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{ position:'bottom', labels:{ color:'#d1d5db', font:{size:10}, boxWidth:12, boxHeight:2, padding:8 } } },
+        scales:{
+          x:{ title:{display:true,text:'False Positive Rate',color:'#9ca3af',font:{size:10}},
+              ticks:{color:'#6b7280',font:{size:9},maxTicksLimit:5},
+              grid:{color:'rgba(255,255,255,0.05)'} },
+          y:{ title:{display:true,text:'True Positive Rate',color:'#9ca3af',font:{size:10}},
+              ticks:{color:'#6b7280',font:{size:9},stepSize:0.25},
+              grid:{color:'rgba(255,255,255,0.05)'},
+              min:0,max:1 }
         }
       }
     });
   },
 
+  /* ── Per-class table ──────────────────────────────────────── */
   renderPerClassTable(report, classNames) {
-    const tbody = document.getElementById('per-class-tbody');
+    const tbody = document.getElementById('cls-tbody');
+    if (!tbody) return;
     if (!report || Object.keys(report).length === 0) {
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#6b7280; padding:20px;">Report not available</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#4b5563;padding:18px;">Not available</td></tr>';
       return;
     }
-
-    let classes = [], macroAvg = null, totalSupport = 0;
-    for (const [key, metrics] of Object.entries(report)) {
-      if (['accuracy', 'macro avg', 'weighted avg'].includes(key)) {
-        if (key === 'macro avg') macroAvg = metrics;
-        continue;
+    let rows = [], macro = null, tot = 0;
+    for (const [k, m] of Object.entries(report)) {
+      if (['accuracy','macro avg','weighted avg'].includes(k)) {
+        if (k==='macro avg') macro = m; continue;
       }
-      classes.push({ name: classNames[key] || key, p: metrics.precision, r: metrics.recall, f1: metrics.f1, s: metrics.support });
-      totalSupport += metrics.support;
+      rows.push({ name: classNames[k] || k, p:m.precision, r:m.recall, f1:m.f1, s:m.support });
+      tot += m.support;
     }
-    classes.sort((a, b) => b.s - a.s);
+    rows.sort((a,b) => b.s - a.s);
 
-    function color(v) {
-      if (v >= 0.95) return '#10b981';
-      if (v >= 0.85) return '#f59e0b';
-      if (v >= 0.75) return '#f97316';
-      return '#ef4444';
-    }
-
-    let html = classes.map(c => `
+    const col = v => v>=0.95 ? '#10b981' : v>=0.85 ? '#f59e0b' : v>=0.75 ? '#f97316' : '#ef4444';
+    let html = rows.map(c => `
       <tr>
-        <td style="color:#f1f5f9; text-align:left;">${c.name}</td>
-        <td style="color:${color(c.p)}; font-weight:600;">${c.p.toFixed(2)}</td>
-        <td style="color:${color(c.r)}; font-weight:600;">${c.r.toFixed(2)}</td>
-        <td style="color:${color(c.f1)}; font-weight:600;">${c.f1.toFixed(2)}</td>
-        <td style="color:#9ca3af;">${c.s.toLocaleString()}</td>
+        <td style="text-align:left;">${c.name}</td>
+        <td style="color:${col(c.p)};font-weight:600;">${c.p.toFixed(2)}</td>
+        <td style="color:${col(c.r)};font-weight:600;">${c.r.toFixed(2)}</td>
+        <td style="color:${col(c.f1)};font-weight:600;">${c.f1.toFixed(2)}</td>
+        <td>${c.s.toLocaleString()}</td>
       </tr>`).join('');
-
-    if (macroAvg) {
+    if (macro) {
       html += `<tr class="macro-row">
-        <td style="color:#f1f5f9; text-align:left;">Macro Avg</td>
-        <td style="color:#db2777;">${macroAvg.precision.toFixed(2)}</td>
-        <td style="color:#db2777;">${macroAvg.recall.toFixed(2)}</td>
-        <td style="color:#db2777;">${macroAvg.f1.toFixed(2)}</td>
-        <td style="color:#9ca3af;">${totalSupport.toLocaleString()}</td>
+        <td style="text-align:left;">Macro Avg</td>
+        <td>${macro.precision.toFixed(2)}</td>
+        <td>${macro.recall.toFixed(2)}</td>
+        <td>${macro.f1.toFixed(2)}</td>
+        <td>${tot.toLocaleString()}</td>
       </tr>`;
     }
     tbody.innerHTML = html;
   },
 
-  renderModelInfo(data) {
+  /* ── Model Information ────────────────────────────────────── */
+  renderModelInfo(d) {
     const cols = [
-      { label: 'Model Type',     val: data.model_type || '--' },
-      { label: 'Dataset Size',   val: data.dataset_size ? data.dataset_size.toLocaleString() + ' samples' : '--' },
-      { label: 'Classes',        val: data.number_of_classes != null ? data.number_of_classes + ' attack types' : '--' },
-      { label: 'Features',       val: data.feature_count ? data.feature_count.toLocaleString() : '--' },
-      { label: 'Training Date',  val: data.training_date || '--' },
-      { label: 'Balanced Acc.',  val: data.balanced_accuracy != null ? data.balanced_accuracy.toFixed(2) + '%' : '--' },
-      { label: 'Model Format',   val: (data.model_type || '').includes('ONNX') ? 'ONNX' : '--' },
-      { label: 'ONNX Size',      val: data.onnx_size_mb != null ? data.onnx_size_mb + ' MB' : '1.9 MB' },
-      { label: 'Model Version',  val: data.model_version || 'v3.0-lightgbm-onnx' },
+      { label:'Model Type',     val: d.model_type || '--' },
+      { label:'Dataset Size',   val: d.dataset_size ? d.dataset_size.toLocaleString()+' samples' : '--' },
+      { label:'Classes',        val: d.number_of_classes != null ? d.number_of_classes+' attack types' : '--' },
+      { label:'Features',       val: d.feature_count ? d.feature_count.toLocaleString() : '--' },
+      { label:'Training Date',  val: d.training_date || '--' },
+      { label:'Balanced Acc.',  val: d.balanced_accuracy != null ? d.balanced_accuracy.toFixed(2)+'%' : '--' },
+      { label:'Model Format',   val: (d.model_type||'').includes('ONNX') ? 'ONNX' : '--' },
+      { label:'ONNX Size',      val: d.onnx_size_mb != null ? d.onnx_size_mb+' MB' : '1.9 MB' },
+      { label:'Model Version',  val: d.model_version || 'v3.0-lightgbm-onnx' },
     ];
-
-    const section = document.getElementById('model-info-section');
-    section.innerHTML = `
+    document.getElementById('model-info-section').innerHTML = `
       <h3><i class="fas fa-cube"></i> Model Information</h3>
       <div style="overflow-x:auto;">
-        <table class="model-info-table">
-          <thead>
-            <tr>${cols.map(c => `<th>${c.label}</th>`).join('')}</tr>
-          </thead>
-          <tbody>
-            <tr>${cols.map(c => `<td>${c.val}</td>`).join('')}</tr>
-          </tbody>
+        <table class="mi-table">
+          <thead><tr>${cols.map(c=>`<th>${c.label}</th>`).join('')}</tr></thead>
+          <tbody><tr>${cols.map(c=>`<td>${c.val}</td>`).join('')}</tr></tbody>
         </table>
-      </div>
-    `;
+      </div>`;
   }
 };
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Show live clock immediately
-  const clockEl = document.getElementById('current-time');
-  const tick = () => { if(clockEl) clockEl.textContent = new Date().toLocaleString(); };
+  const el = document.getElementById('current-time');
+  const tick = () => { if(el) el.textContent = new Date().toLocaleString(); };
   tick(); setInterval(tick, 1000);
-
-  // Load data
   MLPerformance.load();
 });
 </script>
