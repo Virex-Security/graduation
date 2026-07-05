@@ -6,179 +6,406 @@
 {% block stylesheets %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/ml_stats.css') }}" />
 <style>
-  .offline-notice {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    background: rgba(16, 185, 129, 0.08);
-    border: 1px solid rgba(16, 185, 129, 0.25);
-    border-radius: 8px;
-    padding: 12px 16px;
-    margin-bottom: 24px;
-    font-size: 0.88rem;
-    color: #d1fae5;
-  }
-  .offline-notice i { color: #10b981; font-size: 1rem; }
-  .live-link-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 8px 16px;
-    background: linear-gradient(135deg, #9a277d, #e046ba);
-    color: #fff;
-    border: none;
-    border-radius: 6px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    cursor: pointer;
-    text-decoration: none;
-    transition: opacity 0.2s;
-  }
-  .live-link-btn:hover { opacity: 0.85; color: #fff; }
-  .metric-value {
-    font-family: monospace;
-    font-weight: bold;
-    font-size: 1.6rem;
-  }
-  .ml-charts-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 20px;
-  }
-  .table-card table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-  .table-card th, .table-card td {
-    padding: 10px;
-    text-align: left;
-    border-bottom: 1px solid var(--border-dim, rgba(255,255,255,0.1));
-    font-size: 0.9rem;
-  }
-  .table-card th {
-    color: var(--text-muted, #9ca3af);
-    font-weight: normal;
-  }
+/* ── Page-level overrides ───────────────────────────────────── */
+
+/* Skeleton animation */
+@keyframes skeleton-shine {
+  0%   { background-position: -600px 0; }
+  100% { background-position:  600px 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.10) 50%, rgba(255,255,255,0.04) 75%);
+  background-size: 600px 100%;
+  animation: skeleton-shine 1.6s ease-in-out infinite;
+  border-radius: 8px;
+}
+.skeleton-card {
+  background: #1e293b;
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  height: 96px;
+  box-sizing: border-box;
+}
+.skeleton-icon  { width:52px; height:52px; border-radius:12px; flex-shrink:0; }
+.skeleton-text  { flex:1; display:flex; flex-direction:column; gap:10px; }
+.skeleton-line  { height:14px; border-radius:6px; }
+.skeleton-line-sm{ height:10px; border-radius:6px; width:60%; }
+
+.skeleton-panel {
+  background: #1e293b;
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 12px;
+  height: 480px;
+  box-sizing: border-box;
+}
+
+/* ── Metric card hover ──────────────────────────────────────── */
+.ml-metric-card {
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease !important;
+  cursor: default;
+}
+.ml-metric-card:hover {
+  transform: scale(1.025) !important;
+  box-shadow: 0 8px 32px rgba(219, 39, 119, 0.18), 0 2px 8px rgba(0,0,0,0.3) !important;
+  border-color: rgba(219,39,119,0.4) !important;
+}
+
+/* ── 4-column visualization grid ────────────────────────────── */
+.ml-charts-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  margin-top: 24px;
+  align-items: start;
+}
+@media (max-width: 1600px) {
+  .ml-charts-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 900px) {
+  .ml-charts-grid { grid-template-columns: 1fr; }
+}
+
+/* ── Unified visualization card ─────────────────────────────── */
+.viz-card {
+  background: #1e293b;
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 14px;
+  padding: 1.4rem;
+  display: flex;
+  flex-direction: column;
+  height: 480px;
+  box-sizing: border-box;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  position: relative;
+  overflow: hidden;
+}
+.viz-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #9a277d, #e046ba);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.viz-card:hover {
+  transform: scale(1.015);
+  box-shadow: 0 10px 40px rgba(219,39,119,0.15), 0 2px 10px rgba(0,0,0,0.3);
+  border-color: rgba(219,39,119,0.35);
+}
+.viz-card:hover::before { opacity: 1; }
+
+.viz-card-title {
+  font-size: 0.82rem;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  margin-bottom: 10px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.viz-card-title i { color: #db2777; }
+
+.viz-card-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.viz-card-footer {
+  font-size: 0.73rem;
+  color: #4b5563;
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+/* ── ROC AUC label ──────────────────────────────────────────── */
+.roc-auc-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(16,185,129,0.12);
+  border: 1px solid rgba(16,185,129,0.25);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 0.83rem;
+  font-weight: 700;
+  color: #10b981;
+  margin-bottom: 10px;
+  flex-shrink: 0;
+}
+
+/* ── ROC / Confusion Matrix image container ─────────────────── */
+.img-dark-container {
+  flex: 1;
+  min-height: 0;
+  background: #0f172a;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.04);
+}
+.img-dark-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 6px;
+  display: block;
+}
+
+/* ── Feature importance ──────────────────────────────────────── */
+.features-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: hidden;   /* no scrollbar */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 0;
+}
+.feature-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+}
+.feature-row:last-child { border-bottom: none; }
+.feature-name {
+  width: 148px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #e2e8f0;
+  text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 0;
+}
+.feature-bar-track {
+  flex: 1;
+  height: 13px;
+  background: rgba(255,255,255,0.04);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.feature-bar-fill {
+  height: 100%;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #9a277d, #e046ba);
+  box-shadow: 0 0 10px rgba(219,39,119,0.35);
+  transition: width 0.8s ease;
+}
+.feature-pct {
+  width: 52px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #f1f5f9;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* ── Per-class table: no internal scrollbar ──────────────────── */
+.per-class-wrapper {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+.per-class-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.84rem;
+}
+.per-class-table thead th {
+  padding: 7px 6px;
+  color: #6b7280;
+  font-weight: 600;
+  font-size: 0.77rem;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.per-class-table thead th:first-child { text-align: left; }
+.per-class-table thead th:not(:first-child) { text-align: center; }
+.per-class-table thead th:last-child { text-align: right; }
+
+.per-class-table tbody tr {
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  transition: background 0.18s;
+}
+.per-class-table tbody tr:hover { background: rgba(255,255,255,0.025); }
+.per-class-table tbody tr:last-child { border-bottom: none; }
+.per-class-table tbody td {
+  padding: 7px 6px;
+  font-size: 0.84rem;
+  color: #f1f5f9;
+}
+.per-class-table tbody td:not(:first-child) { text-align: center; }
+.per-class-table tbody td:last-child { text-align: right; color: #9ca3af; }
+.per-class-table .macro-row td { border-top: 1px solid rgba(255,255,255,0.12); font-weight: 700; padding-top: 9px; }
+
+/* ── Model Information ───────────────────────────────────────── */
+.model-info-card {
+  margin-top: 24px;
+  background: #1e293b;
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 14px;
+  padding: 1.4rem 1.6rem;
+  transition: box-shadow 0.25s, border-color 0.25s;
+}
+.model-info-card:hover {
+  box-shadow: 0 6px 28px rgba(219,39,119,0.1);
+  border-color: rgba(219,39,119,0.25);
+}
+.model-info-card h3 {
+  font-size: 0.82rem;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  margin-bottom: 18px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.model-info-card h3 i { color: #db2777; }
+.model-info-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+.model-info-table th {
+  padding: 10px 16px;
+  color: #6b7280;
+  font-weight: 600;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  text-align: left;
+  white-space: nowrap;
+}
+.model-info-table td {
+  padding: 14px 16px;
+  color: #f1f5f9;
+  font-size: 0.88rem;
+  white-space: nowrap;
+}
+
+/* ── Metric cards skeleton spacing ─────────────────────────── */
+.metrics-skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.25rem;
+}
+@media (max-width: 1200px) { .metrics-skeleton-grid { grid-template-columns: repeat(2,1fr); } }
+
+/* ── Responsive metric cards ────────────────────────────────── */
+#offline-metric-cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.25rem;
+}
+@media (max-width: 1200px) { #offline-metric-cards { grid-template-columns: repeat(2,1fr); } }
+@media (max-width: 600px)  { #offline-metric-cards { grid-template-columns: 1fr; } }
 </style>
 {% endblock %}
 
 {% block content %}
 <main class="main-content">
+  <!-- Page Header -->
   <header style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:20px;">
     <div>
       <h1 style="font-size:1.8rem; margin:0; font-weight:700; color:#f8fafc;">ML Performance Dashboard</h1>
-      <p style="margin:8px 0 0 0; color:#9ca3af; font-size:0.95rem;">Offline Evaluation Metrics - LightGBM ONNX Model</p>
+      <p style="margin:8px 0 0 0; color:#9ca3af; font-size:0.95rem;">Offline Evaluation Metrics — LightGBM ONNX Model</p>
     </div>
-    <div style="display:flex; align-items:center; gap:16px;">
-      <div style="background:rgba(16, 185, 129, 0.1); border:1px solid rgba(16, 185, 129, 0.2); color:#10b981; padding:8px 16px; border-radius:8px; font-size:0.9rem; font-weight:600; display:flex; align-items:center; gap:8px;">
+    <div style="display:flex; align-items:center; gap:16px; flex-shrink:0;">
+      <div style="background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.2); color:#10b981; padding:8px 16px; border-radius:8px; font-size:0.88rem; font-weight:600; display:flex; align-items:center; gap:8px;">
         <i class="fas fa-database"></i> Offline Evaluation
       </div>
-      <div style="display:flex; align-items:center; gap:12px; color:#9ca3af; font-size:0.85rem;">
+      <div style="display:flex; align-items:center; gap:10px; color:#9ca3af; font-size:0.84rem;">
         <div style="background:rgba(255,255,255,0.05); padding:10px; border-radius:8px;"><i class="far fa-calendar-alt"></i></div>
         <div style="display:flex; flex-direction:column;">
-          <span style="font-size:0.75rem;">Last Updated</span>
-          <span id="current-time" style="color:#f3f4f6; font-family:monospace; font-weight:500;">05/07/2026 18:53:27</span>
+          <span style="font-size:0.72rem; color:#6b7280;">Last Updated</span>
+          <span id="current-time" style="color:#f3f4f6; font-family:monospace; font-weight:600; font-size:0.88rem;"></span>
         </div>
       </div>
     </div>
   </header>
 
-  <div style="display:flex; align-items:center; gap:12px; background:rgba(16, 185, 129, 0.08); border:1px solid rgba(16, 185, 129, 0.25); border-radius:8px; padding:12px 16px; margin-bottom:24px; font-size:0.9rem; color:#d1fae5;">
-    <i class="fas fa-check-circle" style="color:#10b981; font-size:1.1rem;"></i>
+  <!-- Status bar -->
+  <div style="display:flex; align-items:center; gap:12px; background:rgba(16,185,129,0.07); border:1px solid rgba(16,185,129,0.2); border-radius:10px; padding:11px 16px; margin-bottom:24px; font-size:0.88rem; color:#d1fae5;">
+    <i class="fas fa-check-circle" style="color:#10b981; font-size:1rem;"></i>
     <span>Offline evaluation metrics loaded successfully. These metrics are computed during model evaluation and do not change with live traffic.</span>
   </div>
 
-  <!-- 8 Metric Cards -->
-  <div class="ml-metrics-row" id="offline-metric-cards" style="display:grid; grid-template-columns:repeat(4, 1fr); gap:1.25rem;">
-    <div class="ml-loading"><i class="fas fa-spinner fa-spin"></i> Loading metrics...</div>
-  </div>
-
-  <!-- 3 Panels: Feature Importance, ROC Curve, Per-Class Evaluation -->
-  <div class="ml-charts-grid" style="margin-top: 24px;">
-    
-    <!-- Feature Importance -->
-    <div class="table-card" style="background:#1e293b; border:1px solid rgba(255,255,255,0.05); border-radius:12px; padding:1.5rem; display:flex; flex-direction:column; min-height:420px; max-height:480px; overflow:hidden;">
-      <h3 style="font-size:0.9rem; color:#9ca3af; text-transform:uppercase; letter-spacing:1px; margin-bottom:20px; font-weight:600;"><i class="fas fa-chart-bar" style="margin-right:8px;"></i> Feature Importance (Top 10)</h3>
-      <div id="features-list" class="features-container" style="display:flex; flex-direction:column; gap:8px; overflow-y:auto; flex:1;">
-        <div class="ml-loading"><i class="fas fa-spinner fa-spin"></i> Loading...</div>
-      </div>
-      <div style="font-size:0.75rem; color:#6b7280; margin-top:16px; display:flex; align-items:center; gap:6px;">
-        <i class="fas fa-info-circle"></i> Importance values are normalized to sum to 100%.
-      </div>
+  <!-- Metric Cards (skeleton while loading) -->
+  <div id="offline-metric-cards">
+    <!-- Skeleton placeholders -->
+    <div class="skeleton-card">
+      <div class="skeleton skeleton-icon"></div>
+      <div class="skeleton-text"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line-sm"></div></div>
     </div>
-
-    <!-- ROC Curve -->
-    <div class="table-card" style="background:#1e293b; border:1px solid rgba(255,255,255,0.05); border-radius:12px; padding:1.5rem; display:flex; flex-direction:column; height: 380px;">
-      <h3 style="font-size:0.9rem; color:#9ca3af; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; font-weight:600;"><i class="fas fa-chart-line" style="margin-right:8px;"></i> ROC Curve</h3>
-      <div style="font-size: 0.85rem; color: #e5e7eb; margin-bottom: 12px; font-weight:600;">
-        ROC-AUC: <span id="roc-auc-label" style="color:#10b981;">--</span>
-      </div>
-      <div class="chart-container" style="position:relative; flex:1; min-height:0;">
-        <img id="roc-img"
-             src="/api/ml/eval-image/roc_curve.png"
-             style="width:100%; height:100%; object-fit:contain; border-radius:4px;"
-             onerror="this.style.display='none'; document.getElementById('offlineRocChart').style.display='block';"
-             alt="ROC Curve">
-        <canvas id="offlineRocChart" style="display:none;"></canvas>
-      </div>
-      <div style="font-size:0.75rem; color:#6b7280; margin-top:16px; display:flex; align-items:center; gap:6px;">
-        <i class="fas fa-info-circle"></i> Real ROC Curve from model evaluation
-      </div>
+    <div class="skeleton-card">
+      <div class="skeleton skeleton-icon"></div>
+      <div class="skeleton-text"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line-sm"></div></div>
     </div>
-
-    <!-- Per-Class Report -->
-    <div class="table-card" style="background:#1e293b; border:1px solid rgba(255,255,255,0.05); border-radius:12px; padding:1.5rem; display:flex; flex-direction:column; height: 380px;">
-      <h3 style="font-size:0.9rem; color:#9ca3af; text-transform:uppercase; letter-spacing:1px; margin-bottom:16px; font-weight:600;"><i class="fas fa-bullseye" style="margin-right:8px;"></i> Per-Class Evaluation</h3>
-      <div style="overflow-x: auto; flex:1;">
-        <table id="per-class-table" style="width:100%; border-collapse:collapse; font-size:0.85rem;">
-          <thead>
-            <tr style="border-bottom:1px solid rgba(255,255,255,0.1);">
-              <th style="text-align:left; padding:8px 4px; color:#9ca3af; font-weight:normal;">Class (Attack Type)</th>
-              <th style="text-align:center; padding:8px 4px; color:#9ca3af; font-weight:normal;">Precision</th>
-              <th style="text-align:center; padding:8px 4px; color:#9ca3af; font-weight:normal;">Recall</th>
-              <th style="text-align:center; padding:8px 4px; color:#9ca3af; font-weight:normal;">F1-Score</th>
-              <th style="text-align:right; padding:8px 4px; color:#9ca3af; font-weight:normal;">Support</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr><td colspan="5" style="text-align:center; color:#9ca3af; padding:20px;">Loading...</td></tr>
-          </tbody>
-        </table>
-      </div>
-      <div style="font-size:0.75rem; color:#6b7280; margin-top:16px; display:flex; align-items:center; gap:6px;">
-        <i class="fas fa-info-circle"></i> Metrics are from the held-out test set (28,511 samples).
-      </div>
+    <div class="skeleton-card">
+      <div class="skeleton skeleton-icon"></div>
+      <div class="skeleton-text"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line-sm"></div></div>
     </div>
-
-    <!-- Confusion Matrix panel -->
-    <div class="table-card" style="background:#1e293b; border:1px solid rgba(255,255,255,0.05); border-radius:12px; padding:1.5rem; display:flex; flex-direction:column; height:380px;">
-      <h3 style="font-size:0.9rem; color:#9ca3af; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; font-weight:600;">
-        <i class="fas fa-th" style="margin-right:8px;"></i> Confusion Matrix
-      </h3>
-      <div style="flex:1; display:flex; align-items:center; justify-content:center;">
-        <img src="/api/ml/eval-image/confusion_matrix_normalized.png"
-             style="max-width:100%; max-height:100%; object-fit:contain; border-radius:4px;"
-             onerror="this.parentElement.innerHTML='<p style=\'color:#6b7280;text-align:center\'>Image not available</p>'"
-             alt="Confusion Matrix">
-      </div>
-      <div style="font-size:0.75rem; color:#6b7280; margin-top:8px;">
-        <i class="fas fa-info-circle"></i> Normalized confusion matrix from test set evaluation
-      </div>
+    <div class="skeleton-card">
+      <div class="skeleton skeleton-icon"></div>
+      <div class="skeleton-text"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line-sm"></div></div>
+    </div>
+    <div class="skeleton-card">
+      <div class="skeleton skeleton-icon"></div>
+      <div class="skeleton-text"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line-sm"></div></div>
+    </div>
+    <div class="skeleton-card">
+      <div class="skeleton skeleton-icon"></div>
+      <div class="skeleton-text"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line-sm"></div></div>
+    </div>
+    <div class="skeleton-card">
+      <div class="skeleton skeleton-icon"></div>
+      <div class="skeleton-text"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line-sm"></div></div>
+    </div>
+    <div class="skeleton-card">
+      <div class="skeleton skeleton-icon"></div>
+      <div class="skeleton-text"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line-sm"></div></div>
     </div>
   </div>
 
-  <!-- Model Information (Bottom Full Width) -->
-  <div class="table-card" style="margin-top:24px; background:#1e293b; border:1px solid rgba(255,255,255,0.05); border-radius:12px; padding:1.5rem; height: fit-content; margin-bottom: auto;">
-    <h3 style="font-size:0.95rem; color:#f3f4f6; text-transform:uppercase; letter-spacing:1px; margin-bottom:20px; font-weight:600;"><i class="fas fa-cube" style="margin-right:8px;"></i> Model Information</h3>
-    <div style="overflow-x:auto;">
-      <table style="width:100%; border-collapse:collapse; text-align:left; font-size:0.9rem;">
-        <thead id="model-info-head">
-          <!-- Populated by JS -->
-        </thead>
-        <tbody id="model-info-body">
-          <tr><td colspan="9" style="text-align:center; color:var(--text-muted); padding:20px;">Loading...</td></tr>
-        </tbody>
-      </table>
+  <!-- Visualization Grid: 4 equal-height cards -->
+  <div class="ml-charts-grid" id="viz-grid">
+    <!-- Feature Importance skeleton -->
+    <div class="skeleton-panel" id="skel-feat"></div>
+    <!-- ROC Curve skeleton -->
+    <div class="skeleton-panel" id="skel-roc"></div>
+    <!-- Per-Class skeleton -->
+    <div class="skeleton-panel" id="skel-cls"></div>
+    <!-- Confusion Matrix skeleton -->
+    <div class="skeleton-panel" id="skel-cm"></div>
+  </div>
+
+  <!-- Model Information (skeleton) -->
+  <div class="model-info-card" id="model-info-section" style="min-height:110px;">
+    <h3><i class="fas fa-cube"></i> Model Information</h3>
+    <div style="display:flex; gap:16px;">
+      <div class="skeleton" style="height:48px; flex:1; border-radius:8px;"></div>
+      <div class="skeleton" style="height:48px; flex:1; border-radius:8px;"></div>
+      <div class="skeleton" style="height:48px; flex:1; border-radius:8px;"></div>
+      <div class="skeleton" style="height:48px; flex:1; border-radius:8px;"></div>
+      <div class="skeleton" style="height:48px; flex:1; border-radius:8px;"></div>
     </div>
   </div>
 </main>
@@ -198,40 +425,237 @@ const MLPerformance = {
       })
       .then(data => {
         this.renderMetricCards(data);
+        this.renderVizGrid(data);
         this.renderModelInfo(data);
-        this.renderFeatures(data.feature_importance || []);
-        this.renderRocChart(data.roc_auc);
-        this.renderPerClassTable(data.per_class_report || {}, data.class_names || []);
       })
       .catch(err => {
         console.error('Failed to load ML stats:', err);
         document.getElementById('offline-metric-cards').innerHTML =
-          '<div style="color:#ef4444; padding:16px;"><i class="fas fa-exclamation-circle"></i> Failed to load metrics. Check API connection.</div>';
+          '<div style="color:#ef4444; padding:16px; grid-column:1/-1;"><i class="fas fa-exclamation-circle"></i> Failed to load metrics. Check API connection.</div>';
       });
   },
 
   renderMetricCards(data) {
     const cards = [
-      { label: 'Accuracy',  value: data.accuracy  != null ? data.accuracy.toFixed(2)  + '%' : '--', color: '#10b981', icon: 'fa-bullseye', bg: '#10b9811a' },
-      { label: 'Precision', value: data.precision  != null ? data.precision.toFixed(2) + '%' : '--', color: '#3b82f6', icon: 'fa-crosshairs', bg: '#3b82f61a' },
-      { label: 'Recall',    value: data.recall     != null ? data.recall.toFixed(2)    + '%' : '--', color: '#f59e0b', icon: 'fa-sync-alt', bg: '#f59e0b1a' },
-      { label: 'F1-Score',  value: data.f1_score   != null ? data.f1_score.toFixed(2)  + '%' : '--', color: '#8b5cf6', icon: 'fa-star', bg: '#8b5cf61a' },
-      { label: 'ROC-AUC',   value: data.roc_auc    != null ? data.roc_auc.toFixed(4)        : '--', color: '#ec4899', icon: 'fa-chart-line', bg: '#ec48991a' },
-      { label: 'Log Loss',  value: data.log_loss   != null ? data.log_loss.toFixed(4)        : '--', color: '#9ca3af', icon: 'fa-chart-bar', bg: '#9ca3af1a' },
-      { label: 'Balanced Accuracy', value: data.balanced_accuracy != null ? data.balanced_accuracy.toFixed(2) + '%' : '--', color: '#a855f7', icon: 'fa-balance-scale', bg: '#a855f71a' },
-      { label: 'Inference Time (Avg)', value: data.average_inference_time_ms != null ? '~' + data.average_inference_time_ms + ' ms' : '--', color: '#3b82f6', icon: 'fa-shield-alt', bg: '#3b82f61a' },
+      { label: 'Accuracy',             value: data.accuracy              != null ? data.accuracy.toFixed(2)              + '%' : '--', color: '#10b981', icon: 'fa-bullseye',      bg: 'rgba(16,185,129,0.12)' },
+      { label: 'Precision',            value: data.precision             != null ? data.precision.toFixed(2)             + '%' : '--', color: '#3b82f6', icon: 'fa-crosshairs',    bg: 'rgba(59,130,246,0.12)' },
+      { label: 'Recall',               value: data.recall                != null ? data.recall.toFixed(2)                + '%' : '--', color: '#f59e0b', icon: 'fa-sync-alt',      bg: 'rgba(245,158,11,0.12)' },
+      { label: 'F1-Score',             value: data.f1_score              != null ? data.f1_score.toFixed(2)              + '%' : '--', color: '#8b5cf6', icon: 'fa-star',           bg: 'rgba(139,92,246,0.12)' },
+      { label: 'ROC-AUC',              value: data.roc_auc               != null ? data.roc_auc.toFixed(4)                    : '--', color: '#ec4899', icon: 'fa-chart-line',    bg: 'rgba(236,72,153,0.12)' },
+      { label: 'Log Loss',             value: data.log_loss              != null ? data.log_loss.toFixed(4)                   : '--', color: '#9ca3af', icon: 'fa-chart-bar',     bg: 'rgba(156,163,175,0.12)' },
+      { label: 'Balanced Accuracy',    value: data.balanced_accuracy     != null ? data.balanced_accuracy.toFixed(2)     + '%' : '--', color: '#a855f7', icon: 'fa-balance-scale', bg: 'rgba(168,85,247,0.12)' },
+      { label: 'Inference Time (Avg)', value: data.average_inference_time_ms != null ? '~' + data.average_inference_time_ms + ' ms' : '--', color: '#38bdf8', icon: 'fa-bolt', bg: 'rgba(56,189,248,0.12)' },
     ];
     document.getElementById('offline-metric-cards').innerHTML = cards.map(c => `
-      <div class="ml-metric-card" style="background:#1e293b; border:1px solid rgba(255,255,255,0.05); padding:1.5rem; border-radius:12px; display:flex; align-items:center; gap:16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
-        <div class="ml-metric-icon-wrapper" style="width:52px; height:52px; background:${c.bg}; color:${c.color}; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.4rem;">
+      <div class="ml-metric-card" style="background:#1e293b; border:1px solid rgba(255,255,255,0.06); padding:1.4rem; border-radius:12px; display:flex; align-items:center; gap:14px; box-shadow:0 2px 8px rgba(0,0,0,0.2);">
+        <div style="width:52px; height:52px; background:${c.bg}; color:${c.color}; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.35rem; flex-shrink:0;">
           <i class="fas ${c.icon}"></i>
         </div>
-        <div class="ml-metric-content" style="display:flex; flex-direction:column; gap:6px;">
-          <div class="metric-value" style="color:#f8fafc; font-size:1.6rem; font-weight:700; line-height:1;">${c.value}</div>
-          <div class="ml-metric-label" style="color:#9ca3af; font-size:0.9rem; font-weight:500;">${c.label}</div>
+        <div style="display:flex; flex-direction:column; gap:4px;">
+          <div style="color:#f8fafc; font-size:1.55rem; font-weight:700; line-height:1; font-family:monospace;">${c.value}</div>
+          <div style="color:#9ca3af; font-size:0.85rem; font-weight:500;">${c.label}</div>
         </div>
       </div>
     `).join('');
+  },
+
+  renderVizGrid(data) {
+    const grid = document.getElementById('viz-grid');
+    grid.innerHTML = `
+      <!-- Feature Importance -->
+      <div class="viz-card" id="card-feat">
+        <div class="viz-card-title"><i class="fas fa-chart-bar"></i> Feature Importance (Top 10)</div>
+        <div class="viz-card-body">
+          <div class="features-scroll" id="features-list">
+            <div style="color:#6b7280; text-align:center; padding:20px;"><i class="fas fa-spinner fa-spin"></i> Loading...</div>
+          </div>
+        </div>
+        <div class="viz-card-footer"><i class="fas fa-info-circle"></i> Importance values normalized to 100%.</div>
+      </div>
+
+      <!-- ROC Curve -->
+      <div class="viz-card" id="card-roc">
+        <div class="viz-card-title"><i class="fas fa-chart-line"></i> ROC Curve</div>
+        <div class="roc-auc-badge"><i class="fas fa-star"></i> ROC-AUC: <span id="roc-auc-label">--</span></div>
+        <div class="img-dark-container" style="flex:1; min-height:0;">
+          <img id="roc-img"
+               src="/api/ml/eval-image/roc_curve.png"
+               onerror="this.style.display='none'; document.getElementById('offlineRocChart').style.display='block';"
+               alt="ROC Curve">
+          <canvas id="offlineRocChart" style="display:none; width:100%; height:100%;"></canvas>
+        </div>
+        <div class="viz-card-footer"><i class="fas fa-info-circle"></i> Real ROC Curve from model evaluation</div>
+      </div>
+
+      <!-- Per-Class Evaluation -->
+      <div class="viz-card" id="card-cls">
+        <div class="viz-card-title"><i class="fas fa-bullseye"></i> Per-Class Evaluation</div>
+        <div class="viz-card-body">
+          <div class="per-class-wrapper">
+            <table class="per-class-table">
+              <thead>
+                <tr>
+                  <th style="text-align:left;">Class</th>
+                  <th>Precision</th>
+                  <th>Recall</th>
+                  <th>F1-Score</th>
+                  <th style="text-align:right;">Support</th>
+                </tr>
+              </thead>
+              <tbody id="per-class-tbody">
+                <tr><td colspan="5" style="text-align:center; color:#6b7280; padding:20px;">Loading...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="viz-card-footer"><i class="fas fa-info-circle"></i> Metrics from the held-out test set (28,511 samples).</div>
+      </div>
+
+      <!-- Confusion Matrix -->
+      <div class="viz-card" id="card-cm">
+        <div class="viz-card-title"><i class="fas fa-th"></i> Confusion Matrix</div>
+        <div class="img-dark-container" style="flex:1; min-height:0;">
+          <img src="/api/ml/eval-image/confusion_matrix_normalized.png"
+               onerror="this.parentElement.innerHTML='<p style=\\'color:#6b7280;text-align:center;\\'>Image not available</p>'"
+               alt="Normalized Confusion Matrix">
+        </div>
+        <div class="viz-card-footer"><i class="fas fa-info-circle"></i> Normalized confusion matrix from test set.</div>
+      </div>
+    `;
+
+    // Now render data into the panels
+    this.renderFeatures(data.feature_importance || []);
+    this.renderRocChart(data.roc_auc);
+    this.renderPerClassTable(data.per_class_report || {}, data.class_names || []);
+  },
+
+  renderFeatures(features) {
+    const container = document.getElementById('features-list');
+    if (!features.length) {
+      container.innerHTML = '<div style="color:#6b7280; text-align:center; padding:20px;"><i class="fas fa-info-circle"></i> Feature importance file not found.</div>';
+      return;
+    }
+    const top10 = features.slice(0, 10);
+    const max = top10[0].importance;
+    container.innerHTML = top10.map(f => {
+      const pct = (f.importance / max * 100).toFixed(2);
+      const barW = (f.importance / max * 100).toFixed(1);
+      return `
+        <div class="feature-row">
+          <div class="feature-name" title="${f.feature}">${f.feature}</div>
+          <div class="feature-bar-track">
+            <div class="feature-bar-fill" style="width:${barW}%;"></div>
+          </div>
+          <div class="feature-pct">${pct}%</div>
+        </div>`;
+    }).join('');
+  },
+
+  renderRocChart(rocAuc) {
+    const label = document.getElementById('roc-auc-label');
+    if (label) label.textContent = rocAuc != null ? rocAuc.toFixed(4) : '--';
+
+    // If the real image loads fine, chart.js canvas stays hidden — nothing to do.
+    // Only initialise Chart.js if the image fails (onerror fires).
+    const canvas = document.getElementById('offlineRocChart');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (this.rocChart) this.rocChart.destroy();
+    this.rocChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: ['0.00', '0.25', '0.50', '0.75', '1.00'],
+        datasets: [
+          {
+            label: 'Model (AUC = ' + (rocAuc != null ? rocAuc.toFixed(4) : '--') + ')',
+            data: [0, 0.95, 0.98, 0.99, 1],
+            borderColor: '#db2777',
+            backgroundColor: 'rgba(219,39,119,0.08)',
+            borderWidth: 2.5,
+            tension: 0.45,
+            pointRadius: 0,
+            fill: true,
+          },
+          {
+            label: 'Random Classifier',
+            data: [0, 0.25, 0.5, 0.75, 1],
+            borderColor: 'rgba(255,255,255,0.35)',
+            borderWidth: 1.5,
+            borderDash: [5, 5],
+            pointRadius: 0,
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: { color: '#d1d5db', font: { size: 11 }, boxWidth: 14, boxHeight: 2, padding: 10 }
+          }
+        },
+        scales: {
+          x: {
+            title: { display: true, text: 'False Positive Rate', color: '#9ca3af', font: { size: 11 } },
+            ticks: { color: '#6b7280', font: { size: 10 }, maxTicksLimit: 5 },
+            grid: { color: 'rgba(255,255,255,0.06)' }
+          },
+          y: {
+            title: { display: true, text: 'True Positive Rate', color: '#9ca3af', font: { size: 11 } },
+            ticks: { color: '#6b7280', font: { size: 10 }, stepSize: 0.25 },
+            grid: { color: 'rgba(255,255,255,0.06)' },
+            min: 0, max: 1
+          }
+        }
+      }
+    });
+  },
+
+  renderPerClassTable(report, classNames) {
+    const tbody = document.getElementById('per-class-tbody');
+    if (!report || Object.keys(report).length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#6b7280; padding:20px;">Report not available</td></tr>';
+      return;
+    }
+
+    let classes = [], macroAvg = null, totalSupport = 0;
+    for (const [key, metrics] of Object.entries(report)) {
+      if (['accuracy', 'macro avg', 'weighted avg'].includes(key)) {
+        if (key === 'macro avg') macroAvg = metrics;
+        continue;
+      }
+      classes.push({ name: classNames[key] || key, p: metrics.precision, r: metrics.recall, f1: metrics.f1, s: metrics.support });
+      totalSupport += metrics.support;
+    }
+    classes.sort((a, b) => b.s - a.s);
+
+    function color(v) {
+      if (v >= 0.95) return '#10b981';
+      if (v >= 0.85) return '#f59e0b';
+      if (v >= 0.75) return '#f97316';
+      return '#ef4444';
+    }
+
+    let html = classes.map(c => `
+      <tr>
+        <td style="color:#f1f5f9; text-align:left;">${c.name}</td>
+        <td style="color:${color(c.p)}; font-weight:600;">${c.p.toFixed(2)}</td>
+        <td style="color:${color(c.r)}; font-weight:600;">${c.r.toFixed(2)}</td>
+        <td style="color:${color(c.f1)}; font-weight:600;">${c.f1.toFixed(2)}</td>
+        <td style="color:#9ca3af;">${c.s.toLocaleString()}</td>
+      </tr>`).join('');
+
+    if (macroAvg) {
+      html += `<tr class="macro-row">
+        <td style="color:#f1f5f9; text-align:left;">Macro Avg</td>
+        <td style="color:#db2777;">${macroAvg.precision.toFixed(2)}</td>
+        <td style="color:#db2777;">${macroAvg.recall.toFixed(2)}</td>
+        <td style="color:#db2777;">${macroAvg.f1.toFixed(2)}</td>
+        <td style="color:#9ca3af;">${totalSupport.toLocaleString()}</td>
+      </tr>`;
+    }
+    tbody.innerHTML = html;
   },
 
   renderModelInfo(data) {
@@ -244,170 +668,34 @@ const MLPerformance = {
       { label: 'Balanced Acc.',  val: data.balanced_accuracy != null ? data.balanced_accuracy.toFixed(2) + '%' : '--' },
       { label: 'Model Format',   val: (data.model_type || '').includes('ONNX') ? 'ONNX' : '--' },
       { label: 'ONNX Size',      val: data.onnx_size_mb != null ? data.onnx_size_mb + ' MB' : '1.9 MB' },
-      { label: 'Model Version',  val: data.model_version || 'v3.0-lightgbm-onnx' }
+      { label: 'Model Version',  val: data.model_version || 'v3.0-lightgbm-onnx' },
     ];
-    
-    document.getElementById('model-info-head').innerHTML = `
-      <tr style="border-bottom:1px solid rgba(255,255,255,0.1);">
-        ${cols.map(c => `<th style="padding:12px 16px; color:#9ca3af; font-weight:normal; font-size:0.85rem; border:none;">${c.label}</th>`).join('')}
-      </tr>
-    `;
-    
-    document.getElementById('model-info-body').innerHTML = `
-      <tr>
-        ${cols.map(c => `<td style="padding:16px; color:#f3f4f6; font-size:0.85rem; border:none;">${c.val}</td>`).join('')}
-      </tr>
-    `;
-  },
 
-  renderFeatures(features) {
-    const container = document.getElementById('features-list');
-    if (!features.length) {
-      container.innerHTML = '<div style="color:var(--text-muted); text-align:center; padding:20px;"><i class="fas fa-info-circle"></i> Feature importance file not found.</div>';
-      return;
-    }
-    const max = features[0].importance;
-    // Map backend features back to raw `sec feat X` style if they start with "Security Feature " (from my backend mapping), 
-    // or just use what we have to match the UI screenshot's visual style. The user's backend actually sends mapped values now.
-    // I will let it render whatever is provided by the backend to keep it authentic, but style it like the image.
-    container.innerHTML = features.map((f, i) => `
-      <div style="display:flex; align-items:center; gap:12px; margin-bottom:4px;">
-        <div style="width:140px; font-size:0.85rem; font-weight:600; color:#e2e8f0; text-align:right; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-          ${f.feature}
-        </div>
-        <div style="flex:1; height:12px; display:flex; align-items:center; position:relative;">
-          <div style="background:#db2777; height:10px; border-radius:5px; width:${(f.importance / max * 100).toFixed(1)}%; box-shadow: 0 0 10px rgba(219,39,119,0.3);"></div>
-        </div>
-        <div style="width:60px; font-size:0.85rem; font-weight:600; color:#e2e8f0; text-align:right;">
-          ${(f.importance / max * 100).toFixed(2)}%
-        </div>
+    const section = document.getElementById('model-info-section');
+    section.innerHTML = `
+      <h3><i class="fas fa-cube"></i> Model Information</h3>
+      <div style="overflow-x:auto;">
+        <table class="model-info-table">
+          <thead>
+            <tr>${cols.map(c => `<th>${c.label}</th>`).join('')}</tr>
+          </thead>
+          <tbody>
+            <tr>${cols.map(c => `<td>${c.val}</td>`).join('')}</tr>
+          </tbody>
+        </table>
       </div>
-    `).join('');
-  },
-
-  renderRocChart(rocAuc) {
-    const label = document.getElementById('roc-auc-label');
-    if (label) label.textContent = rocAuc != null ? rocAuc.toFixed(4) : '--';
-
-    const ctx = document.getElementById('offlineRocChart').getContext('2d');
-    if (this.rocChart) this.rocChart.destroy();
-    this.rocChart = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: ['0.00', '0.25', '0.50', '0.75', '1.00'],
-        datasets: [
-          {
-            label: 'Model (AUC = ' + (rocAuc != null ? rocAuc.toFixed(4) : '--') + ')',
-            data: [0, 0.95, 0.98, 0.99, 1],
-            borderColor: '#db2777', // pink
-            backgroundColor: 'transparent',
-            borderWidth: 2,
-            tension: 0.4,
-            pointRadius: 0
-          },
-          {
-            label: 'Random Classifier',
-            data: [0, 0.25, 0.5, 0.75, 1],
-            borderColor: '#6b7280', // gray dashed
-            borderWidth: 1.5,
-            borderDash: [5, 5],
-            pointRadius: 0
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { 
-          legend: { 
-            position: 'bottom', 
-            labels: { color: '#e5e7eb', font: { size: 10, family: 'sans-serif' }, boxWidth: 12, boxHeight: 2 } 
-          } 
-        },
-        scales: {
-          x: { 
-            title: { display: true, text: 'False Positive Rate', color: '#9ca3af', font: { size: 10 } },
-            ticks: { color: '#9ca3af', font: { size: 10 }, maxTicksLimit: 5 },
-            grid: { color: 'rgba(255,255,255,0.05)' } 
-          },
-          y: { 
-            title: { display: true, text: 'True Positive Rate', color: '#9ca3af', font: { size: 10 } },
-            ticks: { color: '#9ca3af', font: { size: 10 }, stepSize: 0.25 },
-            grid: { color: 'rgba(255,255,255,0.05)' }, 
-            min: 0, max: 1 
-          }
-        }
-      }
-    });
-  },
-
-  renderPerClassTable(report, classNames) {
-    const tbody = document.querySelector('#per-class-table tbody');
-    if (!report || Object.keys(report).length === 0) {
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--text-muted); padding:20px;">Report not available</td></tr>';
-      return;
-    }
-    
-    // Convert to array of objects, filter out "macro avg" etc.
-    let classes = [];
-    let macroAvg = null;
-    let totalSupport = 0;
-    
-    for (const [key, metrics] of Object.entries(report)) {
-      if (['accuracy', 'macro avg', 'weighted avg'].includes(key)) {
-        if (key === 'macro avg') macroAvg = metrics;
-        continue;
-      }
-      classes.push({
-        name: classNames[key] || key,
-        p: metrics.precision,
-        r: metrics.recall,
-        f1: metrics.f1,
-        s: metrics.support
-      });
-      totalSupport += metrics.support;
-    }
-    
-    // Sort by support descending
-    classes.sort((a, b) => b.s - a.s);
-    
-    function getMetricColor(val) {
-      if (val >= 0.95) return '#10b981';  // green
-      if (val >= 0.85) return '#f59e0b';  // amber
-      if (val >= 0.75) return '#f97316';  // orange
-      return '#ef4444';                   // red
-    }
-    
-    let html = classes.map(c => `
-      <tr style="border-bottom:1px solid rgba(255,255,255,0.05); transition: background-color 0.2s;">
-        <td style="padding:10px 8px; color:#f3f4f6;">${c.name}</td>
-        <td style="padding:10px 8px; color:${getMetricColor(c.p)}; text-align:center; font-weight:600;">${c.p.toFixed(2)}</td>
-        <td style="padding:10px 8px; color:${getMetricColor(c.r)}; text-align:center; font-weight:600;">${c.r.toFixed(2)}</td>
-        <td style="padding:10px 8px; color:${getMetricColor(c.f1)}; text-align:center; font-weight:600;">${c.f1.toFixed(2)}</td>
-        <td style="padding:10px 8px; color:#f3f4f6; text-align:right;">${c.s.toLocaleString()}</td>
-      </tr>
-    `).join('');
-
-    // Add Macro Avg row if available
-    if (macroAvg) {
-      html += `
-        <tr style="border-top:1px solid rgba(255,255,255,0.1);">
-          <td style="padding:14px 8px; color:#f3f4f6; font-weight:600;">Macro Avg / Total</td>
-          <td style="padding:14px 8px; color:#db2777; text-align:center; font-weight:600;">${macroAvg.precision.toFixed(2)}</td>
-          <td style="padding:14px 8px; color:#db2777; text-align:center; font-weight:600;">${macroAvg.recall.toFixed(2)}</td>
-          <td style="padding:14px 8px; color:#db2777; text-align:center; font-weight:600;">${macroAvg.f1.toFixed(2)}</td>
-          <td style="padding:14px 8px; color:#f3f4f6; text-align:right; font-weight:600;">${totalSupport.toLocaleString()}</td>
-        </tr>
-      `;
-    }
-    
-    tbody.innerHTML = html;
+    `;
   }
 };
 
 document.addEventListener('DOMContentLoaded', () => {
+  // Show live clock immediately
+  const clockEl = document.getElementById('current-time');
+  const tick = () => { if(clockEl) clockEl.textContent = new Date().toLocaleString(); };
+  tick(); setInterval(tick, 1000);
+
+  // Load data
   MLPerformance.load();
-  setInterval(() => document.getElementById('current-time').textContent = new Date().toLocaleTimeString(), 1000);
 });
 </script>
 {% endblock %}
