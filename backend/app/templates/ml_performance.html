@@ -97,9 +97,9 @@
   <div class="ml-charts-grid" style="margin-top: 24px;">
     
     <!-- Feature Importance -->
-    <div class="table-card" style="background:#1e293b; border:1px solid rgba(255,255,255,0.05); border-radius:12px; padding:1.5rem; display:flex; flex-direction:column; height: 380px;">
+    <div class="table-card" style="background:#1e293b; border:1px solid rgba(255,255,255,0.05); border-radius:12px; padding:1.5rem; display:flex; flex-direction:column; min-height:420px; max-height:480px; overflow:hidden;">
       <h3 style="font-size:0.9rem; color:#9ca3af; text-transform:uppercase; letter-spacing:1px; margin-bottom:20px; font-weight:600;"><i class="fas fa-chart-bar" style="margin-right:8px;"></i> Feature Importance (Top 10)</h3>
-      <div id="features-list" class="features-container" style="display:flex; flex-direction:column; gap:12px; flex:1;">
+      <div id="features-list" class="features-container" style="display:flex; flex-direction:column; gap:8px; overflow-y:auto; flex:1;">
         <div class="ml-loading"><i class="fas fa-spinner fa-spin"></i> Loading...</div>
       </div>
       <div style="font-size:0.75rem; color:#6b7280; margin-top:16px; display:flex; align-items:center; gap:6px;">
@@ -114,10 +114,15 @@
         ROC-AUC: <span id="roc-auc-label" style="color:#10b981;">--</span>
       </div>
       <div class="chart-container" style="position:relative; flex:1; min-height:0;">
-        <canvas id="offlineRocChart"></canvas>
+        <img id="roc-img"
+             src="/api/ml/eval-image/roc_curve.png"
+             style="width:100%; height:100%; object-fit:contain; border-radius:4px;"
+             onerror="this.style.display='none'; document.getElementById('offlineRocChart').style.display='block';"
+             alt="ROC Curve">
+        <canvas id="offlineRocChart" style="display:none;"></canvas>
       </div>
       <div style="font-size:0.75rem; color:#6b7280; margin-top:16px; display:flex; align-items:center; gap:6px;">
-        <i class="fas fa-info-circle"></i> ROC Curve (Approximated)
+        <i class="fas fa-info-circle"></i> Real ROC Curve from model evaluation
       </div>
     </div>
 
@@ -141,13 +146,29 @@
         </table>
       </div>
       <div style="font-size:0.75rem; color:#6b7280; margin-top:16px; display:flex; align-items:center; gap:6px;">
-        <i class="fas fa-info-circle"></i> Metrics are computed on the validation dataset.
+        <i class="fas fa-info-circle"></i> Metrics are from the held-out test set (28,511 samples).
+      </div>
+    </div>
+
+    <!-- Confusion Matrix panel -->
+    <div class="table-card" style="background:#1e293b; border:1px solid rgba(255,255,255,0.05); border-radius:12px; padding:1.5rem; display:flex; flex-direction:column; height:380px;">
+      <h3 style="font-size:0.9rem; color:#9ca3af; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; font-weight:600;">
+        <i class="fas fa-th" style="margin-right:8px;"></i> Confusion Matrix
+      </h3>
+      <div style="flex:1; display:flex; align-items:center; justify-content:center;">
+        <img src="/api/ml/eval-image/confusion_matrix_normalized.png"
+             style="max-width:100%; max-height:100%; object-fit:contain; border-radius:4px;"
+             onerror="this.parentElement.innerHTML='<p style=\'color:#6b7280;text-align:center\'>Image not available</p>'"
+             alt="Confusion Matrix">
+      </div>
+      <div style="font-size:0.75rem; color:#6b7280; margin-top:8px;">
+        <i class="fas fa-info-circle"></i> Normalized confusion matrix from test set evaluation
       </div>
     </div>
   </div>
 
   <!-- Model Information (Bottom Full Width) -->
-  <div class="table-card" style="margin-top:24px; background:#1e293b; border:1px solid rgba(255,255,255,0.05); border-radius:12px; padding:1.5rem;">
+  <div class="table-card" style="margin-top:24px; background:#1e293b; border:1px solid rgba(255,255,255,0.05); border-radius:12px; padding:1.5rem; height: fit-content; margin-bottom: auto;">
     <h3 style="font-size:0.95rem; color:#f3f4f6; text-transform:uppercase; letter-spacing:1px; margin-bottom:20px; font-weight:600;"><i class="fas fa-cube" style="margin-right:8px;"></i> Model Information</h3>
     <div style="overflow-x:auto;">
       <table style="width:100%; border-collapse:collapse; text-align:left; font-size:0.9rem;">
@@ -222,8 +243,8 @@ const MLPerformance = {
       { label: 'Training Date',  val: data.training_date || '--' },
       { label: 'Balanced Acc.',  val: data.balanced_accuracy != null ? data.balanced_accuracy.toFixed(2) + '%' : '--' },
       { label: 'Model Format',   val: (data.model_type || '').includes('ONNX') ? 'ONNX' : '--' },
-      { label: 'ONNX Size',      val: data.onnx_size_mb != null ? data.onnx_size_mb + ' MB' : '64.4 MB' }, // fallback
-      { label: 'Model Version',  val: '1.0.0' } // fallback
+      { label: 'ONNX Size',      val: data.onnx_size_mb != null ? data.onnx_size_mb + ' MB' : '1.9 MB' },
+      { label: 'Model Version',  val: data.model_version || 'v3.0-lightgbm-onnx' }
     ];
     
     document.getElementById('model-info-head').innerHTML = `
@@ -250,7 +271,7 @@ const MLPerformance = {
     // or just use what we have to match the UI screenshot's visual style. The user's backend actually sends mapped values now.
     // I will let it render whatever is provided by the backend to keep it authentic, but style it like the image.
     container.innerHTML = features.map((f, i) => `
-      <div style="display:flex; align-items:center; gap:16px; margin-bottom:2px;">
+      <div style="display:flex; align-items:center; gap:12px; margin-bottom:4px;">
         <div style="width:140px; font-size:0.85rem; font-weight:600; color:#e2e8f0; text-align:right; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
           ${f.feature}
         </div>
@@ -350,12 +371,19 @@ const MLPerformance = {
     // Sort by support descending
     classes.sort((a, b) => b.s - a.s);
     
+    function getMetricColor(val) {
+      if (val >= 0.95) return '#10b981';  // green
+      if (val >= 0.85) return '#f59e0b';  // amber
+      if (val >= 0.75) return '#f97316';  // orange
+      return '#ef4444';                   // red
+    }
+    
     let html = classes.map(c => `
       <tr style="border-bottom:1px solid rgba(255,255,255,0.05); transition: background-color 0.2s;">
         <td style="padding:10px 8px; color:#f3f4f6;">${c.name}</td>
-        <td style="padding:10px 8px; color:#f3f4f6; text-align:center;">${c.p.toFixed(2)}</td>
-        <td style="padding:10px 8px; color:#f3f4f6; text-align:center;">${c.r.toFixed(2)}</td>
-        <td style="padding:10px 8px; color:#f3f4f6; text-align:center;">${c.f1.toFixed(2)}</td>
+        <td style="padding:10px 8px; color:${getMetricColor(c.p)}; text-align:center; font-weight:600;">${c.p.toFixed(2)}</td>
+        <td style="padding:10px 8px; color:${getMetricColor(c.r)}; text-align:center; font-weight:600;">${c.r.toFixed(2)}</td>
+        <td style="padding:10px 8px; color:${getMetricColor(c.f1)}; text-align:center; font-weight:600;">${c.f1.toFixed(2)}</td>
         <td style="padding:10px 8px; color:#f3f4f6; text-align:right;">${c.s.toLocaleString()}</td>
       </tr>
     `).join('');

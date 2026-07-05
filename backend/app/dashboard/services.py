@@ -431,26 +431,61 @@ class SecurityDashboard:
 
         def map_feature_name(feat: str) -> str:
             # Deterministic mapping based on backend/app/ml/features.py index
-            mapping = {
-                "sec_feat_0": "Payload Length",
-                "sec_feat_1": "Scaled Length",
-                "sec_feat_2": "Entropy",
-                "sec_feat_3": "Entropy Ratio",
-                "sec_feat_4": "Special Char Density",
-                "sec_feat_5": "SQL Keywords",
-                "sec_feat_6": "SQL Union",
-                "sec_feat_7": "SQL Comments",
-                "sec_feat_10": "HTML Tags",
-                "sec_feat_11": "JS Events",
-                "sec_feat_12": "Shell Meta Chars",
-                "sec_feat_26": "Path Traversal"
+            sec_mapping = {
+                "sec_feat_0":  "Payload Length",
+                "sec_feat_1":  "Scaled Length",
+                "sec_feat_2":  "Entropy",
+                "sec_feat_3":  "Entropy Ratio",
+                "sec_feat_4":  "Special Char Density",
+                "sec_feat_5":  "SQL Keywords",
+                "sec_feat_6":  "UNION SELECT Pattern",
+                "sec_feat_7":  "SQL Comments",
+                "sec_feat_8":  "HTML Tags",
+                "sec_feat_9":  "JS Event Handlers",
+                "sec_feat_10": "Shell Metacharacters",
+                "sec_feat_11": "Shell Commands",
+                "sec_feat_12": "Path Traversal",
+                "sec_feat_13": "Dotdot Slash Count",
+                "sec_feat_14": "Dotdot Backslash",
+                "sec_feat_15": "URL Encoding Count",
+                "sec_feat_16": "URL Encoding Ratio",
+                "sec_feat_17": "HTML Entities",
+                "sec_feat_18": "JNDI Pattern (Log4Shell)",
+                "sec_feat_19": "SSRF Host Reference",
+                "sec_feat_20": "XXE Declaration",
+                "sec_feat_21": "SSTI Markers",
+                "sec_feat_22": "Ampersand Count",
+                "sec_feat_23": "Question Mark Count",
+                "sec_feat_24": "Equals Sign Count",
+                "sec_feat_25": "Single Quote Imbalance",
+                "sec_feat_26": "Double Quote Imbalance",
+                "sec_feat_27": "Max Nesting Depth",
+                "sec_feat_28": "Null Byte Injection",
             }
-            if feat in mapping:
-                return mapping[feat]
+            if feat in sec_mapping:
+                return sec_mapping[feat]
             if feat.startswith("sec_feat_"):
                 return f"Security Feature {feat.split('_')[-1]}"
-            # Raw TF-IDF char n-grams
-            return f"Char N-gram: '{feat}'"
+            # TF-IDF char n-gram — show as pattern signature
+            char_labels = {
+                '/': "URL Path Separator '/'",
+                '=': "Assignment Operator '='",
+                '.': "Dot Accessor '.'",
+                ':': "Protocol Separator ':'",
+                '<': "HTML Open Tag '<'",
+                '>': "HTML Close Tag '>'",
+                ';': "Statement Terminator ';'",
+                "'": "Single Quote Pattern",
+                '"': "Double Quote Pattern",
+                '%': "URL Encode Prefix '%'",
+                '-': "SQL Comment Dash '-'",
+                '_': "Underscore Pattern '_'",
+            }
+            if feat in char_labels:
+                return char_labels[feat]
+            if len(feat) == 1:
+                return f"Char Signature: '{feat}'"
+            return f"N-gram Pattern: '{feat}'"
 
         try:
             with open(path, "r", encoding="utf-8") as f:
@@ -564,6 +599,9 @@ class SecurityDashboard:
 
         # Offline benchmark latency (from ONNX conversion report)
         inference_ms = 0.04
+        
+        onnx_path = Path(__file__).resolve().parents[2] / "models" / "model_lightgbm.onnx"
+        onnx_size_mb = round(onnx_path.stat().st_size / 1024 / 1024, 1) if onnx_path.exists() else None
 
         metrics = {
             "status": "ok",
@@ -576,6 +614,7 @@ class SecurityDashboard:
             "balanced_accuracy": baseline.get("balanced_accuracy"),
             "average_inference_time_ms": inference_ms,
             "feature_importance": features,
+            "onnx_size_mb": onnx_size_mb,
             
             # FIXED OFFLINE METRICS
             "accuracy": baseline.get("accuracy", 92.16),

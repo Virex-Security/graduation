@@ -482,6 +482,24 @@ def create_dashboard_app():
                 "message": str(e),
                 "attack_indicators": indicators
             }), 200
+    @app.route('/api/ml/eval-image/<filename>')
+    @analyst_and_above
+    def ml_eval_image(current_user, filename):
+        from pathlib import Path
+        import re
+        from flask import send_file
+        # Whitelist only safe filenames
+        allowed = {
+            'roc_curve.png', 'pr_curve.png',
+            'confusion_matrix.png', 'confusion_matrix_normalized.png'
+        }
+        if filename not in allowed:
+            return jsonify({'error': 'Not found'}), 404
+        img_path = Path(__file__).resolve().parents[2] / 'models' / 'evaluation' / filename
+        if not img_path.exists():
+            return jsonify({'error': 'Image not found'}), 404
+        return send_file(str(img_path), mimetype='image/png')
+
     @app.route('/incidents')
     @app.route('/incidents_list')
     @manager_and_above
