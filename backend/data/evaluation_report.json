@@ -1,4 +1,5 @@
 {
+  "_legacy_note": "LEGACY ARTIFACT: This report corresponds to model v2.0 (10 classes including brute_force, sql_injection). The deployed production model is v3.0-lightgbm-onnx (9 classes: command_injection, log4shell, normal, path_traversal, sqli, ssrf, ssti, xss, xxe). This file is kept for historical reference ONLY. Use backend/models/model_metadata.json and backend/models/evaluation/model_evaluation_report.md as the authoritative source of truth for the deployed model.",
   "train_accuracy": 0.9973,
   "test_accuracy": 0.9987,
   "f1_macro": 0.9993,

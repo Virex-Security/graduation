@@ -13,6 +13,8 @@ import joblib
 import lightgbm as lgb
 import optuna
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.pipeline import FeatureUnion
+from sklearn.calibration import CalibratedClassifierCV
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import StratifiedKFold, cross_validate
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
@@ -70,16 +72,28 @@ Duplicate Rows (Train): {dups}
     return train, val, test
 
 def _build_vectorizers():
-    vec = TfidfVectorizer(
-        ngram_range    = (1, 3),
-        max_features   = 3000,
-        lowercase      = True,
-        strip_accents  = "unicode",
-        sublinear_tf   = True,
-        min_df         = 2,
-        max_df         = 0.95,
-        analyzer       = "char_wb",
-    )
+    vec = FeatureUnion([
+        ("word_tfidf", TfidfVectorizer(
+            analyzer="word",
+            ngram_range=(1, 2),
+            max_features=3000,
+            lowercase=True,
+            strip_accents="unicode",
+            sublinear_tf=True,
+            min_df=2,
+            max_df=0.95
+        )),
+        ("char_tfidf", TfidfVectorizer(
+            analyzer="char",
+            ngram_range=(3, 5),
+            max_features=2000,
+            lowercase=True,
+            strip_accents="unicode",
+            sublinear_tf=True,
+            min_df=2,
+            max_df=0.95
+        ))
+    ])
     sec = SecurityFeatureExtractor()
     return vec, sec
 
@@ -154,8 +168,11 @@ def main():
     study = optuna.create_study(direction="maximize", sampler=optuna.samplers.TPESampler(seed=SEED))
     
     # Given potentially long training time, limit trials to a small number for this run.
-    # A full tune would use n_trials=50, but we use 10 for timely completion here.
-    study.optimize(objective, n_trials=10)
+    import sys
+    n_trials = int(sys.argv[1]) if len(sys.argv) > 1 else 30
+    
+    logger.info(f"Running Optuna with {n_trials} trials...")
+    study.optimize(objective, n_trials=n_trials)
     
     best_params = study.best_params
     logger.info(f"Best Optuna params: {best_params}")
@@ -177,8 +194,33 @@ def main():
         callbacks=[lgb.early_stopping(stopping_rounds=20)]
     )
     
-    # Evaluate Validation
-    val_preds = best_model.predict(X_val)
+    # Evaluate Validation (Uncalibrated)
+    val_preds_uncal = best_model.predict(X_val)
+    val_probs_uncal = best_model.predict_proba(X_val)
+    val_f1_uncal = f1_score(y_val, val_preds_uncal, average="macro")
+    
+    # Train Calibrated Model
+    logger.info("Training Calibrated Model...")
+    calibrated_model = CalibratedClassifierCV(best_model, method="isotonic", cv="prefit")
+    calibrated_model.fit(X_val, y_val) # Isotonic uses val set for calibration
+    
+    val_preds_cal = calibrated_model.predict(X_val)
+    val_f1_cal = f1_score(y_val, val_preds_cal, average="macro")
+    
+    logger.info(f"Uncalibrated F1: {val_f1_uncal:.4f}")
+    logger.info(f"Calibrated F1: {val_f1_cal:.4f}")
+    
+    # The requirement is: If calibration degrades any important production metric, automatically revert
+    if val_f1_cal < val_f1_uncal:
+        logger.info("Calibration degraded F1! Reverting to uncalibrated model.")
+        final_model = best_model
+        val_preds = val_preds_uncal
+    else:
+        logger.info("Calibration improved or matched F1! Keeping calibrated model.")
+        final_model = calibrated_model
+        val_preds = val_preds_cal
+    
+    # Evaluate Validation using the chosen final_model
     val_acc = accuracy_score(y_val, val_preds)
     val_prec = precision_score(y_val, val_preds, average="macro")
     val_rec = recall_score(y_val, val_preds, average="macro")
@@ -208,23 +250,32 @@ def main():
     
     # 6. Save the trained model
     logger.info("Saving new LightGBM artifacts...")
-    joblib.dump(best_model, MODEL_PATH)
+    joblib.dump(final_model, MODEL_PATH)
     joblib.dump(vec, VEC_PATH)
     joblib.dump(sec, SEC_PATH)
     joblib.dump(le, LE_PATH)
     
     # 7. Feature Importance
     logger.info("Extracting feature importances...")
-    tfidf_names = vec.get_feature_names_out()
+    tfidf_names = [f"word_tfidf_{name}" for name in vec.transformer_list[0][1].get_feature_names_out()] + \
+                  [f"char_tfidf_{name}" for name in vec.transformer_list[1][1].get_feature_names_out()]
     # security features doesn't expose get_feature_names_out cleanly in older versions, 
     # we'll build a generic one if it fails.
     try:
-        sec_names = sec.get_feature_names_out()
+        sec_names = sec.feature_names
     except:
         sec_names = [f"sec_feat_{i}" for i in range(X_train.shape[1] - len(tfidf_names))]
         
     feat_names = list(tfidf_names) + list(sec_names)
-    importances = best_model.feature_importances_
+    
+    if hasattr(final_model, "feature_importances_"):
+        importances = final_model.feature_importances_
+    else:
+        # Calibrated classifier doesn't have feature_importances_, use the base estimator
+        if hasattr(final_model, "estimator"):
+            importances = final_model.estimator.feature_importances_
+        else:
+            importances = np.zeros(len(feat_names))
     
     fi_df = pd.DataFrame({"Feature": feat_names, "Importance": importances})
     fi_df = fi_df.sort_values(by="Importance", ascending=False)

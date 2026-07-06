@@ -267,6 +267,11 @@ def create_dashboard_app():
             user=current_user,
             dashboard_api_enabled=dashboard_api_enabled,
         )
+
+    @app.route('/api/health')
+    def basic_health():
+        return jsonify({'status': 'ok'}), 200
+
     @app.route('/api/system/health')
     @login_required
     def system_health(current_user):
@@ -477,6 +482,24 @@ def create_dashboard_app():
                 "message": str(e),
                 "attack_indicators": indicators
             }), 200
+    @app.route('/api/ml/eval-image/<filename>')
+    @analyst_and_above
+    def ml_eval_image(current_user, filename):
+        from pathlib import Path
+        import re
+        from flask import send_file
+        # Whitelist only safe filenames
+        allowed = {
+            'roc_curve.png', 'pr_curve.png',
+            'confusion_matrix.png', 'confusion_matrix_normalized.png'
+        }
+        if filename not in allowed:
+            return jsonify({'error': 'Not found'}), 404
+        img_path = Path(__file__).resolve().parents[2] / 'models' / 'evaluation' / filename
+        if not img_path.exists():
+            return jsonify({'error': 'Image not found'}), 404
+        return send_file(str(img_path), mimetype='image/png')
+
     @app.route('/incidents')
     @app.route('/incidents_list')
     @manager_and_above
@@ -1730,6 +1753,11 @@ def create_dashboard_app():
                         {"rid": role_map[new_role], "uid": target_user_id})
             conn.commit()
         return jsonify({"message": "Role updated"})
+
+    @app.route('/api/ml/live-stats')
+    @analyst_and_above
+    def api_ml_live_stats(current_user):
+        return jsonify(dashboard.get_live_waf_stats())
 
     return app
 def calculate_threat_score(threat):

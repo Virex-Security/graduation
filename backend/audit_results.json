@@ -1,0 +1,57 @@
+{
+  "distributions": {
+    "train": {
+      "normal": 56918,
+      "path_traversal": 33038,
+      "sqli": 23628,
+      "xss": 7739,
+      "command_injection": 7000,
+      "ssrf": 3500,
+      "xxe": 3500,
+      "ssti": 3500,
+      "log4shell": 3500
+    },
+    "val": {
+      "normal": 12196,
+      "path_traversal": 7079,
+      "sqli": 5063,
+      "xss": 1657,
+      "command_injection": 1500,
+      "log4shell": 750,
+      "ssrf": 750,
+      "xxe": 750,
+      "ssti": 750
+    },
+    "test": {
+      "normal": 12196,
+      "path_traversal": 7079,
+      "sqli": 5063,
+      "xss": 1657,
+      "command_injection": 1500,
+      "log4shell": 750,
+      "xxe": 750,
+      "ssrf": 750,
+      "ssti": 750
+    },
+    "total": {
+      "normal": 81310,
+      "path_traversal": 47196,
+      "sqli": 33754,
+      "xss": 11053,
+      "command_injection": 10000,
+      "ssrf": 5000,
+      "xxe": 5000,
+      "ssti": 5000,
+      "log4shell": 5000
+    }
+  },
+  "exact_duplicates_across_all_dataset": 0,
+  "inconsistent_labels_count": 0,
+  "sqli_normal_exact_overlap_count": 0,
+  "malformed": {
+    "empty": 0,
+    "under_3_chars": 0,
+    "over_10000_chars": 0
+  },
+  "sample_inconsistencies": []
+}

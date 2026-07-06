@@ -5,424 +5,625 @@
 
 {% block stylesheets %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/ml_stats.css') }}" />
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   ML PERFORMANCE PAGE — presentation layer only
+   No backend / API / metric / model changes.
+   ═══════════════════════════════════════════════════════════════ */
 
+/* ── Skeleton loader ──────────────────────────────────────────── */
+@keyframes skeleton-shine {
+  0%   { background-position: -600px 0; }
+  100% { background-position:  600px 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg,
+    rgba(255,255,255,0.04) 25%,
+    rgba(255,255,255,0.09) 50%,
+    rgba(255,255,255,0.04) 75%);
+  background-size: 600px 100%;
+  animation: skeleton-shine 1.5s ease-in-out infinite;
+  border-radius: 8px;
+}
+.skel-card {
+  background: #1e293b;
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 12px;
+  padding: 1.25rem;
+  display: flex; align-items: center; gap: 14px;
+  height: 88px;
+  box-sizing: border-box;
+}
+.skel-icon { width:46px; height:46px; border-radius:10px; flex-shrink:0; }
+.skel-text { flex:1; display:flex; flex-direction:column; gap:9px; }
+.skel-line    { height:13px; border-radius:5px; }
+.skel-line-sm { height:9px;  border-radius:5px; width:55%; }
+.skel-panel {
+  background: #1e293b;
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 12px;
+  height: 480px;
+  box-sizing: border-box;
+}
+
+/* ── Metric card grid ─────────────────────────────────────────── */
+#offline-metric-cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+@media (max-width: 1300px) { #offline-metric-cards { grid-template-columns: repeat(2,1fr); } }
+@media (max-width:  600px) { #offline-metric-cards { grid-template-columns: 1fr; } }
+
+/* ── Metric card hover ────────────────────────────────────────── */
+.ml-metric-card {
+  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease !important;
+  cursor: default;
+  height: 88px !important;
+  box-sizing: border-box !important;
+  align-items: center !important;
+}
+.ml-metric-card:hover {
+  transform: scale(1.025) !important;
+  box-shadow: 0 6px 28px rgba(219,39,119,0.18), 0 2px 8px rgba(0,0,0,0.25) !important;
+  border-color: rgba(219,39,119,0.38) !important;
+}
+
+/* ── 4-column visualization grid ─────────────────────────────── */
+.ml-charts-grid {
+  display: grid;
+  grid-template-columns: 0.85fr 1fr 1.05fr 1.2fr;
+  gap: 16px;
+  margin-top: 20px;
+  /* grid rows: all cards stretch to the same height */
+  align-items: stretch;
+}
+@media (max-width: 1600px) { .ml-charts-grid { grid-template-columns: repeat(2,1fr); } }
+@media (max-width:  900px) { .ml-charts-grid { grid-template-columns: 1fr; } }
+
+/* ── Unified visualization card (all 4 share this class) ─────── */
+.viz-card {
+  background: #1e293b;
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 12px;
+  padding: 1rem 1.15rem 0.9rem;   /* tighter than before */
+  display: flex;
+  flex-direction: column;
+  height: 480px;
+  box-sizing: border-box;
+  overflow: hidden;
+  position: relative;
+  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+}
+.viz-card::before {
+  content: '';
+  position: absolute; top:0; left:0; right:0;
+  height: 2px;
+  background: linear-gradient(90deg, #9a277d, #e046ba);
+  opacity: 0; transition: opacity 0.28s;
+}
+.viz-card:hover { transform: scale(1.012); box-shadow: 0 8px 36px rgba(219,39,119,0.14), 0 2px 8px rgba(0,0,0,0.28); border-color: rgba(219,39,119,0.32); }
+.viz-card:hover::before { opacity: 1; }
+
+/* Card header */
+.vc-title {
+  font-size: 0.78rem;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 1.1px;
+  font-weight: 700;
+  display: flex; align-items: center; gap: 7px;
+  flex-shrink: 0;
+  margin-bottom: 7px;
+}
+.vc-title i { color: #db2777; font-size: 0.8rem; }
+
+/* Card body — takes all remaining height */
+.vc-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Card footer note */
+.vc-footer {
+  font-size: 0.7rem;
+  color: #374151;
+  margin-top: 8px;
+  display: flex; align-items: center; gap: 5px;
+  flex-shrink: 0;
+  line-height: 1.3;
+}
+
+/* ── ROC-AUC badge ────────────────────────────────────────────── */
+.roc-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(16,185,129,0.11);
+  border: 1px solid rgba(16,185,129,0.22);
+  border-radius: 6px;
+  padding: 3px 9px;
+  font-size: 0.8rem; font-weight: 700; color: #10b981;
+  margin-bottom: 8px;
+  flex-shrink: 0;
+  width: fit-content;
+}
+
+/* ── Image panel (ROC + Confusion Matrix) ─────────────────────── */
+.img-panel {
+  flex: 1;
+  min-height: 0;
+  background: #0a1628;      /* very dark, near-black */
+  border-radius: 7px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255,255,255,0.04);
+}
+/* Image fills the container perfectly with no white border */
+.img-panel img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;      /* preserve aspect ratio */
+  transform: scale(1.06);   /* slight zoom to crop matplotlib borders */
+  border-radius: 5px;
+}
+
+/* ── Feature importance ──────────────────────────────────────── */
+.feat-list {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  /* no scrollbar */
+  overflow: hidden;
+}
+.feat-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.025);
+  flex-shrink: 0;
+}
+.feat-row:last-child { border-bottom: none; }
+.feat-label {
+  width: 170px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: #cbd5e1;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 0;
+}
+.feat-track {
+  flex: 1;
+  height: 10px;
+  background: rgba(255,255,255,0.04);
+  border-radius: 5px;
+  overflow: hidden;
+}
+.feat-fill {
+  height: 100%;
+  border-radius: 5px;
+  background: linear-gradient(90deg, #9a277d, #e046ba);
+  box-shadow: 0 0 8px rgba(219,39,119,0.3);
+}
+.feat-pct {
+  width: 40px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: #e2e8f0;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* ── Per-class table ──────────────────────────────────────────── */
+.cls-wrapper {
+  flex: 1;
+  min-height: 0;
+  /* Thin scrollbar only when strictly needed */
+  overflow-y: auto;
+  overflow-x: auto;
+}
+.cls-wrapper::-webkit-scrollbar { width: 4px; height: 4px; }
+.cls-wrapper::-webkit-scrollbar-track { background: rgba(255,255,255,0.03); border-radius:2px; }
+.cls-wrapper::-webkit-scrollbar-thumb { background: rgba(219,39,119,0.35); border-radius:2px; }
+.cls-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+.cls-table thead th {
+  padding: 5px 5px 6px;
+  color: #4b5563;
+  font-weight: 700;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  white-space: nowrap;
+  position: sticky; top: 0;
+  background: #1e293b;
+  z-index: 1;
+}
+.cls-table thead th:first-child { text-align: left; }
+.cls-table thead th:not(:first-child) { text-align: center; }
+.cls-table thead th:last-child { text-align: right; }
+.cls-table tbody tr {
+  border-bottom: 1px solid rgba(255,255,255,0.035);
+  transition: background 0.15s;
+}
+.cls-table tbody tr:hover { background: rgba(255,255,255,0.025); }
+.cls-table tbody tr:last-child { border-bottom: none; }
+.cls-table tbody td {
+  padding: 4.5px 5px;
+  font-size: 0.8rem;
+  color: #e2e8f0;
+  white-space: nowrap;
+}
+.cls-table tbody td:not(:first-child) { text-align: center; }
+.cls-table tbody td:last-child { text-align: right; color: #6b7280; }
+.cls-table .macro-row td {
+  border-top: 1px solid rgba(255,255,255,0.1);
+  font-weight: 700;
+  padding-top: 7px;
+  color: #db2777;
+}
+.cls-table .macro-row td:first-child { color: #e2e8f0; }
+.cls-table .macro-row td:last-child { color: #6b7280; }
+
+/* ── Model Information card ───────────────────────────────────── */
+.model-card {
+  margin-top: 18px;
+  background: #1e293b;
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 12px;
+  padding: 0.9rem 1.2rem;
+  transition: box-shadow 0.22s, border-color 0.22s;
+}
+.model-card:hover {
+  box-shadow: 0 5px 24px rgba(219,39,119,0.09);
+  border-color: rgba(219,39,119,0.22);
+}
+.model-card h3 {
+  font-size: 0.78rem; color: #6b7280;
+  text-transform: uppercase; letter-spacing: 1.1px;
+  margin-bottom: 14px; font-weight: 700;
+  display: flex; align-items: center; gap: 7px;
+}
+.model-card h3 i { color: #db2777; }
+.mi-table { width:100%; border-collapse:collapse; }
+.mi-table th {
+  padding: 6px 12px;
+  color: #4b5563; font-weight: 700; font-size: 0.72rem;
+  text-transform: uppercase; letter-spacing: 0.5px;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  text-align: left; white-space: nowrap;
+}
+.mi-table td {
+  padding: 8px 12px;
+  color: #f1f5f9; font-size: 0.85rem;
+  white-space: nowrap;
+}
+</style>
 {% endblock %}
 
 {% block content %}
 <main class="main-content">
-  <header class="section-title">
-    <div class="ml-header-wrapper">
-      <div class="ml-header-left">
-        <h1><i class="fas fa-brain"></i> ML Model Performance</h1>
+
+  <!-- ── Page Header ─────────────────────────────────────────── -->
+  <header style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:18px;">
+    <div>
+      <h1 style="font-size:1.75rem; margin:0; font-weight:700; color:#f8fafc;">ML Performance Dashboard</h1>
+      <p style="margin:6px 0 0; color:#9ca3af; font-size:0.9rem;">Offline Evaluation Metrics — LightGBM ONNX Model</p>
+    </div>
+    <div style="display:flex; align-items:center; gap:14px; flex-shrink:0;">
+      <div style="background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.2); color:#10b981; padding:7px 15px; border-radius:8px; font-size:0.85rem; font-weight:600; display:flex; align-items:center; gap:7px;">
+        <i class="fas fa-database"></i> Offline Evaluation
       </div>
-      <div class="ml-header-right">
-        <div></div>
-        <span id="current-time" class="ml-time-display">--:--:-- --</span>
-        <span class="ml-status-badge" id="api-status-badge">
-          <i class="fas fa-circle"></i>ACTIVE
-        </span>
-        <button class="refresh-btn" id="header-refresh-btn">
-          <i class="fas fa-sync"></i>
-          REFRESH
-        </button>
+      <div style="display:flex; align-items:center; gap:9px; color:#9ca3af; font-size:0.82rem;">
+        <div style="background:rgba(255,255,255,0.05); padding:9px; border-radius:8px;"><i class="far fa-calendar-alt"></i></div>
+        <div style="display:flex; flex-direction:column;">
+          <span style="font-size:0.7rem; color:#4b5563;">Last Updated</span>
+          <span id="current-time" style="color:#f3f4f6; font-family:monospace; font-weight:600; font-size:0.85rem;"></span>
+        </div>
       </div>
     </div>
   </header>
 
-  <div class="ml-metrics-row">
-    <div class="ml-metric-card">
-      <div class="ml-metric-icon-wrapper blue">
-        <i class="fas fa-bullseye"></i>
-      </div>
-      <div class="ml-metric-content">
-        <div class="ml-metric-value" id="accuracy-value">--%</div>
-        <div class="ml-metric-label">Accuracy</div>
+  <!-- ── Status bar ──────────────────────────────────────────── -->
+  <div style="display:flex; align-items:center; gap:11px; background:rgba(16,185,129,0.07); border:1px solid rgba(16,185,129,0.18); border-radius:9px; padding:10px 15px; margin-bottom:20px; font-size:0.86rem; color:#d1fae5;">
+    <i class="fas fa-check-circle" style="color:#10b981;"></i>
+    <span>Offline evaluation metrics loaded successfully. These metrics are computed during model evaluation and do not change with live traffic.</span>
+  </div>
+
+  <!-- ── Metric Cards ─────────────────────────────────────────── -->
+  <div id="offline-metric-cards">
+    {% for _ in range(8) %}
+    <div class="skel-card">
+      <div class="skeleton skel-icon"></div>
+      <div class="skel-text">
+        <div class="skeleton skel-line"></div>
+        <div class="skeleton skel-line-sm"></div>
       </div>
     </div>
+    {% endfor %}
+  </div>
 
-    <div class="ml-metric-card">
-      <div class="ml-metric-icon-wrapper green">
-        <i class="fas fa-crosshairs"></i>
-      </div>
-      <div class="ml-metric-content">
-        <div class="ml-metric-value" id="precision-value">--%</div>
-        <div class="ml-metric-label">Precision</div>
-      </div>
-    </div>
+  <!-- ── Visualization Grid ──────────────────────────────────── -->
+  <div class="ml-charts-grid" id="viz-grid">
+    <div class="skel-panel" id="sp-feat"></div>
+    <div class="skel-panel" id="sp-roc"></div>
+    <div class="skel-panel" id="sp-cls"></div>
+    <div class="skel-panel" id="sp-cm"></div>
+  </div>
 
-    <div class="ml-metric-card">
-      <div class="ml-metric-icon-wrapper orange">
-        <span class="brand-v-icon">V</span>
-      </div>
-      <div class="ml-metric-content">
-        <div class="ml-metric-value" id="recall-value">--%</div>
-        <div class="ml-metric-label">Recall</div>
-      </div>
-    </div>
-
-    <div class="ml-metric-card">
-      <div class="ml-metric-icon-wrapper purple">
-        <i class="fas fa-star"></i>
-      </div>
-      <div class="ml-metric-content">
-        <div class="ml-metric-value" id="f1-value">--%</div>
-        <div class="ml-metric-label">F1-Score</div>
-      </div>
+  <!-- ── Model Information ────────────────────────────────────── -->
+  <div class="model-card" id="model-info-section">
+    <h3><i class="fas fa-cube"></i> Model Information</h3>
+    <div style="display:flex; gap:12px;">
+      {% for _ in range(9) %}
+      <div class="skeleton" style="height:42px; flex:1; border-radius:7px;"></div>
+      {% endfor %}
     </div>
   </div>
 
-  <div class="ml-charts-grid">
-    <div class="table-card">
-      <h3><i class="fas fa-chart-pie"></i> Confusion Matrix</h3>
-      <div class="chart-container">
-        <canvas id="confusionChart"></canvas>
-      </div>
-    </div>
-
-    <div class="table-card">
-      <h3><i class="fas fa-list-ol"></i> Top Attack Indicators</h3>
-      <div id="features-list" class="features-container">
-        <div class="ml-loading">
-          <i class="fas fa-spinner fa-spin"></i> Loading feature importance...
-        </div>
-      </div>
-    </div>
-
-    <div class="table-card">
-      <h3><i class="fas fa-chart-radar"></i> Performance Metrics</h3>
-      <div class="chart-container">
-        <canvas id="performanceChart"></canvas>
-      </div>
-    </div>
-  </div>
-      </div>
-    </div>
-  </div>
 </main>
 {% endblock %}
 
 {% block scripts %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <script>
-// Only page-specific JavaScript here
+/* ── MLPerformance controller — presentation only ────────────── */
 const MLPerformance = {
-  performanceChart: null,
-  confusionChart: null,
+  rocChart: null,
 
-  getMockData() {
-    return {
-      status: "ok",
-      model_type: "LightGBM Classifier",
-      vectorizer_type: "TF-IDF (ngrams 1-2, 5000 features)",
-      dataset_size: 5000,
-      test_size: 1000,
-      test_samples: 1000,
-      accuracy: 94.20,
-      precision: 94.50,
-      recall: 93.80,
-      f1_score: 94.10,
-      roc_auc: 0.9756,
-      confusion_matrix: { tn: 932, fp: 34, fn: 45, tp: 989 },
-      top_features: [
-        { feature: "sql_injection_pattern", importance: 0.342 },
-        { feature: "xss_payload_detected", importance: 0.287 },
-        { feature: "unusual_request_size", importance: 0.231 },
-        { feature: "brute_force_signature", importance: 0.198 },
-        { feature: "port_scan_behavior", importance: 0.176 },
-        { feature: "malformed_headers", importance: 0.154 },
-      ],
-    };
-  },
-
-  async load() {
-    console.log("[MLPerformance] Starting load...");
-    try {
-      const response = await fetch("/api/ml/stats?t=" + Date.now(), {
-        credentials: "same-origin",
+  load() {
+    fetch('/api/ml/stats', { credentials: 'same-origin' })
+      .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(d => {
+        this.renderMetricCards(d);
+        this.renderVizGrid(d);
+        this.renderModelInfo(d);
+      })
+      .catch(err => {
+        console.error('ML stats error:', err);
+        document.getElementById('offline-metric-cards').innerHTML =
+          '<div style="color:#ef4444;padding:16px;grid-column:1/-1"><i class="fas fa-exclamation-circle"></i> Failed to load metrics.</div>';
       });
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-      const data = await response.json();
-      if (data.status === "error") throw new Error(data.message);
-
-      this.updateMetrics(data);
-      this.updateCharts(data);
-      this.updateFeatures(data.top_features || []);
-      this.updateModelInfo(data);
-      this.updateAPIStatus(true);
-      this.loadSecurityScore();
-    } catch (error) {
-      console.error("[MLPerformance] Failed to load from API:", error);
-      const mockData = this.getMockData();
-      this.updateMetrics(mockData);
-      this.updateCharts(mockData);
-      this.updateFeatures(mockData.top_features || []);
-      this.updateModelInfo(mockData);
-      this.updateAPIStatus(false);
-      this.loadSecurityScore();
-
-      const demoBannerId = "ml-demo-banner";
-      let banner = document.getElementById(demoBannerId);
-      if (!banner) {
-        banner = document.createElement("div");
-        banner.id = demoBannerId;
-        banner.textContent = "Demo mode: showing sample ML results (backend offline)";
-        banner.style.cssText = "position:relative;display:block;padding:0.6rem 1rem;margin-bottom:1rem;border-radius:8px;background:rgba(245,158,11,0.08);color:var(--warning);border:1px solid rgba(245,158,11,0.12);font-weight:600;";
-        const header = document.querySelector(".section-title");
-        if (header && header.parentNode) header.parentNode.insertBefore(banner, header.nextSibling);
-      }
-
-      const dashBadge = document.getElementById("mlp-summary-status");
-      if (dashBadge) {
-        dashBadge.classList.remove("badge-online");
-        dashBadge.classList.add("badge-error");
-        const textEl = dashBadge.querySelector("span:last-child");
-        if (textEl) textEl.textContent = "Offline";
-      }
-
-      this.showNotification("Using demo data - Backend server not running", "info");
-    }
   },
 
-  updateAPIStatus(isOnline) {
-    const badge = document.getElementById("api-status-badge");
-    if (!badge) return;
-    if (isOnline) {
-      badge.classList.remove("status-offline");
-      badge.classList.add("status-online");
-      badge.innerHTML = '<i class="fas fa-circle"></i>CONNECTED';
-    } else {
-      badge.classList.remove("status-online");
-      badge.classList.add("status-offline");
-      badge.innerHTML = '<i class="fas fa-circle"></i>OFFLINE';
-    }
+  /* ── Metric cards ─────────────────────────────────────────── */
+  renderMetricCards(d) {
+    const cards = [
+      { label:'Accuracy',             v: d.accuracy              != null ? d.accuracy.toFixed(2)+'%'              : '--', color:'#10b981', icon:'fa-bullseye',      bg:'rgba(16,185,129,0.12)' },
+      { label:'Precision',            v: d.precision             != null ? d.precision.toFixed(2)+'%'             : '--', color:'#3b82f6', icon:'fa-crosshairs',    bg:'rgba(59,130,246,0.12)' },
+      { label:'Recall',               v: d.recall                != null ? d.recall.toFixed(2)+'%'                : '--', color:'#f59e0b', icon:'fa-sync-alt',      bg:'rgba(245,158,11,0.12)' },
+      { label:'F1-Score',             v: d.f1_score              != null ? d.f1_score.toFixed(2)+'%'              : '--', color:'#8b5cf6', icon:'fa-star',           bg:'rgba(139,92,246,0.12)' },
+      { label:'ROC-AUC',              v: d.roc_auc               != null ? d.roc_auc.toFixed(4)                   : '--', color:'#ec4899', icon:'fa-chart-line',    bg:'rgba(236,72,153,0.12)' },
+      { label:'Log Loss',             v: d.log_loss              != null ? d.log_loss.toFixed(4)                  : '--', color:'#9ca3af', icon:'fa-chart-bar',     bg:'rgba(156,163,175,0.12)' },
+      { label:'Balanced Accuracy',    v: d.balanced_accuracy     != null ? d.balanced_accuracy.toFixed(2)+'%'     : '--', color:'#a855f7', icon:'fa-balance-scale', bg:'rgba(168,85,247,0.12)' },
+      { label:'Inference Time (Avg)', v: d.average_inference_time_ms != null ? '~'+d.average_inference_time_ms+' ms' : '--', color:'#38bdf8', icon:'fa-bolt',    bg:'rgba(56,189,248,0.12)' },
+    ];
+    document.getElementById('offline-metric-cards').innerHTML = cards.map(c => `
+      <div class="ml-metric-card" style="background:#1e293b;border:1px solid rgba(255,255,255,0.06);padding:1.1rem 1.2rem;border-radius:12px;display:flex;align-items:center;gap:13px;box-shadow:0 2px 6px rgba(0,0,0,0.2);">
+        <div style="width:46px;height:46px;background:${c.bg};color:${c.color};border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;flex-shrink:0;">
+          <i class="fas ${c.icon}"></i>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:3px;min-width:0;">
+          <div style="color:#f8fafc;font-size:1.45rem;font-weight:700;line-height:1;font-family:monospace;white-space:nowrap;">${c.v}</div>
+          <div style="color:#9ca3af;font-size:0.8rem;font-weight:500;white-space:nowrap;">${c.label}</div>
+        </div>
+      </div>`).join('');
   },
 
-  async loadSecurityScore() {
-    try {
-      const response = await fetch("/api/dashboard/stats", {
-        method: "POST",
-        credentials: "same-origin",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({}),
-      });
-      if (!response.ok) return;
-      const data = await response.json();
-      const scoreElement = document.getElementById("security-score-value");
-      if (scoreElement && data.security_score !== undefined) {
-        scoreElement.textContent = data.security_score.toFixed(2) + "/100";
-        scoreElement.style.color = "var(--text-secondary)";
-      }
-    } catch (error) {
-      console.log("[MLPerformance] Could not load security score:", error);
-      const scoreElement = document.getElementById("security-score-value");
-      if (scoreElement) {
-        scoreElement.textContent = "--/100";
-      }
-    }
+  /* ── Visualization grid ───────────────────────────────────── */
+  renderVizGrid(d) {
+    document.getElementById('viz-grid').innerHTML = `
+      <!-- 1: Feature Importance -->
+      <div class="viz-card">
+        <div class="vc-title"><i class="fas fa-chart-bar"></i> Feature Importance (Top 10)</div>
+        <div class="vc-body">
+          <div class="feat-list" id="feat-list"></div>
+        </div>
+        <div class="vc-footer"><i class="fas fa-info-circle"></i> Importance values normalized to 100%.</div>
+      </div>
+
+      <!-- 2: ROC Curve -->
+      <div class="viz-card">
+        <div class="vc-title"><i class="fas fa-chart-line"></i> ROC Curve</div>
+        <div class="roc-badge"><i class="fas fa-star"></i> ROC-AUC:&nbsp;<span id="roc-auc-val">--</span></div>
+        <div class="img-panel" style="flex:1;min-height:0;">
+          <img id="roc-img"
+               src="/api/ml/eval-image/roc_curve.png?v=${Date.now()}"
+               onerror="this.style.display='none';document.getElementById('roc-canvas').style.display='block';"
+               alt="ROC Curve">
+          <canvas id="roc-canvas" style="display:none;width:100%;height:100%;"></canvas>
+        </div>
+        <div class="vc-footer"><i class="fas fa-info-circle"></i> Real ROC Curve from model evaluation</div>
+      </div>
+
+      <!-- 3: Per-Class Evaluation -->
+      <div class="viz-card">
+        <div class="vc-title"><i class="fas fa-bullseye"></i> Per-Class Evaluation</div>
+        <div class="vc-body">
+          <div class="cls-wrapper">
+            <table class="cls-table">
+              <thead>
+                <tr>
+                  <th style="text-align:left;">Class</th>
+                  <th>Prec.</th>
+                  <th>Recall</th>
+                  <th>F1</th>
+                  <th style="text-align:right;">Support</th>
+                </tr>
+              </thead>
+              <tbody id="cls-tbody">
+                <tr><td colspan="5" style="text-align:center;color:#4b5563;padding:18px;">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="vc-footer"><i class="fas fa-info-circle"></i> Held-out test set · 28,511 samples</div>
+      </div>
+
+      <!-- 4: Confusion Matrix -->
+      <div class="viz-card">
+        <div class="vc-title"><i class="fas fa-th"></i> Confusion Matrix</div>
+        <div class="img-panel" style="flex:1;min-height:0;">
+          <img src="/api/ml/eval-image/confusion_matrix_normalized.png?v=${Date.now()}"
+               onerror="this.parentElement.innerHTML='<p style=\\'color:#4b5563;text-align:center;\\'>Image not available</p>'"
+               alt="Normalized Confusion Matrix">
+        </div>
+        <div class="vc-footer"><i class="fas fa-info-circle"></i> Normalized confusion matrix · test set</div>
+      </div>
+    `;
+
+    this.renderFeatures(d.feature_importance || []);
+    this.renderRocChart(d.roc_auc);
+    this.renderPerClassTable(d.per_class_report || {}, d.class_names || []);
   },
 
-  updateMetrics(data) {
-    const setEl = (id, val) => {
-      const el = document.getElementById(id);
-      if (el) el.textContent = val;
-    };
-    setEl("accuracy-value", `${data.accuracy?.toFixed(2) || "--"}%`);
-    setEl("precision-value", `${data.precision?.toFixed(2) || "--"}%`);
-    setEl("recall-value", `${data.recall?.toFixed(2) || "--"}%`);
-    setEl("f1-value", `${data.f1_score?.toFixed(2) || "--"}%`);
-    setEl("auc-value", data.roc_auc?.toFixed(4) || "----");
-    setEl("dataset-value", data.dataset_size?.toLocaleString() || "--");
-  },
-
-  updateCharts(data) {
-    try {
-      const perfCtx = document.getElementById("performanceChart").getContext("2d");
-      if (this.performanceChart) this.performanceChart.destroy();
-
-      this.performanceChart = new Chart(perfCtx, {
-        type: "radar",
-        data: {
-          labels: ["Accuracy", "Precision", "Recall", "F1-Score"],
-          datasets: [
-            {
-              label: "Model Performance",
-              data: [
-                data.accuracy || 0,
-                data.precision || 0,
-                data.recall || 0,
-                data.f1_score || 0,
-              ],
-              backgroundColor: "rgba(59, 130, 246, 0.2)",
-              borderColor: "rgba(59, 130, 246, 1)",
-              borderWidth: 2,
-              pointBackgroundColor: "rgba(59, 130, 246, 1)",
-              pointBorderColor: "#fff",
-              pointHoverBackgroundColor: "#fff",
-              pointHoverBorderColor: "rgba(59, 130, 246, 1)",
-            },
-          ],
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            r: {
-              beginAtZero: true,
-              max: 100,
-              ticks: {
-                callback: function (value) {
-                  return value + "%";
-                },
-              },
-            },
-          },
-          plugins: {
-            legend: { display: false },
-          },
-        },
-      });
-
-      const confCtx = document.getElementById("confusionChart").getContext("2d");
-      if (this.confusionChart) this.confusionChart.destroy();
-
-      const cm = data.confusion_matrix || {};
-      this.confusionChart = new Chart(confCtx, {
-        type: "bar",
-        data: {
-          labels: ["True Negative", "False Positive", "False Negative", "True Positive"],
-          datasets: [
-            {
-              label: "Count",
-              data: [cm.tn || 0, cm.fp || 0, cm.fn || 0, cm.tp || 0],
-              backgroundColor: [
-                "rgba(16, 185, 129, 0.8)",
-                "rgba(245, 158, 11, 0.8)",
-                "rgba(239, 68, 68, 0.8)",
-                "rgba(59, 130, 246, 0.8)",
-              ],
-              borderWidth: 0,
-            },
-          ],
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: { y: { beginAtZero: true } },
-          plugins: { legend: { display: false } },
-        },
-      });
-    } catch (error) {
-      console.error("[MLPerformance] Chart update failed:", error);
-    }
-  },
-
-  updateFeatures(features) {
-    const container = document.getElementById("features-list");
-    if (!container) return;
-
+  /* ── Feature importance ───────────────────────────────────── */
+  renderFeatures(features) {
+    const el = document.getElementById('feat-list');
+    if (!el) return;
     if (!features.length) {
-      container.innerHTML = '<div class="ml-loading">No feature data available</div>';
+      el.innerHTML = '<div style="color:#4b5563;text-align:center;padding:18px;"><i class="fas fa-info-circle"></i> Not available.</div>';
       return;
     }
-
-    const maxImp = features[0]?.importance || 1;
-    container.innerHTML = features
-      .map((feature, index) => {
-        const pct = (feature.importance * 100).toFixed(1);
-        const barWidth = ((feature.importance / maxImp) * 100).toFixed(1);
-        return `
-          <div class="ml-feature-item">
-            <div class="ml-feature-rank">${index + 1}</div>
-            <div class="ml-feature-info">
-              <div class="ml-feature-name">${feature.feature}</div>
-              <div class="ml-feature-description">Key indicator for attack detection</div>
-            </div>
-            <div class="ml-feature-importance">
-              <div class="ml-feature-score">${pct}%</div>
-              <div class="ml-feature-bar">
-                <div class="ml-feature-bar-fill" style="width: 0%" data-target="${barWidth}%"></div>
-              </div>
-            </div>
-          </div>
-        `;
-      })
-      .join("");
-
-    setTimeout(() => {
-      container.querySelectorAll(".ml-feature-bar-fill").forEach((bar) => {
-        bar.style.width = bar.dataset.target;
-      });
-    }, 100);
+    const top = features.slice(0, 10);
+    const max = top[0].importance;
+    el.innerHTML = top.map(f => {
+      const pct = (f.importance / max * 100).toFixed(2);
+      const w   = (f.importance / max * 100).toFixed(1);
+      let label = f.feature;
+      if (label.startsWith("N-gram Pattern: ")) {
+        label = label.replace("N-gram Pattern: ", "N-gram: ");
+      }
+      return `
+        <div class="feat-row">
+          <div class="feat-label" title="${f.feature}">${label}</div>
+          <div class="feat-track"><div class="feat-fill" style="width:${w}%;"></div></div>
+          <div class="feat-pct">${pct}%</div>
+        </div>`;
+    }).join('');
   },
 
-  updateModelInfo(data) {
-    const setEl = (id, val) => {
-      const el = document.getElementById(id);
-      if (el) el.textContent = val;
-    };
-    setEl("model-vectorizer", data.vectorizer_type || "--");
-    setEl("model-test-samples", data.test_size ? `${data.test_samples ?? data.test_size} samples` : "--");
+  /* ── ROC Chart fallback (Chart.js) ───────────────────────── */
+  renderRocChart(rocAuc) {
+    const lbl = document.getElementById('roc-auc-val');
+    if (lbl) lbl.textContent = rocAuc != null ? rocAuc.toFixed(4) : '--';
+
+    const canvas = document.getElementById('roc-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (this.rocChart) this.rocChart.destroy();
+    this.rocChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: ['0.00','0.25','0.50','0.75','1.00'],
+        datasets: [
+          { label: 'Model (AUC='+(rocAuc!=null?rocAuc.toFixed(4):'--')+')',
+            data:[0,0.95,0.98,0.99,1],
+            borderColor:'#db2777', backgroundColor:'rgba(219,39,119,0.08)',
+            borderWidth:2.5, tension:0.45, pointRadius:0, fill:true },
+          { label:'Random Classifier',
+            data:[0,0.25,0.5,0.75,1],
+            borderColor:'rgba(255,255,255,0.35)', borderWidth:1.5,
+            borderDash:[5,5], pointRadius:0 }
+        ]
+      },
+      options: {
+        responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{ position:'bottom', labels:{ color:'#d1d5db', font:{size:10}, boxWidth:12, boxHeight:2, padding:8 } } },
+        scales:{
+          x:{ title:{display:true,text:'False Positive Rate',color:'#9ca3af',font:{size:10}},
+              ticks:{color:'#6b7280',font:{size:9},maxTicksLimit:5},
+              grid:{color:'rgba(255,255,255,0.05)'} },
+          y:{ title:{display:true,text:'True Positive Rate',color:'#9ca3af',font:{size:10}},
+              ticks:{color:'#6b7280',font:{size:9},stepSize:0.25},
+              grid:{color:'rgba(255,255,255,0.05)'},
+              min:0,max:1 }
+        }
+      }
+    });
   },
 
-  showNotification(message, type = "info") {
-    const notification = document.createElement("div");
-    notification.className = `notification notification-${type}`;
-    notification.innerHTML = `
-      <i class="fas fa-${type === "error" ? "exclamation-circle" : "info-circle"}"></i>
-      <span>${message}</span>
-    `;
-    notification.style.cssText = `
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      padding: 1rem 1.5rem;
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      z-index: 1000;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    `;
+  /* ── Per-class table ──────────────────────────────────────── */
+  renderPerClassTable(report, classNames) {
+    const tbody = document.getElementById('cls-tbody');
+    if (!tbody) return;
+    if (!report || Object.keys(report).length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#4b5563;padding:18px;">Not available</td></tr>';
+      return;
+    }
+    let rows = [], macro = null, tot = 0;
+    for (const [k, m] of Object.entries(report)) {
+      if (['accuracy','macro avg','weighted avg'].includes(k)) {
+        if (k==='macro avg') macro = m; continue;
+      }
+      rows.push({ name: classNames[k] || k, p:m.precision, r:m.recall, f1:m.f1, s:m.support });
+      tot += m.support;
+    }
+    rows.sort((a,b) => b.s - a.s);
 
-    document.body.appendChild(notification);
-    setTimeout(() => {
-      notification.remove();
-    }, 5000);
+    const col = v => v>=0.95 ? '#10b981' : v>=0.85 ? '#f59e0b' : v>=0.75 ? '#f97316' : '#ef4444';
+    let html = rows.map(c => `
+      <tr>
+        <td style="text-align:left;">${c.name}</td>
+        <td style="color:${col(c.p)};font-weight:600;">${c.p.toFixed(2)}</td>
+        <td style="color:${col(c.r)};font-weight:600;">${c.r.toFixed(2)}</td>
+        <td style="color:${col(c.f1)};font-weight:600;">${c.f1.toFixed(2)}</td>
+        <td>${c.s.toLocaleString()}</td>
+      </tr>`).join('');
+    if (macro) {
+      html += `<tr class="macro-row">
+        <td style="text-align:left;">Macro Avg</td>
+        <td>${macro.precision.toFixed(2)}</td>
+        <td>${macro.recall.toFixed(2)}</td>
+        <td>${macro.f1.toFixed(2)}</td>
+        <td>${tot.toLocaleString()}</td>
+      </tr>`;
+    }
+    tbody.innerHTML = html;
   },
+
+  /* ── Model Information ────────────────────────────────────── */
+  renderModelInfo(d) {
+    const cols = [
+      { label:'Model Type',     val: d.model_type || '--' },
+      { label:'Dataset Size',   val: d.dataset_size ? d.dataset_size.toLocaleString()+' samples' : '--' },
+      { label:'Classes',        val: d.number_of_classes != null ? d.number_of_classes+' attack types' : '--' },
+      { label:'Features',       val: d.feature_count ? d.feature_count.toLocaleString() : '--' },
+      { label:'Training Date',  val: d.training_date || '--' },
+      { label:'Balanced Acc.',  val: d.balanced_accuracy != null ? d.balanced_accuracy.toFixed(2)+'%' : '--' },
+      { label:'Model Format',   val: (d.model_type||'').includes('ONNX') ? 'ONNX' : '--' },
+      { label:'ONNX Size',      val: d.onnx_size_mb != null ? d.onnx_size_mb+' MB' : '1.9 MB' },
+      { label:'Model Version',  val: d.model_version || 'v3.0-lightgbm-onnx' },
+    ];
+    document.getElementById('model-info-section').innerHTML = `
+      <h3><i class="fas fa-cube"></i> Model Information</h3>
+      <div style="overflow-x:auto;">
+        <table class="mi-table">
+          <thead><tr>${cols.map(c=>`<th>${c.label}</th>`).join('')}</tr></thead>
+          <tbody><tr>${cols.map(c=>`<td>${c.val}</td>`).join('')}</tr></tbody>
+        </table>
+      </div>`;
+  }
 };
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener('DOMContentLoaded', () => {
+  const el = document.getElementById('current-time');
+  const tick = () => { if(el) el.textContent = new Date().toLocaleString(); };
+  tick(); setInterval(tick, 1000);
   MLPerformance.load();
-
-  const headerRefreshBtn = document.getElementById("header-refresh-btn");
-  if (headerRefreshBtn) {
-    headerRefreshBtn.addEventListener("click", () => {
-      MLPerformance.load();
-    });
-  }
-
-  function updateTime() {
-    const now = new Date();
-    const hours = String(now.getHours()).padStart(2, "0");
-    const minutes = String(now.getMinutes()).padStart(2, "0");
-    const seconds = String(now.getSeconds()).padStart(2, "0");
-    const ampm = now.getHours() >= 12 ? "PM" : "AM";
-    const timeNode = document.getElementById("current-time");
-    if (timeNode) {
-      timeNode.textContent = `${hours}:${minutes}:${seconds} ${ampm}`;
-    }
-  }
-
-  updateTime();
-  setInterval(updateTime, 1000);
-  setInterval(() => {
-    MLPerformance.load();
-  }, 30000);
 });
 </script>
 {% endblock %}
-

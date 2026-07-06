@@ -1,0 +1,31 @@
+# Optuna Hyperparameter Optimization Report
+
+Optuna completed its trials optimizing multi-logloss.
+
+## Best Parameters
+```
+LightGBM Training Log
+=================================
+Training Duration: 2302.46 seconds
+Random Seed: 42
+
+Validation Metrics (Best Model)
+-------------------------------
+Validation Accuracy: 0.9385
+Validation Macro Precision: 0.9737
+Validation Macro Recall: 0.9540
+Validation Macro F1: 0.9598
+
+Best Optuna Parameters
+----------------------
+{'learning_rate': 0.11114989443094977, 'num_leaves': 22, 'max_depth': 12, 'min_child_samples': 85, 'n_estimators': 145, 'feature_fraction': 0.5909124836035503, 'bagging_fraction': 0.5917022549267169, 'lambda_l1': 5.472429642032198e-06, 'lambda_l2': 0.00052821153945323}
+Best Iteration: 143
+
+Cross Validation (5-Fold Stratified)
+------------------------------------
+Mean Accuracy: 0.9296 (± 0.0004)
+Mean Precision (Macro): 0.9418 (± 0.0007)
+Mean Recall (Macro): 0.9590 (± 0.0006)
+Mean F1-score (Macro): 0.9475 (± 0.0006)
+
+```

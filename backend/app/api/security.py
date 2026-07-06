@@ -643,8 +643,20 @@ class SimpleSecurityManager:
                                 ml_confidence=decision.risk_score,
                                 endpoint=request.path
                             )
-                            # Use the real attack type detected by ML — not 'ML' as a label
-                            real_type = decision.attack_type.replace('_', ' ').title() if decision.attack_type not in ('normal', 'unknown', 'error') else 'Suspicious'
+                            ATTACK_DISPLAY_NAMES = {
+                                'command_injection': 'Command Injection',
+                                'log4shell': 'Log4Shell',
+                                'normal': 'Clean',
+                                'path_traversal': 'Path Traversal',
+                                'sqli': 'SQL Injection',
+                                'ssrf': 'SSRF',
+                                'ssti': 'SSTI',
+                                'xss': 'XSS',
+                                'xxe': 'XXE'
+                            }
+                            # Use the real attack type detected by ML
+                            raw_type = decision.attack_type.lower()
+                            real_type = ATTACK_DISPLAY_NAMES.get(raw_type, raw_type.replace('_', ' ').title())
                             append_user_attack(
                                 user_key, real_type, ip,
                                 request.path, request.method, severity,
@@ -675,8 +687,21 @@ class SimpleSecurityManager:
                             )
                             def log_monitor_async(user_key_async, decision_async, ip_async, path_async, method_async, severity_async, text_async):
                                 try:
+                                    ATTACK_DISPLAY_NAMES = {
+                                        'command_injection': 'Command Injection',
+                                        'log4shell': 'Log4Shell',
+                                        'normal': 'Clean',
+                                        'path_traversal': 'Path Traversal',
+                                        'sqli': 'SQL Injection',
+                                        'ssrf': 'SSRF',
+                                        'ssti': 'SSTI',
+                                        'xss': 'XSS',
+                                        'xxe': 'XXE'
+                                    }
+                                    raw_type = decision_async.attack_type.lower()
+                                    real_type = ATTACK_DISPLAY_NAMES.get(raw_type, raw_type.replace('_', ' ').title())
                                     append_user_attack(
-                                        user_key_async, decision_async.attack_type, ip_async,
+                                        user_key_async, real_type, ip_async,
                                         path_async, method_async, severity_async,
                                         blocked=False, description="ML monitor",
                                         ml_detected=True, confidence=decision_async.risk_score, detection_type="ml",

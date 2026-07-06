@@ -1,0 +1,29 @@
+{
+  "high_correlation_pairs": [
+    {
+      "feature_1": "length",
+      "feature_2": "length_norm",
+      "correlation": 0.9787407726979966
+    },
+    {
+      "feature_1": "length_norm",
+      "feature_2": "cmd_separator_count",
+      "correlation": 0.9605327066106691
+    },
+    {
+      "feature_1": "shell_meta_count",
+      "feature_2": "equals_count",
+      "correlation": 0.9575426844777598
+    }
+  ],
+  "tfidf_config": {
+    "analyzer": "char_wb",
+    "ngram_range": [
+      1,
+      3
+    ],
+    "max_features": 3000,
+    "min_df": 2,
+    "max_df": 0.95
+  }
+}
