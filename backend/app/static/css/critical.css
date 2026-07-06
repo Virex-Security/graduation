@@ -22,6 +22,10 @@
   color: var(--critical);
 }
 
+[data-theme="light"] .section-title h1 {
+  color: #000000;
+}
+
 .section-title p {
   color: var(--text-secondary);
   font-size: 0.95rem;
