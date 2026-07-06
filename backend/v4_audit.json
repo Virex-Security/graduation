@@ -1,0 +1,23 @@
+{
+  "total": 142323,
+  "class_distribution": {
+    "normal": 56918,
+    "path_traversal": 33038,
+    "sqli": 23628,
+    "xss": 7739,
+    "command_injection": 7000,
+    "ssrf": 3500,
+    "xxe": 3500,
+    "ssti": 3500,
+    "log4shell": 3500
+  },
+  "avg_payload_length": 300.602889202729,
+  "encoded_url": 41718,
+  "encoded_unicode": 38,
+  "encoded_html": 3347,
+  "encoded_base64": 359,
+  "json": 2,
+  "xml": 4583,
+  "jwt": 0,
+  "rest_api": 0
+}

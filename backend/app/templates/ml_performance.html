@@ -191,11 +191,11 @@
 }
 .feat-row:last-child { border-bottom: none; }
 .feat-label {
-  width: 128px;
+  width: 170px;
   font-size: 0.76rem;
   font-weight: 600;
   color: #cbd5e1;
-  text-align: right;
+  text-align: left;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -503,9 +503,13 @@ const MLPerformance = {
     el.innerHTML = top.map(f => {
       const pct = (f.importance / max * 100).toFixed(2);
       const w   = (f.importance / max * 100).toFixed(1);
+      let label = f.feature;
+      if (label.startsWith("N-gram Pattern: ")) {
+        label = label.replace("N-gram Pattern: ", "N-gram: ");
+      }
       return `
         <div class="feat-row">
-          <div class="feat-label" title="${f.feature}">${f.feature}</div>
+          <div class="feat-label" title="${f.feature}">${label}</div>
           <div class="feat-track"><div class="feat-fill" style="width:${w}%;"></div></div>
           <div class="feat-pct">${pct}%</div>
         </div>`;

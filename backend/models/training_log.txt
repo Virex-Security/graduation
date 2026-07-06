@@ -1,14 +1,14 @@
 LightGBM Training Log
 =================================
-Training Duration: 2823.37 seconds
+Training Duration: 2302.46 seconds
 Random Seed: 42
 
 Validation Metrics (Best Model)
 -------------------------------
-Validation Accuracy: 0.9230
-Validation Macro Precision: 0.9588
-Validation Macro Recall: 0.9670
-Validation Macro F1: 0.9614
+Validation Accuracy: 0.9385
+Validation Macro Precision: 0.9737
+Validation Macro Recall: 0.9540
+Validation Macro F1: 0.9598
 
 Best Optuna Parameters
 ----------------------
@@ -17,7 +17,7 @@ Best Iteration: 143
 
 Cross Validation (5-Fold Stratified)
 ------------------------------------
-Mean Accuracy: 0.9219 (± 0.0018)
-Mean Precision (Macro): 0.9581 (± 0.0011)
-Mean Recall (Macro): 0.9644 (± 0.0011)
-Mean F1-score (Macro): 0.9600 (± 0.0011)
+Mean Accuracy: 0.9296 (± 0.0004)
+Mean Precision (Macro): 0.9418 (± 0.0007)
+Mean Recall (Macro): 0.9590 (± 0.0006)
+Mean F1-score (Macro): 0.9475 (± 0.0006)

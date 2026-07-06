@@ -119,11 +119,9 @@ class SecurityFeatureExtractor(BaseEstimator, TransformerMixin):
         n   = max(len(t), 1)
 
         return [
-            # ── 0-3: Length & Entropy ──
+            # ── 0-1: Length & Entropy ──
             float(n),
-            float(min(n / 500.0, 1.0)),
             self._entropy(t),
-            self._entropy(t) / math.log2(max(n, 2)),
 
             # ── 4: Special char density ──
             len(re.findall(r"[!@#$%^&*()\[\]{};:'\"<>?/\\|`~=+\-]", t)) / n,
@@ -232,8 +230,8 @@ class SecurityFeatureExtractor(BaseEstimator, TransformerMixin):
     @property
     def feature_names(self):
         return [
-            "length", "length_norm",
-            "entropy", "entropy_norm",
+            "length",
+            "entropy",
             "special_char_ratio",
             "sql_keyword_count", "has_union_select", "sql_comment_count",
             "has_sql_tautology", "has_nosql_operator",

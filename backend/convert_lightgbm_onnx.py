@@ -65,11 +65,17 @@ def main():
         
     num_features = X_features.shape[1]
     
+    # Extract base estimator if CalibratedClassifierCV
+    if hasattr(clf, "estimator"):
+        export_clf = clf.estimator
+    else:
+        export_clf = clf
+    
     # 2. Convert to ONNX
     logger.info(f"Converting LightGBM model to ONNX. Input shape: [None, {num_features}]")
     initial_types = [('input', FloatTensorType([None, num_features]))]
     
-    onnx_model = onnxmltools.convert_lightgbm(clf, initial_types=initial_types, target_opset=14)
+    onnx_model = onnxmltools.convert_lightgbm(export_clf, initial_types=initial_types, target_opset=14)
     onnxmltools.utils.save_model(onnx_model, str(ONNX_PATH))
     
     conv_duration = time.time() - start_time
@@ -94,8 +100,8 @@ def main():
     logger.info("Running 500-sample consistency test...")
     
     # Sklearn inference
-    skl_probs = clf.predict_proba(X_features_dense)
-    skl_preds = clf.predict(X_features_dense)
+    skl_probs = export_clf.predict_proba(X_features_dense)
+    skl_preds = export_clf.predict(X_features_dense)
     
     # ONNX inference
     onnx_res = sess.run([output_name_label, output_name_prob], {input_name: X_features_dense})
